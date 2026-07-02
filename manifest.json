@@ -2,9 +2,10 @@
     "manifest_version": 3,
     "name": "Edvibe Toolbox",
     "version": "1.0",
-    "description": "Универсальный набор инструментов для автоматизации и бэкапа на платформе Edvibe",
+    "description": "A universal toolkit for automation and backup on the Edvibe platform.",
     "permissions": [
-        "storage"
+        "storage",
+        "activeTab"
     ],
     "action": {
         "default_popup": "popup.html"
