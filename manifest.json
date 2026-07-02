@@ -25,6 +25,7 @@
                 "*://*.edvibe.com/*"
             ],
             "js": [
+                "jszip.min.js",
                 "main.js"
             ],
             "run_at": "document_start",
