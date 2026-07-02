@@ -1,0 +1,33 @@
+{
+    "manifest_version": 3,
+    "name": "Edvibe Toolbox",
+    "version": "1.0",
+    "description": "Универсальный набор инструментов для автоматизации и бэкапа на платформе Edvibe",
+    "permissions": [
+        "storage"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.edvibe.com/*"
+            ],
+            "js": [
+                "isolated.js"
+            ],
+            "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "*://*.edvibe.com/*"
+            ],
+            "js": [
+                "main.js"
+            ],
+            "run_at": "document_start",
+            "world": "MAIN"
+        }
+    ]
+}

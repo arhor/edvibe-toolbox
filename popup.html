@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 250px;
+            padding: 12px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e1e8ed;
+            padding-bottom: 8px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        /* Разные цвета для разных типов действий */
+        .btn-backup {
+            background-color: #3498db;
+        }
+
+        .btn-backup:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">Edvibe Toolbox 🛠️</div>
+
+    <div class="section">
+        <div class="section-title">Резервное копирование</div>
+        <button id="startCaptureBtn" class="btn btn-backup">Включить перехват</button>
+        <button id="downloadJsonBtn" class="btn btn-backup" style="background-color: #2ecc71;">Скачать JSON</button>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Сброс данных</div>
+        <button id="resetLessonBtn" class="btn btn-danger">Сбросить этот урок</button>
+        <button id="resetMarathonBtn" class="btn btn-danger" style="background-color: #95a5a6;" disabled>Сбросить
+            марафон (В разработке)</button>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
