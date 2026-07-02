@@ -11,48 +11,22 @@ const OriginalWebSocket = window.WebSocket;
 window.WebSocket = function (url, protocols) {
     console.log(`[Edvibe Toolbox][Main] Intercepting new WebSocket instantiation targeting: ${url}`);
     const ws = new OriginalWebSocket(url, protocols);
-
-    // Maintain a live reference to the most recently initialized active socket pipeline
     activeEdvibeSocket = ws;
 
     ws.addEventListener('message', (event) => {
-        // Guard clause: ignore binary frames (Blobs/ArrayBuffers) to prevent JSON parsing crashes
-        if (typeof event.data !== 'string') {
-            return;
-        }
+        if (typeof event.data !== 'string') return;
 
         try {
             const data = JSON.parse(event.data);
 
-            // 1. Correlation ID (RequestId) Matching Flow
+            // Correlation ID (RequestId) Matching Flow
             if (data.RequestId && pendingRequests.has(data.RequestId)) {
-                console.log(`[Edvibe Toolbox][Main] Inbound response matched pending RequestId: ${data.RequestId} (Method: ${data.Method || 'unknown'})`);
+                console.log(`[Edvibe Toolbox][Main] Inbound response matched pending RequestId: ${data.RequestId}`);
                 const resolve = pendingRequests.get(data.RequestId);
                 pendingRequests.delete(data.RequestId);
-                resolve(data); // Fulfill the awaiting async Promise
-            }
-
-            // 2. Continuous Background Capture Flow (Specifically tracking LoadExercises)
-            if (data.Method === "LoadExercises" && data.IsSuccess) {
-                console.log('[Edvibe Toolbox][Main] Intercepted valid LoadExercises payload frame.');
-                const parsedValue = typeof data.Value === 'string' ? JSON.parse(data.Value) : data.Value;
-
-                if (parsedValue) {
-                    window.postMessage({
-                        type: 'EDVIBE_TOOLBOX_CAPTURE',
-                        payload: {
-                            lessonId: parsedValue.LessonId || "unknown",
-                            sectionId: parsedValue.SectionId,
-                            items: parsedValue.Items || [],
-                            timestamp: new Date().toISOString()
-                        }
-                    }, '*');
-                } else {
-                    console.warn('[Edvibe Toolbox][Main] LoadExercises matched but data.Value field is empty or corrupted.', data);
-                }
+                resolve(data);
             }
         } catch (parseError) {
-            // Silently absorb parsing failures from unrelated operational stream noise
             console.debug('[Edvibe Toolbox][Main] Failed parsing un-formatted data frame string:', parseError);
         }
     });
@@ -78,22 +52,17 @@ function sendSocketMessage(controller, method, projectName, valueObject) {
             Value: JSON.stringify(valueObject)
         };
 
-        // Register resolve hook ahead of network dispatch execution
         pendingRequests.set(requestId, resolve);
-
-        console.log(`[Edvibe Toolbox][Main] Dispatching out-bound message [ID: ${requestId}][Method: ${method}]`);
         activeEdvibeSocket.send(JSON.stringify(packet));
     });
 }
 
-// Utility throttle control to mimic natural human reading behavior and respect backend rate limits
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
-// CORE ORCHESTRATION PIPELINE FOR AUTOMATED MARATHON SCRAPING
+// CORE ORCHESTRATION PIPELINE FOR IN-MEMORY SCRAPING & AUTO-DOWNLOAD
 async function startAutomatedMarathonBackup() {
     console.log('[Edvibe Toolbox][Main] Initializing automated marathon compilation routine...');
 
-    // Extract numerical identifier from URL routing schema
     const match = window.location.href.match(/marathon\/(\d+)/);
     if (!match) {
         console.error('[Edvibe Toolbox][Main] URL compilation failed. Location is out of marathon scope:', window.location.href);
@@ -102,6 +71,14 @@ async function startAutomatedMarathonBackup() {
     }
     const marathonId = Number(match[1]);
     console.log(`[Edvibe Toolbox][Main] Targeted MarathonId confirmed: ${marathonId}`);
+
+    // Core volatile memory structure to hold all compiled data points during runtime execution
+    const backupBundle = {
+        exportedAt: new Date().toISOString(),
+        marathonId: marathonId,
+        totalLessons: 0,
+        lessons: []
+    };
 
     try {
         // Step 1: Query the pagination backend for all assigned curriculum lessons
@@ -114,6 +91,7 @@ async function startAutomatedMarathonBackup() {
         );
 
         const marathonLessons = paginationData.Value?.Items || [];
+        backupBundle.totalLessons = marathonLessons.length;
         console.log(`[Edvibe Toolbox][Main] Directory lookup completed. Found ${marathonLessons.length} lessons available.`);
 
         // Step 2: Sequentially process each extracted individual structural lesson node
@@ -127,6 +105,14 @@ async function startAutomatedMarathonBackup() {
                 { LessonId: lessonNode.LessonId }
             );
 
+            const lessonEntry = {
+                lessonId: lessonNode.LessonId,
+                marathonLessonId: lessonNode.MarathonLessonId,
+                name: lessonNode.Name,
+                imageUrl: lessonStructure.Value?.ImageUrl || lessonNode.Image,
+                sections: []
+            };
+
             // Dynamically combine structural sections (Standard content subsections + Homework assignments)
             const sections = lessonStructure.Value?.Sections || [];
             if (lessonStructure.Value?.HomeworkSection) {
@@ -137,22 +123,51 @@ async function startAutomatedMarathonBackup() {
 
             // Step 3: Loop through each isolated layout section container and command a target data retrieval fetch
             for (const section of sections) {
-                console.log(`[Edvibe Toolbox][Main] Fetching task exercise assets for SectionId: ${section.Id}`);
+                console.log(`[Edvibe Toolbox][Main] Fetching task exercise assets for SectionId: ${section.Id} (${section.Name})`);
 
                 // Imposed 300ms throttle to insulate pipeline from triggering server-side WAF rule alarms
                 await delay(300);
 
-                await sendSocketMessage(
+                const exerciseResponse = await sendSocketMessage(
                     "GetExerciseWsController",
                     "LoadExercises",
                     "Exercises",
                     { IsTeacher: true, SectionId: section.Id, LessonId: lessonNode.LessonId, LessonSection: 0 }
                 );
+
+                const parsedValue = typeof exerciseResponse.Value === 'string' ? JSON.parse(exerciseResponse.Value) : exerciseResponse.Value;
+
+                // Push the data right into our in-memory lesson structure node
+                lessonEntry.sections.push({
+                    sectionId: section.Id,
+                    name: section.Name,
+                    isHomework: section.IsHomework || false,
+                    items: parsedValue?.Items || []
+                });
             }
+
+            // Append the fully aggregated lesson structure tree into our main backup data packet
+            backupBundle.lessons.push(lessonEntry);
         }
 
-        console.log('[Edvibe Toolbox][Main] Automation loop fully completed without interruptions.');
-        alert('🎉 Automated marathon backup successfully completed! You may now download the compiled JSON configuration package from the toolbox popup panel.');
+        console.log('[Edvibe Toolbox][Main] Automation loop fully completed. Preparing instant payload delivery download...');
+
+        // Step 4: Instantly compile memory data frame into a JSON Blob and push a download action down to the browser layer
+        const blob = new Blob([JSON.stringify(backupBundle, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const linkAnchor = document.createElement('a');
+        linkAnchor.href = url;
+        linkAnchor.download = `edvibe_marathon_${marathonId}_backup.json`;
+        document.body.appendChild(linkAnchor);
+        linkAnchor.click();
+
+        // Memory optimization lifecycle cleanup
+        document.body.removeChild(linkAnchor);
+        URL.revokeObjectURL(url);
+
+        console.log('[Edvibe Toolbox][Main] Memory compiled download execution fully complete.');
+        alert('🎉 Marathon dataset completely compiled and downloaded successfully!');
 
     } catch (error) {
         console.error('[Edvibe Toolbox][Main] Fatal exception caught inside execution orchestration context:', error);
