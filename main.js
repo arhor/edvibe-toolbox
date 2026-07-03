@@ -203,7 +203,7 @@ function createExportProgressOverlay() {
 
     closeButton.addEventListener('click', () => overlay.remove());
 
-    function update({ statusText, loadedSections = 0, totalSections = 0, state = 'loading' }) {
+    function update({ statusText, loadedSections = 0, totalSections = 0, countText, state = 'loading' }) {
         const hasTotal = totalSections > 0;
         const progressPercent = state === 'complete'
             ? 100
@@ -214,9 +214,9 @@ function createExportProgressOverlay() {
         overlay.classList.toggle('is-error', state === 'error');
 
         status.textContent = statusText;
-        count.textContent = hasTotal
+        count.textContent = countText ?? (hasTotal
             ? `${loadedSections} / ${totalSections} sections loaded`
-            : state === 'complete' ? 'No sections found' : 'Discovering sections...';
+            : state === 'complete' ? 'Export complete' : 'Discovering sections...');
         percent.textContent = `${progressPercent}%`;
         bar.style.width = hasTotal || state === 'complete' ? `${progressPercent}%` : '';
         track.setAttribute('aria-valuenow', String(progressPercent));
@@ -372,7 +372,13 @@ async function startAutomatedMarathonBackup() {
 
         console.log('[Edvibe Toolbox][Main] Automation loop fully completed. Preparing instant payload delivery download...');
 
-        // Step 4: Instantly compile memory data frame into a JSON Blob and push a download action down to the browser layer
+        progressOverlay.update({
+            statusText: 'All sections loaded.\nSaving JSON backup...',
+            loadedSections: totalSections,
+            totalSections
+        });
+
+        // Step 4: Compile memory data frame into a JSON Blob and trigger download
         const blob = new Blob([JSON.stringify(backupBundle, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
 
@@ -382,12 +388,36 @@ async function startAutomatedMarathonBackup() {
         document.body.appendChild(linkAnchor);
         linkAnchor.click();
 
-        // Memory optimization lifecycle cleanup
         document.body.removeChild(linkAnchor);
         URL.revokeObjectURL(url);
 
-        console.log('[Edvibe Toolbox][Main] Memory compiled download execution fully complete.');
-        progressOverlay.complete('Marathon dataset compiled and download started successfully.', totalSections);
+        console.log('[Edvibe Toolbox][Main] JSON backup download started. Building ZIP workspace archive...');
+
+        progressOverlay.update({
+            statusText: 'Processing lesson content and archiving workspace...\nDownloading images — this may take a few minutes.',
+            loadedSections: 0,
+            totalSections: 0
+        });
+
+        // Step 5: Convert backup into a structured ZIP workspace (Markdown + localized images)
+        await compileMarathonToZip(backupBundle, {
+            onProgress({ message, current, total }) {
+                const isCompressing = message === 'Compressing archive...';
+                progressOverlay.update({
+                    statusText: isCompressing
+                        ? 'Processing lesson content and archiving workspace...\nCompressing archive...'
+                        : `Processing lesson content and archiving workspace...\n${message}`,
+                    loadedSections: isCompressing ? 0 : (current || 0),
+                    totalSections: isCompressing ? 0 : (total || 0),
+                    countText: isCompressing
+                        ? 'Compressing archive...'
+                        : (total ? `${current} / ${total} lessons processed` : 'Preparing archive...')
+                });
+            }
+        });
+
+        console.log('[Edvibe Toolbox][Main] JSON backup and ZIP workspace archive downloads complete.');
+        progressOverlay.complete('JSON backup and ZIP workspace archive downloaded successfully.', totalSections);
         progressOverlay.dismissAfter(3000);
 
     } catch (error) {

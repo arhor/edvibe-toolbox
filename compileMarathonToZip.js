@@ -299,9 +299,10 @@ function triggerBlobDownload(blob, filename) {
  *       {Section Name}.md
  *
  * @param {object} backupData - Parsed marathon export (exportedAt, marathonId, lessons[])
+ * @param {{ onProgress?: (detail: { message: string, current?: number, total?: number }) => void }} [options]
  * @returns {Promise<Blob>} Generated ZIP blob (also triggers browser download)
  */
-async function compileMarathonToZip(backupData) {
+async function compileMarathonToZip(backupData, options = {}) {
     if (!window.JSZip) {
         throw new Error('JSZip is not loaded. Ensure lib/jszip.min.js is injected before this script.');
     }
@@ -319,8 +320,14 @@ async function compileMarathonToZip(backupData) {
     const archiveRootName = `marathon_${backupData.marathonId || 'export'}`;
     const rootFolder = zip.folder(archiveRootName);
     const usedLessonNames = new Set();
+    const totalLessons = backupData.lessons.length;
 
-    for (const lesson of backupData.lessons) {
+    for (const [lessonIndex, lesson] of backupData.lessons.entries()) {
+        options.onProgress?.({
+            message: `Processing lesson ${lessonIndex + 1} of ${totalLessons}: ${lesson.name}`,
+            current: lessonIndex + 1,
+            total: totalLessons
+        });
         const lessonFolderName = uniquePathName(lesson.name, usedLessonNames, `lesson_${lesson.lessonId}`);
         const lessonFolder = rootFolder.folder(lessonFolderName);
         const imagesFolder = lessonFolder.folder('images');
@@ -376,6 +383,8 @@ async function compileMarathonToZip(backupData) {
         totalLessons: backupData.totalLessons,
         compiledAt: new Date().toISOString()
     }, null, 2));
+
+    options.onProgress?.({ message: 'Compressing archive...' });
 
     const zipBlob = await zip.generateAsync({
         type: 'blob',
