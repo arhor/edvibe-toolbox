@@ -3,9 +3,41 @@
 console.log('[Edvibe Toolbox][Popup] Popup script initialized and active.');
 
 const runAutomationBtn = document.getElementById('startCaptureBtn');
+const DEFAULT_BUTTON_TEXT = 'Выгрузить марафон';
+const EXPORTING_BUTTON_TEXT = '⚡ Exporting...';
+
+function setExportButtonState(isExporting) {
+    if (!runAutomationBtn) return;
+
+    runAutomationBtn.disabled = isExporting;
+    runAutomationBtn.innerText = isExporting ? EXPORTING_BUTTON_TEXT : DEFAULT_BUTTON_TEXT;
+    runAutomationBtn.style.backgroundColor = isExporting ? '#d35400' : '';
+}
+
+async function syncExportButtonFromStorage() {
+    const { exportInProgress } = await chrome.storage.local.get('exportInProgress');
+    setExportButtonState(Boolean(exportInProgress));
+}
+
+chrome.runtime.onMessage.addListener((message) => {
+    if (message?.action !== 'EXPORT_STATUS') return;
+
+    if (message.state === 'started') {
+        setExportButtonState(true);
+        return;
+    }
+
+    if (message.state === 'complete' || message.state === 'error') {
+        setExportButtonState(false);
+    }
+});
 
 if (runAutomationBtn) {
+    syncExportButtonFromStorage();
+
     runAutomationBtn.addEventListener('click', async (e) => {
+        if (runAutomationBtn.disabled) return;
+
         console.log('[Edvibe Toolbox][Popup] Click event detected on main unified execution button.');
 
         try {
@@ -23,35 +55,23 @@ if (runAutomationBtn) {
                 return;
             }
 
-            const originalText = e.target.innerText;
-            const originalBg = e.target.style.backgroundColor;
-
-            // Visual feedback loop indicating compilation processing state
-            e.target.innerText = "⚡ Exporting Data...";
-            e.target.style.backgroundColor = "#d35400";
+            setExportButtonState(true);
 
             console.log(`[Edvibe Toolbox][Popup] Sending execution token to tab identifier: ${tab.id}`);
 
-            chrome.tabs.sendMessage(tab.id, { action: "START_FULL_AUTOMATION" }, (response) => {
+            chrome.tabs.sendMessage(tab.id, { action: 'START_FULL_AUTOMATION' }, (response) => {
                 if (chrome.runtime.lastError) {
                     console.error('[Edvibe Toolbox][Popup] Content script channel link failed:', chrome.runtime.lastError.message);
                     alert('Connection to page failed. Please refresh your Edvibe browser tab (F5) and try again.');
-
-                    e.target.innerText = originalText;
-                    e.target.style.backgroundColor = originalBg;
-                } else {
-                    console.log('[Edvibe Toolbox][Popup] Acknowledgment received from the page environment:', response);
-
-                    // Revert button styling back to default configuration once execution handover finishes
-                    setTimeout(() => {
-                        e.target.innerText = originalText;
-                        e.target.style.backgroundColor = originalBg;
-                    }, 2000);
+                    setExportButtonState(false);
+                    return;
                 }
-            });
 
+                console.log('[Edvibe Toolbox][Popup] Acknowledgment received from the page environment:', response);
+            });
         } catch (error) {
             console.error('[Edvibe Toolbox][Popup] Fatal exception occurred during automation startup:', error);
+            setExportButtonState(false);
         }
     });
 } else {

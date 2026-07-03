@@ -2,19 +2,39 @@
 
 console.log('[Edvibe Toolbox][Isolated] Script successfully injected and initialized.');
 
-// Listen for runtime messages from the extension's Popup UI and proxy them straight to the MAIN page world
+function relayExportStatus(payload) {
+    const isActive = payload.state === 'started';
+
+    chrome.storage.local.set({ exportInProgress: isActive }, () => {
+        chrome.runtime.sendMessage({
+            action: 'EXPORT_STATUS',
+            state: payload.state,
+            message: payload.message || ''
+        });
+    });
+}
+
+window.addEventListener('message', (event) => {
+    if (event.source !== window || !event.data?.type) return;
+
+    if (event.data.type === 'EDVIBE_TOOLBOX_EXPORT_STATUS') {
+        console.log('[Edvibe Toolbox][Isolated] Export status update from MAIN world:', event.data.state);
+        relayExportStatus(event.data);
+    }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('[Edvibe Toolbox][Isolated] Incoming chrome.runtime message received:', message);
 
-    if (message && message.action === "START_FULL_AUTOMATION") {
+    if (message && message.action === 'START_FULL_AUTOMATION') {
         console.log('[Edvibe Toolbox][Isolated] Action matched: START_FULL_AUTOMATION. Forwarding command to MAIN world...');
 
-        // Forward execution token down to the main window page frame context
+        relayExportStatus({ state: 'started' });
         window.postMessage({ type: 'EDVIBE_TOOLBOX_START_ALL' }, '*');
 
-        sendResponse({ status: "success", info: "Automation sequence channeled to page engine." });
+        sendResponse({ status: 'success', info: 'Automation sequence channeled to page engine.' });
     } else {
-        sendResponse({ status: "ignored" });
+        sendResponse({ status: 'ignored' });
     }
 
     return true;

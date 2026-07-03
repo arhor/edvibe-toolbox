@@ -319,6 +319,10 @@ async function compileMarathonToZip(backupData, options = {}) {
     const turndown = createMarkdownTurndownService();
     const archiveRootName = `marathon_${backupData.marathonId || 'export'}`;
     const rootFolder = zip.folder(archiveRootName);
+    const backupJsonName = `edvibe_marathon_${backupData.marathonId || 'export'}_backup.json`;
+
+    rootFolder.file(backupJsonName, JSON.stringify(backupData, null, 2));
+
     const usedLessonNames = new Set();
     const totalLessons = backupData.lessons.length;
 
@@ -344,8 +348,13 @@ async function compileMarathonToZip(backupData, options = {}) {
             await localizeImage(lesson.imageUrl, `lesson_${lesson.lessonId}`, imagesFolder, ctx.urlMap);
         }
 
-        for (const section of lesson.sections || []) {
-            const sectionBaseName = uniquePathName(section.name, usedSectionNames, `section_${section.sectionId}`);
+        for (const [sectionIndex, section] of (lesson.sections || []).entries()) {
+            const numberedSectionName = `${sectionIndex + 1} - ${section.name}`;
+            const sectionBaseName = uniquePathName(
+                numberedSectionName,
+                usedSectionNames,
+                `section_${section.sectionId}`
+            );
             const sectionFileName = `${sectionBaseName}.md`;
             const markdownParts = [`# ${section.name}`];
 

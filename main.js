@@ -237,7 +237,21 @@ function createExportProgressOverlay() {
 }
 
 // CORE ORCHESTRATION PIPELINE FOR IN-MEMORY SCRAPING & AUTO-DOWNLOAD
+let marathonExportRunning = false;
+
+function notifyExportStatus(state, message = '') {
+    window.postMessage({ type: 'EDVIBE_TOOLBOX_EXPORT_STATUS', state, message }, '*');
+}
+
 async function startAutomatedMarathonBackup() {
+    if (marathonExportRunning) {
+        console.warn('[Edvibe Toolbox][Main] Export already in progress, ignoring duplicate request.');
+        return;
+    }
+
+    marathonExportRunning = true;
+    notifyExportStatus('started');
+
     console.log('[Edvibe Toolbox][Main] Initializing automated marathon compilation routine...');
     const progressOverlay = createExportProgressOverlay();
     progressOverlay.update({
@@ -246,24 +260,24 @@ async function startAutomatedMarathonBackup() {
         totalSections: 0
     });
 
-    const match = window.location.href.match(/marathon\/(\d+)/);
-    if (!match) {
-        console.error('[Edvibe Toolbox][Main] URL compilation failed. Location is out of marathon scope:', window.location.href);
-        progressOverlay.error('Failed to find a valid MarathonId in the current page URL.');
-        return;
-    }
-    const marathonId = Number(match[1]);
-    console.log(`[Edvibe Toolbox][Main] Targeted MarathonId confirmed: ${marathonId}`);
-
-    // Core volatile memory structure to hold all compiled data points during runtime execution
-    const backupBundle = {
-        exportedAt: new Date().toISOString(),
-        marathonId: marathonId,
-        totalLessons: 0,
-        lessons: []
-    };
-
     try {
+        const match = window.location.href.match(/marathon\/(\d+)/);
+        if (!match) {
+            console.error('[Edvibe Toolbox][Main] URL compilation failed. Location is out of marathon scope:', window.location.href);
+            progressOverlay.error('Failed to find a valid MarathonId in the current page URL.');
+            notifyExportStatus('error', 'Invalid marathon URL.');
+            return;
+        }
+        const marathonId = Number(match[1]);
+        console.log(`[Edvibe Toolbox][Main] Targeted MarathonId confirmed: ${marathonId}`);
+
+        const backupBundle = {
+            exportedAt: new Date().toISOString(),
+            marathonId: marathonId,
+            totalLessons: 0,
+            lessons: []
+        };
+
         // Step 1: Query the pagination backend for all assigned curriculum lessons
         console.log('[Edvibe Toolbox][Main] Querying complete marathon lesson directory indexing...');
         const paginationData = await sendSocketMessage(
@@ -370,36 +384,14 @@ async function startAutomatedMarathonBackup() {
             backupBundle.lessons.push(lessonEntry);
         }
 
-        console.log('[Edvibe Toolbox][Main] Automation loop fully completed. Preparing instant payload delivery download...');
+        console.log('[Edvibe Toolbox][Main] Automation loop fully completed. Building ZIP workspace archive...');
 
         progressOverlay.update({
-            statusText: 'All sections loaded.\nSaving JSON backup...',
-            loadedSections: totalSections,
-            totalSections
-        });
-
-        // Step 4: Compile memory data frame into a JSON Blob and trigger download
-        const blob = new Blob([JSON.stringify(backupBundle, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-
-        const linkAnchor = document.createElement('a');
-        linkAnchor.href = url;
-        linkAnchor.download = `edvibe_marathon_${marathonId}_backup.json`;
-        document.body.appendChild(linkAnchor);
-        linkAnchor.click();
-
-        document.body.removeChild(linkAnchor);
-        URL.revokeObjectURL(url);
-
-        console.log('[Edvibe Toolbox][Main] JSON backup download started. Building ZIP workspace archive...');
-
-        progressOverlay.update({
-            statusText: 'Processing lesson content and archiving workspace...\nDownloading images — this may take a few minutes.',
+            statusText: 'All sections loaded.\nProcessing lesson content and archiving workspace...\nDownloading images — this may take a few minutes.',
             loadedSections: 0,
             totalSections: 0
         });
 
-        // Step 5: Convert backup into a structured ZIP workspace (Markdown + localized images)
         await compileMarathonToZip(backupBundle, {
             onProgress({ message, current, total }) {
                 const isCompressing = message === 'Compressing archive...';
@@ -416,13 +408,17 @@ async function startAutomatedMarathonBackup() {
             }
         });
 
-        console.log('[Edvibe Toolbox][Main] JSON backup and ZIP workspace archive downloads complete.');
-        progressOverlay.complete('JSON backup and ZIP workspace archive downloaded successfully.', totalSections);
+        console.log('[Edvibe Toolbox][Main] ZIP workspace archive download complete.');
+        progressOverlay.complete('ZIP workspace archive downloaded successfully.', totalSections);
         progressOverlay.dismissAfter(3000);
+        notifyExportStatus('complete');
 
     } catch (error) {
         console.error('[Edvibe Toolbox][Main] Fatal exception caught inside execution orchestration context:', error);
         progressOverlay.error('Export failed: ' + error.message);
+        notifyExportStatus('error', error.message);
+    } finally {
+        marathonExportRunning = false;
     }
 }
 
