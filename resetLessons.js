@@ -311,6 +311,14 @@
         `;
     }
 
+    function getResetPupilLoadingStyles() {
+        return `
+            #${RESET_OVERLAY_ID} .edvibe-reset-pupils-shell.is-loading {
+                min-height: 96px;
+            }
+        `;
+    }
+
     function setResetRunningState(overlay, isRunning) {
         overlay.classList.toggle('is-running', isRunning);
     }
@@ -487,6 +495,8 @@
             #${RESET_OVERLAY_ID} .edvibe-reset-pupils-shell {
                 position: relative;
             }
+
+            ${getResetPupilLoadingStyles()}
 
             #${RESET_OVERLAY_ID} .edvibe-reset-pupils-shell.is-loading .edvibe-reset-pupils {
                 opacity: 0.45;
@@ -1411,6 +1421,7 @@
         createResetModal,
         createResetLessonsFeature,
         getResetModalMarkup,
+        getResetPupilLoadingStyles,
         getResetRunningStyles,
         getResetPupilSelectionState,
         getResetWizardViewState,

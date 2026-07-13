@@ -14,6 +14,7 @@ const {
     createResetModal,
     createResetLessonsFeature,
     getResetModalMarkup,
+    getResetPupilLoadingStyles,
     getResetRunningStyles,
     getResetPupilSelectionState,
     getResetWizardViewState,
@@ -1513,6 +1514,12 @@ test('running reset hides selection but not the live progress region', () => {
 
     assert.match(styles, /\.is-running \.edvibe-reset-body\s*\{[^}]*display:\s*none/);
     assert.doesNotMatch(styles, /\.is-running \.edvibe-reset-live-region\s*\{[^}]*display:\s*none/);
+});
+
+test('pupil loading state reserves enough height for the spinner', () => {
+    const styles = getResetPupilLoadingStyles();
+
+    assert.match(styles, /\.edvibe-reset-pupils-shell\.is-loading\s*\{[^}]*min-height:\s*96px/);
 });
 
 test('setResetRunningState applies the running class', () => {
