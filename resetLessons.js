@@ -479,6 +479,38 @@
                 border-radius: 10px;
             }
 
+            #${RESET_OVERLAY_ID} .edvibe-reset-pupils-shell {
+                position: relative;
+            }
+
+            #${RESET_OVERLAY_ID} .edvibe-reset-pupils-shell.is-loading .edvibe-reset-pupils {
+                opacity: 0.45;
+                pointer-events: none;
+            }
+
+            #${RESET_OVERLAY_ID} .edvibe-reset-pupils-loading {
+                position: absolute;
+                inset: 10px 0 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.48);
+                color: #374151;
+                font-size: 13px;
+                font-weight: 650;
+            }
+
+            #${RESET_OVERLAY_ID} .edvibe-reset-spinner {
+                width: 22px;
+                height: 22px;
+                border: 3px solid #bfdbfe;
+                border-top-color: #2563eb;
+                border-radius: 50%;
+                animation: edvibe-reset-spinner-rotate 0.8s linear infinite;
+            }
+
             #${RESET_OVERLAY_ID} .edvibe-reset-row {
                 display: flex;
                 width: 100%;
@@ -644,6 +676,16 @@
                 50% { transform: translateX(90%); }
                 100% { transform: translateX(270%); }
             }
+
+            @keyframes edvibe-reset-spinner-rotate {
+                to { transform: rotate(360deg); }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #${RESET_OVERLAY_ID} .edvibe-reset-spinner {
+                    animation: none;
+                }
+            }
         `;
 
         (document.head || document.documentElement).appendChild(style);
@@ -667,8 +709,15 @@
                         <label class="edvibe-reset-label" for="edvibe-reset-search">Поиск по email</label>
                         <input id="edvibe-reset-search" class="edvibe-reset-search" type="search"
                             placeholder="user@example.com" autocomplete="off">
-                        <div class="edvibe-reset-list edvibe-reset-pupils" role="listbox"
-                            aria-label="Пользователи марафона"></div>
+                        <div class="edvibe-reset-pupils-shell">
+                            <div class="edvibe-reset-list edvibe-reset-pupils" role="listbox"
+                                aria-label="Пользователи марафона"></div>
+                            <div class="edvibe-reset-pupils-loading" role="status"
+                                aria-live="polite" hidden>
+                                <span class="edvibe-reset-spinner" aria-hidden="true"></span>
+                                <span>Загрузка пользователей...</span>
+                            </div>
+                        </div>
                     </section>
                     <section class="edvibe-reset-lesson-step" aria-label="Выбор уроков" hidden>
                         <div class="edvibe-reset-label edvibe-reset-selected-pupil"></div>
@@ -723,7 +772,9 @@
         const lessonStep = overlay.querySelector('.edvibe-reset-lesson-step');
         const stepIndicator = overlay.querySelector('.edvibe-reset-step-indicator');
         const stepDescription = overlay.querySelector('.edvibe-reset-step-description');
+        const pupilsShell = overlay.querySelector('.edvibe-reset-pupils-shell');
         const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
+        const pupilsLoading = overlay.querySelector('.edvibe-reset-pupils-loading');
         const lessonsList = overlay.querySelector('.edvibe-reset-lessons');
         const selectedPupilLabel = overlay.querySelector('.edvibe-reset-selected-pupil');
         const selectAll = overlay.querySelector('.edvibe-reset-select-all-input');
@@ -753,8 +804,11 @@
         let pupilTotal = 0;
         let loadNextPupilsHandler = null;
         let pupilPagePromise = null;
+        let pupilPageLoading = false;
         let searchTimer = null;
         let searchGeneration = 0;
+        let appliedSearchQuery = '';
+        let searchPending = false;
 
         function setStatus(message, state = '') {
             status.textContent = message;
@@ -770,10 +824,23 @@
             return allPupils.length < pupilTotal;
         }
 
+        function updatePupilLoadingState() {
+            const busy = loading || searchPending || pupilPageLoading;
+            pupilsShell.classList.toggle('is-loading', busy);
+            pupilsLoading.hidden = !busy;
+            pupilsList.setAttribute('aria-busy', String(busy));
+            pupilsList.inert = busy;
+            pupilsList.querySelectorAll('button').forEach((button) => {
+                button.disabled = busy || locked || finished;
+            });
+        }
+
         async function loadNextPupilPage() {
             if (closed || !loadNextPupilsHandler || !hasMorePupils()) return false;
             if (pupilPagePromise) return pupilPagePromise;
 
+            pupilPageLoading = true;
+            updatePupilLoadingState();
             pupilPagePromise = (async () => {
                 try {
                     const page = await loadNextPupilsHandler();
@@ -798,6 +865,8 @@
                     return false;
                 } finally {
                     pupilPagePromise = null;
+                    pupilPageLoading = false;
+                    updatePupilLoadingState();
                 }
             })();
 
@@ -813,31 +882,50 @@
                 && hasMorePupils()
             ) {
                 const loaded = await loadNextPupilPage();
-                if (!loaded) return;
+                if (!loaded) return false;
             }
+            return true;
         }
 
         function handleSearchInput() {
-            renderPupils();
             searchGeneration += 1;
             if (searchTimer !== null) {
                 cancelScheduled(searchTimer);
                 searchTimer = null;
             }
 
+            searchPending = true;
+            updatePupilLoadingState();
             const query = normalizeSearchQuery(search.value);
-            if (
-                !query
-                || filterPupilsByEmail(allPupils, query).length > 0
-                || !hasMorePupils()
-            ) {
-                return;
-            }
-
             const generation = searchGeneration;
-            searchTimer = schedule(() => {
+            searchTimer = schedule(async () => {
                 searchTimer = null;
-                return continueSearch(generation, query);
+                try {
+                    if (
+                        query
+                        && filterPupilsByEmail(allPupils, query).length === 0
+                        && hasMorePupils()
+                    ) {
+                        const searchCompleted = await continueSearch(generation, query);
+                        if (!searchCompleted) return;
+                    }
+
+                    if (
+                        closed
+                        || generation !== searchGeneration
+                        || query !== normalizeSearchQuery(search.value)
+                    ) {
+                        return;
+                    }
+
+                    appliedSearchQuery = query;
+                    renderPupils();
+                } finally {
+                    if (generation === searchGeneration) {
+                        searchPending = false;
+                        updatePupilLoadingState();
+                    }
+                }
             }, searchDelay);
         }
 
@@ -877,6 +965,7 @@
             stepDescription.textContent = showingUsers
                 ? 'Выберите пользователя.'
                 : 'Выберите уроки для сброса прогресса.';
+            updatePupilLoadingState();
         }
 
         function close() {
@@ -898,7 +987,7 @@
 
         function renderPupils() {
             pupilsList.replaceChildren();
-            const visiblePupils = filterPupilsByEmail(allPupils, search.value);
+            const visiblePupils = filterPupilsByEmail(allPupils, appliedSearchQuery);
 
             if (visiblePupils.length === 0) {
                 const empty = document.createElement('p');
@@ -915,7 +1004,7 @@
                 row.setAttribute('role', 'option');
                 row.setAttribute('aria-selected', String(pupil.PupilId === selectedPupil?.PupilId));
                 row.classList.toggle('is-selected', pupil.PupilId === selectedPupil?.PupilId);
-                row.disabled = locked || loading || finished;
+                row.disabled = locked || loading || finished || searchPending || pupilPageLoading;
 
                 const copy = document.createElement('span');
                 copy.className = 'edvibe-reset-row-copy';
@@ -929,7 +1018,14 @@
                 row.appendChild(copy);
 
                 row.addEventListener('click', () => {
-                    if (locked || loading || finished || pupil.PupilId === selectedPupil?.PupilId) return;
+                    if (
+                        locked
+                        || loading
+                        || finished
+                        || searchPending
+                        || pupilPageLoading
+                        || pupil.PupilId === selectedPupil?.PupilId
+                    ) return;
 
                     const selection = getResetPupilSelectionState({
                         pupil,
