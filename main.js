@@ -4,6 +4,7 @@ console.log('[Edvibe Toolbox][Main] Core socket injection payload executing...')
 
 let activeEdvibeSocket = null;
 const pendingRequests = new Map();
+const REQUEST_TIMEOUT_MS = 15000;
 
 const OriginalWebSocket = window.WebSocket;
 
@@ -22,9 +23,17 @@ window.WebSocket = function (url, protocols) {
             // Correlation ID (RequestId) Matching Flow
             if (data.RequestId && pendingRequests.has(data.RequestId)) {
                 console.log(`[Edvibe Toolbox][Main] Inbound response matched pending RequestId: ${data.RequestId}`);
-                const resolve = pendingRequests.get(data.RequestId);
+                const pending = pendingRequests.get(data.RequestId);
                 pendingRequests.delete(data.RequestId);
-                resolve(data);
+                clearTimeout(pending.timeoutId);
+
+                if (data.IsSuccess !== true) {
+                    pending.reject(new Error(
+                        `${data.Class || 'Edvibe'}:${data.Method || 'request'} failed with ErrorCode ${data.ErrorCode}`
+                    ));
+                } else {
+                    pending.resolve(data);
+                }
             }
         } catch (parseError) {
             console.debug('[Edvibe Toolbox][Main] Failed parsing un-formatted data frame string:', parseError);
@@ -35,6 +44,16 @@ window.WebSocket = function (url, protocols) {
 };
 window.WebSocket.prototype = OriginalWebSocket.prototype;
 
+function createSocketPacket(controller, method, projectName, valueObject) {
+    return {
+        Controller: controller,
+        Method: method,
+        ProjectName: projectName,
+        RequestId: crypto.randomUUID(),
+        Value: JSON.stringify(valueObject)
+    };
+}
+
 // Async helper utility transforming decoupled WebSockets into structured Request-Response Promises
 function sendSocketMessage(controller, method, projectName, valueObject) {
     return new Promise((resolve, reject) => {
@@ -43,18 +62,31 @@ function sendSocketMessage(controller, method, projectName, valueObject) {
             return reject(new Error('Active WebSocket connection is missing. Please reload the Edvibe tab context.'));
         }
 
-        const requestId = crypto.randomUUID();
-        const packet = {
-            Controller: controller,
-            Method: method,
-            ProjectName: projectName,
-            RequestId: requestId,
-            Value: JSON.stringify(valueObject)
-        };
+        const packet = createSocketPacket(controller, method, projectName, valueObject);
+        const timeoutId = setTimeout(() => {
+            pendingRequests.delete(packet.RequestId);
+            reject(new Error(`${controller}:${method} timed out after ${REQUEST_TIMEOUT_MS}ms.`));
+        }, REQUEST_TIMEOUT_MS);
 
-        pendingRequests.set(requestId, resolve);
-        activeEdvibeSocket.send(JSON.stringify(packet));
+        pendingRequests.set(packet.RequestId, { resolve, reject, timeoutId });
+        try {
+            activeEdvibeSocket.send(JSON.stringify(packet));
+        } catch (error) {
+            clearTimeout(timeoutId);
+            pendingRequests.delete(packet.RequestId);
+            reject(error);
+        }
     });
+}
+
+function sendSocketMessageWithoutResponse(controller, method, projectName, valueObject) {
+    if (!activeEdvibeSocket || activeEdvibeSocket.readyState !== OriginalWebSocket.OPEN) {
+        throw new Error('Active WebSocket connection is missing. Please reload the Edvibe tab context.');
+    }
+
+    activeEdvibeSocket.send(JSON.stringify(
+        createSocketPacket(controller, method, projectName, valueObject)
+    ));
 }
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
@@ -237,19 +269,29 @@ function createExportProgressOverlay() {
 }
 
 // CORE ORCHESTRATION PIPELINE FOR IN-MEMORY SCRAPING & AUTO-DOWNLOAD
-let marathonExportRunning = false;
+let activeToolboxOperation = null;
+
+function canStartToolboxOperation() {
+    return activeToolboxOperation === null;
+}
+
+function setToolboxOperation(operation) {
+    activeToolboxOperation = operation;
+}
 
 function notifyExportStatus(state, message = '') {
     window.postMessage({ type: 'EDVIBE_TOOLBOX_EXPORT_STATUS', state, message }, '*');
 }
 
 async function startAutomatedMarathonBackup() {
-    if (marathonExportRunning) {
-        console.warn('[Edvibe Toolbox][Main] Export already in progress, ignoring duplicate request.');
+    if (!canStartToolboxOperation()) {
+        const message = `Cannot start export while "${activeToolboxOperation}" is active.`;
+        console.warn(`[Edvibe Toolbox][Main] ${message}`);
+        notifyExportStatus('error', message);
         return;
     }
 
-    marathonExportRunning = true;
+    setToolboxOperation('export');
     notifyExportStatus('started');
 
     console.log('[Edvibe Toolbox][Main] Initializing automated marathon compilation routine...');
@@ -418,15 +460,34 @@ async function startAutomatedMarathonBackup() {
         progressOverlay.error('Export failed: ' + error.message);
         notifyExportStatus('error', error.message);
     } finally {
-        marathonExportRunning = false;
+        if (activeToolboxOperation === 'export') {
+            setToolboxOperation(null);
+        }
     }
 }
 
+const lessonResetFeature = window.EdVibeLessonReset.createResetLessonsFeature({
+    sendRequest: sendSocketMessage,
+    sendWithoutResponse: sendSocketMessageWithoutResponse,
+    wait: delay,
+    canStart: canStartToolboxOperation,
+    onActiveChange(isActive) {
+        setToolboxOperation(isActive ? 'reset' : null);
+    }
+});
+
 // Global window link receiver accepting automation commands routed up from the extension sandbox (ISOLATED world)
 window.addEventListener('message', (event) => {
-    if (event.source === window && event.data?.type === 'EDVIBE_TOOLBOX_START_ALL') {
+    if (event.source !== window) return;
+
+    if (event.data?.type === 'EDVIBE_TOOLBOX_START_ALL') {
         console.log('[Edvibe Toolbox][Main] Execution signal verified from Sandbox layer. Triggering automation engine...');
         startAutomatedMarathonBackup();
+    }
+
+    if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_RESET') {
+        console.log('[Edvibe Toolbox][Main] Opening lesson reset workflow.');
+        lessonResetFeature.open();
     }
 });
 

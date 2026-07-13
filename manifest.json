@@ -28,6 +28,7 @@
                 "lib/jszip.min.js",
                 "lib/turndown.min.js",
                 "compileMarathonToZip.js",
+                "resetLessons.js",
                 "main.js"
             ],
             "run_at": "document_start",

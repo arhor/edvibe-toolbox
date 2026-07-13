@@ -33,6 +33,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         window.postMessage({ type: 'EDVIBE_TOOLBOX_START_ALL' }, '*');
 
         sendResponse({ status: 'success', info: 'Automation sequence channeled to page engine.' });
+    } else if (message && message.action === 'OPEN_LESSON_RESET') {
+        console.log('[Edvibe Toolbox][Isolated] Opening lesson reset workflow in MAIN world...');
+        window.postMessage({ type: 'EDVIBE_TOOLBOX_OPEN_RESET' }, '*');
+        sendResponse({ status: 'success', info: 'Lesson reset workflow opened.' });
     } else {
         sendResponse({ status: 'ignored' });
     }
