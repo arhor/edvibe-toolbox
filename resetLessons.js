@@ -287,6 +287,57 @@
         return typeof error?.name === 'string' ? error.name : 'Error';
     }
 
+    function getResetWizardViewState({
+        step,
+        hasSelectedPupil,
+        selectedLessonCount,
+        loading,
+        locked,
+        finished
+    }) {
+        const blocked = loading || locked || finished;
+        const showingUsers = step === 'user';
+
+        return {
+            userStepHidden: !showingUsers,
+            lessonStepHidden: showingUsers,
+            nextHidden: !showingUsers,
+            nextDisabled: blocked || !hasSelectedPupil,
+            backHidden: showingUsers,
+            backDisabled: blocked,
+            submitHidden: showingUsers,
+            submitDisabled: blocked || !hasSelectedPupil || selectedLessonCount === 0,
+            closeDisabled: loading || locked
+        };
+    }
+
+    function hasLoadedLessonsForPupil(pupil, loadedPupilId) {
+        return Boolean(pupil) && pupil.PupilId === loadedPupilId;
+    }
+
+    function getResetPupilSelectionState({
+        pupil,
+        loadedPupilId,
+        lessons,
+        selectedLessonIds
+    }) {
+        if (hasLoadedLessonsForPupil(pupil, loadedPupilId)) {
+            return {
+                selectedPupil: pupil,
+                loadedPupilId,
+                lessons,
+                selectedLessonIds
+            };
+        }
+
+        return {
+            selectedPupil: pupil,
+            loadedPupilId: null,
+            lessons: [],
+            selectedLessonIds: new Set()
+        };
+    }
+
     function ensureResetStyles() {
         if (document.getElementById(RESET_STYLE_ID)) return;
 
@@ -308,6 +359,10 @@
 
             #${RESET_OVERLAY_ID} * {
                 box-sizing: border-box;
+            }
+
+            #${RESET_OVERLAY_ID} [hidden] {
+                display: none !important;
             }
 
             #${RESET_OVERLAY_ID} .edvibe-reset-card {
@@ -340,6 +395,12 @@
                 margin: 5px 0 0;
                 color: #6b7280;
                 font-size: 13px;
+            }
+
+            #${RESET_OVERLAY_ID} .edvibe-reset-step-indicator {
+                margin-right: 8px;
+                color: #2563eb;
+                font-weight: 700;
             }
 
             #${RESET_OVERLAY_ID} .edvibe-reset-close {
@@ -435,10 +496,6 @@
                 margin-top: 2px;
                 color: #6b7280;
                 font-size: 12px;
-            }
-
-            #${RESET_OVERLAY_ID} .edvibe-reset-section {
-                margin-top: 18px;
             }
 
             #${RESET_OVERLAY_ID} .edvibe-reset-select-all {
@@ -543,6 +600,14 @@
                 background: #64748b;
             }
 
+            #${RESET_OVERLAY_ID} .edvibe-reset-back {
+                background: #64748b;
+            }
+
+            #${RESET_OVERLAY_ID} .edvibe-reset-next {
+                background: #2563eb;
+            }
+
             #${RESET_OVERLAY_ID} .edvibe-reset-submit {
                 background: #e74c3c;
             }
@@ -563,24 +628,29 @@
                 <div class="edvibe-reset-header">
                     <div>
                         <h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2>
-                        <p class="edvibe-reset-subtitle">Выберите пользователя и уроки для сброса прогресса.</p>
+                        <p class="edvibe-reset-subtitle">
+                            <span class="edvibe-reset-step-indicator">Шаг 1 из 2</span>
+                            <span class="edvibe-reset-step-description">Выберите пользователя.</span>
+                        </p>
                     </div>
                     <button class="edvibe-reset-close" type="button" aria-label="Закрыть">&times;</button>
                 </div>
                 <div class="edvibe-reset-body">
-                    <label class="edvibe-reset-label" for="edvibe-reset-search">Поиск по email</label>
-                    <input id="edvibe-reset-search" class="edvibe-reset-search" type="search"
-                        placeholder="user@example.com" autocomplete="off">
-                    <div class="edvibe-reset-list edvibe-reset-pupils" role="listbox"
-                        aria-label="Пользователи марафона"></div>
-                    <section class="edvibe-reset-section" hidden>
+                    <section class="edvibe-reset-user-step" aria-label="Выбор пользователя">
+                        <label class="edvibe-reset-label" for="edvibe-reset-search">Поиск по email</label>
+                        <input id="edvibe-reset-search" class="edvibe-reset-search" type="search"
+                            placeholder="user@example.com" autocomplete="off">
+                        <div class="edvibe-reset-list edvibe-reset-pupils" role="listbox"
+                            aria-label="Пользователи марафона"></div>
+                    </section>
+                    <section class="edvibe-reset-lesson-step" aria-label="Выбор уроков" hidden>
                         <div class="edvibe-reset-label edvibe-reset-selected-pupil"></div>
                         <label class="edvibe-reset-select-all">
                             <input class="edvibe-reset-select-all-input" type="checkbox">
                             Выбрать все уроки
                         </label>
                         <div class="edvibe-reset-list edvibe-reset-lessons"
-                            aria-label="Уроки пользователя"></div>
+                            aria-label="Уроки пользователя" tabindex="-1"></div>
                     </section>
                 </div>
                 <div class="edvibe-reset-live-region">
@@ -592,7 +662,13 @@
                 </div>
                 <div class="edvibe-reset-footer">
                     <button class="edvibe-reset-button edvibe-reset-cancel" type="button">Закрыть</button>
-                    <button class="edvibe-reset-button edvibe-reset-submit" type="button" disabled>
+                    <button class="edvibe-reset-button edvibe-reset-back" type="button" hidden>
+                        Назад
+                    </button>
+                    <button class="edvibe-reset-button edvibe-reset-next" type="button" disabled>
+                        Далее
+                    </button>
+                    <button class="edvibe-reset-button edvibe-reset-submit" type="button" disabled hidden>
                         Сбросить прогресс
                     </button>
                 </div>
@@ -611,8 +687,11 @@
         overlay.innerHTML = getResetModalMarkup();
 
         const search = overlay.querySelector('.edvibe-reset-search');
+        const userStep = overlay.querySelector('.edvibe-reset-user-step');
+        const lessonStep = overlay.querySelector('.edvibe-reset-lesson-step');
+        const stepIndicator = overlay.querySelector('.edvibe-reset-step-indicator');
+        const stepDescription = overlay.querySelector('.edvibe-reset-step-description');
         const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
-        const lessonsSection = overlay.querySelector('.edvibe-reset-section');
         const lessonsList = overlay.querySelector('.edvibe-reset-lessons');
         const selectedPupilLabel = overlay.querySelector('.edvibe-reset-selected-pupil');
         const selectAll = overlay.querySelector('.edvibe-reset-select-all-input');
@@ -623,10 +702,14 @@
             overlay.querySelector('.edvibe-reset-close'),
             overlay.querySelector('.edvibe-reset-cancel')
         ];
+        const back = overlay.querySelector('.edvibe-reset-back');
+        const next = overlay.querySelector('.edvibe-reset-next');
         const submit = overlay.querySelector('.edvibe-reset-submit');
 
+        let currentStep = 'user';
         let allPupils = [];
         let selectedPupil = null;
+        let loadedPupilId = null;
         let lessons = [];
         let selectedLessonIds = new Set();
         let selectPupilHandler = null;
@@ -642,16 +725,28 @@
             status.classList.toggle('is-success', state === 'success');
         }
 
-        function updateSubmitState() {
-            submit.disabled = locked || loading || finished
-                || !selectedPupil || selectedLessonIds.size === 0;
-        }
-
         function updateInteractiveState() {
+            const view = getResetWizardViewState({
+                step: currentStep,
+                hasSelectedPupil: Boolean(selectedPupil),
+                selectedLessonCount: selectedLessonIds.size,
+                loading,
+                locked,
+                finished
+            });
             const inputsBlocked = locked || loading || finished;
+
+            userStep.hidden = view.userStepHidden;
+            lessonStep.hidden = view.lessonStepHidden;
+            next.hidden = view.nextHidden;
+            next.disabled = view.nextDisabled;
+            back.hidden = view.backHidden;
+            back.disabled = view.backDisabled;
+            submit.hidden = view.submitHidden;
+            submit.disabled = view.submitDisabled;
             search.disabled = inputsBlocked;
             closeButtons.forEach((button) => {
-                button.disabled = locked || loading;
+                button.disabled = view.closeDisabled;
             });
             pupilsList.querySelectorAll('button').forEach((button) => {
                 button.disabled = inputsBlocked;
@@ -660,7 +755,12 @@
                 input.disabled = inputsBlocked;
             });
             selectAll.disabled = inputsBlocked || lessons.length === 0;
-            updateSubmitState();
+
+            const showingUsers = currentStep === 'user';
+            stepIndicator.textContent = showingUsers ? 'Шаг 1 из 2' : 'Шаг 2 из 2';
+            stepDescription.textContent = showingUsers
+                ? 'Выберите пользователя.'
+                : 'Выберите уроки для сброса прогресса.';
         }
 
         function close() {
@@ -707,26 +807,25 @@
                 copy.append(name, email);
                 row.appendChild(copy);
 
-                row.addEventListener('click', async () => {
+                row.addEventListener('click', () => {
                     if (locked || loading || finished || pupil.PupilId === selectedPupil?.PupilId) return;
-                    selectedPupil = pupil;
-                    lessons = [];
-                    selectedLessonIds = new Set();
-                    lessonsSection.hidden = true;
-                    updateSubmitState();
-                    renderPupils();
 
-                    try {
-                        await selectPupilHandler(pupil);
-                    } catch (error) {
-                        loading = false;
-                        updateInteractiveState();
-                        console.error(
-                            `[Edvibe Toolbox][Reset] Failed to load lessons for PupilId `
-                            + `${pupil.PupilId} (${getErrorType(error)}).`
-                        );
-                        setStatus(error.message, 'error');
+                    const selection = getResetPupilSelectionState({
+                        pupil,
+                        loadedPupilId,
+                        lessons,
+                        selectedLessonIds
+                    });
+                    selectedPupil = selection.selectedPupil;
+                    loadedPupilId = selection.loadedPupilId;
+                    lessons = selection.lessons;
+                    selectedLessonIds = selection.selectedLessonIds;
+                    if (loadedPupilId === null) {
+                        renderLessons();
                     }
+                    setStatus(`Выбран пользователь: ${pupil.Email || 'email отсутствует'}`);
+                    renderPupils();
+                    updateInteractiveState();
                 });
                 pupilsList.appendChild(row);
             }
@@ -774,7 +873,7 @@
                         && selectedLessonIds.size === lessons.length;
                     selectAll.indeterminate = selectedLessonIds.size > 0
                         && selectedLessonIds.size < lessons.length;
-                    updateSubmitState();
+                    updateInteractiveState();
                 });
                 lessonsList.appendChild(label);
             }
@@ -783,7 +882,7 @@
             selectAll.indeterminate = selectedLessonIds.size > 0
                 && selectedLessonIds.size < lessons.length;
             selectAll.disabled = locked || loading || finished || lessons.length === 0;
-            updateSubmitState();
+            updateInteractiveState();
         }
 
         search.addEventListener('input', renderPupils);
@@ -792,6 +891,36 @@
                 ? new Set(lessons.map((lesson) => lesson.MarathonLessonId))
                 : new Set();
             renderLessons();
+        });
+        next.addEventListener('click', async () => {
+            if (next.disabled || !selectPupilHandler || !selectedPupil) return;
+
+            if (hasLoadedLessonsForPupil(selectedPupil, loadedPupilId)) {
+                currentStep = 'lessons';
+                updateInteractiveState();
+                lessonsList.focus();
+                return;
+            }
+
+            try {
+                await selectPupilHandler(selectedPupil);
+            } catch (error) {
+                loading = false;
+                currentStep = 'user';
+                updateInteractiveState();
+                console.error(
+                    `[Edvibe Toolbox][Reset] Failed to load lessons for PupilId `
+                    + `${selectedPupil.PupilId} (${getErrorType(error)}).`
+                );
+                setStatus(error.message, 'error');
+            }
+        });
+        back.addEventListener('click', () => {
+            if (back.disabled) return;
+            currentStep = 'user';
+            setStatus(`Выбран пользователь: ${selectedPupil?.Email || 'email отсутствует'}`);
+            updateInteractiveState();
+            search.focus();
         });
         submit.addEventListener('click', () => {
             if (submit.disabled || !resetHandler) return;
@@ -818,6 +947,7 @@
             showPupils(pupils, onSelectPupil) {
                 allPupils = pupils;
                 selectPupilHandler = onSelectPupil;
+                currentStep = 'user';
                 loading = false;
                 setStatus(`Загружено пользователей: ${pupils.length}`);
                 renderPupils();
@@ -825,15 +955,20 @@
                 search.focus();
             },
             showLessons(pupil, loadedLessons) {
+                const pupilChanged = loadedPupilId !== pupil.PupilId;
                 selectedPupil = pupil;
+                loadedPupilId = pupil.PupilId;
                 lessons = loadedLessons;
-                selectedLessonIds = new Set();
+                if (pupilChanged) {
+                    selectedLessonIds = new Set();
+                }
                 loading = false;
+                currentStep = 'lessons';
                 selectedPupilLabel.textContent = `${pupil.Name || 'Без имени'} — ${pupil.Email || ''}`;
-                lessonsSection.hidden = false;
                 setStatus(`Загружено уроков: ${lessons.length}`);
                 renderLessons();
                 updateInteractiveState();
+                lessonsList.focus();
             },
             onReset(handler) {
                 resetHandler = handler;
@@ -1014,9 +1149,13 @@
         loadAllPupils,
         discoverResetWork,
         executeResetWork,
+        createResetModal,
         createResetLessonsFeature,
         getResetModalMarkup,
         getResetRunningStyles,
+        getResetPupilSelectionState,
+        getResetWizardViewState,
+        hasLoadedLessonsForPupil,
         setResetRunningState,
         getErrorType
     };

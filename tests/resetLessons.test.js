@@ -11,11 +11,156 @@ const {
     loadAllPupils,
     discoverResetWork,
     executeResetWork,
+    createResetModal,
     getResetModalMarkup,
     getResetRunningStyles,
+    getResetPupilSelectionState,
+    getResetWizardViewState,
+    hasLoadedLessonsForPupil,
     setResetRunningState,
     getErrorType
 } = require('../resetLessons.js');
+
+function createModalTestDocument() {
+    class FakeClassList {
+        constructor() {
+            this.names = new Set();
+        }
+
+        add(...names) {
+            names.forEach((name) => this.names.add(name));
+        }
+
+        remove(...names) {
+            names.forEach((name) => this.names.delete(name));
+        }
+
+        toggle(name, force) {
+            const enabled = force === undefined ? !this.names.has(name) : force;
+            if (enabled) this.names.add(name);
+            else this.names.delete(name);
+            return enabled;
+        }
+    }
+
+    class FakeElement {
+        constructor(tagName = 'div') {
+            this.tagName = tagName.toUpperCase();
+            this.children = [];
+            this.classList = new FakeClassList();
+            this.listeners = new Map();
+            this.style = {};
+            this.hidden = false;
+            this.disabled = false;
+            this.checked = false;
+            this.indeterminate = false;
+            this.textContent = '';
+            this.value = '';
+            this.focused = false;
+            this.attributes = new Map();
+            this.elementsBySelector = null;
+        }
+
+        set innerHTML(_markup) {
+            if (this.elementsBySelector) return;
+
+            const selectors = [
+                '.edvibe-reset-search',
+                '.edvibe-reset-user-step',
+                '.edvibe-reset-lesson-step',
+                '.edvibe-reset-step-indicator',
+                '.edvibe-reset-step-description',
+                '.edvibe-reset-pupils',
+                '.edvibe-reset-lessons',
+                '.edvibe-reset-selected-pupil',
+                '.edvibe-reset-select-all-input',
+                '.edvibe-reset-status',
+                '.edvibe-reset-progress',
+                '.edvibe-reset-progress-bar',
+                '.edvibe-reset-close',
+                '.edvibe-reset-cancel',
+                '.edvibe-reset-back',
+                '.edvibe-reset-next',
+                '.edvibe-reset-submit'
+            ];
+            this.elementsBySelector = new Map(
+                selectors.map((selector) => [selector, new FakeElement(
+                    selector.includes('button')
+                        || ['.edvibe-reset-close', '.edvibe-reset-cancel',
+                            '.edvibe-reset-back', '.edvibe-reset-next',
+                            '.edvibe-reset-submit'].includes(selector)
+                        ? 'button'
+                        : 'div'
+                )])
+            );
+            this.elementsBySelector.get('.edvibe-reset-lesson-step').hidden = true;
+            this.elementsBySelector.get('.edvibe-reset-back').hidden = true;
+            this.elementsBySelector.get('.edvibe-reset-submit').hidden = true;
+        }
+
+        querySelector(selector) {
+            return this.elementsBySelector?.get(selector) || null;
+        }
+
+        querySelectorAll(selector) {
+            const tagName = selector.toUpperCase();
+            const matches = [];
+            const visit = (element) => {
+                if (element.tagName === tagName) matches.push(element);
+                element.children.forEach(visit);
+            };
+            this.children.forEach(visit);
+            return matches;
+        }
+
+        setAttribute(name, value) {
+            this.attributes.set(name, String(value));
+        }
+
+        removeAttribute(name) {
+            this.attributes.delete(name);
+        }
+
+        appendChild(child) {
+            this.children.push(child);
+            return child;
+        }
+
+        append(...children) {
+            this.children.push(...children);
+        }
+
+        replaceChildren(...children) {
+            this.children = [...children];
+        }
+
+        addEventListener(type, listener) {
+            const listeners = this.listeners.get(type) || [];
+            listeners.push(listener);
+            this.listeners.set(type, listeners);
+        }
+
+        async emit(type, event = {}) {
+            const listeners = this.listeners.get(type) || [];
+            await Promise.all(listeners.map((listener) => listener({ target: this, ...event })));
+        }
+
+        focus() {
+            this.focused = true;
+        }
+
+        remove() {
+            this.removed = true;
+        }
+    }
+
+    return {
+        createElement: (tagName) => new FakeElement(tagName),
+        getElementById: (id) => id === 'edvibe-toolbox-reset-styles' ? {} : null,
+        addEventListener() {},
+        removeEventListener() {}
+    };
+}
 
 test('parseMarathonId reads a numeric marathon id', () => {
     assert.equal(parseMarathonId('https://app.edvibe.com/marathon/18508'), 18508);
@@ -301,6 +446,250 @@ test('reset progress region is outside the scrollable selection body', () => {
         markup,
         /<\/div>\s*<div class="edvibe-reset-live-region">[\s\S]*edvibe-reset-progress/
     );
+});
+
+test('reset modal markup separates user and lesson wizard steps', () => {
+    const markup = getResetModalMarkup();
+
+    assert.match(markup, /class="edvibe-reset-step-indicator"[^>]*>Шаг 1 из 2</);
+    assert.match(markup, /class="edvibe-reset-user-step"/);
+    assert.match(markup, /class="edvibe-reset-lesson-step"[^>]*hidden/);
+    assert.match(markup, /class="edvibe-reset-button edvibe-reset-next"/);
+    assert.match(markup, /class="edvibe-reset-button edvibe-reset-back"[^>]*hidden/);
+    assert.match(markup, /class="edvibe-reset-button edvibe-reset-submit"[^>]*hidden/);
+});
+
+test('reset modal user step closes before the lesson step begins', () => {
+    const markup = getResetModalMarkup();
+    const userStepEnd = markup.indexOf('</section>');
+    const lessonStepStart = markup.indexOf('class="edvibe-reset-lesson-step"');
+
+    assert.ok(userStepEnd > 0);
+    assert.ok(lessonStepStart > userStepEnd);
+});
+
+test('wizard user step shows Next and requires a selected pupil', () => {
+    const empty = getResetWizardViewState({
+        step: 'user',
+        hasSelectedPupil: false,
+        selectedLessonCount: 0,
+        loading: false,
+        locked: false,
+        finished: false
+    });
+    const selected = getResetWizardViewState({
+        step: 'user',
+        hasSelectedPupil: true,
+        selectedLessonCount: 0,
+        loading: false,
+        locked: false,
+        finished: false
+    });
+
+    assert.deepEqual(empty, {
+        userStepHidden: false,
+        lessonStepHidden: true,
+        nextHidden: false,
+        nextDisabled: true,
+        backHidden: true,
+        backDisabled: false,
+        submitHidden: true,
+        submitDisabled: true,
+        closeDisabled: false
+    });
+    assert.equal(selected.nextDisabled, false);
+});
+
+test('wizard lesson step shows Back and requires a selected lesson', () => {
+    const empty = getResetWizardViewState({
+        step: 'lessons',
+        hasSelectedPupil: true,
+        selectedLessonCount: 0,
+        loading: false,
+        locked: false,
+        finished: false
+    });
+    const selected = getResetWizardViewState({
+        step: 'lessons',
+        hasSelectedPupil: true,
+        selectedLessonCount: 2,
+        loading: false,
+        locked: false,
+        finished: false
+    });
+
+    assert.equal(empty.userStepHidden, true);
+    assert.equal(empty.lessonStepHidden, false);
+    assert.equal(empty.nextHidden, true);
+    assert.equal(empty.backHidden, false);
+    assert.equal(empty.submitHidden, false);
+    assert.equal(empty.submitDisabled, true);
+    assert.equal(selected.submitDisabled, false);
+});
+
+test('wizard loading and running states block navigation', () => {
+    const loading = getResetWizardViewState({
+        step: 'user',
+        hasSelectedPupil: true,
+        selectedLessonCount: 0,
+        loading: true,
+        locked: false,
+        finished: false
+    });
+    const running = getResetWizardViewState({
+        step: 'lessons',
+        hasSelectedPupil: true,
+        selectedLessonCount: 1,
+        loading: false,
+        locked: true,
+        finished: false
+    });
+
+    assert.equal(loading.nextDisabled, true);
+    assert.equal(loading.closeDisabled, true);
+    assert.equal(running.backDisabled, true);
+    assert.equal(running.submitDisabled, true);
+    assert.equal(running.closeDisabled, true);
+});
+
+test('selecting another pupil invalidates loaded lessons and selections', () => {
+    const pupil = { PupilId: 2, Email: 'second@example.com' };
+    const state = getResetPupilSelectionState({
+        pupil,
+        loadedPupilId: 1,
+        lessons: [{ MarathonLessonId: 10 }],
+        selectedLessonIds: new Set([10])
+    });
+
+    assert.deepEqual(state, {
+        selectedPupil: pupil,
+        loadedPupilId: null,
+        lessons: [],
+        selectedLessonIds: new Set()
+    });
+});
+
+test('selecting the loaded pupil preserves lessons and selections', () => {
+    const pupil = { PupilId: 1, Email: 'first@example.com' };
+    const lessons = [{ MarathonLessonId: 10 }];
+    const selectedLessonIds = new Set([10]);
+    const state = getResetPupilSelectionState({
+        pupil,
+        loadedPupilId: 1,
+        lessons,
+        selectedLessonIds
+    });
+
+    assert.equal(state.selectedPupil, pupil);
+    assert.equal(state.loadedPupilId, 1);
+    assert.equal(state.lessons, lessons);
+    assert.equal(state.selectedLessonIds, selectedLessonIds);
+    assert.equal(hasLoadedLessonsForPupil(pupil, state.loadedPupilId), true);
+    assert.equal(hasLoadedLessonsForPupil({ PupilId: 2 }, state.loadedPupilId), false);
+});
+
+test('modal defers lesson loading and preserves same-pupil selections on Back', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const pupils = [
+        { PupilId: 1, Name: 'First', Email: 'first@example.com' },
+        { PupilId: 2, Name: 'Second', Email: 'second@example.com' }
+    ];
+    const modal = createResetModal({ onClose() {} });
+    const overlay = modal.overlay;
+    const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
+    const lessonStep = overlay.querySelector('.edvibe-reset-lesson-step');
+    const lessonsList = overlay.querySelector('.edvibe-reset-lessons');
+    const next = overlay.querySelector('.edvibe-reset-next');
+    const back = overlay.querySelector('.edvibe-reset-back');
+    const submit = overlay.querySelector('.edvibe-reset-submit');
+    const loadedPupilIds = [];
+
+    modal.showPupils(pupils, async (pupil) => {
+        loadedPupilIds.push(pupil.PupilId);
+        modal.setLoading(`Loading ${pupil.PupilId}`);
+        modal.showLessons(pupil, [{
+            MarathonLessonId: pupil.PupilId * 10,
+            Number: 0,
+            Name: `Lesson ${pupil.PupilId}`
+        }]);
+    });
+
+    await pupilsList.children[0].emit('click');
+    assert.deepEqual(loadedPupilIds, []);
+    assert.equal(next.disabled, false);
+
+    await next.emit('click');
+    assert.deepEqual(loadedPupilIds, [1]);
+    assert.equal(lessonStep.hidden, false);
+    assert.equal(lessonsList.focused, true);
+
+    const firstLessonCheckbox = lessonsList.children[0].children[0];
+    firstLessonCheckbox.checked = true;
+    await firstLessonCheckbox.emit('change');
+    assert.equal(submit.disabled, false);
+
+    await back.emit('click');
+    lessonsList.focused = false;
+    await next.emit('click');
+    assert.deepEqual(loadedPupilIds, [1]);
+    assert.equal(submit.disabled, false);
+    assert.equal(lessonsList.focused, true);
+
+    await back.emit('click');
+    await pupilsList.children[1].emit('click');
+    await next.emit('click');
+    assert.deepEqual(loadedPupilIds, [1, 2]);
+    assert.equal(submit.disabled, true);
+});
+
+test('modal keeps failed lesson loading recoverable on the user step', async (t) => {
+    const originalDocument = global.document;
+    const originalConsoleError = console.error;
+    const loggedErrors = [];
+    global.document = createModalTestDocument();
+    console.error = (...args) => loggedErrors.push(args);
+    t.after(() => {
+        global.document = originalDocument;
+        console.error = originalConsoleError;
+    });
+
+    const pupil = { PupilId: 1, Name: 'First', Email: 'first@example.com' };
+    const modal = createResetModal({ onClose() {} });
+    const overlay = modal.overlay;
+    const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
+    const userStep = overlay.querySelector('.edvibe-reset-user-step');
+    const lessonStep = overlay.querySelector('.edvibe-reset-lesson-step');
+    const next = overlay.querySelector('.edvibe-reset-next');
+    const status = overlay.querySelector('.edvibe-reset-status');
+    let attempts = 0;
+
+    modal.showPupils([pupil], async (selectedPupil) => {
+        attempts += 1;
+        modal.setLoading('Loading lessons...');
+        if (attempts === 1) {
+            throw new Error('lesson request failed');
+        }
+        modal.showLessons(selectedPupil, []);
+    });
+    await pupilsList.children[0].emit('click');
+
+    await next.emit('click');
+    assert.equal(attempts, 1);
+    assert.equal(userStep.hidden, false);
+    assert.equal(lessonStep.hidden, true);
+    assert.equal(next.disabled, false);
+    assert.equal(status.textContent, 'lesson request failed');
+    assert.equal(loggedErrors.length, 1);
+
+    await next.emit('click');
+    assert.equal(attempts, 2);
+    assert.equal(userStep.hidden, true);
+    assert.equal(lessonStep.hidden, false);
 });
 
 test('running reset hides selection but not the live progress region', () => {
