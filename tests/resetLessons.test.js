@@ -328,7 +328,7 @@ test('pupil pager rejects a malformed total count', async () => {
     );
 });
 
-test('discoverResetWork loads sections and user exercises', async () => {
+test('discoverResetWork queues only exercises with saved answer versions', async () => {
     const lesson = {
         LessonId: 1468983,
         MarathonLessonId: 230807,
@@ -346,7 +346,10 @@ test('discoverResetWork loads sections and user exercises', async () => {
         return {
             Value: {
                 Items: value.SectionId === 10
-                    ? [{ Id: 100, Type: 6 }, { Id: 101, Type: 10 }]
+                    ? [
+                        { Id: 100, Type: 6, AnswerVersion1: [{ PupilId: 1397893 }] },
+                        { Id: 101, Type: 10, AnswerVersion1: [] }
+                    ]
                     : [{ Id: 102, Type: 18 }]
             }
         };
@@ -361,9 +364,7 @@ test('discoverResetWork loads sections and user exercises', async () => {
     });
 
     assert.deepEqual(work[0].exercises, [
-        { id: 100, type: 6, sectionId: 10 },
-        { id: 101, type: 10, sectionId: 10 },
-        { id: 102, type: 18, sectionId: 11 }
+        { id: 100, type: 6, sectionId: 10 }
     ]);
     assert.equal(work[0].deleteRequestId, 3690753);
     assert.equal(calls.filter((call) => call.method === 'LoadExercises').length, 2);

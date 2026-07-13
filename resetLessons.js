@@ -183,8 +183,12 @@
                 if (!Array.isArray(items)) {
                     throw new Error(`LoadExercises returned invalid data for "${lesson.Name}".`);
                 }
-                exercises.push(...items
-                    .filter((item) => Number.isFinite(item.Id))
+                const resettableItems = items.filter((item) =>
+                    Number.isFinite(item.Id)
+                    && Array.isArray(item.AnswerVersion1)
+                    && item.AnswerVersion1.length > 0
+                );
+                exercises.push(...resettableItems
                     .map((item) => ({
                         id: item.Id,
                         type: item.Type,
@@ -192,7 +196,8 @@
                     })));
                 console.log(
                     `[Edvibe Toolbox][Reset] Lesson ${lesson.MarathonLessonId}, `
-                    + `section ${section.Id}: ${items.length} exercise(s) found.`
+                    + `section ${section.Id}: ${resettableItems.length} of ${items.length} `
+                    + `exercise(s) have saved answers.`
                 );
             }
 
