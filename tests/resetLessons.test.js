@@ -8,10 +8,11 @@ const {
     shouldDeleteLastRequest,
     buildLoadExercisesPayload,
     buildResetAnswerPayload,
-    loadAllPupils,
+    createPupilPager,
     discoverResetWork,
     executeResetWork,
     createResetModal,
+    createResetLessonsFeature,
     getResetModalMarkup,
     getResetRunningStyles,
     getResetPupilSelectionState,
@@ -57,6 +58,9 @@ function createModalTestDocument() {
             this.textContent = '';
             this.value = '';
             this.focused = false;
+            this.scrollTop = 0;
+            this.clientHeight = 0;
+            this.scrollHeight = 0;
             this.attributes = new Map();
             this.elementsBySelector = null;
         }
@@ -245,20 +249,81 @@ test('buildResetAnswerPayload clears the saved exercise answer', () => {
     );
 });
 
-test('loadAllPupils follows Page.Count until every pupil is loaded', async () => {
+test('pupil pager loads one page at a time with a default size of 50', async () => {
     const calls = [];
     const pages = [
         { Value: { Items: [{ PupilId: 1 }, { PupilId: 2 }], Page: { Count: 3 } } },
         { Value: { Items: [{ PupilId: 3 }], Page: { Count: 3 } } }
     ];
-
-    const pupils = await loadAllPupils(async (...args) => {
+    const pager = createPupilPager(async (...args) => {
         calls.push(args);
         return pages[calls.length - 1];
-    }, 18508, 2);
+    }, 18508);
 
-    assert.deepEqual(pupils.map((pupil) => pupil.PupilId), [1, 2, 3]);
-    assert.deepEqual(calls.map((call) => call[3].Skip), [0, 2]);
+    const first = await pager.loadNext();
+    assert.deepEqual(first.pupils.map((pupil) => pupil.PupilId), [1, 2]);
+    assert.equal(first.total, 3);
+    assert.equal(first.hasMore, true);
+    assert.equal(calls.length, 1);
+    assert.deepEqual(calls[0][3], { MarathonId: 18508, Skip: 0, Take: 50 });
+
+    const second = await pager.loadNext();
+    assert.deepEqual(second.pupils.map((pupil) => pupil.PupilId), [1, 2, 3]);
+    assert.equal(second.hasMore, false);
+    assert.equal(calls[1][3].Skip, 2);
+});
+
+test('pupil pager shares an in-flight next-page request', async () => {
+    let resolveRequest;
+    let callCount = 0;
+    const pager = createPupilPager(() => {
+        callCount += 1;
+        return new Promise((resolve) => {
+            resolveRequest = resolve;
+        });
+    }, 18508);
+
+    const first = pager.loadNext();
+    const duplicate = pager.loadNext();
+    assert.equal(callCount, 1);
+
+    resolveRequest({
+        Value: {
+            Items: [{ PupilId: 1 }],
+            Page: { Count: 1 }
+        }
+    });
+
+    assert.deepEqual(await first, await duplicate);
+    assert.equal(callCount, 1);
+});
+
+test('pupil pager rejects an empty page before the reported total', async () => {
+    const pager = createPupilPager(async () => ({
+        Value: {
+            Items: [],
+            Page: { Count: 2 }
+        }
+    }), 18508);
+
+    await assert.rejects(
+        pager.loadNext(),
+        /pagination stopped before all pupils were loaded/
+    );
+});
+
+test('pupil pager rejects a malformed total count', async () => {
+    const pager = createPupilPager(async () => ({
+        Value: {
+            Items: [],
+            Page: { Count: null }
+        }
+    }), 18508);
+
+    await assert.rejects(
+        pager.loadNext(),
+        /returned an invalid response/
+    );
 });
 
 test('discoverResetWork loads sections and user exercises', async () => {
@@ -609,7 +674,7 @@ test('modal defers lesson loading and preserves same-pupil selections on Back', 
     const submit = overlay.querySelector('.edvibe-reset-submit');
     const loadedPupilIds = [];
 
-    modal.showPupils(pupils, async (pupil) => {
+    const onSelectPupil = async (pupil) => {
         loadedPupilIds.push(pupil.PupilId);
         modal.setLoading(`Loading ${pupil.PupilId}`);
         modal.showLessons(pupil, [{
@@ -617,6 +682,16 @@ test('modal defers lesson loading and preserves same-pupil selections on Back', 
             Number: 0,
             Name: `Lesson ${pupil.PupilId}`
         }]);
+    };
+    modal.showPupils({
+        pupils,
+        total: pupils.length,
+        onSelectPupil,
+        onLoadNext: async () => ({
+            pupils,
+            total: pupils.length,
+            hasMore: false
+        })
     });
 
     await pupilsList.children[0].emit('click');
@@ -668,13 +743,23 @@ test('modal keeps failed lesson loading recoverable on the user step', async (t)
     const status = overlay.querySelector('.edvibe-reset-status');
     let attempts = 0;
 
-    modal.showPupils([pupil], async (selectedPupil) => {
+    const onSelectPupil = async (selectedPupil) => {
         attempts += 1;
         modal.setLoading('Loading lessons...');
         if (attempts === 1) {
             throw new Error('lesson request failed');
         }
         modal.showLessons(selectedPupil, []);
+    };
+    modal.showPupils({
+        pupils: [pupil],
+        total: 1,
+        onSelectPupil,
+        onLoadNext: async () => ({
+            pupils: [pupil],
+            total: 1,
+            hasMore: false
+        })
     });
     await pupilsList.children[0].emit('click');
 
@@ -690,6 +775,589 @@ test('modal keeps failed lesson loading recoverable on the user step', async (t)
     assert.equal(attempts, 2);
     assert.equal(userStep.hidden, true);
     assert.equal(lessonStep.hidden, false);
+});
+
+test('modal delays unmatched search pagination and stops on the first match', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback, delay) {
+            timers.push({ callback, delay });
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+    const pupilsList = modal.overlay.querySelector('.edvibe-reset-pupils');
+    let loadCount = 0;
+
+    modal.showPupils({
+        pupils: [{ PupilId: 1, Email: 'first@example.com' }],
+        total: 3,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => {
+            loadCount += 1;
+            return {
+                pupils: [
+                    { PupilId: 1, Email: 'first@example.com' },
+                    { PupilId: 2, Email: 'target@example.com' }
+                ],
+                total: 3,
+                hasMore: true
+            };
+        }
+    });
+
+    search.value = 'target';
+    await search.emit('input');
+    assert.equal(pupilsList.children[0].textContent, 'Пользователи не найдены.');
+    assert.equal(loadCount, 0);
+    assert.equal(timers[0].delay, 3000);
+
+    await timers[0].callback();
+    assert.equal(loadCount, 1);
+    assert.equal(pupilsList.children.length, 1);
+    assert.equal(
+        pupilsList.children[0].children[0].children[1].textContent,
+        'target@example.com'
+    );
+});
+
+test('modal search traverses unmatched pages until a match is loaded', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    const pages = [
+        {
+            pupils: [
+                { PupilId: 1, Email: 'first@example.com' },
+                { PupilId: 2, Email: 'second@example.com' }
+            ],
+            total: 3,
+            hasMore: true
+        },
+        {
+            pupils: [
+                { PupilId: 1, Email: 'first@example.com' },
+                { PupilId: 2, Email: 'second@example.com' },
+                { PupilId: 3, Email: 'target@example.com' }
+            ],
+            total: 3,
+            hasMore: false
+        }
+    ];
+    let loadCount = 0;
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback) {
+            timers.push(callback);
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+
+    modal.showPupils({
+        pupils: [{ PupilId: 1, Email: 'first@example.com' }],
+        total: 3,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => pages[loadCount++]
+    });
+
+    search.value = 'target';
+    await search.emit('input');
+    await timers[0]();
+
+    assert.equal(loadCount, 2);
+});
+
+test('modal does not schedule pupil loading for blank or locally matched search', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback, delay) {
+            timers.push({ callback, delay });
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+
+    modal.showPupils({
+        pupils: [{ PupilId: 1, Email: 'first@example.com' }],
+        total: 10,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => {
+            throw new Error('must not load');
+        }
+    });
+
+    search.value = '   ';
+    await search.emit('input');
+    search.value = 'FIRST@';
+    await search.emit('input');
+
+    assert.equal(timers.length, 0);
+});
+
+test('modal restarts the three-second delay after each input change', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    const cancelled = [];
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback, delay) {
+            timers.push({ callback, delay });
+            return timers.length - 1;
+        },
+        cancelScheduled(id) {
+            cancelled.push(id);
+        }
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+
+    modal.showPupils({
+        pupils: [{ PupilId: 1, Email: 'first@example.com' }],
+        total: 10,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => ({
+            pupils: [],
+            total: 0,
+            hasMore: false
+        })
+    });
+
+    search.value = 'miss';
+    await search.emit('input');
+    search.value = 'missing';
+    await search.emit('input');
+
+    assert.deepEqual(cancelled, [0]);
+    assert.equal(timers.length, 2);
+    assert.equal(timers[1].delay, 3000);
+});
+
+test('modal prevents a stale search from loading another page', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    let resolvePage;
+    let loadCount = 0;
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback) {
+            timers.push(callback);
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+
+    modal.showPupils({
+        pupils: [{ PupilId: 1, Email: 'first@example.com' }],
+        total: 3,
+        onSelectPupil: async () => {},
+        onLoadNext: () => {
+            loadCount += 1;
+            return new Promise((resolve) => {
+                resolvePage = resolve;
+            });
+        }
+    });
+
+    search.value = 'missing';
+    await search.emit('input');
+    const staleSearch = timers[0]();
+    search.value = 'first';
+    await search.emit('input');
+    resolvePage({
+        pupils: [
+            { PupilId: 1, Email: 'first@example.com' },
+            { PupilId: 2, Email: 'second@example.com' }
+        ],
+        total: 3,
+        hasMore: true
+    });
+    await staleSearch;
+
+    assert.equal(loadCount, 1);
+});
+
+test('modal cancels delayed search when it closes', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const cancelled = [];
+    const modal = createResetModal({
+        onClose() {},
+        schedule() {
+            return 42;
+        },
+        cancelScheduled(id) {
+            cancelled.push(id);
+        }
+    });
+    const overlay = modal.overlay;
+    const search = overlay.querySelector('.edvibe-reset-search');
+
+    modal.showPupils({
+        pupils: [],
+        total: 10,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => {
+            throw new Error('must not load');
+        }
+    });
+    search.value = 'missing';
+    await search.emit('input');
+    await overlay.querySelector('.edvibe-reset-close').emit('click');
+
+    assert.deepEqual(cancelled, [42]);
+    assert.equal(overlay.removed, true);
+});
+
+test('modal keeps pupil pagination failures recoverable', async (t) => {
+    const originalDocument = global.document;
+    const originalConsoleError = console.error;
+    global.document = createModalTestDocument();
+    console.error = () => {};
+    t.after(() => {
+        global.document = originalDocument;
+        console.error = originalConsoleError;
+    });
+
+    const timers = [];
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback) {
+            timers.push(callback);
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+    const status = modal.overlay.querySelector('.edvibe-reset-status');
+
+    modal.showPupils({
+        pupils: [],
+        total: 10,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => {
+            throw new Error('pupil page failed');
+        }
+    });
+    search.value = 'missing';
+    await search.emit('input');
+    await timers[0]();
+
+    assert.equal(status.textContent, 'pupil page failed');
+    assert.equal(status.classList.names.has('is-error'), true);
+    assert.equal(modal.overlay.removed, undefined);
+});
+
+test('modal stops unmatched search when all pupils are loaded', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    let loadCount = 0;
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback) {
+            timers.push(callback);
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+
+    modal.showPupils({
+        pupils: [{ PupilId: 1, Email: 'first@example.com' }],
+        total: 2,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => {
+            loadCount += 1;
+            return {
+                pupils: [
+                    { PupilId: 1, Email: 'first@example.com' },
+                    { PupilId: 2, Email: 'second@example.com' }
+                ],
+                total: 2,
+                hasMore: false
+            };
+        }
+    });
+
+    search.value = 'missing';
+    await search.emit('input');
+    await timers[0]();
+
+    assert.equal(loadCount, 1);
+});
+
+test('modal loads one pupil page when the list scrolls near the bottom', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const modal = createResetModal({ onClose() {} });
+    const pupilsList = modal.overlay.querySelector('.edvibe-reset-pupils');
+    let loadCount = 0;
+    const firstPupil = { PupilId: 1, Email: 'first@example.com' };
+    const secondPupil = { PupilId: 2, Email: 'second@example.com' };
+
+    modal.showPupils({
+        pupils: [firstPupil],
+        total: 2,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => {
+            loadCount += 1;
+            return {
+                pupils: [firstPupil, secondPupil],
+                total: 2,
+                hasMore: false
+            };
+        }
+    });
+
+    pupilsList.scrollTop = 176;
+    pupilsList.clientHeight = 100;
+    pupilsList.scrollHeight = 300;
+    await pupilsList.emit('scroll');
+
+    assert.equal(loadCount, 1);
+    assert.equal(pupilsList.children.length, 2);
+});
+
+test('repeated near-bottom scroll events share one pupil request', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    let resolvePage;
+    let loadCount = 0;
+    const pupil = { PupilId: 1, Email: 'first@example.com' };
+    const modal = createResetModal({ onClose() {} });
+    const pupilsList = modal.overlay.querySelector('.edvibe-reset-pupils');
+
+    modal.showPupils({
+        pupils: [pupil],
+        total: 2,
+        onSelectPupil: async () => {},
+        onLoadNext: () => {
+            loadCount += 1;
+            return new Promise((resolve) => {
+                resolvePage = resolve;
+            });
+        }
+    });
+    pupilsList.scrollTop = 176;
+    pupilsList.clientHeight = 100;
+    pupilsList.scrollHeight = 300;
+
+    const firstScroll = pupilsList.emit('scroll');
+    const secondScroll = pupilsList.emit('scroll');
+    assert.equal(loadCount, 1);
+    resolvePage({
+        pupils: [pupil, { PupilId: 2, Email: 'second@example.com' }],
+        total: 2,
+        hasMore: false
+    });
+    await Promise.all([firstScroll, secondScroll]);
+
+    assert.equal(loadCount, 1);
+});
+
+test('modal shares a page request triggered by search and scrolling', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    let resolvePage;
+    let loadCount = 0;
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback) {
+            timers.push(callback);
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+    const pupilsList = modal.overlay.querySelector('.edvibe-reset-pupils');
+    const firstPupil = { PupilId: 1, Email: 'first@example.com' };
+
+    modal.showPupils({
+        pupils: [firstPupil],
+        total: 2,
+        onSelectPupil: async () => {},
+        onLoadNext: () => {
+            loadCount += 1;
+            return new Promise((resolve) => {
+                resolvePage = resolve;
+            });
+        }
+    });
+
+    search.value = 'second';
+    await search.emit('input');
+    pupilsList.scrollTop = 176;
+    pupilsList.clientHeight = 100;
+    pupilsList.scrollHeight = 300;
+    const scrollLoad = pupilsList.emit('scroll');
+    assert.equal(loadCount, 1);
+    const searchLoad = timers[0]();
+    assert.equal(loadCount, 1);
+
+    resolvePage({
+        pupils: [firstPupil, { PupilId: 2, Email: 'second@example.com' }],
+        total: 2,
+        hasMore: false
+    });
+    await Promise.all([searchLoad, scrollLoad]);
+    assert.equal(loadCount, 1);
+});
+
+test('late pupil pagination does not overwrite lesson status', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    let resolvePage;
+    const pupil = { PupilId: 1, Name: 'First', Email: 'first@example.com' };
+    const modal = createResetModal({ onClose() {} });
+    const pupilsList = modal.overlay.querySelector('.edvibe-reset-pupils');
+    const next = modal.overlay.querySelector('.edvibe-reset-next');
+    const status = modal.overlay.querySelector('.edvibe-reset-status');
+
+    modal.showPupils({
+        pupils: [pupil],
+        total: 2,
+        onSelectPupil: async (selectedPupil) => {
+            modal.showLessons(selectedPupil, [{
+                MarathonLessonId: 10,
+                Number: 0,
+                Name: 'Lesson 1'
+            }]);
+        },
+        onLoadNext: () => new Promise((resolve) => {
+            resolvePage = resolve;
+        })
+    });
+
+    pupilsList.scrollTop = 176;
+    pupilsList.clientHeight = 100;
+    pupilsList.scrollHeight = 300;
+    const pageLoad = pupilsList.emit('scroll');
+    await pupilsList.children[0].emit('click');
+    await next.emit('click');
+    assert.equal(status.textContent, 'Загружено уроков: 1');
+
+    resolvePage({
+        pupils: [pupil, { PupilId: 2, Email: 'second@example.com' }],
+        total: 2,
+        hasMore: false
+    });
+    await pageLoad;
+
+    assert.equal(status.textContent, 'Загружено уроков: 1');
+});
+
+test('reset workflow opens with exactly one 50-pupil request', async (t) => {
+    const originalDocument = global.document;
+    const originalWindow = global.window;
+    global.document = {
+        getElementById: () => null,
+        body: { appendChild() {} }
+    };
+    global.window = {
+        location: { href: 'https://app.edvibe.com/marathon/18508' },
+        alert() {},
+        confirm: () => false
+    };
+    t.after(() => {
+        global.document = originalDocument;
+        global.window = originalWindow;
+    });
+
+    const calls = [];
+    let pupilConfig;
+    const modal = {
+        overlay: {},
+        onReset() {},
+        setLoading() {},
+        showPupils(config) {
+            pupilConfig = config;
+        },
+        showError(error) {
+            throw error;
+        }
+    };
+    const feature = createResetLessonsFeature({
+        sendRequest: async (...args) => {
+            calls.push(args);
+            return {
+                Value: {
+                    Items: [{ PupilId: 1, Email: 'first@example.com' }],
+                    Page: { Count: 120 }
+                }
+            };
+        },
+        sendWithoutResponse() {},
+        wait: async () => {},
+        canStart: () => true,
+        onActiveChange() {},
+        createModal: () => modal
+    });
+
+    await feature.open();
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0][1], 'GetMarathonPupils');
+    assert.deepEqual(calls[0][3], { MarathonId: 18508, Skip: 0, Take: 50 });
+    assert.equal(pupilConfig.pupils.length, 1);
+    assert.equal(pupilConfig.total, 120);
+    assert.equal(typeof pupilConfig.onLoadNext, 'function');
 });
 
 test('running reset hides selection but not the live progress region', () => {

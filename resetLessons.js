@@ -83,11 +83,22 @@
         };
     }
 
-    async function loadAllPupils(sendRequest, marathonId, pageSize = 100) {
-        const pupils = [];
-        let total = Infinity;
+    function createPupilPager(sendRequest, marathonId, pageSize = 50) {
+        let pupils = [];
+        let total = null;
+        let inFlight = null;
 
-        while (pupils.length < total) {
+        function snapshot() {
+            return {
+                pupils: [...pupils],
+                total,
+                hasMore: total === null || pupils.length < total
+            };
+        }
+
+        async function requestNextPage() {
+            if (total !== null && pupils.length >= total) return snapshot();
+
             const response = await sendRequest(
                 'MarathonPupilsWsController',
                 'GetMarathonPupils',
@@ -95,19 +106,35 @@
                 { MarathonId: marathonId, Skip: pupils.length, Take: pageSize }
             );
             const items = response.Value?.Items;
-            total = Number(response.Value?.Page?.Count);
+            const nextTotal = response.Value?.Page?.Count;
 
-            if (!Array.isArray(items) || !Number.isFinite(total)) {
+            if (
+                !Array.isArray(items)
+                || typeof nextTotal !== 'number'
+                || !Number.isInteger(nextTotal)
+                || nextTotal < 0
+            ) {
                 throw new Error('GetMarathonPupils returned an invalid response.');
             }
-
-            pupils.push(...items);
-            if (items.length === 0 && pupils.length < total) {
+            if (items.length === 0 && pupils.length < nextTotal) {
                 throw new Error('GetMarathonPupils pagination stopped before all pupils were loaded.');
             }
+
+            pupils = pupils.concat(items);
+            total = nextTotal;
+            return snapshot();
         }
 
-        return pupils;
+        return {
+            loadNext() {
+                if (inFlight) return inFlight;
+                inFlight = requestNextPage().finally(() => {
+                    inFlight = null;
+                });
+                return inFlight;
+            },
+            getSnapshot: snapshot
+        };
     }
 
     async function discoverResetWork({
@@ -676,7 +703,12 @@
         `;
     }
 
-    function createResetModal({ onClose }) {
+    function createResetModal({
+        onClose,
+        schedule = setTimeout,
+        cancelScheduled = clearTimeout,
+        searchDelay = 3000
+    }) {
         ensureResetStyles();
 
         const overlay = document.createElement('div');
@@ -718,11 +750,95 @@
         let loading = false;
         let finished = false;
         let closed = false;
+        let pupilTotal = 0;
+        let loadNextPupilsHandler = null;
+        let pupilPagePromise = null;
+        let searchTimer = null;
+        let searchGeneration = 0;
 
         function setStatus(message, state = '') {
             status.textContent = message;
             status.classList.toggle('is-error', state === 'error');
             status.classList.toggle('is-success', state === 'success');
+        }
+
+        function normalizeSearchQuery(value) {
+            return String(value || '').trim().toLowerCase();
+        }
+
+        function hasMorePupils() {
+            return allPupils.length < pupilTotal;
+        }
+
+        async function loadNextPupilPage() {
+            if (closed || !loadNextPupilsHandler || !hasMorePupils()) return false;
+            if (pupilPagePromise) return pupilPagePromise;
+
+            pupilPagePromise = (async () => {
+                try {
+                    const page = await loadNextPupilsHandler();
+                    if (closed) return false;
+                    allPupils = page.pupils;
+                    pupilTotal = page.total;
+                    renderPupils();
+                    if (currentStep === 'user' && !loading) {
+                        setStatus(
+                            `Загружено пользователей: ${allPupils.length} из ${pupilTotal}`
+                        );
+                    }
+                    return true;
+                } catch (error) {
+                    if (!closed && currentStep === 'user' && !loading) {
+                        console.error(
+                            `[Edvibe Toolbox][Reset] Failed to load another pupil page `
+                            + `(${getErrorType(error)}).`
+                        );
+                        setStatus(error.message, 'error');
+                    }
+                    return false;
+                } finally {
+                    pupilPagePromise = null;
+                }
+            })();
+
+            return pupilPagePromise;
+        }
+
+        async function continueSearch(generation, query) {
+            while (
+                !closed
+                && generation === searchGeneration
+                && query === normalizeSearchQuery(search.value)
+                && filterPupilsByEmail(allPupils, query).length === 0
+                && hasMorePupils()
+            ) {
+                const loaded = await loadNextPupilPage();
+                if (!loaded) return;
+            }
+        }
+
+        function handleSearchInput() {
+            renderPupils();
+            searchGeneration += 1;
+            if (searchTimer !== null) {
+                cancelScheduled(searchTimer);
+                searchTimer = null;
+            }
+
+            const query = normalizeSearchQuery(search.value);
+            if (
+                !query
+                || filterPupilsByEmail(allPupils, query).length > 0
+                || !hasMorePupils()
+            ) {
+                return;
+            }
+
+            const generation = searchGeneration;
+            searchTimer = schedule(() => {
+                searchTimer = null;
+                return continueSearch(generation, query);
+            }, searchDelay);
         }
 
         function updateInteractiveState() {
@@ -766,6 +882,11 @@
         function close() {
             if (locked || loading || closed) return;
             closed = true;
+            searchGeneration += 1;
+            if (searchTimer !== null) {
+                cancelScheduled(searchTimer);
+                searchTimer = null;
+            }
             document.removeEventListener('keydown', handleKeydown);
             overlay.remove();
             onClose();
@@ -885,7 +1006,15 @@
             updateInteractiveState();
         }
 
-        search.addEventListener('input', renderPupils);
+        search.addEventListener('input', handleSearchInput);
+        pupilsList.addEventListener('scroll', () => {
+            const distanceFromBottom = pupilsList.scrollHeight
+                - pupilsList.scrollTop
+                - pupilsList.clientHeight;
+            if (distanceFromBottom <= 24) {
+                return loadNextPupilPage();
+            }
+        });
         selectAll.addEventListener('change', () => {
             selectedLessonIds = selectAll.checked
                 ? new Set(lessons.map((lesson) => lesson.MarathonLessonId))
@@ -944,12 +1073,14 @@
                 setStatus(message);
                 updateInteractiveState();
             },
-            showPupils(pupils, onSelectPupil) {
+            showPupils({ pupils, total, onSelectPupil, onLoadNext }) {
                 allPupils = pupils;
+                pupilTotal = total;
                 selectPupilHandler = onSelectPupil;
+                loadNextPupilsHandler = onLoadNext;
                 currentStep = 'user';
                 loading = false;
-                setStatus(`Загружено пользователей: ${pupils.length}`);
+                setStatus(`Загружено пользователей: ${pupils.length} из ${total}`);
                 renderPupils();
                 updateInteractiveState();
                 search.focus();
@@ -1024,7 +1155,8 @@
         sendWithoutResponse,
         wait,
         canStart,
-        onActiveChange
+        onActiveChange,
+        createModal = createResetModal
     }) {
         let running = false;
         let active = false;
@@ -1051,7 +1183,7 @@
             active = true;
             onActiveChange(true);
 
-            const modal = createResetModal({ onClose: releaseOperation });
+            const modal = createModal({ onClose: releaseOperation });
             (document.body || document.documentElement).appendChild(modal.overlay);
             modal.onReset(async ({ pupil, lessons }) => {
                 const confirmed = window.confirm(
@@ -1098,34 +1230,44 @@
 
             try {
                 modal.setLoading('Loading marathon pupils...');
-                const pupils = await loadAllPupils(sendRequest, marathonId);
+                const pupilPager = createPupilPager(sendRequest, marathonId);
+                const initialPage = await pupilPager.loadNext();
                 console.log(
-                    `[Edvibe Toolbox][Reset] Loaded ${pupils.length} pupil(s) for MarathonId ${marathonId}.`
+                    `[Edvibe Toolbox][Reset] Loaded ${initialPage.pupils.length} of `
+                    + `${initialPage.total} pupil(s) for MarathonId ${marathonId}.`
                 );
-                modal.showPupils(pupils, async (pupil) => {
-                    console.log(
-                        `[Edvibe Toolbox][Reset] Loading lessons for PupilId ${pupil.PupilId}.`
-                    );
-                    modal.setLoading(`Loading lessons for ${pupil.Email}...`);
-                    const response = await sendRequest(
-                        'MarathonLessonWsController',
-                        'GetMarathonLessonsForPupil',
-                        'Marathons',
-                        {
-                            PupilId: pupil.PupilId,
-                            MarathonId: marathonId,
-                            SearchTerm: '',
-                            Domain: 'edvibe.com'
+                modal.showPupils({
+                    pupils: initialPage.pupils,
+                    total: initialPage.total,
+                    onLoadNext: () => pupilPager.loadNext(),
+                    onSelectPupil: async (pupil) => {
+                        console.log(
+                            `[Edvibe Toolbox][Reset] Loading lessons for PupilId `
+                            + `${pupil.PupilId}.`
+                        );
+                        modal.setLoading(`Loading lessons for ${pupil.Email}...`);
+                        const response = await sendRequest(
+                            'MarathonLessonWsController',
+                            'GetMarathonLessonsForPupil',
+                            'Marathons',
+                            {
+                                PupilId: pupil.PupilId,
+                                MarathonId: marathonId,
+                                SearchTerm: '',
+                                Domain: 'edvibe.com'
+                            }
+                        );
+                        if (!Array.isArray(response.Value)) {
+                            throw new Error(
+                                'GetMarathonLessonsForPupil returned invalid data.'
+                            );
                         }
-                    );
-                    if (!Array.isArray(response.Value)) {
-                        throw new Error('GetMarathonLessonsForPupil returned invalid data.');
+                        console.log(
+                            `[Edvibe Toolbox][Reset] Loaded ${response.Value.length} `
+                            + `lesson(s) for PupilId ${pupil.PupilId}.`
+                        );
+                        modal.showLessons(pupil, response.Value);
                     }
-                    console.log(
-                        `[Edvibe Toolbox][Reset] Loaded ${response.Value.length} lesson(s) `
-                        + `for PupilId ${pupil.PupilId}.`
-                    );
-                    modal.showLessons(pupil, response.Value);
                 });
             } catch (error) {
                 console.error(
@@ -1146,7 +1288,7 @@
         shouldDeleteLastRequest,
         buildLoadExercisesPayload,
         buildResetAnswerPayload,
-        loadAllPupils,
+        createPupilPager,
         discoverResetWork,
         executeResetWork,
         createResetModal,
