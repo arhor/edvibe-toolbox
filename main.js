@@ -22,10 +22,15 @@ window.WebSocket = function (url, protocols) {
 
             // Correlation ID (RequestId) Matching Flow
             if (data.RequestId && pendingRequests.has(data.RequestId)) {
-                console.log(`[Edvibe Toolbox][Main] Inbound response matched pending RequestId: ${data.RequestId}`);
                 const pending = pendingRequests.get(data.RequestId);
                 pendingRequests.delete(data.RequestId);
                 clearTimeout(pending.timeoutId);
+                const elapsedMs = Date.now() - pending.startedAt;
+                const outcome = data.IsSuccess === true ? 'success' : `failed (${data.ErrorCode})`;
+                console.log(
+                    `[Edvibe Toolbox][WS] ← ${pending.controller}.${pending.method} `
+                    + `[${data.RequestId}] ${outcome} in ${elapsedMs}ms`
+                );
 
                 if (data.IsSuccess !== true) {
                     pending.reject(new Error(
@@ -65,15 +70,33 @@ function sendSocketMessage(controller, method, projectName, valueObject) {
         const packet = createSocketPacket(controller, method, projectName, valueObject);
         const timeoutId = setTimeout(() => {
             pendingRequests.delete(packet.RequestId);
+            console.error(
+                `[Edvibe Toolbox][WS] ✕ ${controller}.${method} `
+                + `[${packet.RequestId}] timed out after ${REQUEST_TIMEOUT_MS}ms`
+            );
             reject(new Error(`${controller}:${method} timed out after ${REQUEST_TIMEOUT_MS}ms.`));
         }, REQUEST_TIMEOUT_MS);
 
-        pendingRequests.set(packet.RequestId, { resolve, reject, timeoutId });
+        pendingRequests.set(packet.RequestId, {
+            resolve,
+            reject,
+            timeoutId,
+            controller,
+            method,
+            startedAt: Date.now()
+        });
+        console.log(
+            `[Edvibe Toolbox][WS] → ${controller}.${method} [${packet.RequestId}]`
+        );
         try {
             activeEdvibeSocket.send(JSON.stringify(packet));
         } catch (error) {
             clearTimeout(timeoutId);
             pendingRequests.delete(packet.RequestId);
+            console.error(
+                `[Edvibe Toolbox][WS] ✕ ${controller}.${method} `
+                + `[${packet.RequestId}] send failed: ${error.message}`
+            );
             reject(error);
         }
     });
@@ -84,9 +107,12 @@ function sendSocketMessageWithoutResponse(controller, method, projectName, value
         throw new Error('Active WebSocket connection is missing. Please reload the Edvibe tab context.');
     }
 
-    activeEdvibeSocket.send(JSON.stringify(
-        createSocketPacket(controller, method, projectName, valueObject)
-    ));
+    const packet = createSocketPacket(controller, method, projectName, valueObject);
+    console.log(
+        `[Edvibe Toolbox][WS] → ${controller}.${method} `
+        + `[${packet.RequestId}] (no response expected)`
+    );
+    activeEdvibeSocket.send(JSON.stringify(packet));
 }
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));

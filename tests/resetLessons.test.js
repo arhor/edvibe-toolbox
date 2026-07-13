@@ -7,9 +7,14 @@ const {
     collectLessonSections,
     shouldDeleteLastRequest,
     buildLoadExercisesPayload,
+    buildResetAnswerPayload,
     loadAllPupils,
     discoverResetWork,
-    executeResetWork
+    executeResetWork,
+    getResetModalMarkup,
+    getResetRunningStyles,
+    setResetRunningState,
+    getErrorType
 } = require('../resetLessons.js');
 
 test('parseMarathonId reads a numeric marathon id', () => {
@@ -65,6 +70,36 @@ test('buildLoadExercisesPayload uses MarathonLessonId as LessonId', () => {
     );
 });
 
+test('buildResetAnswerPayload clears the saved exercise answer', () => {
+    assert.deepEqual(
+        buildResetAnswerPayload({
+            marathonId: 18508,
+            pupilId: 1397893,
+            lessonId: 1468989,
+            exercise: { id: 32726464, type: 10, sectionId: 6975766 }
+        }),
+        {
+            SelfSync: false,
+            IsReset: true,
+            ExerciseId: 32726464,
+            ExerciseType: 10,
+            SectionId: 6975766,
+            PupilId: 1397893,
+            MarathonId: 18508,
+            SingleAnswer: {},
+            ManyAnswers: [],
+            RepeatingManyAnswers: [],
+            AnswerErrorsCount: [[]],
+            StatisticsInfo: {
+                CountAnswersTrue: 0,
+                CountAnswersFalse: 0,
+                CountAnswersPending: 0
+            },
+            LessonId: 1468989
+        }
+    );
+});
+
 test('loadAllPupils follows Page.Count until every pupil is loaded', async () => {
     const calls = [];
     const pages = [
@@ -99,8 +134,8 @@ test('discoverResetWork loads sections and user exercises', async () => {
         return {
             Value: {
                 Items: value.SectionId === 10
-                    ? [{ Id: 100 }, { Id: 101 }]
-                    : [{ Id: 102 }]
+                    ? [{ Id: 100, Type: 6 }, { Id: 101, Type: 10 }]
+                    : [{ Id: 102, Type: 18 }]
             }
         };
     };
@@ -113,18 +148,67 @@ test('discoverResetWork loads sections and user exercises', async () => {
         lessons: [lesson]
     });
 
-    assert.deepEqual(work[0].exerciseIds, [100, 101, 102]);
+    assert.deepEqual(work[0].exercises, [
+        { id: 100, type: 6, sectionId: 10 },
+        { id: 101, type: 10, sectionId: 10 },
+        { id: 102, type: 18, sectionId: 11 }
+    ]);
     assert.equal(work[0].deleteRequestId, 3690753);
     assert.equal(calls.filter((call) => call.method === 'LoadExercises').length, 2);
 });
 
-test('executeResetWork stops on the first failed reset', async () => {
-    const resetIds = [];
+test('executeResetWork saves an empty answer before dropping exercise statistics', async () => {
+    const calls = [];
+
+    await executeResetWork({
+        sendRequest: async (controller, method, project, value) => {
+            calls.push({ controller, method, project, value });
+            return method === 'SaveAnswer' ? { Value: {} } : { Value: true };
+        },
+        sendWithoutResponse: () => {},
+        wait: async () => {},
+        marathonId: 18508,
+        pupilId: 1397893,
+        work: [{
+            lesson: { LessonId: 1468989, Name: 'Lesson 2' },
+            exercises: [{ id: 100, type: 10, sectionId: 20 }],
+            deleteRequestId: null
+        }],
+        onProgress: () => {}
+    });
+
+    assert.deepEqual(
+        calls.map(({ controller, method, project }) => ({ controller, method, project })),
+        [
+            {
+                controller: 'ExerciseAnswerSaveVersion1WsController',
+                method: 'SaveAnswer',
+                project: 'ExerciseAnswer'
+            },
+            {
+                controller: 'MarathonStatisticService',
+                method: 'DropMarathonExerciseStatistic',
+                project: 'Statistic'
+            }
+        ]
+    );
+    assert.deepEqual(calls[0].value, buildResetAnswerPayload({
+        marathonId: 18508,
+        pupilId: 1397893,
+        lessonId: 1468989,
+        exercise: { id: 100, type: 10, sectionId: 20 }
+    }));
+});
+
+test('executeResetWork stops when dropping statistics fails', async () => {
+    const calls = [];
     const deletedIds = [];
-    const sendRequest = async (_controller, _method, _project, value) => {
-        resetIds.push(value.ExerciseId);
-        if (value.ExerciseId === 101) throw new Error('reset rejected');
-        return { Value: true };
+    const sendRequest = async (_controller, method, _project, value) => {
+        calls.push({ method, exerciseId: value.ExerciseId });
+        if (method === 'DropMarathonExerciseStatistic' && value.ExerciseId === 101) {
+            throw new Error('reset rejected');
+        }
+        return method === 'SaveAnswer' ? { Value: {} } : { Value: true };
     };
 
     await assert.rejects(
@@ -135,8 +219,12 @@ test('executeResetWork stops on the first failed reset', async () => {
             marathonId: 18508,
             pupilId: 1397893,
             work: [{
-                lesson: { Name: 'Lesson 2' },
-                exerciseIds: [100, 101, 102],
+                lesson: { LessonId: 1468989, Name: 'Lesson 2' },
+                exercises: [
+                    { id: 100, type: 6, sectionId: 10 },
+                    { id: 101, type: 10, sectionId: 10 },
+                    { id: 102, type: 18, sectionId: 11 }
+                ],
                 deleteRequestId: 3690753
             }],
             onProgress: () => {}
@@ -144,11 +232,42 @@ test('executeResetWork stops on the first failed reset', async () => {
         /Lesson 2.*101.*reset rejected/
     );
 
-    assert.deepEqual(resetIds, [100, 101]);
+    assert.deepEqual(calls, [
+        { method: 'SaveAnswer', exerciseId: 100 },
+        { method: 'DropMarathonExerciseStatistic', exerciseId: 100 },
+        { method: 'SaveAnswer', exerciseId: 101 },
+        { method: 'DropMarathonExerciseStatistic', exerciseId: 101 }
+    ]);
     assert.deepEqual(deletedIds, []);
 });
 
-test('executeResetWork deletes an applicable request and reports complete progress', async () => {
+test('executeResetWork does not drop statistics when saving the reset answer fails', async () => {
+    const methods = [];
+
+    await assert.rejects(
+        executeResetWork({
+            sendRequest: async (_controller, method) => {
+                methods.push(method);
+                throw new Error('answer reset rejected');
+            },
+            sendWithoutResponse: () => {},
+            wait: async () => {},
+            marathonId: 18508,
+            pupilId: 1397893,
+            work: [{
+                lesson: { LessonId: 1468989, Name: 'Lesson 2' },
+                exercises: [{ id: 100, type: 10, sectionId: 20 }],
+                deleteRequestId: null
+            }],
+            onProgress: () => {}
+        }),
+        /Lesson 2.*100.*answer reset rejected/
+    );
+
+    assert.deepEqual(methods, ['SaveAnswer']);
+});
+
+test('executeResetWork leaves an applicable lesson request untouched', async () => {
     const deletedIds = [];
     const progress = [];
 
@@ -159,19 +278,58 @@ test('executeResetWork deletes an applicable request and reports complete progre
         marathonId: 18508,
         pupilId: 1397893,
         work: [{
-            lesson: { Name: 'Lesson 2' },
-            exerciseIds: [100],
+            lesson: { LessonId: 1468989, Name: 'Lesson 2' },
+            exercises: [{ id: 100, type: 10, sectionId: 20 }],
             deleteRequestId: 3690753
         }],
         onProgress: (update) => progress.push(update)
     });
 
-    assert.deepEqual(deletedIds, [3690753]);
+    assert.deepEqual(deletedIds, []);
     assert.deepEqual(
         progress.map(({ completed, total, exerciseId }) => ({ completed, total, exerciseId })),
         [
-            { completed: 1, total: 2, exerciseId: 100 },
-            { completed: 2, total: 2, exerciseId: null }
+            { completed: 1, total: 1, exerciseId: 100 }
         ]
     );
+});
+
+test('reset progress region is outside the scrollable selection body', () => {
+    const markup = getResetModalMarkup();
+
+    assert.match(
+        markup,
+        /<\/div>\s*<div class="edvibe-reset-live-region">[\s\S]*edvibe-reset-progress/
+    );
+});
+
+test('running reset hides selection but not the live progress region', () => {
+    const styles = getResetRunningStyles();
+
+    assert.match(styles, /\.is-running \.edvibe-reset-body\s*\{[^}]*display:\s*none/);
+    assert.doesNotMatch(styles, /\.is-running \.edvibe-reset-live-region\s*\{[^}]*display:\s*none/);
+});
+
+test('setResetRunningState applies the running class', () => {
+    const classes = new Set();
+    const overlay = {
+        classList: {
+            toggle(name, force) {
+                if (force) classes.add(name);
+                else classes.delete(name);
+            }
+        }
+    };
+
+    setResetRunningState(overlay, true);
+    assert.equal(classes.has('is-running'), true);
+    setResetRunningState(overlay, false);
+    assert.equal(classes.has('is-running'), false);
+});
+
+test('getErrorType omits potentially sensitive error messages', () => {
+    const result = getErrorType(new Error('Failed in "Sensitive lesson name"'));
+
+    assert.equal(result, 'Error');
+    assert.equal(result.includes('Sensitive lesson name'), false);
 });
