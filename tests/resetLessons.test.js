@@ -826,7 +826,7 @@ test('modal delays unmatched search pagination and stops on the first match', as
     assert.equal(pupilsList.inert, false);
     assert.equal(pupilsList.children[0].disabled, false);
     assert.equal(loadCount, 0);
-    assert.equal(timers[0].delay, 1500);
+    assert.equal(timers[0].delay, 1000);
 
     const searchRun = timers[0].callback();
     assert.equal(loadCount, 1);
@@ -986,7 +986,7 @@ test('modal delays blank and locally matched filters without loading pupil pages
     await search.emit('input');
 
     assert.equal(timers.length, 2);
-    assert.deepEqual(timers.map((timer) => timer.delay), [1500, 1500]);
+    assert.deepEqual(timers.map((timer) => timer.delay), [1000, 1000]);
     assert.equal(pupilsShell.classList.names.has('is-loading'), false);
     assert.equal(pupilsLoading.hidden, true);
     await timers[0].callback();
@@ -995,7 +995,7 @@ test('modal delays blank and locally matched filters without loading pupil pages
     assert.equal(pupilsLoading.hidden, true);
 });
 
-test('modal restarts the 1.5-second delay after each input change', async (t) => {
+test('modal restarts the 1-second delay after each input change', async (t) => {
     const originalDocument = global.document;
     global.document = createModalTestDocument();
     t.after(() => {
@@ -1034,7 +1034,7 @@ test('modal restarts the 1.5-second delay after each input change', async (t) =>
 
     assert.deepEqual(cancelled, [0]);
     assert.equal(timers.length, 2);
-    assert.equal(timers[1].delay, 1500);
+    assert.equal(timers[1].delay, 1000);
 });
 
 test('modal prevents a stale search from loading another page', async (t) => {

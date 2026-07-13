@@ -756,7 +756,7 @@
         onClose,
         schedule = setTimeout,
         cancelScheduled = clearTimeout,
-        searchDelay = 1500
+        searchDelay = 1000
     }) {
         ensureResetStyles();
 
