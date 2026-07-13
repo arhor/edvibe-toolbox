@@ -344,7 +344,7 @@
             nextHidden: !showingUsers,
             nextDisabled: blocked || !hasSelectedPupil,
             backHidden: showingUsers,
-            backDisabled: blocked,
+            backDisabled: loading || locked,
             submitHidden: showingUsers,
             submitDisabled: blocked || !hasSelectedPupil || selectedLessonCount === 0,
             closeDisabled: loading || locked
@@ -978,6 +978,7 @@
             next.disabled = view.nextDisabled;
             back.hidden = view.backHidden;
             back.disabled = view.backDisabled;
+            back.textContent = finished ? 'Сбросить для другого пользователя' : 'Назад';
             submit.hidden = view.submitHidden;
             submit.disabled = view.submitDisabled;
             search.disabled = inputsBlocked;
@@ -1011,6 +1012,33 @@
             document.removeEventListener('keydown', handleKeydown);
             overlay.remove();
             onClose();
+        }
+
+        function resetForAnotherUser() {
+            finished = false;
+            currentStep = 'user';
+            selectedPupil = null;
+            loadedPupilId = null;
+            lessons = [];
+            selectedLessonIds = new Set();
+            search.value = '';
+            appliedSearchQuery = '';
+            searchGeneration += 1;
+            if (searchTimer !== null) {
+                cancelScheduled(searchTimer);
+                searchTimer = null;
+            }
+            searchDebouncing = false;
+            suppressPupilPageLoading = false;
+            selectedPupilLabel.textContent = '';
+            progress.classList.remove('is-visible', 'is-indeterminate');
+            progress.setAttribute('aria-valuenow', '0');
+            progressBar.style.width = '';
+            setStatus(`Загружено пользователей: ${allPupils.length} из ${pupilTotal}`);
+            renderLessons();
+            renderPupils();
+            updateInteractiveState();
+            search.focus();
         }
 
         function handleKeydown(event) {
@@ -1173,6 +1201,10 @@
         });
         back.addEventListener('click', () => {
             if (back.disabled) return;
+            if (finished) {
+                resetForAnotherUser();
+                return;
+            }
             currentStep = 'user';
             setStatus(`Выбран пользователь: ${selectedPupil?.Email || 'email отсутствует'}`);
             updateInteractiveState();
@@ -1237,9 +1269,16 @@
                 renderLessons();
                 updateInteractiveState();
             },
-            unlockAfterRun() {
+            completeRun() {
                 locked = false;
                 finished = true;
+                setResetRunningState(overlay, false);
+                updateInteractiveState();
+            },
+            unlockAfterRun() {
+                locked = false;
+                finished = false;
+                setResetRunningState(overlay, false);
                 updateInteractiveState();
             },
             showDiscovery(message) {
@@ -1320,6 +1359,7 @@
 
                 running = true;
                 modal.lock();
+                let completed = false;
 
                 try {
                     modal.showDiscovery('Discovering exercises...');
@@ -1341,6 +1381,7 @@
                         onProgress: modal.showProgress
                     });
                     modal.showComplete('Selected lesson progress was reset successfully.');
+                    completed = true;
                 } catch (error) {
                     const lessonIds = lessons.map((lesson) => lesson.MarathonLessonId).join(', ');
                     console.error(
@@ -1350,8 +1391,11 @@
                     modal.showError(error.message);
                 } finally {
                     running = false;
-                    releaseOperation();
-                    modal.unlockAfterRun();
+                    if (completed) {
+                        modal.completeRun();
+                    } else {
+                        modal.unlockAfterRun();
+                    }
                 }
             });
 

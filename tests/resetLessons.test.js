@@ -621,6 +621,21 @@ test('wizard loading and running states block navigation', () => {
     assert.equal(running.closeDisabled, true);
 });
 
+test('finished reset keeps Back available for resetting another user', () => {
+    const finished = getResetWizardViewState({
+        step: 'lessons',
+        hasSelectedPupil: true,
+        selectedLessonCount: 1,
+        loading: false,
+        locked: false,
+        finished: true
+    });
+
+    assert.equal(finished.backHidden, false);
+    assert.equal(finished.backDisabled, false);
+    assert.equal(finished.submitDisabled, true);
+});
+
 test('selecting another pupil invalidates loaded lessons and selections', () => {
     const pupil = { PupilId: 2, Email: 'second@example.com' };
     const state = getResetPupilSelectionState({
@@ -724,6 +739,99 @@ test('modal defers lesson loading and preserves same-pupil selections on Back', 
     await next.emit('click');
     assert.deepEqual(loadedPupilIds, [1, 2]);
     assert.equal(submit.disabled, true);
+});
+
+test('completed reset can return to a clean user selection step', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const pupil = { PupilId: 1, Name: 'First', Email: 'first@example.com' };
+    const modal = createResetModal({ onClose() {} });
+    const overlay = modal.overlay;
+    const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
+    const userStep = overlay.querySelector('.edvibe-reset-user-step');
+    const lessonStep = overlay.querySelector('.edvibe-reset-lesson-step');
+    const next = overlay.querySelector('.edvibe-reset-next');
+    const back = overlay.querySelector('.edvibe-reset-back');
+    const submit = overlay.querySelector('.edvibe-reset-submit');
+    const progress = overlay.querySelector('.edvibe-reset-progress');
+
+    modal.showPupils({
+        pupils: [pupil],
+        total: 1,
+        onSelectPupil: async (selectedPupil) => {
+            modal.showLessons(selectedPupil, [{
+                MarathonLessonId: 10,
+                Number: 0,
+                Name: 'Lesson 1'
+            }]);
+        },
+        onLoadNext: async () => ({ pupils: [pupil], total: 1, hasMore: false })
+    });
+    await pupilsList.children[0].emit('click');
+    await next.emit('click');
+    const lessonCheckbox = overlay.querySelector('.edvibe-reset-lessons').children[0].children[0];
+    lessonCheckbox.checked = true;
+    await lessonCheckbox.emit('change');
+
+    modal.lock();
+    modal.showComplete('Done');
+    modal.completeRun();
+
+    assert.equal(overlay.classList.names.has('is-running'), false);
+    assert.equal(back.disabled, false);
+    assert.equal(back.textContent, 'Сбросить для другого пользователя');
+    assert.equal(submit.disabled, true);
+
+    await back.emit('click');
+
+    assert.equal(userStep.hidden, false);
+    assert.equal(lessonStep.hidden, true);
+    assert.equal(next.disabled, true);
+    assert.equal(progress.classList.names.has('is-visible'), false);
+});
+
+test('failed reset unlocks the current lesson selection for retry', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const pupil = { PupilId: 1, Name: 'First', Email: 'first@example.com' };
+    const modal = createResetModal({ onClose() {} });
+    const overlay = modal.overlay;
+    const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
+    const next = overlay.querySelector('.edvibe-reset-next');
+    const submit = overlay.querySelector('.edvibe-reset-submit');
+
+    modal.showPupils({
+        pupils: [pupil],
+        total: 1,
+        onSelectPupil: async (selectedPupil) => {
+            modal.showLessons(selectedPupil, [{
+                MarathonLessonId: 10,
+                Number: 0,
+                Name: 'Lesson 1'
+            }]);
+        },
+        onLoadNext: async () => ({ pupils: [pupil], total: 1, hasMore: false })
+    });
+    await pupilsList.children[0].emit('click');
+    await next.emit('click');
+    const lessonCheckbox = overlay.querySelector('.edvibe-reset-lessons').children[0].children[0];
+    lessonCheckbox.checked = true;
+    await lessonCheckbox.emit('change');
+
+    modal.lock();
+    modal.showError('Reset failed');
+    modal.unlockAfterRun();
+
+    assert.equal(overlay.classList.names.has('is-running'), false);
+    assert.equal(submit.disabled, false);
 });
 
 test('modal keeps failed lesson loading recoverable on the user step', async (t) => {
