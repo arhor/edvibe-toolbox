@@ -808,7 +808,8 @@
         let searchTimer = null;
         let searchGeneration = 0;
         let appliedSearchQuery = '';
-        let searchPending = false;
+        let searchDebouncing = false;
+        let suppressPupilPageLoading = false;
 
         function setStatus(message, state = '') {
             status.textContent = message;
@@ -824,8 +825,12 @@
             return allPupils.length < pupilTotal;
         }
 
+        function isPupilLoadingVisible() {
+            return loading || (pupilPageLoading && !suppressPupilPageLoading);
+        }
+
         function updatePupilLoadingState() {
-            const busy = loading || searchPending || pupilPageLoading;
+            const busy = isPupilLoadingVisible();
             pupilsShell.classList.toggle('is-loading', busy);
             pupilsLoading.hidden = !busy;
             pupilsList.setAttribute('aria-busy', String(busy));
@@ -839,6 +844,7 @@
             if (closed || !loadNextPupilsHandler || !hasMorePupils()) return false;
             if (pupilPagePromise) return pupilPagePromise;
 
+            suppressPupilPageLoading = false;
             pupilPageLoading = true;
             updatePupilLoadingState();
             pupilPagePromise = (async () => {
@@ -866,6 +872,9 @@
                 } finally {
                     pupilPagePromise = null;
                     pupilPageLoading = false;
+                    if (!searchDebouncing) {
+                        suppressPupilPageLoading = false;
+                    }
                     updatePupilLoadingState();
                 }
             })();
@@ -894,38 +903,46 @@
                 searchTimer = null;
             }
 
-            searchPending = true;
+            searchDebouncing = true;
+            suppressPupilPageLoading = true;
             updatePupilLoadingState();
             const query = normalizeSearchQuery(search.value);
             const generation = searchGeneration;
             searchTimer = schedule(async () => {
-                searchTimer = null;
-                try {
-                    if (
-                        query
-                        && filterPupilsByEmail(allPupils, query).length === 0
-                        && hasMorePupils()
-                    ) {
-                        const searchCompleted = await continueSearch(generation, query);
-                        if (!searchCompleted) return;
-                    }
-
-                    if (
-                        closed
-                        || generation !== searchGeneration
-                        || query !== normalizeSearchQuery(search.value)
-                    ) {
-                        return;
-                    }
-
-                    appliedSearchQuery = query;
-                    renderPupils();
-                } finally {
-                    if (generation === searchGeneration) {
-                        searchPending = false;
-                        updatePupilLoadingState();
-                    }
+                if (
+                    closed
+                    || generation !== searchGeneration
+                    || query !== normalizeSearchQuery(search.value)
+                ) {
+                    return;
                 }
+
+                searchTimer = null;
+                const needsRemotePupils = Boolean(
+                    query
+                    && filterPupilsByEmail(allPupils, query).length === 0
+                    && hasMorePupils()
+                );
+                searchDebouncing = false;
+                if (needsRemotePupils || !pupilPageLoading) {
+                    suppressPupilPageLoading = false;
+                }
+                updatePupilLoadingState();
+                if (needsRemotePupils) {
+                    const searchCompleted = await continueSearch(generation, query);
+                    if (!searchCompleted) return;
+                }
+
+                if (
+                    closed
+                    || generation !== searchGeneration
+                    || query !== normalizeSearchQuery(search.value)
+                ) {
+                    return;
+                }
+
+                appliedSearchQuery = query;
+                renderPupils();
             }, searchDelay);
         }
 
@@ -1004,7 +1021,7 @@
                 row.setAttribute('role', 'option');
                 row.setAttribute('aria-selected', String(pupil.PupilId === selectedPupil?.PupilId));
                 row.classList.toggle('is-selected', pupil.PupilId === selectedPupil?.PupilId);
-                row.disabled = locked || loading || finished || searchPending || pupilPageLoading;
+                row.disabled = locked || finished || isPupilLoadingVisible();
 
                 const copy = document.createElement('span');
                 copy.className = 'edvibe-reset-row-copy';
@@ -1020,10 +1037,8 @@
                 row.addEventListener('click', () => {
                     if (
                         locked
-                        || loading
                         || finished
-                        || searchPending
-                        || pupilPageLoading
+                        || isPupilLoadingVisible()
                         || pupil.PupilId === selectedPupil?.PupilId
                     ) return;
 
@@ -1104,6 +1119,7 @@
 
         search.addEventListener('input', handleSearchInput);
         pupilsList.addEventListener('scroll', () => {
+            if (searchDebouncing) return;
             const distanceFromBottom = pupilsList.scrollHeight
                 - pupilsList.scrollTop
                 - pupilsList.clientHeight;

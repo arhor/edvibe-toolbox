@@ -799,22 +799,18 @@ test('modal delays unmatched search pagination and stops on the first match', as
     const pupilsShell = modal.overlay.querySelector('.edvibe-reset-pupils-shell');
     const pupilsList = modal.overlay.querySelector('.edvibe-reset-pupils');
     const pupilsLoading = modal.overlay.querySelector('.edvibe-reset-pupils-loading');
+    let resolvePage;
     let loadCount = 0;
 
     modal.showPupils({
         pupils: [{ PupilId: 1, Email: 'first@example.com' }],
         total: 3,
         onSelectPupil: async () => {},
-        onLoadNext: async () => {
+        onLoadNext: () => {
             loadCount += 1;
-            return {
-                pupils: [
-                    { PupilId: 1, Email: 'first@example.com' },
-                    { PupilId: 2, Email: 'target@example.com' }
-                ],
-                total: 3,
-                hasMore: true
-            };
+            return new Promise((resolve) => {
+                resolvePage = resolve;
+            });
         }
     });
 
@@ -824,16 +820,31 @@ test('modal delays unmatched search pagination and stops on the first match', as
         pupilsList.children[0].children[0].children[1].textContent,
         'first@example.com'
     );
+    assert.equal(pupilsShell.classList.names.has('is-loading'), false);
+    assert.equal(pupilsLoading.hidden, true);
+    assert.equal(pupilsList.attributes.get('aria-busy'), 'false');
+    assert.equal(pupilsList.inert, false);
+    assert.equal(pupilsList.children[0].disabled, false);
+    assert.equal(loadCount, 0);
+    assert.equal(timers[0].delay, 3000);
+
+    const searchRun = timers[0].callback();
+    assert.equal(loadCount, 1);
     assert.equal(pupilsShell.classList.names.has('is-loading'), true);
     assert.equal(pupilsLoading.hidden, false);
     assert.equal(pupilsList.attributes.get('aria-busy'), 'true');
     assert.equal(pupilsList.inert, true);
     assert.equal(pupilsList.children[0].disabled, true);
-    assert.equal(loadCount, 0);
-    assert.equal(timers[0].delay, 3000);
 
-    await timers[0].callback();
-    assert.equal(loadCount, 1);
+    resolvePage({
+        pupils: [
+            { PupilId: 1, Email: 'first@example.com' },
+            { PupilId: 2, Email: 'target@example.com' }
+        ],
+        total: 3,
+        hasMore: true
+    });
+    await searchRun;
     assert.equal(pupilsShell.classList.names.has('is-loading'), false);
     assert.equal(pupilsLoading.hidden, true);
     assert.equal(pupilsList.attributes.get('aria-busy'), 'false');
@@ -878,8 +889,8 @@ test('modal shows no results only after delayed search completes', async (t) => 
     search.value = 'missing';
     await search.emit('input');
     assert.equal(pupilsList.children.length, 1);
-    assert.equal(pupilsShell.classList.names.has('is-loading'), true);
-    assert.equal(pupilsLoading.hidden, false);
+    assert.equal(pupilsShell.classList.names.has('is-loading'), false);
+    assert.equal(pupilsLoading.hidden, true);
 
     await timers[0].callback();
 
@@ -957,6 +968,8 @@ test('modal delays blank and locally matched filters without loading pupil pages
         cancelScheduled() {}
     });
     const search = modal.overlay.querySelector('.edvibe-reset-search');
+    const pupilsShell = modal.overlay.querySelector('.edvibe-reset-pupils-shell');
+    const pupilsLoading = modal.overlay.querySelector('.edvibe-reset-pupils-loading');
 
     modal.showPupils({
         pupils: [{ PupilId: 1, Email: 'first@example.com' }],
@@ -974,8 +987,12 @@ test('modal delays blank and locally matched filters without loading pupil pages
 
     assert.equal(timers.length, 2);
     assert.deepEqual(timers.map((timer) => timer.delay), [3000, 3000]);
+    assert.equal(pupilsShell.classList.names.has('is-loading'), false);
+    assert.equal(pupilsLoading.hidden, true);
     await timers[0].callback();
     await timers[1].callback();
+    assert.equal(pupilsShell.classList.names.has('is-loading'), false);
+    assert.equal(pupilsLoading.hidden, true);
 });
 
 test('modal restarts the three-second delay after each input change', async (t) => {
@@ -1059,6 +1076,13 @@ test('modal prevents a stale search from loading another page', async (t) => {
     const staleSearch = timers[0]();
     search.value = 'first';
     await search.emit('input');
+    assert.equal(pupilsShell.classList.names.has('is-loading'), false);
+    assert.equal(pupilsList.attributes.get('aria-busy'), 'false');
+
+    await timers[1]();
+    assert.equal(pupilsShell.classList.names.has('is-loading'), false);
+    assert.equal(pupilsList.attributes.get('aria-busy'), 'false');
+
     resolvePage({
         pupils: [
             { PupilId: 1, Email: 'first@example.com' },
@@ -1070,10 +1094,6 @@ test('modal prevents a stale search from loading another page', async (t) => {
     await staleSearch;
 
     assert.equal(loadCount, 1);
-    assert.equal(pupilsShell.classList.names.has('is-loading'), true);
-    assert.equal(pupilsList.attributes.get('aria-busy'), 'true');
-
-    await timers[1]();
     assert.equal(pupilsShell.classList.names.has('is-loading'), false);
     assert.equal(pupilsList.attributes.get('aria-busy'), 'false');
 });
@@ -1237,6 +1257,55 @@ test('modal loads one pupil page when the list scrolls near the bottom', async (
     assert.equal(pupilsList.children.length, 2);
 });
 
+test('modal ignores infinite scroll during the search debounce', async (t) => {
+    const originalDocument = global.document;
+    global.document = createModalTestDocument();
+    t.after(() => {
+        global.document = originalDocument;
+    });
+
+    const timers = [];
+    let loadCount = 0;
+    const modal = createResetModal({
+        onClose() {},
+        schedule(callback) {
+            timers.push(callback);
+            return timers.length - 1;
+        },
+        cancelScheduled() {}
+    });
+    const search = modal.overlay.querySelector('.edvibe-reset-search');
+    const pupilsList = modal.overlay.querySelector('.edvibe-reset-pupils');
+
+    modal.showPupils({
+        pupils: [{ PupilId: 1, Email: 'first@example.com' }],
+        total: 2,
+        onSelectPupil: async () => {},
+        onLoadNext: async () => {
+            loadCount += 1;
+            return {
+                pupils: [
+                    { PupilId: 1, Email: 'first@example.com' },
+                    { PupilId: 2, Email: 'target@example.com' }
+                ],
+                total: 2,
+                hasMore: false
+            };
+        }
+    });
+
+    search.value = 'target';
+    await search.emit('input');
+    pupilsList.scrollTop = 176;
+    pupilsList.clientHeight = 100;
+    pupilsList.scrollHeight = 300;
+    await pupilsList.emit('scroll');
+
+    assert.equal(loadCount, 0);
+    await timers[0]();
+    assert.equal(loadCount, 1);
+});
+
 test('repeated near-bottom scroll events share one pupil request', async (t) => {
     const originalDocument = global.document;
     global.document = createModalTestDocument();
@@ -1317,9 +1386,9 @@ test('modal shares a page request triggered by search and scrolling', async (t) 
     pupilsList.scrollTop = 176;
     pupilsList.clientHeight = 100;
     pupilsList.scrollHeight = 300;
-    const scrollLoad = pupilsList.emit('scroll');
-    assert.equal(loadCount, 1);
     const searchLoad = timers[0]();
+    assert.equal(loadCount, 1);
+    const scrollLoad = pupilsList.emit('scroll');
     assert.equal(loadCount, 1);
 
     resolvePage({
