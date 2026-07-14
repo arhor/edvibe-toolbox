@@ -21,7 +21,7 @@ const {
     hasLoadedLessonsForPupil,
     setResetRunningState,
     getErrorType
-} = require('../features/reset-lessons.js');
+} = require('../src/features/reset-lessons.js');
 
 function createModalTestDocument() {
     class FakeClassList {

@@ -3,7 +3,6 @@
 console.log('[Edvibe Toolbox][Popup] Popup script initialized and active.');
 
 const runAutomationBtn = document.getElementById('startCaptureBtn');
-const resetLessonsBtn = document.getElementById('resetLessonsBtn');
 const DEFAULT_BUTTON_TEXT = 'Выгрузить марафон';
 const EXPORTING_BUTTON_TEXT = '⚡ Exporting...';
 
@@ -64,43 +63,40 @@ function sendTabCommand(tabId, action) {
     });
 }
 
-if (runAutomationBtn) {
-    syncExportButtonFromStorage();
+syncExportButtonFromStorage();
 
-    runAutomationBtn.addEventListener('click', async () => {
-        if (runAutomationBtn.disabled) return;
+async function startAutomation(button) {
+    if (button.disabled) return;
 
-        console.log('[Edvibe Toolbox][Popup] Click event detected on main unified execution button.');
+    console.log('[Edvibe Toolbox][Popup] Click event detected on main unified execution button.');
 
-        try {
-            const tab = await getActiveMarathonTab();
-            setExportButtonState(true);
-            console.log(`[Edvibe Toolbox][Popup] Sending execution token to tab identifier: ${tab.id}`);
-            const response = await sendTabCommand(tab.id, 'START_FULL_AUTOMATION');
-            console.log('[Edvibe Toolbox][Popup] Acknowledgment received from the page environment:', response);
-        } catch (error) {
-            console.error('[Edvibe Toolbox][Popup] Fatal exception occurred during automation startup:', error);
-            alert(error.message);
-            setExportButtonState(false);
-        }
-    });
-} else {
-    console.warn('[Edvibe Toolbox][Popup] Target DOM element "startCaptureBtn" was not found in the popup UI layout.');
+    try {
+        const tab = await getActiveMarathonTab();
+        setExportButtonState(true);
+        console.log(`[Edvibe Toolbox][Popup] Sending execution token to tab identifier: ${tab.id}`);
+        const response = await sendTabCommand(tab.id, 'START_FULL_AUTOMATION');
+        console.log('[Edvibe Toolbox][Popup] Acknowledgment received from the page environment:', response);
+    } catch (error) {
+        console.error('[Edvibe Toolbox][Popup] Fatal exception occurred during automation startup:', error);
+        alert(error.message);
+        setExportButtonState(false);
+    }
 }
 
-if (resetLessonsBtn) {
-    resetLessonsBtn.addEventListener('click', async () => {
-        if (resetLessonsBtn.disabled) return;
+async function openLessonReset(button) {
+    if (button.disabled) return;
 
-        resetLessonsBtn.disabled = true;
-        try {
-            const tab = await getActiveMarathonTab();
-            await sendTabCommand(tab.id, 'OPEN_LESSON_RESET');
-            window.close();
-        } catch (error) {
-            console.error('[Edvibe Toolbox][Popup] Failed to open lesson reset:', error);
-            alert(error.message);
-            resetLessonsBtn.disabled = false;
-        }
-    });
+    button.disabled = true;
+    try {
+        const tab = await getActiveMarathonTab();
+        await sendTabCommand(tab.id, 'OPEN_LESSON_RESET');
+        window.close();
+    } catch (error) {
+        console.error('[Edvibe Toolbox][Popup] Failed to open lesson reset:', error);
+        alert(error.message);
+        button.disabled = false;
+    }
 }
+
+window.startAutomation = startAutomation;
+window.openLessonReset = openLessonReset;

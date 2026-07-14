@@ -16,11 +16,11 @@ test('manifest loads shared infrastructure and features before main', () => {
     assert.deepEqual(mainWorld.js, [
         'lib/jszip.min.js',
         'lib/turndown.min.js',
-        'shared/websocket-transport.js',
-        'shared/operation-guard.js',
-        'features/reset-lessons.js',
-        'features/marathon-export.js',
-        'main.js'
+        'src/shared/websocket-transport.js',
+        'src/shared/operation-guard.js',
+        'src/features/reset-lessons.js',
+        'src/features/marathon-export.js',
+        'src/main.js'
     ]);
 
     for (const scriptPath of mainWorld.js) {
@@ -33,7 +33,7 @@ test('manifest loads shared infrastructure and features before main', () => {
 });
 
 test('main remains a coordinator without concrete feature logic', () => {
-    const source = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
+    const source = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
 
     assert.doesNotMatch(source, /GetMarathonLessonsPagination/);
     assert.doesNotMatch(source, /LoadExercises/);
@@ -45,11 +45,11 @@ test('main remains a coordinator without concrete feature logic', () => {
 });
 
 test('marathon export owns its ZIP compiler implementation', () => {
-    const exportApi = require('../features/marathon-export.js');
+    const exportApi = require('../src/features/marathon-export.js');
 
     assert.equal(typeof exportApi.compileMarathonToZip, 'function');
     assert.equal(
-        fs.existsSync(path.join(root, 'features/compile-marathon-to-zip.js')),
+        fs.existsSync(path.join(root, 'src/features/compile-marathon-to-zip.js')),
         false
     );
 });

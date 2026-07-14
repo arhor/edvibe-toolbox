@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { createOperationGuard } = require('../shared/operation-guard.js');
+const { createOperationGuard } = require('../src/shared/operation-guard.js');
 
 test('operation guard activates one named operation', () => {
     const guard = createOperationGuard();

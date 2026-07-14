@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { createWebSocketTransport } = require('../shared/websocket-transport.js');
+const { createWebSocketTransport } = require('../src/shared/websocket-transport.js');
 
 class FakeWebSocket {
     static OPEN = 1;
