@@ -1,31 +1,18 @@
-// main.js - MAIN-world composition root
-
 console.log('[Edvibe Toolbox][Main] Initializing Toolbox modules...');
 
-function requireToolboxModule(name, value) {
-    if (!value) {
+function requireToolboxModule(name) {
+    const module = window[name];
+    
+    if (!module) {
         throw new Error(`[Edvibe Toolbox][Main] Required module is missing: ${name}`);
     }
-
-    return value;
+    return module;
 }
 
-const transport = requireToolboxModule(
-    'EdVibeWebSocketTransport',
-    window.EdVibeWebSocketTransport
-);
-const operationGuardApi = requireToolboxModule(
-    'EdVibeOperationGuard',
-    window.EdVibeOperationGuard
-);
-const exportApi = requireToolboxModule(
-    'EdVibeMarathonExport',
-    window.EdVibeMarathonExport
-);
-const resetApi = requireToolboxModule(
-    'EdVibeLessonReset',
-    window.EdVibeLessonReset
-);
+const transport = requireToolboxModule('EdVibeWebSocketTransport');
+const operationGuardApi = requireToolboxModule('EdVibeOperationGuard');
+const exportApi = requireToolboxModule('EdVibeMarathonExport');
+const resetApi = requireToolboxModule('EdVibeLessonReset');
 
 const operationGuard = operationGuardApi.createOperationGuard();
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

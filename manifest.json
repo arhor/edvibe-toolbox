@@ -16,7 +16,7 @@
                 "*://*.edvibe.com/*"
             ],
             "js": [
-                "isolated.js"
+                "src/isolated.js"
             ],
             "run_at": "document_start",
             "world": "ISOLATED"
@@ -28,11 +28,11 @@
             "js": [
                 "lib/jszip.min.js",
                 "lib/turndown.min.js",
-                "shared/websocket-transport.js",
-                "shared/operation-guard.js",
-                "features/reset-lessons.js",
-                "features/marathon-export.js",
-                "main.js"
+                "src/shared/websocket-transport.js",
+                "src/shared/operation-guard.js",
+                "src/features/reset-lessons.js",
+                "src/features/marathon-export.js",
+                "src/main.js"
             ],
             "run_at": "document_start",
             "world": "MAIN"

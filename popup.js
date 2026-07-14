@@ -21,15 +21,19 @@ async function syncExportButtonFromStorage() {
 }
 
 chrome.runtime.onMessage.addListener((message) => {
-    if (message?.action !== 'EXPORT_STATUS') return;
-
-    if (message.state === 'started') {
-        setExportButtonState(true);
+    if (message?.action === 'EXPORT_STATUS') {
         return;
     }
-
-    if (message.state === 'complete' || message.state === 'error') {
-        setExportButtonState(false);
+    switch (message.state) {
+        case 'started':
+            setExportButtonState(true);
+            break;
+        case 'complete':
+        case 'error':
+            setExportButtonState(false);
+            break;
+        default:
+            break;
     }
 });
 
