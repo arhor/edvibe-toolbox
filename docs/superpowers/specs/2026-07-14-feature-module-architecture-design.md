@@ -11,7 +11,6 @@ This refactor preserves the current extension behavior, WebSocket payloads, back
 ```text
 features/
   marathon-export.js
-  compile-marathon-to-zip.js
   reset-lessons.js
 shared/
   websocket-transport.js
@@ -19,7 +18,7 @@ shared/
 main.js
 ```
 
-The existing root-level `compile-marathon-to-zip.js` and `reset-lessons.js` files move to `features/` without compatibility shims. Manifest and test references move with them.
+The existing reset module moves to `features/reset-lessons.js` without a compatibility shim. ZIP compilation becomes a private implementation detail of `features/marathon-export.js`.
 
 Small domain helpers such as marathon-ID parsing and lesson-section collection remain feature-local. Sharing them is not necessary to establish the desired architecture and would broaden this structural refactor.
 
@@ -57,7 +56,7 @@ The manifest must load this module before `main.js` and before the Edvibe applic
 - Loads section exercises with the existing 300 ms throttle.
 - Builds the unchanged backup object containing `exportedAt`, `marathonId`, `totalLessons`, and `lessons`.
 - Owns the export progress overlay and status lifecycle.
-- Delegates archive creation to the ZIP compiler.
+- Owns ZIP creation, Markdown conversion, image localization, and browser download behavior.
 - Exposes:
 
 ```js
@@ -73,12 +72,6 @@ createMarathonExportFeature({
 ```
 
 `createProgressOverlay` is optional and defaults to the browser implementation, allowing focused Node tests without a full DOM.
-
-### `features/compile-marathon-to-zip.js`
-
-- Retains the existing ZIP, Markdown conversion, image localization, and browser download behavior.
-- Continues to depend on JSZip and Turndown loaded earlier by the manifest.
-- Continues exposing `compileMarathonToZip`.
 
 ### `features/reset-lessons.js`
 
@@ -105,10 +98,9 @@ The MAIN-world manifest order becomes:
 2. `lib/turndown.min.js`
 3. `shared/websocket-transport.js`
 4. `shared/operation-guard.js`
-5. `features/compile-marathon-to-zip.js`
-6. `features/reset-lessons.js`
-7. `features/marathon-export.js`
-8. `main.js`
+5. `features/reset-lessons.js`
+6. `features/marathon-export.js`
+7. `main.js`
 
 All scripts remain classic scripts loaded at `document_start` in the `MAIN` world. No bundler, framework, or ES-module migration is introduced.
 
@@ -133,7 +125,7 @@ The refactor preserves:
 - Reset behavior and UI.
 - Console log prefix conventions.
 
-The root feature-module paths are intentionally removed. `manifest.json` and Node test imports must use the new `features/` paths.
+The root feature-module paths are intentionally removed. `manifest.json` and Node test imports must use the new `features/` paths. ZIP compilation has no standalone browser global or manifest entry.
 
 ## Verification
 

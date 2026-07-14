@@ -22,10 +22,6 @@ const exportApi = requireToolboxModule(
     'EdVibeMarathonExport',
     window.EdVibeMarathonExport
 );
-const zipApi = requireToolboxModule(
-    'EdVibeCompileMarathonToZip',
-    window.EdVibeCompileMarathonToZip
-);
 const resetApi = requireToolboxModule(
     'EdVibeLessonReset',
     window.EdVibeLessonReset
@@ -50,7 +46,6 @@ const marathonExportFeature = exportApi.createMarathonExportFeature({
         if (isActive) operationGuard.activate('export');
         else operationGuard.release('export');
     },
-    compileToZip: zipApi.compileMarathonToZip,
     notifyStatus: notifyExportStatus
 });
 

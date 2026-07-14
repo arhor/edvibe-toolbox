@@ -30,7 +30,6 @@
                 "lib/turndown.min.js",
                 "shared/websocket-transport.js",
                 "shared/operation-guard.js",
-                "features/compile-marathon-to-zip.js",
                 "features/reset-lessons.js",
                 "features/marathon-export.js",
                 "main.js"

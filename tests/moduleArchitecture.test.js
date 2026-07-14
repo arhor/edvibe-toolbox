@@ -18,7 +18,6 @@ test('manifest loads shared infrastructure and features before main', () => {
         'lib/turndown.min.js',
         'shared/websocket-transport.js',
         'shared/operation-guard.js',
-        'features/compile-marathon-to-zip.js',
         'features/reset-lessons.js',
         'features/marathon-export.js',
         'main.js'
@@ -40,6 +39,17 @@ test('main remains a coordinator without concrete feature logic', () => {
     assert.doesNotMatch(source, /LoadExercises/);
     assert.doesNotMatch(source, /EXPORT_PROGRESS_OVERLAY_ID/);
     assert.doesNotMatch(source, /window\.WebSocket\s*=/);
+    assert.doesNotMatch(source, /EdVibeCompileMarathonToZip/);
     assert.match(source, /createMarathonExportFeature/);
     assert.match(source, /createResetLessonsFeature/);
+});
+
+test('marathon export owns its ZIP compiler implementation', () => {
+    const exportApi = require('../features/marathon-export.js');
+
+    assert.equal(typeof exportApi.compileMarathonToZip, 'function');
+    assert.equal(
+        fs.existsSync(path.join(root, 'features/compile-marathon-to-zip.js')),
+        false
+    );
 });

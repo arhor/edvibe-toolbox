@@ -8,6 +8,8 @@
 
 **Tech Stack:** Manifest V3, vanilla JavaScript, browser globals, intercepted WebSocket transport, JSZip, Turndown, Node.js built-in test runner.
 
+**Follow-up:** ZIP compilation was subsequently folded into `features/marathon-export.js` because it has no consumer outside the marathon export feature. The original steps below are retained as the implementation history.
+
 **Commit policy:** Commit steps below are checkpoints, not authorization. Execute them only if the user explicitly requests commits.
 
 ---
