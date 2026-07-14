@@ -28,8 +28,11 @@
             "js": [
                 "lib/jszip.min.js",
                 "lib/turndown.min.js",
-                "compile-marathon-to-zip.js",
-                "reset-lessons.js",
+                "shared/websocket-transport.js",
+                "shared/operation-guard.js",
+                "features/compile-marathon-to-zip.js",
+                "features/reset-lessons.js",
+                "features/marathon-export.js",
                 "main.js"
             ],
             "run_at": "document_start",
