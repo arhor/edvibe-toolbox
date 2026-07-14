@@ -18,7 +18,8 @@
             "js": [
                 "isolated.js"
             ],
-            "run_at": "document_start"
+            "run_at": "document_start",
+            "world": "ISOLATED"
         },
         {
             "matches": [
@@ -27,8 +28,8 @@
             "js": [
                 "lib/jszip.min.js",
                 "lib/turndown.min.js",
-                "compileMarathonToZip.js",
-                "resetLessons.js",
+                "compile-marathon-to-zip.js",
+                "reset-lessons.js",
                 "main.js"
             ],
             "run_at": "document_start",

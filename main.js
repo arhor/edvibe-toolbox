@@ -460,7 +460,7 @@ async function startAutomatedMarathonBackup() {
             totalSections: 0
         });
 
-        await compileMarathonToZip(backupBundle, {
+        await window.EdVibeCompileMarathonToZip.compileMarathonToZip(backupBundle, {
             onProgress({ message, current, total }) {
                 const isCompressing = message === 'Compressing archive...';
                 progressOverlay.update({
