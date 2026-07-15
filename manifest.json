@@ -5,7 +5,11 @@
     "description": "A universal toolkit for automation and backup on the Edvibe platform.",
     "permissions": [
         "storage",
-        "activeTab"
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "*://*.edvibe.com/*"
     ],
     "action": {
         "default_popup": "popup.html"
@@ -16,7 +20,7 @@
                 "*://*.edvibe.com/*"
             ],
             "js": [
-                "src/shared/logger.js",
+                "src/shared//logger.js",
                 "src/isolated.js"
             ],
             "run_at": "document_start",
