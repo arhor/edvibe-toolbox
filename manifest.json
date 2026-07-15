@@ -16,6 +16,7 @@
                 "*://*.edvibe.com/*"
             ],
             "js": [
+                "src/shared/logger.js",
                 "src/isolated.js"
             ],
             "run_at": "document_start",
@@ -26,6 +27,7 @@
                 "*://*.edvibe.com/*"
             ],
             "js": [
+                "src/shared/logger.js",
                 "lib/jszip.min.js",
                 "lib/turndown.min.js",
                 "src/shared/websocket-transport.js",

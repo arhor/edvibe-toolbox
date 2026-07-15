@@ -1,16 +1,6 @@
 (function initializeWebSocketTransport(root, factory) {
     const api = factory();
-
-    if (typeof window !== 'undefined' && root === window) {
-        const transport = api.createWebSocketTransport({
-            WebSocketClass: root.WebSocket,
-            cryptoApi: root.crypto
-        });
-        transport.install(root);
-        root.EdVibeWebSocketTransport = { ...api, ...transport };
-    } else {
-        root.EdVibeWebSocketTransport = api;
-    }
+    root.EdVibeWebSocketTransport = api;
 
     if (typeof module === 'object' && module.exports) {
         module.exports = api;
@@ -26,7 +16,7 @@
         requestTimeoutMs = REQUEST_TIMEOUT_MS,
         setTimeoutFn = setTimeout,
         clearTimeoutFn = clearTimeout,
-        logger = console
+        log = () => {}
     }) {
         let activeSocket = null;
         const pendingRequests = new Map();
@@ -55,8 +45,8 @@
                 const outcome = data.IsSuccess === true
                     ? 'success'
                     : `failed (${data.ErrorCode})`;
-                logger.log(
-                    `[Edvibe Toolbox][WS] ← ${pending.controller}.${pending.method} `
+                log(
+                    `← ${pending.controller}.${pending.method} `
                     + `[${data.RequestId}] ${outcome} in ${elapsedMs}ms`
                 );
 
@@ -70,18 +60,13 @@
 
                 pending.resolve(data);
             } catch (error) {
-                logger.debug(
-                    '[Edvibe Toolbox][Transport] Failed parsing WebSocket frame:',
-                    error
-                );
+                log('Failed parsing WebSocket frame:', error);
             }
         }
 
         function install(rootObject) {
             function InterceptedWebSocket(url, protocols) {
-                logger.log(
-                    `[Edvibe Toolbox][Transport] Intercepting WebSocket targeting: ${url}`
-                );
+                log('Intercepting WebSocket targeting:', url);
                 const socket = protocols === undefined
                     ? new WebSocketClass(url)
                     : new WebSocketClass(url, protocols);
@@ -111,9 +96,7 @@
                 try {
                     socket = requireOpenSocket();
                 } catch (error) {
-                    logger.error(
-                        '[Edvibe Toolbox][Transport] No active WebSocket connection.'
-                    );
+                    log('No active WebSocket connection.');
                     reject(error);
                     return;
                 }
@@ -121,8 +104,8 @@
                 const packet = createPacket(controller, method, projectName, valueObject);
                 const timeoutId = setTimeoutFn(() => {
                     pendingRequests.delete(packet.RequestId);
-                    logger.error(
-                        `[Edvibe Toolbox][WS] ✕ ${controller}.${method} `
+                    log(
+                        `✕ ${controller}.${method} `
                         + `[${packet.RequestId}] timed out after ${requestTimeoutMs}ms`
                     );
                     reject(new Error(
@@ -138,8 +121,8 @@
                     method,
                     startedAt: Date.now()
                 });
-                logger.log(
-                    `[Edvibe Toolbox][WS] → ${controller}.${method} `
+                log(
+                    `→ ${controller}.${method} `
                     + `[${packet.RequestId}]`
                 );
 
@@ -148,8 +131,8 @@
                 } catch (error) {
                     clearTimeoutFn(timeoutId);
                     pendingRequests.delete(packet.RequestId);
-                    logger.error(
-                        `[Edvibe Toolbox][WS] ✕ ${controller}.${method} `
+                    log(
+                        `✕ ${controller}.${method} `
                         + `[${packet.RequestId}] send failed: ${error.message}`
                     );
                     reject(error);
@@ -160,8 +143,8 @@
         function sendWithoutResponse(controller, method, projectName, valueObject) {
             const socket = requireOpenSocket();
             const packet = createPacket(controller, method, projectName, valueObject);
-            logger.log(
-                `[Edvibe Toolbox][WS] → ${controller}.${method} `
+            log(
+                `→ ${controller}.${method} `
                 + `[${packet.RequestId}] (no response expected)`
             );
             socket.send(JSON.stringify(packet));

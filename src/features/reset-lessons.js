@@ -143,13 +143,14 @@
         marathonId,
         pupilId,
         lessons,
-        onDiscovery = () => {}
+        onDiscovery = () => {},
+        log = () => {}
     }) {
         const work = [];
 
         for (const lesson of lessons) {
-            console.log(
-                `[Edvibe Toolbox][Reset] Discovering lesson ${lesson.MarathonLessonId} `
+            log(
+                `Discovering lesson ${lesson.MarathonLessonId} `
                 + `(LessonId: ${lesson.LessonId}).`
             );
             onDiscovery(`Loading sections for "${lesson.Name}"...`);
@@ -161,8 +162,8 @@
             );
             const sections = collectLessonSections(lessonResponse.Value);
             const exercises = [];
-            console.log(
-                `[Edvibe Toolbox][Reset] Lesson ${lesson.MarathonLessonId}: `
+            log(
+                `Lesson ${lesson.MarathonLessonId}: `
                 + `${sections.length} section(s) found.`
             );
 
@@ -194,8 +195,8 @@
                         type: item.Type,
                         sectionId: section.Id
                     })));
-                console.log(
-                    `[Edvibe Toolbox][Reset] Lesson ${lesson.MarathonLessonId}, `
+                log(
+                    `Lesson ${lesson.MarathonLessonId}, `
                     + `section ${section.Id}: ${resettableItems.length} of ${items.length} `
                     + `exercise(s) have saved answers.`
                 );
@@ -208,8 +209,8 @@
                     ? lesson.LastRequest.Id
                     : null
             });
-            console.log(
-                `[Edvibe Toolbox][Reset] Lesson ${lesson.MarathonLessonId}: `
+            log(
+                `Lesson ${lesson.MarathonLessonId}: `
                 + `${exercises.length} exercise reset(s), `
                 + `${shouldDeleteLastRequest(lesson) ? 'request deletion required' : 'no request deletion'}.`
             );
@@ -225,20 +226,21 @@
         marathonId,
         pupilId,
         work,
-        onProgress
+        onProgress,
+        log = () => {}
     }) {
         const total = work.reduce((sum, item) => sum + item.exercises.length, 0);
         let completed = 0;
-        console.log(
-            `[Edvibe Toolbox][Reset] Starting ${total} operation(s) for PupilId ${pupilId} `
+        log(
+            `Starting ${total} operation(s) for PupilId ${pupilId} `
             + `across ${work.length} lesson(s).`
         );
 
         for (const item of work) {
             for (const exercise of item.exercises) {
                 try {
-                    console.log(
-                        `[Edvibe Toolbox][Reset] Resetting exercise ${exercise.id} `
+                    log(
+                        `Resetting exercise ${exercise.id} `
                         + `for lesson ${item.lesson.MarathonLessonId} (${completed + 1}/${total}).`
                     );
                     await wait(300);
@@ -279,8 +281,8 @@
             // Disabled for now: the consequences of removing a user's lesson request are unclear.
             /*
             if (item.deleteRequestId) {
-                console.log(
-                    `[Edvibe Toolbox][Reset] Deleting lesson request ${item.deleteRequestId} `
+                log(
+                    `Deleting lesson request ${item.deleteRequestId} `
                     + `for lesson ${item.lesson.MarathonLessonId} (${completed + 1}/${total}).`
                 );
                 sendWithoutResponse(
@@ -295,8 +297,8 @@
             */
         }
 
-        console.log(
-            `[Edvibe Toolbox][Reset] Completed all ${total} operation(s) for PupilId ${pupilId}.`
+        log(
+            `Completed all ${total} operation(s) for PupilId ${pupilId}.`
         );
     }
 
@@ -771,7 +773,8 @@
         onClose,
         schedule = setTimeout,
         cancelScheduled = clearTimeout,
-        searchDelay = 1000
+        searchDelay = 1000,
+        log = () => {}
     }) {
         ensureResetStyles();
 
@@ -877,8 +880,8 @@
                     return true;
                 } catch (error) {
                     if (!closed && currentStep === 'user' && !loading) {
-                        console.error(
-                            `[Edvibe Toolbox][Reset] Failed to load another pupil page `
+                        log(
+                            `Failed to load another pupil page `
                             + `(${getErrorType(error)}).`
                         );
                         setStatus(error.message, 'error');
@@ -1192,8 +1195,8 @@
                 loading = false;
                 currentStep = 'user';
                 updateInteractiveState();
-                console.error(
-                    `[Edvibe Toolbox][Reset] Failed to load lessons for PupilId `
+                log(
+                    `Failed to load lessons for PupilId `
                     + `${selectedPupil.PupilId} (${getErrorType(error)}).`
                 );
                 setStatus(error.message, 'error');
@@ -1322,7 +1325,8 @@
         wait,
         canStart,
         onActiveChange,
-        createModal = createResetModal
+        createModal = createResetModal,
+        log = () => {}
     }) {
         let running = false;
         let active = false;
@@ -1349,7 +1353,7 @@
             active = true;
             onActiveChange(true);
 
-            const modal = createModal({ onClose: releaseOperation });
+            const modal = createModal({ onClose: releaseOperation, log });
             (document.body || document.documentElement).appendChild(modal.overlay);
             modal.onReset(async ({ pupil, lessons }) => {
                 const confirmed = window.confirm(
@@ -1369,7 +1373,8 @@
                         marathonId,
                         pupilId: pupil.PupilId,
                         lessons,
-                        onDiscovery: modal.showDiscovery
+                        onDiscovery: modal.showDiscovery,
+                        log
                     });
                     await executeResetWork({
                         sendRequest,
@@ -1378,14 +1383,15 @@
                         marathonId,
                         pupilId: pupil.PupilId,
                         work,
-                        onProgress: modal.showProgress
+                        onProgress: modal.showProgress,
+                        log
                     });
                     modal.showComplete('Selected lesson progress was reset successfully.');
                     completed = true;
                 } catch (error) {
                     const lessonIds = lessons.map((lesson) => lesson.MarathonLessonId).join(', ');
-                    console.error(
-                        `[Edvibe Toolbox][Reset] Reset stopped for PupilId ${pupil.PupilId}; `
+                    log(
+                        `Reset stopped for PupilId ${pupil.PupilId}; `
                         + `MarathonLessonIds: ${lessonIds} (${getErrorType(error)}).`
                     );
                     modal.showError(error.message);
@@ -1403,8 +1409,8 @@
                 modal.setLoading('Loading marathon pupils...');
                 const pupilPager = createPupilPager(sendRequest, marathonId);
                 const initialPage = await pupilPager.loadNext();
-                console.log(
-                    `[Edvibe Toolbox][Reset] Loaded ${initialPage.pupils.length} of `
+                log(
+                    `Loaded ${initialPage.pupils.length} of `
                     + `${initialPage.total} pupil(s) for MarathonId ${marathonId}.`
                 );
                 modal.showPupils({
@@ -1412,8 +1418,8 @@
                     total: initialPage.total,
                     onLoadNext: () => pupilPager.loadNext(),
                     onSelectPupil: async (pupil) => {
-                        console.log(
-                            `[Edvibe Toolbox][Reset] Loading lessons for PupilId `
+                        log(
+                            `Loading lessons for PupilId `
                             + `${pupil.PupilId}.`
                         );
                         modal.setLoading(`Loading lessons for ${pupil.Email}...`);
@@ -1433,16 +1439,16 @@
                                 'GetMarathonLessonsForPupil returned invalid data.'
                             );
                         }
-                        console.log(
-                            `[Edvibe Toolbox][Reset] Loaded ${response.Value.length} `
+                        log(
+                            `Loaded ${response.Value.length} `
                             + `lesson(s) for PupilId ${pupil.PupilId}.`
                         );
                         modal.showLessons(pupil, response.Value);
                     }
                 });
             } catch (error) {
-                console.error(
-                    `[Edvibe Toolbox][Reset] Failed to initialize reset workflow `
+                log(
+                    `Failed to initialize reset workflow `
                     + `for MarathonId ${marathonId} (${getErrorType(error)}).`
                 );
                 modal.showError(error.message);

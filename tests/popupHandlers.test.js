@@ -18,6 +18,14 @@ test('popup buttons invoke their corresponding handlers inline', () => {
     );
 });
 
+test('popup loads its logger before the popup script', () => {
+    assert.match(
+        popupHtml,
+        /<script src="src\/shared\/logger\.js"><\/script>\s*<script src="popup\.js"><\/script>/
+    );
+    assert.match(popupScript, /createLoggerFactory\('POPUP'\)/);
+});
+
 test('popup script exposes handlers without registering button listeners', () => {
     assert.match(popupScript, /window\.startAutomation\s*=\s*startAutomation/);
     assert.match(popupScript, /window\.openLessonReset\s*=\s*openLessonReset/);

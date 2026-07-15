@@ -5,11 +5,7 @@ const {
     createMarathonExportFeature
 } = require('../src/features/marathon-export.js');
 
-const silentLogger = {
-    log() {},
-    warn() {},
-    error() {}
-};
+const silentLog = () => {};
 
 function createOverlaySpy() {
     const calls = [];
@@ -80,7 +76,7 @@ test('export builds the backup, throttles sections, and compiles the ZIP', async
         createProgressOverlay: () => overlay,
         getCurrentUrl: () => 'https://app.edvibe.com/marathon/18508',
         now: () => '2026-07-14T12:00:00.000Z',
-        logger: silentLogger
+        log: silentLog
     });
 
     await feature.start();
@@ -142,7 +138,7 @@ test('export reports invalid marathon URLs and releases the operation', async ()
         notifyStatus: (state, message = '') => statuses.push([state, message]),
         createProgressOverlay: () => overlay,
         getCurrentUrl: () => 'https://app.edvibe.com/dashboard',
-        logger: silentLogger
+        log: silentLog
     });
 
     await feature.start();
@@ -170,7 +166,7 @@ test('export reports request failures and releases the operation', async () => {
         notifyStatus: (state, message = '') => statuses.push([state, message]),
         createProgressOverlay: createOverlaySpy,
         getCurrentUrl: () => 'https://app.edvibe.com/marathon/18508',
-        logger: silentLogger
+        log: silentLog
     });
 
     await feature.start();
@@ -197,7 +193,7 @@ test('export releases the operation when overlay setup fails', async () => {
             throw new Error('overlay failure');
         },
         getCurrentUrl: () => 'https://app.edvibe.com/marathon/18508',
-        logger: silentLogger
+        log: silentLog
     });
 
     await feature.start();
@@ -207,6 +203,28 @@ test('export releases the operation when overlay setup fails', async () => {
         ['error', 'overlay failure']
     ]);
     assert.deepEqual(activeChanges, [true, false]);
+});
+
+test('export sends failures to its injected logger', async () => {
+    const calls = [];
+    const feature = createMarathonExportFeature({
+        sendRequest: async () => {
+            throw new Error('network failure');
+        },
+        wait: async () => {},
+        canStart: () => true,
+        onActiveChange() {},
+        compileToZip: async () => {},
+        notifyStatus() {},
+        createProgressOverlay: createOverlaySpy,
+        getCurrentUrl: () => 'https://app.edvibe.com/marathon/18508',
+        log: (...args) => calls.push(args)
+    });
+
+    await feature.start();
+
+    assert.equal(calls.at(-1)[0], 'Export workflow failed:');
+    assert.match(calls.at(-1)[1].message, /network failure/);
 });
 
 test('export refuses to start while another operation is active', async () => {
@@ -220,7 +238,7 @@ test('export refuses to start while another operation is active', async () => {
         notifyStatus: (state, message = '') => statuses.push([state, message]),
         createProgressOverlay: () => assert.fail('overlay should not open'),
         getCurrentUrl: () => 'https://app.edvibe.com/marathon/18508',
-        logger: silentLogger
+        log: silentLog
     });
 
     await feature.start();

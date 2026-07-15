@@ -80,18 +80,14 @@
             .trim();
     }
 
-    function htmlToMarkdown(html, turndown) {
+    function htmlToMarkdown(html, turndown, log) {
         const preprocessed = preprocessHtml(html);
         if (!preprocessed.trim()) return '';
 
         try {
             return postprocessMarkdown(turndown.turndown(preprocessed));
         } catch (error) {
-            console.warn(
-                '[Edvibe Toolbox][Zip] HTML conversion failed, '
-                + 'falling back to plain text:',
-                error
-            );
+            log('HTML conversion failed, falling back to plain text:', error);
             return preprocessed.replace(/<[^>]+>/g, '').trim();
         }
     }
@@ -108,7 +104,7 @@
         return 'jpg';
     }
 
-    async function localizeImage(url, imageId, imagesFolder, urlMap) {
+    async function localizeImage(url, imageId, imagesFolder, urlMap, log) {
         if (!url) return null;
         if (urlMap.has(url)) return urlMap.get(url);
 
@@ -125,16 +121,13 @@
             urlMap.set(url, relativePath);
             return relativePath;
         } catch (error) {
-            console.warn(
-                `[Edvibe Toolbox][Zip] Image fetch failed for ${url}:`,
-                error.message
-            );
+            log(`Image fetch failed for ${url}:`, error.message);
             urlMap.set(url, url);
             return url;
         }
     }
 
-    async function renderImageMarkdown(imageEntry, imagesFolder, urlMap) {
+    async function renderImageMarkdown(imageEntry, imagesFolder, urlMap, log) {
         const url = imageEntry.UrlFull || imageEntry.Url;
         if (!url) return '';
 
@@ -142,7 +135,8 @@
             url,
             imageEntry.ImageId || imageEntry.ImageFullId,
             imagesFolder,
-            urlMap
+            urlMap,
+            log
         );
 
         return `![Illustration](${localPath})`;
@@ -164,7 +158,8 @@
                 parts.push(await renderImageMarkdown(
                     images[index],
                     ctx.imagesFolder,
-                    ctx.urlMap
+                    ctx.urlMap,
+                    ctx.log
                 ));
             }
         }
@@ -260,7 +255,8 @@
                     sections.push(await renderImageMarkdown(
                         image,
                         ctx.imagesFolder,
-                        ctx.urlMap
+                        ctx.urlMap,
+                        ctx.log
                     ));
                 }
 
@@ -269,9 +265,8 @@
                 }
 
                 if (sections.length === 0) {
-                    console.debug(
-                        `[Edvibe Toolbox][Zip] Unhandled item Type ${item.Type} `
-                        + `(Id: ${item.Id})`
+                    ctx.log(
+                        `Unhandled item Type ${item.Type} (Id: ${item.Id})`
                     );
                 }
                 break;
@@ -300,6 +295,8 @@
     }
 
     async function compileMarathonToZip(backupData, options = {}) {
+        const log = options.log || (() => {});
+
         if (!window.JSZip) {
             throw new Error(
                 'JSZip is not loaded. Ensure lib/jszip.min.js is injected '
@@ -318,7 +315,7 @@
             );
         }
 
-        console.log('[Edvibe Toolbox][Zip] Starting marathon workspace compilation...');
+        log('Starting marathon workspace compilation...');
 
         const zip = new window.JSZip();
         const turndown = createMarkdownTurndownService();
@@ -351,7 +348,8 @@
                 turndown,
                 imagesFolder,
                 urlMap: new Map(),
-                htmlToMarkdown: (html) => htmlToMarkdown(html, turndown)
+                log,
+                htmlToMarkdown: (html) => htmlToMarkdown(html, turndown, log)
             };
 
             if (lesson.imageUrl) {
@@ -359,7 +357,8 @@
                     lesson.imageUrl,
                     `lesson_${lesson.lessonId}`,
                     imagesFolder,
-                    ctx.urlMap
+                    ctx.urlMap,
+                    log
                 );
             }
 
@@ -425,10 +424,7 @@
             + `${backupData.marathonId || 'export'}_workspace.zip`;
         triggerBlobDownload(zipBlob, downloadName);
 
-        console.log(
-            '[Edvibe Toolbox][Zip] Marathon workspace archive downloaded:',
-            downloadName
-        );
+        log('Marathon workspace archive downloaded:', downloadName);
         return zipBlob;
     }
 
@@ -643,12 +639,12 @@
         createProgressOverlay = createExportProgressOverlay,
         getCurrentUrl = () => window.location.href,
         now = () => new Date().toISOString(),
-        logger = console
+        log = () => {}
     }) {
         async function start() {
             if (!canStart()) {
                 const message = 'Cannot start export while another operation is active.';
-                logger.warn(`[Edvibe Toolbox][Export] ${message}`);
+                log(message);
                 notifyStatus('error', message);
                 return;
             }
@@ -658,7 +654,7 @@
 
             try {
                 notifyStatus('started');
-                logger.log('[Edvibe Toolbox][Export] Starting marathon export...');
+                log('Starting marathon export...');
                 progressOverlay = createProgressOverlay();
                 progressOverlay.update({
                     statusText: 'Finding marathon lessons...',
@@ -816,10 +812,7 @@
                 progressOverlay.dismissAfter(3000);
                 notifyStatus('complete');
             } catch (error) {
-                logger.error(
-                    '[Edvibe Toolbox][Export] Export workflow failed:',
-                    error
-                );
+                log('Export workflow failed:', error);
                 progressOverlay?.error(`Export failed: ${error.message}`);
                 notifyStatus('error', error.message);
             } finally {

@@ -1,18 +1,33 @@
-console.log('[Edvibe Toolbox][Main] Initializing Toolbox modules...');
+const createMainLog = EdVibeLogger.createLoggerFactory('MAIN');
+const log = createMainLog();
+
+log('Initializing Toolbox modules...');
 
 function requireToolboxModule(name) {
     const module = window[name];
-    
+
     if (!module) {
-        throw new Error(`[Edvibe Toolbox][Main] Required module is missing: ${name}`);
+        throw new Error(`Required module is missing: ${name}`);
     }
     return module;
 }
 
-const transport = requireToolboxModule('EdVibeWebSocketTransport');
+const transportApi = requireToolboxModule('EdVibeWebSocketTransport');
 const operationGuardApi = requireToolboxModule('EdVibeOperationGuard');
 const exportApi = requireToolboxModule('EdVibeMarathonExport');
 const resetApi = requireToolboxModule('EdVibeLessonReset');
+
+const transportLog = createMainLog('Transport');
+const exportLog = createMainLog('Export');
+const zipLog = createMainLog('Zip');
+const resetLog = createMainLog('Reset');
+
+const transport = transportApi.createWebSocketTransport({
+    WebSocketClass: window.WebSocket,
+    cryptoApi: window.crypto,
+    log: transportLog
+});
+transport.install(window);
 
 const operationGuard = operationGuardApi.createOperationGuard();
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -33,7 +48,12 @@ const marathonExportFeature = exportApi.createMarathonExportFeature({
         if (isActive) operationGuard.activate('export');
         else operationGuard.release('export');
     },
-    notifyStatus: notifyExportStatus
+    notifyStatus: notifyExportStatus,
+    log: exportLog,
+    compileToZip: (backupData, options) => exportApi.compileMarathonToZip(
+        backupData,
+        { ...options, log: zipLog }
+    )
 });
 
 const lessonResetFeature = resetApi.createResetLessonsFeature({
@@ -44,7 +64,8 @@ const lessonResetFeature = resetApi.createResetLessonsFeature({
     onActiveChange(isActive) {
         if (isActive) operationGuard.activate('reset');
         else operationGuard.release('reset');
-    }
+    },
+    log: resetLog
 });
 
 window.addEventListener('message', (event) => {
@@ -59,4 +80,4 @@ window.addEventListener('message', (event) => {
     }
 });
 
-console.log('[Edvibe Toolbox][Main] Toolbox modules ready.');
+log('Toolbox modules ready.');

@@ -836,17 +836,17 @@ test('failed reset unlocks the current lesson selection for retry', async (t) =>
 
 test('modal keeps failed lesson loading recoverable on the user step', async (t) => {
     const originalDocument = global.document;
-    const originalConsoleError = console.error;
-    const loggedErrors = [];
+    const logs = [];
     global.document = createModalTestDocument();
-    console.error = (...args) => loggedErrors.push(args);
     t.after(() => {
         global.document = originalDocument;
-        console.error = originalConsoleError;
     });
 
     const pupil = { PupilId: 1, Name: 'First', Email: 'first@example.com' };
-    const modal = createResetModal({ onClose() {} });
+    const modal = createResetModal({
+        onClose() {},
+        log: (...args) => logs.push(args)
+    });
     const overlay = modal.overlay;
     const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
     const userStep = overlay.querySelector('.edvibe-reset-user-step');
@@ -881,7 +881,11 @@ test('modal keeps failed lesson loading recoverable on the user step', async (t)
     assert.equal(lessonStep.hidden, true);
     assert.equal(next.disabled, false);
     assert.equal(status.textContent, 'lesson request failed');
-    assert.equal(loggedErrors.length, 1);
+    assert.equal(logs.length, 1);
+    assert.equal(
+        logs[0][0],
+        'Failed to load lessons for PupilId 1 (Error).'
+    );
 
     await next.emit('click');
     assert.equal(attempts, 2);
@@ -1246,17 +1250,16 @@ test('modal cancels delayed search when it closes', async (t) => {
 
 test('modal keeps pupil pagination failures recoverable', async (t) => {
     const originalDocument = global.document;
-    const originalConsoleError = console.error;
+    const logs = [];
     global.document = createModalTestDocument();
-    console.error = () => {};
     t.after(() => {
         global.document = originalDocument;
-        console.error = originalConsoleError;
     });
 
     const timers = [];
     const modal = createResetModal({
         onClose() {},
+        log: (...args) => logs.push(args),
         schedule(callback) {
             timers.push(callback);
             return timers.length - 1;
@@ -1286,6 +1289,8 @@ test('modal keeps pupil pagination failures recoverable', async (t) => {
         'first@example.com'
     );
     assert.equal(modal.overlay.removed, undefined);
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0][0], 'Failed to load another pupil page (Error).');
 });
 
 test('modal stops unmatched search when all pupils are loaded', async (t) => {
@@ -1578,6 +1583,7 @@ test('reset workflow opens with exactly one 50-pupil request', async (t) => {
     });
 
     const calls = [];
+    const logs = [];
     let pupilConfig;
     const modal = {
         overlay: {},
@@ -1604,11 +1610,15 @@ test('reset workflow opens with exactly one 50-pupil request', async (t) => {
         wait: async () => {},
         canStart: () => true,
         onActiveChange() {},
-        createModal: () => modal
+        createModal: () => modal,
+        log: (...args) => logs.push(args)
     });
 
     await feature.open();
 
+    assert.deepEqual(logs[0], [
+        'Loaded 1 of 120 pupil(s) for MarathonId 18508.'
+    ]);
     assert.equal(calls.length, 1);
     assert.equal(calls[0][1], 'GetMarathonPupils');
     assert.deepEqual(calls[0][3], { MarathonId: 18508, Skip: 0, Take: 50 });

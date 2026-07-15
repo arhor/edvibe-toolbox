@@ -1,4 +1,7 @@
-console.log('[Edvibe Toolbox][Popup] Popup initialized.');
+const createPopupLog = EdVibeLogger.createLoggerFactory('POPUP');
+const log = createPopupLog();
+
+log('Popup initialized.');
 
 const DEFAULT_BUTTON_TEXT = 'Выгрузить марафон';
 const EXPORTING_BUTTON_TEXT = '⚡ Exporting...';
@@ -8,7 +11,7 @@ chrome.runtime.onMessage.addListener((message) => {
         return;
     }
 
-    console.log(`[Edvibe Toolbox][Popup] Received export status: ${message.state}.`);
+    log(`Received export status: ${message.state}.`);
 
     switch (message.state) {
         case 'started':
@@ -25,7 +28,7 @@ chrome.runtime.onMessage.addListener((message) => {
 
 chrome.storage.local.get('exportInProgress').then((value) => {
     const isExporting = Boolean(value.exportInProgress);
-    console.log(`[Edvibe Toolbox][Popup] Restored export state: ${isExporting}.`);
+    log(`Restored export state: ${isExporting}.`);
     setExportButtonState(isExporting);
 });
 
@@ -71,16 +74,16 @@ async function startAutomation(button) {
         return;
     }
 
-    console.log('[Edvibe Toolbox][Popup] Starting marathon export.');
+    log('Starting marathon export.');
 
     try {
         const tab = await getActiveMarathonTab();
         setExportButtonState(true);
-        console.log(`[Edvibe Toolbox][Popup] Sending START_FULL_AUTOMATION to tab ${tab.id}.`);
+        log(`Sending START_FULL_AUTOMATION to tab ${tab.id}.`);
         const response = await sendTabCommand(tab.id, 'START_FULL_AUTOMATION');
-        console.log(`[Edvibe Toolbox][Popup] START_FULL_AUTOMATION acknowledged: ${response?.status || 'unknown'}.`);
+        log(`START_FULL_AUTOMATION acknowledged: ${response?.status || 'unknown'}.`);
     } catch (error) {
-        console.error('[Edvibe Toolbox][Popup] Failed to start marathon export:', error);
+        log('Failed to start marathon export:', error);
         alert(error.message);
         setExportButtonState(false);
     }
@@ -89,16 +92,16 @@ async function startAutomation(button) {
 async function openLessonReset(button) {
     if (button.disabled) return;
 
-    console.log('[Edvibe Toolbox][Popup] Starting lesson reset.');
+    log('Starting lesson reset.');
     button.disabled = true;
     try {
         const tab = await getActiveMarathonTab();
-        console.log(`[Edvibe Toolbox][Popup] Sending OPEN_LESSON_RESET to tab ${tab.id}.`);
+        log(`Sending OPEN_LESSON_RESET to tab ${tab.id}.`);
         await sendTabCommand(tab.id, 'OPEN_LESSON_RESET');
-        console.log('[Edvibe Toolbox][Popup] OPEN_LESSON_RESET acknowledged.');
+        log('OPEN_LESSON_RESET acknowledged.');
         window.close();
     } catch (error) {
-        console.error('[Edvibe Toolbox][Popup] Failed to open lesson reset:', error);
+        log('Failed to open lesson reset:', error);
         alert(error.message);
         button.disabled = false;
     }

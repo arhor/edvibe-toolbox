@@ -31,7 +31,7 @@ test('transport intercepts a socket and resolves its correlated response', async
     const transport = createWebSocketTransport({
         WebSocketClass: FakeWebSocket,
         cryptoApi: { randomUUID: () => 'request-1' },
-        logger: { log() {}, error() {}, debug() {} }
+        log() {}
     });
     transport.install(root);
 
@@ -69,7 +69,7 @@ test('transport rejects when no intercepted socket is open', async () => {
     const transport = createWebSocketTransport({
         WebSocketClass: FakeWebSocket,
         cryptoApi: { randomUUID: () => 'request-2' },
-        logger: { log() {}, error() {}, debug() {} }
+        log() {}
     });
 
     await assert.rejects(
@@ -83,7 +83,7 @@ test('transport sends fire-and-forget packets through the active socket', () => 
     const transport = createWebSocketTransport({
         WebSocketClass: FakeWebSocket,
         cryptoApi: { randomUUID: () => 'request-3' },
-        logger: { log() {}, error() {}, debug() {} }
+        log() {}
     });
     transport.install(root);
     const socket = new root.WebSocket('wss://example.test');
@@ -91,4 +91,22 @@ test('transport sends fire-and-forget packets through the active socket', () => 
     transport.sendWithoutResponse('Controller', 'Method', 'Project', { Id: 7 });
 
     assert.equal(JSON.parse(socket.sent[0]).RequestId, 'request-3');
+});
+
+test('transport writes messages through its injected log function', () => {
+    const root = { WebSocket: FakeWebSocket };
+    const calls = [];
+    const transport = createWebSocketTransport({
+        WebSocketClass: FakeWebSocket,
+        cryptoApi: { randomUUID: () => 'request-log' },
+        log: (...args) => calls.push(args)
+    });
+
+    transport.install(root);
+    new root.WebSocket('wss://example.test');
+
+    assert.deepEqual(calls, [[
+        'Intercepting WebSocket targeting:',
+        'wss://example.test'
+    ]]);
 });

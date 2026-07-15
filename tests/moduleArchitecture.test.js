@@ -14,6 +14,7 @@ test('manifest loads shared infrastructure and features before main', () => {
     );
 
     assert.deepEqual(mainWorld.js, [
+        'src/shared/logger.js',
         'lib/jszip.min.js',
         'lib/turndown.min.js',
         'src/shared/websocket-transport.js',
@@ -23,6 +24,14 @@ test('manifest loads shared infrastructure and features before main', () => {
         'src/main.js'
     ]);
 
+    const isolatedWorld = manifest.content_scripts.find(
+        (entry) => entry.world === 'ISOLATED'
+    );
+    assert.deepEqual(isolatedWorld.js, [
+        'src/shared/logger.js',
+        'src/isolated.js'
+    ]);
+
     for (const scriptPath of mainWorld.js) {
         assert.equal(
             fs.existsSync(path.join(root, scriptPath)),
@@ -30,6 +39,21 @@ test('manifest loads shared infrastructure and features before main', () => {
             `${scriptPath} should exist`
         );
     }
+});
+
+test('main explicitly creates and installs the WebSocket transport', () => {
+    const transportSource = fs.readFileSync(
+        path.join(root, 'src/shared/websocket-transport.js'),
+        'utf8'
+    );
+    const mainSource = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
+
+    assert.doesNotMatch(transportSource, /createWebSocketTransport\(\{[\s\S]*root\.WebSocket/);
+    assert.match(mainSource, /createLoggerFactory\('MAIN'\)/);
+    assert.match(mainSource, /const transportLog = createMainLog\('Transport'\)/);
+    assert.match(mainSource, /createWebSocketTransport\(\{/);
+    assert.match(mainSource, /log:\s*transportLog/);
+    assert.match(mainSource, /transport\.install\(window\)/);
 });
 
 test('main remains a coordinator without concrete feature logic', () => {

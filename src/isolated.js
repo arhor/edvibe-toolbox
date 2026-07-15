@@ -1,4 +1,7 @@
-console.log('[Edvibe Toolbox][Isolated] Script successfully injected and initialized.');
+const createIsolatedLog = EdVibeLogger.createLoggerFactory('ISOLATED');
+const log = createIsolatedLog();
+
+log('Script successfully injected and initialized.');
 
 window.addEventListener('message', (event) => {
     if (event.source !== window || !event.data?.type) {
@@ -6,13 +9,13 @@ window.addEventListener('message', (event) => {
     }
 
     if (event.data.type === 'EDVIBE_TOOLBOX_EXPORT_STATUS') {
-        console.log('[Edvibe Toolbox][Isolated] Export status update from MAIN world:', event.data.state);
+        log('Export status update from MAIN world:', event.data.state);
         relayExportStatus(event.data);
     }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('[Edvibe Toolbox][Isolated] Incoming message received:', message);
+    log('Incoming message received:', message);
 
     switch (message.action) {
         case 'START_FULL_AUTOMATION':
