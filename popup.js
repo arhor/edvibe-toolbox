@@ -1,28 +1,15 @@
-// popup.js - Extension popup UI control script
+console.log('[Edvibe Toolbox][Popup] Popup initialized.');
 
-console.log('[Edvibe Toolbox][Popup] Popup script initialized and active.');
-
-const runAutomationBtn = document.getElementById('startCaptureBtn');
 const DEFAULT_BUTTON_TEXT = 'Выгрузить марафон';
 const EXPORTING_BUTTON_TEXT = '⚡ Exporting...';
 
-function setExportButtonState(isExporting) {
-    if (!runAutomationBtn) return;
-
-    runAutomationBtn.disabled = isExporting;
-    runAutomationBtn.innerText = isExporting ? EXPORTING_BUTTON_TEXT : DEFAULT_BUTTON_TEXT;
-    runAutomationBtn.style.backgroundColor = isExporting ? '#d35400' : '';
-}
-
-async function syncExportButtonFromStorage() {
-    const { exportInProgress } = await chrome.storage.local.get('exportInProgress');
-    setExportButtonState(Boolean(exportInProgress));
-}
-
 chrome.runtime.onMessage.addListener((message) => {
-    if (message?.action === 'EXPORT_STATUS') {
+    if (message?.action !== 'EXPORT_STATUS') {
         return;
     }
+
+    console.log(`[Edvibe Toolbox][Popup] Received export status: ${message.state}.`);
+
     switch (message.state) {
         case 'started':
             setExportButtonState(true);
@@ -35,6 +22,22 @@ chrome.runtime.onMessage.addListener((message) => {
             break;
     }
 });
+
+chrome.storage.local.get('exportInProgress').then((value) => {
+    const isExporting = Boolean(value.exportInProgress);
+    console.log(`[Edvibe Toolbox][Popup] Restored export state: ${isExporting}.`);
+    setExportButtonState(isExporting);
+});
+
+function setExportButtonState(isExporting) {
+    const startCaptureBtn = document.getElementById('startCaptureBtn');
+
+    if (startCaptureBtn) {
+        startCaptureBtn.disabled = isExporting;
+        startCaptureBtn.innerText = isExporting ? EXPORTING_BUTTON_TEXT : DEFAULT_BUTTON_TEXT;
+        startCaptureBtn.style.backgroundColor = isExporting ? '#d35400' : '';
+    }
+}
 
 async function getActiveMarathonTab() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -63,21 +66,21 @@ function sendTabCommand(tabId, action) {
     });
 }
 
-syncExportButtonFromStorage();
-
 async function startAutomation(button) {
-    if (button.disabled) return;
+    if (button.disabled) {
+        return;
+    }
 
-    console.log('[Edvibe Toolbox][Popup] Click event detected on main unified execution button.');
+    console.log('[Edvibe Toolbox][Popup] Starting marathon export.');
 
     try {
         const tab = await getActiveMarathonTab();
         setExportButtonState(true);
-        console.log(`[Edvibe Toolbox][Popup] Sending execution token to tab identifier: ${tab.id}`);
+        console.log(`[Edvibe Toolbox][Popup] Sending START_FULL_AUTOMATION to tab ${tab.id}.`);
         const response = await sendTabCommand(tab.id, 'START_FULL_AUTOMATION');
-        console.log('[Edvibe Toolbox][Popup] Acknowledgment received from the page environment:', response);
+        console.log(`[Edvibe Toolbox][Popup] START_FULL_AUTOMATION acknowledged: ${response?.status || 'unknown'}.`);
     } catch (error) {
-        console.error('[Edvibe Toolbox][Popup] Fatal exception occurred during automation startup:', error);
+        console.error('[Edvibe Toolbox][Popup] Failed to start marathon export:', error);
         alert(error.message);
         setExportButtonState(false);
     }
@@ -86,10 +89,13 @@ async function startAutomation(button) {
 async function openLessonReset(button) {
     if (button.disabled) return;
 
+    console.log('[Edvibe Toolbox][Popup] Starting lesson reset.');
     button.disabled = true;
     try {
         const tab = await getActiveMarathonTab();
+        console.log(`[Edvibe Toolbox][Popup] Sending OPEN_LESSON_RESET to tab ${tab.id}.`);
         await sendTabCommand(tab.id, 'OPEN_LESSON_RESET');
+        console.log('[Edvibe Toolbox][Popup] OPEN_LESSON_RESET acknowledged.');
         window.close();
     } catch (error) {
         console.error('[Edvibe Toolbox][Popup] Failed to open lesson reset:', error);
