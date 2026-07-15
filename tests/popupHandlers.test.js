@@ -7,14 +7,15 @@ const projectRoot = path.resolve(__dirname, '..');
 const popupHtml = fs.readFileSync(path.join(projectRoot, 'popup.html'), 'utf8');
 const popupScript = fs.readFileSync(path.join(projectRoot, 'popup.js'), 'utf8');
 
-test('popup buttons invoke their corresponding handlers inline', () => {
+test('popup buttons are CSP-safe and have click listeners', () => {
+    assert.doesNotMatch(popupHtml, /\sonclick=/);
     assert.match(
-        popupHtml,
-        /id="startCaptureBtn"[^>]*onclick="startAutomation\(this\)"/,
+        popupScript,
+        /startCaptureBtn\.addEventListener\('click',\s*\(\)\s*=>\s*startAutomation\(startCaptureBtn\)\)/,
     );
     assert.match(
-        popupHtml,
-        /id="resetLessonsBtn"[^>]*onclick="openLessonReset\(this\)"/,
+        popupScript,
+        /resetLessonsBtn\.addEventListener\('click',\s*\(\)\s*=>\s*openLessonReset\(resetLessonsBtn\)\)/,
     );
 });
 
@@ -26,8 +27,7 @@ test('popup loads its logger before the popup script', () => {
     assert.match(popupScript, /createLoggerFactory\('POPUP'\)/);
 });
 
-test('popup script exposes handlers without registering button listeners', () => {
-    assert.match(popupScript, /window\.startAutomation\s*=\s*startAutomation/);
-    assert.match(popupScript, /window\.openLessonReset\s*=\s*openLessonReset/);
-    assert.doesNotMatch(popupScript, /\.addEventListener\('click'/);
+test('popup script does not expose handlers globally', () => {
+    assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
+    assert.doesNotMatch(popupScript, /window\.openLessonReset\s*=/);
 });

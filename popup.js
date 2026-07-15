@@ -5,6 +5,16 @@ log('Popup initialized.');
 
 const DEFAULT_BUTTON_TEXT = 'Выгрузить марафон';
 const EXPORTING_BUTTON_TEXT = '⚡ Exporting...';
+const startCaptureBtn = document.getElementById('startCaptureBtn');
+const resetLessonsBtn = document.getElementById('resetLessonsBtn');
+
+if (startCaptureBtn) {
+    startCaptureBtn.addEventListener('click', () => startAutomation(startCaptureBtn));
+}
+
+if (resetLessonsBtn) {
+    resetLessonsBtn.addEventListener('click', () => openLessonReset(resetLessonsBtn));
+}
 
 chrome.runtime.onMessage.addListener((message) => {
     if (message?.action !== 'EXPORT_STATUS') {
@@ -33,8 +43,6 @@ chrome.storage.local.get('exportInProgress').then((value) => {
 });
 
 function setExportButtonState(isExporting) {
-    const startCaptureBtn = document.getElementById('startCaptureBtn');
-
     if (startCaptureBtn) {
         startCaptureBtn.disabled = isExporting;
         startCaptureBtn.innerText = isExporting ? EXPORTING_BUTTON_TEXT : DEFAULT_BUTTON_TEXT;
@@ -106,6 +114,3 @@ async function openLessonReset(button) {
         button.disabled = false;
     }
 }
-
-window.startAutomation = startAutomation;
-window.openLessonReset = openLessonReset;
