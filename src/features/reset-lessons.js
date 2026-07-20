@@ -1,9 +1,10 @@
 (function initializeResetLessons(root, factory) {
-    const api = factory();
-    root.EdVibeLessonReset = api;
-
-    if (typeof module === 'object' && module.exports) {
-        module.exports = api;
+    if (typeof define === 'function' && define.amd) {
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory();
+    } else {
+        root.EdVibeLessonReset = factory();
     }
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createResetLessonsModule() {
     'use strict';
