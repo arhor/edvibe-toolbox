@@ -58,10 +58,12 @@
         const doc = candidate.document || (candidate.window && candidate.window.document)
             || (typeof document !== 'undefined' ? document : null);
         const view = candidate.window || doc?.defaultView || (typeof window !== 'undefined' ? window : null);
-        return { document: doc, customElements: candidate.customElements || view?.customElements
-            || (typeof customElements !== 'undefined' ? customElements : null),
-        HTMLElement: candidate.HTMLElement || view?.HTMLElement
-            || (typeof HTMLElement !== 'undefined' ? HTMLElement : null) };
+        return {
+            document: doc, customElements: candidate.customElements || view?.customElements
+                || (typeof customElements !== 'undefined' ? customElements : null),
+            HTMLElement: candidate.HTMLElement || view?.HTMLElement
+                || (typeof HTMLElement !== 'undefined' ? HTMLElement : null)
+        };
     }
 
     function createConstructor(HTMLElementBase) {
@@ -122,6 +124,13 @@
         return element;
     }
 
-    return { RESET_DIALOG_TAG, RESET_OVERLAY_ID, setStylesheetUrl, getResetModalMarkup,
-        getResetDialogMarkup, defineResetDialogElement, createResetDialogElement };
+    return {
+        RESET_DIALOG_TAG,
+        RESET_OVERLAY_ID,
+        setStylesheetUrl,
+        getResetModalMarkup,
+        getResetDialogMarkup,
+        defineResetDialogElement,
+        createResetDialogElement,
+    };
 });
