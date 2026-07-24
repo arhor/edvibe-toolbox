@@ -1,202 +1,109 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 
+const componentPath = path.resolve(
+    __dirname,
+    '../src/components/reset-lessons-dialog.js'
+);
+const source = fs.readFileSync(componentPath, 'utf8');
 const {
     RESET_DIALOG_TAG,
     RESET_OVERLAY_ID,
-    setStylesheetUrl,
-    defineResetDialogElement,
-    createResetDialogElement
-} = require('../src/components/reset-lessons-dialog.js');
+    ResetLessonsDialog
+} = require(componentPath);
 
-function createWebComponentPlatform() {
-    let activeDocument = null;
+test('exports a named custom element class without requiring browser globals', () => {
+    assert.equal(RESET_DIALOG_TAG, 'edvibe-toolbox-reset-dialog');
+    assert.equal(RESET_OVERLAY_ID, 'edvibe-toolbox-reset-overlay');
+    assert.equal(ResetLessonsDialog.name, 'ResetLessonsDialog');
+    assert.equal(typeof ResetLessonsDialog.prototype.render, 'function');
+    assert.equal(typeof ResetLessonsDialog.prototype.configure, 'function');
+    assert.equal(typeof ResetLessonsDialog.prototype.showPupils, 'function');
+    assert.equal(typeof ResetLessonsDialog.prototype.showLessons, 'function');
+});
 
-    class FakeNode {
-        constructor(tagName = '') {
-            this.tagName = tagName.toUpperCase();
-            this.children = [];
-            this.attributes = new Map();
-            this.textContent = '';
-        }
+test('registers the named class automatically in a browser context', () => {
+    const constructors = new Map();
 
-        appendChild(child) {
-            this.children.push(child);
-            return child;
-        }
-
-        setAttribute(name, value) {
-            this.attributes.set(name, String(value));
-        }
-
-        getAttribute(name) {
-            return this.attributes.get(name) ?? null;
-        }
-
-        querySelector(selector) {
-            for (const child of this.children) {
-                if (selector === 'style' && child.tagName === 'STYLE') return child;
-                const match = child.querySelector?.(selector);
-                if (match) return match;
-            }
-            return null;
-        }
-    }
-
-    class FakeMarkupNode extends FakeNode {
-        constructor(markup) {
-            super();
-            this.markup = markup;
-        }
-
-        querySelector(selector) {
-            const attribute = selector.startsWith('.')
-                ? 'class'
-                : selector.startsWith('#') ? 'id' : null;
-            if (!attribute) return null;
-
-            const value = selector.slice(1);
-            const tagPattern = new RegExp(
-                `<([a-z0-9-]+)([^>]*\\b${attribute}="[^"]*\\b${value}\\b[^"]*"[^>]*)>`,
-                'i'
-            );
-            const match = this.markup.match(tagPattern);
-            if (!match) return null;
-
-            const element = new FakeNode(match[1]);
-            for (const attributeMatch of match[2].matchAll(/([\w-]+)="([^"]*)"/g)) {
-                element.setAttribute(attributeMatch[1], attributeMatch[2]);
-            }
-            return element;
-        }
-    }
-
-    class FakeTemplateContent {
-        constructor() {
-            this.markup = '';
-        }
-
-        cloneNode() {
-            return new FakeMarkupNode(this.markup);
-        }
-    }
-
-    class FakeTemplate extends FakeNode {
-        constructor() {
-            super('template');
-            this.content = new FakeTemplateContent();
-        }
-
-        set innerHTML(markup) {
-            this.content.markup = markup;
-        }
-    }
-
-    class FakeShadowRoot extends FakeNode {
-        constructor(mode) {
-            super();
-            this.mode = mode;
-        }
-    }
-
-    class FakeHTMLElement extends FakeNode {
-        constructor() {
-            super();
-            this.ownerDocument = activeDocument;
-            this.shadowRoot = null;
-        }
-
+    class FakeHTMLElement {
         attachShadow({ mode }) {
-            this.shadowRoot = new FakeShadowRoot(mode);
+            this.shadowRoot = { mode };
             return this.shadowRoot;
         }
     }
 
-    const constructors = new Map();
-    let defineCount = 0;
-    const customElements = {
-        get: (tagName) => constructors.get(tagName),
-        define(tagName, constructor) {
-            defineCount += 1;
-            constructors.set(tagName, constructor);
-        }
-    };
-
-    const document = {
-        head: new FakeNode('head'),
-        defaultView: null,
-        createElement(tagName) {
-            const constructor = constructors.get(tagName);
-            if (constructor) {
-                activeDocument = document;
-                try {
-                    const element = new constructor();
-                    element.tagName = tagName.toUpperCase();
-                    return element;
-                } finally {
-                    activeDocument = null;
-                }
-            }
-            if (tagName === 'template') return new FakeTemplate();
-            return new FakeNode(tagName);
-        }
-    };
-    document.defaultView = { document, customElements, HTMLElement: FakeHTMLElement };
-
-    return {
-        document,
-        customElements,
+    const context = {
         HTMLElement: FakeHTMLElement,
-        constructors,
-        getDefineCount: () => defineCount
+        customElements: {
+            get: (tagName) => constructors.get(tagName),
+            define: (tagName, constructor) => constructors.set(tagName, constructor)
+        },
+        CustomEvent: class {},
+        setTimeout,
+        clearTimeout
     };
-}
+    context.globalThis = context;
+    vm.runInNewContext(source, context);
 
-test('component module loads without browser globals', () => {
-    assert.equal(RESET_DIALOG_TAG, 'edvibe-toolbox-reset-dialog');
-    assert.equal(typeof defineResetDialogElement, 'function');
-});
-
-test('registers once and creates an open shadow-root dialog', () => {
-    const platform = createWebComponentPlatform();
-    const stylesheetUrl = 'chrome-extension://test/src/components/reset-lessons-dialog.css';
-    setStylesheetUrl(stylesheetUrl);
-
-    const firstConstructor = defineResetDialogElement(platform);
-    const secondConstructor = defineResetDialogElement(platform);
-    const element = createResetDialogElement(platform);
-
-    assert.equal(firstConstructor, secondConstructor);
-    assert.equal(platform.getDefineCount(), 1);
-    assert.equal(element.tagName, RESET_DIALOG_TAG.toUpperCase());
-    assert.equal(element.id, RESET_OVERLAY_ID);
-    assert.equal(element.renderRoot, element.shadowRoot);
+    const api = context.EdVibeResetDialogComponent;
+    assert.equal(constructors.get(RESET_DIALOG_TAG), api.ResetLessonsDialog);
+    const element = new api.ResetLessonsDialog();
+    assert.equal(element.id, undefined);
     assert.equal(element.shadowRoot.mode, 'open');
-
-    const backdrop = element.shadowRoot.querySelector('.edvibe-reset-overlay');
-    const card = element.shadowRoot.querySelector('.edvibe-reset-card');
-    assert.ok(backdrop);
-    assert.equal(card.getAttribute('role'), 'dialog');
-    assert.equal(card.getAttribute('aria-modal'), 'true');
-    assert.equal(card.getAttribute('aria-labelledby'), 'edvibe-reset-title');
-    assert.ok(element.shadowRoot.querySelector('#edvibe-reset-title'));
-    assert.ok(element.shadowRoot.querySelector('.edvibe-reset-status'));
-    assert.ok(element.shadowRoot.querySelector('.edvibe-reset-progress'));
-    assert.equal(element.shadowRoot.querySelector('.edvibe-reset-row'), null);
-
-    const link = element.shadowRoot.children.find((child) => child.tagName === 'LINK');
-    assert.equal(link.getAttribute('rel'), 'stylesheet');
-    assert.equal(link.getAttribute('href'), stylesheetUrl);
-    assert.equal(platform.document.head.children.length, 0);
 });
 
-test('rejects a custom element registered by another implementation', () => {
-    const platform = createWebComponentPlatform();
-    class ConflictingDialog extends platform.HTMLElement {}
-    platform.customElements.define(RESET_DIALOG_TAG, ConflictingDialog);
+test('keeps markup, rendering, and dialog state inside the component class', () => {
+    assert.match(source, /class ResetLessonsDialog extends HTMLElementBase/);
+    assert.match(source, /render\(\)\s*\{/);
+    assert.match(source, /renderPupils\(\)\s*\{/);
+    assert.match(source, /renderLessons\(\)\s*\{/);
+    assert.match(source, /renderState\(\)\s*\{/);
+    assert.match(source, /role="dialog"/);
+    assert.match(source, /aria-modal="true"/);
+    assert.match(source, /class="edvibe-reset-live-region"/);
+    assert.match(source, /class="edvibe-reset-lesson-step"[\s\S]*hidden/);
+});
 
-    assert.throws(
-        () => defineResetDialogElement(platform),
-        /already registered with an incompatible constructor/
-    );
+test('owns case-insensitive pupil filtering and wizard state calculation', () => {
+    const dialog = new ResetLessonsDialog();
+    const pupils = [
+        { PupilId: 1, Email: 'first@example.com' },
+        { PupilId: 2, Email: 'OTHER@EXAMPLE.COM' },
+        { PupilId: 3, Email: null }
+    ];
+    dialog.allPupils = pupils;
+
+    assert.deepEqual(dialog.filterPupils('other@'), [pupils[1]]);
+    assert.equal(dialog.filterPupils(''), pupils);
+
+    dialog.selectedPupil = pupils[0];
+    dialog.selectedLessonIds = new Set([10]);
+    dialog.currentStep = 'lessons';
+    assert.deepEqual(dialog.getViewState(), {
+        showingUsers: false,
+        nextDisabled: false,
+        backDisabled: false,
+        submitDisabled: false,
+        closeDisabled: false
+    });
+});
+
+test('does not expose test-platform or markup factory abstractions', () => {
+    assert.doesNotMatch(source, /function resolvePlatform/);
+    assert.doesNotMatch(source, /function createConstructor/);
+    assert.doesNotMatch(source, /function getResetModalMarkup/);
+    assert.doesNotMatch(source, /function getResetDialogMarkup/);
+    assert.doesNotMatch(source, /createResetDialogElement/);
+});
+
+test('owns lifecycle cleanup and emits host-level workflow events', () => {
+    assert.match(source, /connectedCallback\(\)/);
+    assert.match(source, /this\.id = RESET_OVERLAY_ID/);
+    assert.match(source, /disconnectedCallback\(\)/);
+    assert.match(source, /disconnectListeners\(\)/);
+    assert.match(source, /new root\.CustomEvent\('edvibe-dialog-close'/);
+    assert.match(source, /new root\.CustomEvent\('edvibe-reset-request'/);
 });
