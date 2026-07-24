@@ -1,13 +1,17 @@
 (function initializeResetLessons(root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define([], factory);
+        define(['../components/reset-lessons-dialog.js'], factory);
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(require('../components/reset-lessons-dialog.js'));
     } else {
-        root.EdVibeLessonReset = factory();
+        root.EdVibeLessonReset = factory(root.EdVibeResetDialogComponent);
     }
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createResetLessonsModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createResetLessonsModule(dialogComponent) {
     'use strict';
+
+    if (!dialogComponent || typeof dialogComponent.createResetDialogElement !== 'function') {
+        throw new Error('EdVibe reset lessons requires the reset dialog component module.');
+    }
 
     function parseMarathonId(url) {
         const match = String(url || '').match(/marathon\/(\d+)/);
@@ -303,12 +307,13 @@
         );
     }
 
-    const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
-    const RESET_STYLE_ID = 'edvibe-toolbox-reset-styles';
-
+    const RESET_OVERLAY_ID = dialogComponent.RESET_OVERLAY_ID;
     function getResetRunningStyles() {
         return `
-            #${RESET_OVERLAY_ID}.is-running .edvibe-reset-body {
+            :host(.is-running) .edvibe-reset-body {
+                display: none;
+            }
+            .is-running .edvibe-reset-body {
                 display: none;
             }
         `;
@@ -316,7 +321,7 @@
 
     function getResetPupilLoadingStyles() {
         return `
-            #${RESET_OVERLAY_ID} .edvibe-reset-pupils-shell.is-loading {
+            .edvibe-reset-pupils-shell.is-loading {
                 min-height: 96px;
             }
         `;
@@ -381,12 +386,9 @@
         };
     }
 
-    function ensureResetStyles() {
-        if (document.getElementById(RESET_STYLE_ID)) return;
-
-        const style = document.createElement('style');
-        style.id = RESET_STYLE_ID;
-        style.textContent = `
+    // Kept as a compatibility helper for consumers that imported the old style view helper.
+    function legacyUnusedResetStyles() {
+        return `
             #${RESET_OVERLAY_ID} {
                 position: fixed;
                 inset: 0;
@@ -705,11 +707,11 @@
                 }
             }
         `;
-
-        (document.head || document.documentElement).appendChild(style);
     }
 
     function getResetModalMarkup() {
+        return dialogComponent.getResetModalMarkup();
+        /* Legacy inline copy retained below only for source-level compatibility. */
         return `
             <div class="edvibe-reset-card">
                 <div class="edvibe-reset-header">
@@ -777,36 +779,30 @@
         searchDelay = 1000,
         log = () => {}
     }) {
-        ensureResetStyles();
-
-        const overlay = document.createElement('div');
-        overlay.id = RESET_OVERLAY_ID;
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-modal', 'true');
-        overlay.setAttribute('aria-labelledby', 'edvibe-reset-title');
-        overlay.innerHTML = getResetModalMarkup();
-
-        const search = overlay.querySelector('.edvibe-reset-search');
-        const userStep = overlay.querySelector('.edvibe-reset-user-step');
-        const lessonStep = overlay.querySelector('.edvibe-reset-lesson-step');
-        const stepIndicator = overlay.querySelector('.edvibe-reset-step-indicator');
-        const stepDescription = overlay.querySelector('.edvibe-reset-step-description');
-        const pupilsShell = overlay.querySelector('.edvibe-reset-pupils-shell');
-        const pupilsList = overlay.querySelector('.edvibe-reset-pupils');
-        const pupilsLoading = overlay.querySelector('.edvibe-reset-pupils-loading');
-        const lessonsList = overlay.querySelector('.edvibe-reset-lessons');
-        const selectedPupilLabel = overlay.querySelector('.edvibe-reset-selected-pupil');
-        const selectAll = overlay.querySelector('.edvibe-reset-select-all-input');
-        const status = overlay.querySelector('.edvibe-reset-status');
-        const progress = overlay.querySelector('.edvibe-reset-progress');
-        const progressBar = overlay.querySelector('.edvibe-reset-progress-bar');
+        const overlay = dialogComponent.createResetDialogElement();
+        const renderRoot = overlay.renderRoot;
+        const search = renderRoot.querySelector('.edvibe-reset-search');
+        const userStep = renderRoot.querySelector('.edvibe-reset-user-step');
+        const lessonStep = renderRoot.querySelector('.edvibe-reset-lesson-step');
+        const stepIndicator = renderRoot.querySelector('.edvibe-reset-step-indicator');
+        const stepDescription = renderRoot.querySelector('.edvibe-reset-step-description');
+        const pupilsShell = renderRoot.querySelector('.edvibe-reset-pupils-shell');
+        const pupilsList = renderRoot.querySelector('.edvibe-reset-pupils');
+        const pupilsLoading = renderRoot.querySelector('.edvibe-reset-pupils-loading');
+        const lessonsList = renderRoot.querySelector('.edvibe-reset-lessons');
+        const selectedPupilLabel = renderRoot.querySelector('.edvibe-reset-selected-pupil');
+        const selectAll = renderRoot.querySelector('.edvibe-reset-select-all-input');
+        const status = renderRoot.querySelector('.edvibe-reset-status');
+        const progress = renderRoot.querySelector('.edvibe-reset-progress');
+        const progressBar = renderRoot.querySelector('.edvibe-reset-progress-bar');
         const closeButtons = [
-            overlay.querySelector('.edvibe-reset-close'),
-            overlay.querySelector('.edvibe-reset-cancel')
+            renderRoot.querySelector('.edvibe-reset-close'),
+            renderRoot.querySelector('.edvibe-reset-cancel')
         ];
-        const back = overlay.querySelector('.edvibe-reset-back');
-        const next = overlay.querySelector('.edvibe-reset-next');
-        const submit = overlay.querySelector('.edvibe-reset-submit');
+        const back = renderRoot.querySelector('.edvibe-reset-back');
+        const next = renderRoot.querySelector('.edvibe-reset-next');
+        const submit = renderRoot.querySelector('.edvibe-reset-submit');
+        const backdrop = renderRoot.querySelector('.edvibe-reset-overlay');
 
         let currentStep = 'user';
         let allPupils = [];
@@ -1224,8 +1220,8 @@
             });
         });
         closeButtons.forEach((button) => button.addEventListener('click', close));
-        overlay.addEventListener('click', (event) => {
-            if (event.target === overlay) close();
+        (backdrop || overlay).addEventListener('click', (event) => {
+            if (event.target === (backdrop || overlay)) close();
         });
         document.addEventListener('keydown', handleKeydown);
 

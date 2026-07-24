@@ -25,7 +25,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ status: 'success', info: 'Automation sequence channeled to page engine.' });
             break;
         case 'OPEN_LESSON_RESET':
-            window.postMessage({ type: 'EDVIBE_TOOLBOX_OPEN_RESET' }, '*');
+            window.postMessage({
+                type: 'EDVIBE_TOOLBOX_OPEN_RESET',
+                stylesheetUrl: chrome.runtime.getURL('src/components/reset-lessons-dialog.css')
+            }, '*');
             sendResponse({ status: 'success', info: 'Lesson reset workflow opened.' });
             break;
         default:

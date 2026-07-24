@@ -15,6 +15,7 @@ function requireToolboxModule(name) {
 const transportApi = requireToolboxModule('EdVibeWebSocketTransport');
 const operationGuardApi = requireToolboxModule('EdVibeOperationGuard');
 const exportApi = requireToolboxModule('EdVibeMarathonExport');
+const resetDialogApi = requireToolboxModule('EdVibeResetDialogComponent');
 const resetApi = requireToolboxModule('EdVibeLessonReset');
 
 const transportLog = createMainLog('Transport');
@@ -76,6 +77,7 @@ window.addEventListener('message', (event) => {
     }
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_RESET') {
+        resetDialogApi.setStylesheetUrl(event.data.stylesheetUrl);
         lessonResetFeature.open();
     }
 });

@@ -19,6 +19,7 @@ test('manifest loads shared infrastructure and features before main', () => {
         'lib/turndown.min.js',
         'src/shared/websocket-transport.js',
         'src/shared/operation-guard.js',
+        'src/components/reset-lessons-dialog.js',
         'src/features/reset-lessons.js',
         'src/features/marathon-export.js',
         'src/main.js'
@@ -31,6 +32,11 @@ test('manifest loads shared infrastructure and features before main', () => {
         'src/shared/logger.js',
         'src/isolated.js'
     ]);
+
+    assert.deepEqual(manifest.web_accessible_resources, [{
+        resources: ['src/components/reset-lessons-dialog.css'],
+        matches: ['*://*.edvibe.com/*']
+    }]);
 
     for (const scriptPath of mainWorld.js) {
         assert.equal(
