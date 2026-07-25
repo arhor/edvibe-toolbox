@@ -1,97 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 
 <head>
     <meta charset="utf-8">
-    <style>
-        body {
-            width: 250px;
-            padding: 12px;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-        }
-
-        .header {
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #e1e8ed;
-            padding-bottom: 8px;
-        }
-
-        .section {
-            background: white;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .section-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #7f8c8d;
-            margin-bottom: 8px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 8px 12px;
-            margin: 4px 0;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        /* Разные цвета для разных типов действий */
-        .btn-backup {
-            background-color: #3498db;
-        }
-
-        .btn-backup:hover {
-            background-color: #2980b9;
-        }
-
-        .btn:disabled {
-            opacity: 0.65;
-            cursor: not-allowed;
-        }
-
-        .btn-backup:disabled:hover {
-            background-color: #3498db;
-        }
-
-        .btn-danger {
-            background-color: #e74c3c;
-        }
-
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-
-        .btn-danger:disabled:hover {
-            background-color: #e74c3c;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edvibe Toolbox</title>
+    <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
-    <div class="header">Edvibe Toolbox 🛠️</div>
+    <header class="app-header">
+        <div class="app-mark" aria-hidden="true">ET</div>
+        <div>
+            <h1>Edvibe Toolbox</h1>
+            <p>Инструменты для текущей страницы</p>
+        </div>
+    </header>
 
-    <div class="section">
-        <div class="section-title">📥 Резервное копирование</div>
-        <button id="startCaptureBtn" class="btn btn-backup">Выгрузить марафон</button>
-        <button id="resetLessonsBtn" class="btn btn-danger">Сброс уроков</button>
-    </div>
+    <main>
+        <section id="pageContext" class="page-context is-loading" aria-live="polite">
+            <span class="context-indicator" aria-hidden="true"></span>
+            <div>
+                <strong id="pageContextTitle">Проверяем страницу…</strong>
+                <span id="pageContextDescription">Определяем доступные инструменты</span>
+            </div>
+        </section>
+
+        <div id="toolGroups" class="tool-groups"></div>
+
+        <p id="popupStatus" class="popup-status" role="status" hidden></p>
+    </main>
 
     <script src="src/shared/logger.js"></script>
     <script src="popup.js"></script>
