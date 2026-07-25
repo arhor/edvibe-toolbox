@@ -16,11 +16,14 @@ const transportApi = requireToolboxModule('EdVibeWebSocketTransport');
 const operationGuardApi = requireToolboxModule('EdVibeOperationGuard');
 const exportApi = requireToolboxModule('EdVibeMarathonExport');
 const resetApi = requireToolboxModule('EdVibeLessonReset');
+const recorderApi = requireToolboxModule('EdVibeActionRecorder');
+const recorderDialogApi = requireToolboxModule('EdVibeActionRecorderDialog');
 
 const transportLog = createMainLog('Transport');
 const exportLog = createMainLog('Export');
 const zipLog = createMainLog('Zip');
 const resetLog = createMainLog('Reset');
+const recorderLog = createMainLog('Recorder');
 
 const transport = transportApi.createWebSocketTransport({
     WebSocketClass: window.WebSocket,
@@ -68,6 +71,14 @@ const lessonResetFeature = resetApi.createResetLessonsFeature({
     log: resetLog
 });
 
+const actionRecorderFeature = recorderApi.createActionRecorderFeature({
+    subscribeFrames: transport.subscribeFrames,
+    createPanel() {
+        return document.createElement(recorderDialogApi.RECORDER_DIALOG_TAG);
+    },
+    log: recorderLog
+});
+
 window.addEventListener('message', (event) => {
     if (event.source !== window) return;
 
@@ -77,6 +88,10 @@ window.addEventListener('message', (event) => {
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_RESET') {
         lessonResetFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
+    }
+
+    if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_RECORDER') {
+        actionRecorderFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
     }
 });
 

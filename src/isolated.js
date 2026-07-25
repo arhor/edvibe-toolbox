@@ -31,6 +31,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }, '*');
             sendResponse({ status: 'success', info: 'Lesson reset workflow opened.' });
             break;
+        case 'OPEN_ACTION_RECORDER':
+            window.postMessage({
+                type: 'EDVIBE_TOOLBOX_OPEN_RECORDER',
+                stylesheetUrl: chrome.runtime.getURL(
+                    'src/components/action-recorder-dialog.css'
+                )
+            }, '*');
+            sendResponse({ status: 'success', info: 'Action recorder opened.' });
+            break;
         default:
             sendResponse({ status: 'ignored' });
             break;

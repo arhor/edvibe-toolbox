@@ -13,6 +13,7 @@ test('popup uses a CSP-safe, data-driven tool catalog', () => {
     assert.match(popupScript, /const TOOL_DEFINITIONS = Object\.freeze\(\[/);
     assert.match(popupScript, /id: 'marathon-export'/);
     assert.match(popupScript, /id: 'lesson-reset'/);
+    assert.match(popupScript, /id: 'action-recorder'/);
     assert.match(popupScript, /button\.addEventListener\('click'/);
     assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
     assert.doesNotMatch(popupScript, /window\.openLessonReset\s*=/);
@@ -21,9 +22,22 @@ test('popup uses a CSP-safe, data-driven tool catalog', () => {
 test('popup presents export and management as separate tool groups', () => {
     assert.match(popupScript, /export: 'Экспорт'/);
     assert.match(popupScript, /management: 'Управление'/);
+    assert.match(popupScript, /development: 'Разработка'/);
     assert.match(popupScript, /title: 'Экспорт марафона'/);
     assert.match(popupScript, /title: 'Сброс прогресса учеников'/);
     assert.doesNotMatch(popupHtml, /Резервное копирование/);
+});
+
+test('popup exposes the recorder on every Edvibe page', () => {
+    assert.match(
+        popupScript,
+        /command: 'OPEN_ACTION_RECORDER',\s*requirement: 'edvibe'/
+    );
+    assert.match(popupScript, /title: 'Запись действий WebSocket'/);
+    assert.match(
+        popupScript,
+        /pageContext\.type === 'edvibe' \|\| pageContext\.type === 'marathon'/
+    );
 });
 
 test('popup preserves commands and marathon requirements', () => {

@@ -20,8 +20,10 @@ test('manifest loads shared infrastructure and features before main', () => {
         'src/shared/websocket-transport.js',
         'src/shared/operation-guard.js',
         'src/components/reset-lessons-dialog.js',
+        'src/components/action-recorder-dialog.js',
         'src/features/reset-lessons.js',
         'src/features/marathon-export.js',
+        'src/features/action-recorder.js',
         'src/main.js'
     ]);
 
@@ -34,7 +36,10 @@ test('manifest loads shared infrastructure and features before main', () => {
     ]);
 
     assert.deepEqual(manifest.web_accessible_resources, [{
-        resources: ['src/components/reset-lessons-dialog.css'],
+        resources: [
+            'src/components/reset-lessons-dialog.css',
+            'src/components/action-recorder-dialog.css'
+        ],
         matches: ['*://*.edvibe.com/*']
     }]);
 
@@ -72,6 +77,7 @@ test('main remains a coordinator without concrete feature logic', () => {
     assert.doesNotMatch(source, /EdVibeCompileMarathonToZip/);
     assert.match(source, /createMarathonExportFeature/);
     assert.match(source, /createResetLessonsFeature/);
+    assert.match(source, /createActionRecorderFeature/);
 });
 
 test('marathon export owns its ZIP compiler implementation', () => {
@@ -82,4 +88,27 @@ test('marathon export owns its ZIP compiler implementation', () => {
         fs.existsSync(path.join(root, 'src/features/compile-marathon-to-zip.js')),
         false
     );
+});
+
+test('action recorder routing crosses worlds without captured payload storage', () => {
+    const isolatedSource = fs.readFileSync(
+        path.join(root, 'src/isolated.js'),
+        'utf8'
+    );
+    const mainSource = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
+    const recorderSource = fs.readFileSync(
+        path.join(root, 'src/features/action-recorder.js'),
+        'utf8'
+    );
+
+    assert.match(isolatedSource, /case 'OPEN_ACTION_RECORDER'/);
+    assert.match(isolatedSource, /type: 'EDVIBE_TOOLBOX_OPEN_RECORDER'/);
+    assert.match(
+        isolatedSource,
+        /src\/components\/action-recorder-dialog\.css/
+    );
+    assert.match(mainSource, /actionRecorderFeature\.open/);
+    assert.match(recorderSource, /subscribeFrames\(handleFrame\)/);
+    assert.doesNotMatch(recorderSource, /chrome\.storage/);
+    assert.doesNotMatch(isolatedSource, /recordedFrames|operations|otherFrames/);
 });

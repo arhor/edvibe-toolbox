@@ -3,7 +3,8 @@ const log = createPopupLog();
 
 const TOOL_GROUPS = Object.freeze({
     export: 'Экспорт',
-    management: 'Управление'
+    management: 'Управление',
+    development: 'Разработка'
 });
 
 const TOOL_DEFINITIONS = Object.freeze([
@@ -27,6 +28,17 @@ const TOOL_DEFINITIONS = Object.freeze([
         actionLabel: 'Открыть мастер',
         busyLabel: 'Открывается…',
         appearance: 'danger',
+        closeOnSuccess: true
+    }),
+    Object.freeze({
+        id: 'action-recorder',
+        group: 'development',
+        title: 'Запись действий WebSocket',
+        description: 'Записать запросы и ответы выполненного действия.',
+        command: 'OPEN_ACTION_RECORDER',
+        requirement: 'edvibe',
+        actionLabel: 'Открыть рекордер',
+        busyLabel: 'Открывается…',
         closeOnSuccess: true
     })
 ]);
@@ -224,6 +236,11 @@ function createToolCard(tool) {
 }
 
 function getUnavailableReason(tool) {
+    if (tool.requirement === 'edvibe') {
+        return pageContext.type === 'edvibe' || pageContext.type === 'marathon'
+            ? ''
+            : 'Откройте страницу Edvibe.';
+    }
     if (tool.requirement !== 'marathon' || pageContext.type === 'marathon') {
         return '';
     }

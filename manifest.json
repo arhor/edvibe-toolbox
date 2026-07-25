@@ -17,7 +17,8 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "src/components/reset-lessons-dialog.css"
+                "src/components/reset-lessons-dialog.css",
+                "src/components/action-recorder-dialog.css"
             ],
             "matches": [
                 "*://*.edvibe.com/*"
@@ -30,7 +31,7 @@
                 "*://*.edvibe.com/*"
             ],
             "js": [
-                "src/shared//logger.js",
+                "src/shared/logger.js",
                 "src/isolated.js"
             ],
             "run_at": "document_start",
@@ -41,14 +42,16 @@
                 "*://*.edvibe.com/*"
             ],
             "js": [
+                "src/shared/logger.js",
                 "lib/jszip.min.js",
                 "lib/turndown.min.js",
-                "src/shared/logger.js",
                 "src/shared/websocket-transport.js",
                 "src/shared/operation-guard.js",
                 "src/components/reset-lessons-dialog.js",
+                "src/components/action-recorder-dialog.js",
                 "src/features/reset-lessons.js",
                 "src/features/marathon-export.js",
+                "src/features/action-recorder.js",
                 "src/main.js"
             ],
             "run_at": "document_start",

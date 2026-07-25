@@ -9,6 +9,28 @@
 * **Process Automation:** Execute repetitive and uniform actions in just a few clicks via the built-in control panel.
 * **Data Management:** Real-time tools to analyze, intercept, and process the platform's internal data structures.
 * **Interface Customization:** Local UI/UX enhancements tailored to adapt the platform to specific user needs.
+* **WebSocket Action Recorder:** Capture a manual Edvibe workflow as correlated
+  request/response operations, copy `sendRequest(...)` scaffolding, and export a
+  local JSON trace without opening DevTools.
+
+## WebSocket Action Recorder
+
+Open any Edvibe page, select **Запись действий WebSocket** in the extension
+popup, and start recording in the in-page panel. Perform one logical operation,
+stop the recording, then inspect its requests and responses. Individual
+requests and a review-only recipe can be copied; the complete trace can be
+downloaded as JSON.
+
+The recorder never replays traffic. Generated code contains the exact observed
+values and must be reviewed for dynamic IDs, sequencing, and mutation effects.
+If an operation produces no frames, it may use HTTP, uploads, browser storage,
+or DOM-only behavior instead of WebSocket messaging.
+
+Recordings stay in page memory until exported and are lost on navigation or
+reload. Common credential fields are redacted, but traces may still contain
+pupil data, names, answers, lesson content, email addresses, and stable IDs.
+Review recordings before sharing or committing them. A session stops at 1,000
+frames, 5 MiB of text traffic, or 10 minutes.
 
 ---
 

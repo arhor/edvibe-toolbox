@@ -9,43 +9,29 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function loggerModuleFactory() {
     'use strict';
 
-    /**
-     * Returns the execution context of the current module.
-     * 
-     * @returns {string | null} The execution context of the current module.
-     */
-    function getExecutionContext() {
-        if (typeof ServiceWorkerGlobalScope !== "undefined" && self instanceof ServiceWorkerGlobalScope) {
-            return "BACKGROUND";
-        }
-        if (typeof window !== "undefined") {
-            return typeof window.chrome?.runtime?.id === "string"
-                ? "ISOLATED"
-                : "MAIN";
-        }
-        return null;
-    }
+    const SUPPORTED_WORLDS = new Set(['POPUP', 'MAIN', 'ISOLATED']);
 
     /**
-     * Creates a logger factory function.
-     * 
+     * Creates component-scoped loggers for one explicit execution world.
+     *
+     * @param {string} world The execution world.
      * @returns {(module: string | null | undefined) => (...args: any[]) => void} A function that creates a logger function.
      */
-    function createLoggerFactory() {
-        return function createLogger(module) {
+    function createLoggerFactory(world) {
+        if (!SUPPORTED_WORLDS.has(world)) {
+            throw new Error(`Unsupported logging world: ${world}`);
+        }
+
+        return function createLogger(component) {
             if (
-                module !== undefined &&
-                module !== null &&
-                (typeof module !== 'string' || !module.trim())
+                component !== undefined
+                && (typeof component !== 'string' || !component.trim())
             ) {
-                throw new Error('Module must be a non-empty string.');
+                throw new Error('Component must be a non-empty string.');
             }
-            const context = getExecutionContext();
 
-            const prefix = context ? `[${context}]` : '';
-            const suffix = module ? `[${module.trim()}]` : '';
-
-            const namespace = `[Edvibe Toolbox]${prefix}${suffix}`;
+            const suffix = component ? `[${component.trim()}]` : '';
+            const namespace = `[Edvibe Toolbox][${world}]${suffix}`;
 
             return (...args) => console.log(namespace, ...args);
         };

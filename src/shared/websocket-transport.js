@@ -17,10 +17,77 @@
         requestTimeoutMs = REQUEST_TIMEOUT_MS,
         setTimeoutFn = setTimeout,
         clearTimeoutFn = clearTimeout,
+        now = Date.now,
         log = () => {}
     }) {
         let activeSocket = null;
+        let nextSocketId = 1;
+        let internalSendDepth = 0;
         const pendingRequests = new Map();
+        const frameObservers = new Set();
+
+        function getByteLength(data) {
+            if (typeof data === 'string') {
+                if (typeof TextEncoder !== 'undefined') {
+                    return new TextEncoder().encode(data).byteLength;
+                }
+                return unescape(encodeURIComponent(data)).length;
+            }
+            if (typeof Blob !== 'undefined' && data instanceof Blob) {
+                return data.size;
+            }
+            if (typeof ArrayBuffer !== 'undefined') {
+                if (data instanceof ArrayBuffer) return data.byteLength;
+                if (ArrayBuffer.isView(data)) return data.byteLength;
+            }
+            return null;
+        }
+
+        function getDataType(data) {
+            if (typeof data === 'string') return 'text';
+            if (typeof Blob !== 'undefined' && data instanceof Blob) return 'blob';
+            if (
+                typeof ArrayBuffer !== 'undefined'
+                && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))
+            ) {
+                return 'array-buffer';
+            }
+            return 'other';
+        }
+
+        function emitFrame({ direction, socketId, data, origin }) {
+            if (frameObservers.size === 0) return;
+
+            const dataType = getDataType(data);
+            const frame = {
+                direction,
+                socketId,
+                capturedAt: now(),
+                dataType,
+                byteLength: getByteLength(data),
+                origin
+            };
+            if (dataType === 'text') {
+                frame.data = data;
+            }
+
+            for (const observer of [...frameObservers]) {
+                try {
+                    observer(frame);
+                } catch (error) {
+                    log('Frame observer failed:', error);
+                }
+            }
+        }
+
+        function subscribeFrames(observer) {
+            if (typeof observer !== 'function') {
+                throw new TypeError('Frame observer must be a function.');
+            }
+
+            frameObservers.add(observer);
+            return () => frameObservers.delete(observer);
+        }
 
         function createPacket(controller, method, projectName, valueObject) {
             return {
@@ -32,17 +99,35 @@
             };
         }
 
-        function handleMessage(event) {
-            if (typeof event.data !== 'string') return;
+        function handleMessage(event, socketId) {
+            let data = null;
+            if (typeof event.data === 'string') {
+                try {
+                    data = JSON.parse(event.data);
+                } catch (_) {
+                    // The recorder still needs malformed and non-JSON text frames.
+                }
+            }
 
+            const isToolboxResponse = Boolean(
+                data?.RequestId && pendingRequests.has(data.RequestId)
+            );
+            emitFrame({
+                direction: 'inbound',
+                socketId,
+                data: event.data,
+                origin: isToolboxResponse ? 'toolbox' : 'page'
+            });
+
+            if (typeof event.data !== 'string') return;
             try {
-                const data = JSON.parse(event.data);
+                if (!data) return;
                 if (!data.RequestId || !pendingRequests.has(data.RequestId)) return;
 
                 const pending = pendingRequests.get(data.RequestId);
                 pendingRequests.delete(data.RequestId);
                 clearTimeoutFn(pending.timeoutId);
-                const elapsedMs = Date.now() - pending.startedAt;
+                const elapsedMs = now() - pending.startedAt;
                 const outcome = data.IsSuccess === true
                     ? 'success'
                     : `failed (${data.ErrorCode})`;
@@ -71,8 +156,23 @@
                 const socket = protocols === undefined
                     ? new WebSocketClass(url)
                     : new WebSocketClass(url, protocols);
+                const socketId = nextSocketId;
+                nextSocketId += 1;
                 activeSocket = socket;
-                socket.addEventListener('message', handleMessage);
+                const nativeSend = socket.send;
+
+                socket.send = function observedSend(data) {
+                    emitFrame({
+                        direction: 'outbound',
+                        socketId,
+                        data,
+                        origin: internalSendDepth > 0 ? 'toolbox' : 'page'
+                    });
+                    return nativeSend.call(socket, data);
+                };
+                socket.addEventListener('message', (event) => {
+                    handleMessage(event, socketId);
+                });
                 return socket;
             }
 
@@ -120,7 +220,7 @@
                     timeoutId,
                     controller,
                     method,
-                    startedAt: Date.now()
+                    startedAt: now()
                 });
                 log(
                     `→ ${controller}.${method} `
@@ -128,7 +228,12 @@
                 );
 
                 try {
-                    socket.send(JSON.stringify(packet));
+                    internalSendDepth += 1;
+                    try {
+                        socket.send(JSON.stringify(packet));
+                    } finally {
+                        internalSendDepth -= 1;
+                    }
                 } catch (error) {
                     clearTimeoutFn(timeoutId);
                     pendingRequests.delete(packet.RequestId);
@@ -148,10 +253,15 @@
                 `→ ${controller}.${method} `
                 + `[${packet.RequestId}] (no response expected)`
             );
-            socket.send(JSON.stringify(packet));
+            internalSendDepth += 1;
+            try {
+                socket.send(JSON.stringify(packet));
+            } finally {
+                internalSendDepth -= 1;
+            }
         }
 
-        return { install, sendRequest, sendWithoutResponse };
+        return { install, sendRequest, sendWithoutResponse, subscribeFrames };
     }
 
     return { createWebSocketTransport };
