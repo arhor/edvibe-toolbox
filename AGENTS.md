@@ -43,6 +43,9 @@ For manual validation:
 - Do not edit minified vendor files such as `jszip.min.js`; replace them from an upstream source if an update is required.
 - Do not commit generated export files unless the user explicitly requests it and confirms the data is safe to include.
 - Keep comments useful and sparse. Explain non-obvious browser-extension or WebSocket behavior, not simple assignments.
+- Implement dynamically created user-interface HTML as Web Components. Keep all CSS
+  in dedicated `.css` files; do not embed styles or assign presentation styles from
+  JavaScript.
 
 ## Validation Expectations
 

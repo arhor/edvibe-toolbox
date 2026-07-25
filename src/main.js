@@ -83,7 +83,7 @@ window.addEventListener('message', (event) => {
     if (event.source !== window) return;
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_START_ALL') {
-        marathonExportFeature.start();
+        marathonExportFeature.start({ stylesheetUrl: event.data.stylesheetUrl });
     }
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_RESET') {

@@ -21,6 +21,7 @@ test('manifest loads shared infrastructure and features before main', () => {
         'src/shared/operation-guard.js',
         'src/components/reset-lessons-dialog.js',
         'src/components/action-recorder-dialog.js',
+        'src/components/export-progress-dialog.js',
         'src/features/reset-lessons.js',
         'src/features/marathon-export.js',
         'src/features/action-recorder.js',
@@ -38,7 +39,8 @@ test('manifest loads shared infrastructure and features before main', () => {
     assert.deepEqual(manifest.web_accessible_resources, [{
         resources: [
             'src/components/reset-lessons-dialog.css',
-            'src/components/action-recorder-dialog.css'
+            'src/components/action-recorder-dialog.css',
+            'src/components/export-progress-dialog.css'
         ],
         matches: ['*://*.edvibe.com/*']
     }]);
@@ -50,6 +52,29 @@ test('manifest loads shared infrastructure and features before main', () => {
             `${scriptPath} should exist`
         );
     }
+});
+
+test('dynamic UI and presentation stay in components and stylesheets', () => {
+    const coordinatorFiles = [
+        'popup.js',
+        'src/main.js',
+        'src/features/marathon-export.js',
+        'src/features/reset-lessons.js',
+        'src/features/action-recorder.js'
+    ];
+
+    for (const file of coordinatorFiles) {
+        const source = fs.readFileSync(path.join(root, file), 'utf8');
+        assert.doesNotMatch(source, /(?:innerHTML|insertAdjacentHTML|cssText|\.style\.)/);
+        assert.doesNotMatch(
+            source,
+            /createElement\(['"](?:div|section|article|button|p|span|style)['"]\)/
+        );
+    }
+
+    const agents = fs.readFileSync(path.join(root, 'AGENTS.md'), 'utf8');
+    assert.match(agents, /dynamically created user-interface HTML as Web Components/);
+    assert.match(agents, /Keep all CSS\s+in dedicated `\.css` files/);
 });
 
 test('main explicitly creates and installs the WebSocket transport', () => {

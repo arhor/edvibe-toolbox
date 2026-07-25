@@ -7,6 +7,10 @@ const projectRoot = path.resolve(__dirname, '..');
 const popupHtml = fs.readFileSync(path.join(projectRoot, 'popup.html'), 'utf8');
 const popupScript = fs.readFileSync(path.join(projectRoot, 'popup.js'), 'utf8');
 const popupStyles = fs.readFileSync(path.join(projectRoot, 'popup.css'), 'utf8');
+const popupComponents = fs.readFileSync(
+    path.join(projectRoot, 'src/components/popup-tool-list.js'),
+    'utf8'
+);
 
 test('popup uses a CSP-safe, data-driven tool catalog', () => {
     assert.doesNotMatch(popupHtml, /\sonclick=/);
@@ -14,7 +18,9 @@ test('popup uses a CSP-safe, data-driven tool catalog', () => {
     assert.match(popupScript, /id: 'marathon-export'/);
     assert.match(popupScript, /id: 'lesson-reset'/);
     assert.match(popupScript, /id: 'action-recorder'/);
-    assert.match(popupScript, /button\.addEventListener\('click'/);
+    assert.match(popupScript, /createElement\('popup-tool-group'\)/);
+    assert.match(popupComponents, /button\.addEventListener\('click'/);
+    assert.match(popupComponents, /customElements\.define\('popup-tool-card'/);
     assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
     assert.doesNotMatch(popupScript, /window\.openLessonReset\s*=/);
 });
@@ -63,9 +69,9 @@ test('popup loads its stylesheet and scripts in the required order', () => {
     assert.match(popupHtml, /<link rel="stylesheet" href="popup\.css">/);
     assert.match(
         popupHtml,
-        /<script src="src\/shared\/logger\.js"><\/script>\s*<script src="popup\.js"><\/script>/
+        /<script src="src\/shared\/logger\.js"><\/script>\s*<script src="src\/components\/popup-tool-list\.js"><\/script>\s*<script src="popup\.js"><\/script>/
     );
     assert.match(popupScript, /createLoggerFactory\('POPUP'\)/);
-    assert.match(popupStyles, /\.tool-card/);
+    assert.match(popupStyles, /popup-tool-card/);
     assert.match(popupStyles, /\.tool-action\.is-danger/);
 });

@@ -18,7 +18,8 @@
         {
             "resources": [
                 "src/components/reset-lessons-dialog.css",
-                "src/components/action-recorder-dialog.css"
+                "src/components/action-recorder-dialog.css",
+                "src/components/export-progress-dialog.css"
             ],
             "matches": [
                 "*://*.edvibe.com/*"
@@ -49,6 +50,7 @@
                 "src/shared/operation-guard.js",
                 "src/components/reset-lessons-dialog.js",
                 "src/components/action-recorder-dialog.js",
+                "src/components/export-progress-dialog.js",
                 "src/features/reset-lessons.js",
                 "src/features/marathon-export.js",
                 "src/features/action-recorder.js",

@@ -1,12 +1,12 @@
 (function initializeMarathonExport(root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define([], factory);
+        define([], () => factory(root));
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(root);
     } else {
-        root.EdVibeMarathonExport = factory();
+        root.EdVibeMarathonExport = factory(root);
     }
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createMarathonExportModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createMarathonExportModule(root) {
     'use strict';
 
     const FORBIDDEN_PATH_CHARS = /[\\/:*?"<>|]/g;
@@ -429,205 +429,19 @@
         return zipBlob;
     }
 
-    const EXPORT_PROGRESS_OVERLAY_ID = 'edvibe-toolbox-export-progress';
-    const EXPORT_PROGRESS_STYLE_ID = 'edvibe-toolbox-export-progress-styles';
-
     function parseMarathonId(url) {
         const match = String(url || '').match(/marathon\/(\d+)/);
         return match ? Number(match[1]) : null;
     }
 
-    function ensureExportProgressStyles() {
-        if (document.getElementById(EXPORT_PROGRESS_STYLE_ID)) return;
-
-        const style = document.createElement('style');
-        style.id = EXPORT_PROGRESS_STYLE_ID;
-        style.textContent = `
-            #${EXPORT_PROGRESS_OVERLAY_ID} {
-                position: fixed;
-                inset: 0;
-                z-index: 2147483647;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: rgba(15, 23, 42, 0.55);
-                font-family: "Segoe UI", Arial, sans-serif;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID} .edvibe-export-card {
-                width: min(630px, calc(100vw - 32px));
-                padding: 24px;
-                border-radius: 16px;
-                background: #ffffff;
-                box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
-                color: #1f2937;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID} .edvibe-export-title {
-                margin: 0 0 8px;
-                font-size: 20px;
-                line-height: 1.3;
-                font-weight: 700;
-                color: #111827;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID} .edvibe-export-status {
-                margin: 0 0 16px;
-                min-height: 40px;
-                font-size: 14px;
-                line-height: 1.4;
-                white-space: pre-line;
-                color: #4b5563;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID} .edvibe-export-track {
-                overflow: hidden;
-                height: 12px;
-                border-radius: 999px;
-                background: #e5e7eb;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID} .edvibe-export-bar {
-                width: 0%;
-                height: 100%;
-                border-radius: inherit;
-                background: linear-gradient(90deg, #3498db, #22c55e);
-                transition: width 0.25s ease;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID}.is-indeterminate .edvibe-export-bar {
-                width: 40%;
-                animation: edvibe-export-progress-slide 1.2s ease-in-out infinite;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID} .edvibe-export-meta {
-                display: flex;
-                justify-content: space-between;
-                gap: 16px;
-                margin-top: 10px;
-                font-size: 12px;
-                color: #6b7280;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID} .edvibe-export-close {
-                display: none;
-                margin-top: 18px;
-                width: 100%;
-                padding: 9px 12px;
-                border: 0;
-                border-radius: 8px;
-                background: #3498db;
-                color: #ffffff;
-                font-size: 13px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID}.is-complete .edvibe-export-close,
-            #${EXPORT_PROGRESS_OVERLAY_ID}.is-error .edvibe-export-close {
-                display: block;
-            }
-
-            #${EXPORT_PROGRESS_OVERLAY_ID}.is-error .edvibe-export-bar {
-                background: #e74c3c;
-            }
-
-            @keyframes edvibe-export-progress-slide {
-                0% { transform: translateX(-120%); }
-                50% { transform: translateX(80%); }
-                100% { transform: translateX(260%); }
-            }
-        `;
-
-        (document.head || document.documentElement).appendChild(style);
-    }
-
-    function createExportProgressOverlay() {
-        ensureExportProgressStyles();
-        document.getElementById(EXPORT_PROGRESS_OVERLAY_ID)?.remove();
-
-        const overlay = document.createElement('div');
-        overlay.id = EXPORT_PROGRESS_OVERLAY_ID;
-        overlay.className = 'is-indeterminate';
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-modal', 'true');
-        overlay.innerHTML = `
-            <div class="edvibe-export-card">
-                <h2 class="edvibe-export-title">Exporting marathon</h2>
-                <p class="edvibe-export-status">Preparing export...</p>
-                <div class="edvibe-export-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                    <div class="edvibe-export-bar"></div>
-                </div>
-                <div class="edvibe-export-meta">
-                    <span class="edvibe-export-count">Discovering sections...</span>
-                    <span class="edvibe-export-percent">0%</span>
-                </div>
-                <button class="edvibe-export-close" type="button">Close</button>
-            </div>
-        `;
-
-        (document.body || document.documentElement).appendChild(overlay);
-
-        const status = overlay.querySelector('.edvibe-export-status');
-        const track = overlay.querySelector('.edvibe-export-track');
-        const bar = overlay.querySelector('.edvibe-export-bar');
-        const count = overlay.querySelector('.edvibe-export-count');
-        const percent = overlay.querySelector('.edvibe-export-percent');
-        const closeButton = overlay.querySelector('.edvibe-export-close');
-
-        closeButton.addEventListener('click', () => overlay.remove());
-
-        function update({
-            statusText,
-            loadedSections = 0,
-            totalSections = 0,
-            countText,
-            state = 'loading'
-        }) {
-            const hasTotal = totalSections > 0;
-            const progressPercent = state === 'complete'
-                ? 100
-                : hasTotal
-                    ? Math.min(100, Math.round((loadedSections / totalSections) * 100))
-                    : 0;
-
-            overlay.classList.toggle(
-                'is-indeterminate',
-                !hasTotal && state === 'loading'
-            );
-            overlay.classList.toggle('is-complete', state === 'complete');
-            overlay.classList.toggle('is-error', state === 'error');
-
-            status.textContent = statusText;
-            count.textContent = countText ?? (hasTotal
-                ? `${loadedSections} / ${totalSections} sections loaded`
-                : state === 'complete'
-                    ? 'Export complete'
-                    : 'Discovering sections...');
-            percent.textContent = `${progressPercent}%`;
-            bar.style.width = hasTotal || state === 'complete'
-                ? `${progressPercent}%`
-                : '';
-            track.setAttribute('aria-valuenow', String(progressPercent));
-        }
-
-        return {
-            update,
-            complete(statusText, totalSections) {
-                update({
-                    statusText,
-                    loadedSections: totalSections,
-                    totalSections,
-                    state: 'complete'
-                });
-            },
-            error(statusText) {
-                update({ statusText, state: 'error' });
-            },
-            dismissAfter(ms) {
-                setTimeout(() => overlay.remove(), ms);
-            }
-        };
+    function createExportProgressOverlay({ stylesheetUrl = '' } = {}) {
+        const componentApi = root.EdVibeExportProgressDialog;
+        if (!componentApi) throw new Error('Export progress component is unavailable.');
+        document.querySelector(componentApi.EXPORT_PROGRESS_TAG)?.remove();
+        const dialog = document.createElement(componentApi.EXPORT_PROGRESS_TAG);
+        dialog.configure({ stylesheetUrl });
+        (document.body || document.documentElement).appendChild(dialog);
+        return dialog;
     }
 
     function createMarathonExportFeature({
@@ -642,7 +456,7 @@
         now = () => new Date().toISOString(),
         log = () => {}
     }) {
-        async function start() {
+        async function start({ stylesheetUrl = '' } = {}) {
             if (!canStart()) {
                 const message = 'Cannot start export while another operation is active.';
                 log(message);
@@ -656,7 +470,7 @@
             try {
                 notifyStatus('started');
                 log('Starting marathon export...');
-                progressOverlay = createProgressOverlay();
+                progressOverlay = createProgressOverlay({ stylesheetUrl });
                 progressOverlay.update({
                     statusText: 'Finding marathon lessons...',
                     loadedSections: 0,

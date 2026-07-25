@@ -129,7 +129,8 @@ main {
     gap: 8px;
 }
 
-.tool-card {
+popup-tool-card {
+    display: block;
     padding: 13px;
     border: 1px solid #dfe4ee;
     border-radius: 11px;
@@ -137,7 +138,7 @@ main {
     box-shadow: 0 2px 7px rgba(30, 42, 70, 0.04);
 }
 
-.tool-card[data-disabled="true"] {
+popup-tool-card[data-disabled="true"] {
     background: #fafbfc;
 }
 

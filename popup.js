@@ -165,30 +165,18 @@ function renderTools() {
         const tools = TOOL_DEFINITIONS.filter((tool) => tool.group === groupId);
         if (tools.length === 0) continue;
 
-        const section = document.createElement('section');
-        const title = document.createElement('h2');
-        const list = document.createElement('div');
-
-        title.className = 'tool-group-title';
-        title.textContent = groupTitle;
-        list.className = 'tool-list';
-
-        for (const tool of tools) {
-            list.append(createToolCard(tool));
-        }
-
-        section.append(title, list);
-        toolGroupsElement.append(section);
+        const group = document.createElement('popup-tool-group');
+        group.configure({
+            title: groupTitle,
+            tools,
+            getState: getToolRenderState,
+            onExecute: executeTool
+        });
+        toolGroupsElement.append(group);
     }
 }
 
-function createToolCard(tool) {
-    const card = document.createElement('article');
-    const header = document.createElement('div');
-    const copy = document.createElement('div');
-    const title = document.createElement('h3');
-    const description = document.createElement('p');
-    const button = document.createElement('button');
+function getToolRenderState(tool) {
     const unavailableReason = getUnavailableReason(tool);
     const isExportTool = tool.id === 'marathon-export';
     const isBusy = isExportTool && exportInProgress;
@@ -197,42 +185,14 @@ function createToolCard(tool) {
         && !isBusy
         && !isPending;
 
-    card.className = 'tool-card';
-    card.dataset.toolId = tool.id;
-    card.dataset.disabled = String(Boolean(
-        unavailableReason || isBusy || isPending || isBlocked
-    ));
-    header.className = 'tool-card-header';
-    copy.className = 'tool-copy';
-    title.className = 'tool-title';
-    title.textContent = tool.title;
-    description.className = 'tool-description';
-    description.textContent = tool.description;
-    button.className = 'tool-action';
-    button.type = 'button';
-    button.textContent = isBusy || isPending ? tool.busyLabel : tool.actionLabel;
-    button.disabled = Boolean(unavailableReason || isBusy || isPending || isBlocked);
-
-    if (tool.appearance === 'danger') {
-        button.classList.add('is-danger');
-    }
-
-    button.addEventListener('click', () => executeTool(tool.id));
-    copy.append(title, description);
-
     const reason = unavailableReason || (isBlocked
         ? 'Дождитесь завершения другого инструмента.'
         : '');
-    if (reason) {
-        const requirement = document.createElement('p');
-        requirement.className = 'tool-requirement';
-        requirement.textContent = reason;
-        copy.append(requirement);
-    }
-
-    header.append(copy, button);
-    card.append(header);
-    return card;
+    return {
+        disabled: Boolean(unavailableReason || isBusy || isPending || isBlocked),
+        reason,
+        busy: isBusy || isPending
+    };
 }
 
 function getUnavailableReason(tool) {

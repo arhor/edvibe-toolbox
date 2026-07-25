@@ -129,9 +129,8 @@
                         </div>
                         <div class="edvibe-reset-live-region">
                             <p class="edvibe-reset-status" aria-live="polite"></p>
-                            <div class="edvibe-reset-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                                <div class="edvibe-reset-progress-bar"></div>
-                            </div>
+                            <progress class="edvibe-reset-progress" max="100"
+                                value="0"></progress>
                         </div>
                         <div class="edvibe-reset-footer">
                             <button class="edvibe-reset-button edvibe-reset-cancel" type="button">
@@ -175,7 +174,6 @@
                 selectAll: find('.edvibe-reset-select-all-input'),
                 status: find('.edvibe-reset-status'),
                 progress: find('.edvibe-reset-progress'),
-                progressBar: find('.edvibe-reset-progress-bar'),
                 close: find('.edvibe-reset-close'),
                 cancel: find('.edvibe-reset-cancel'),
                 back: find('.edvibe-reset-back'),
@@ -622,8 +620,7 @@
             this.suppressPupilPageLoading = false;
             this.elements.selectedPupilLabel.textContent = '';
             this.elements.progress.classList.remove('is-visible', 'is-indeterminate');
-            this.elements.progress.setAttribute('aria-valuenow', '0');
-            this.elements.progressBar.style.width = '';
+            this.elements.progress.value = 0;
             this.setStatus(
                 `Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`
             );
@@ -690,8 +687,7 @@
         showDiscovery(message) {
             this.setStatus(message);
             this.elements.progress.classList.add('is-visible', 'is-indeterminate');
-            this.elements.progress.removeAttribute('aria-valuenow');
-            this.elements.progressBar.style.width = '';
+            this.elements.progress.removeAttribute('value');
         }
 
         showProgress({ completed, total, lesson, exerciseId }) {
@@ -700,16 +696,14 @@
             this.setStatus(`${lesson.Name}\n${detail} — ${completed} / ${total}`);
             this.elements.progress.classList.add('is-visible');
             this.elements.progress.classList.remove('is-indeterminate');
-            this.elements.progress.setAttribute('aria-valuenow', String(percent));
-            this.elements.progressBar.style.width = `${percent}%`;
+            this.elements.progress.value = percent;
         }
 
         showComplete(message) {
             this.setStatus(message, 'success');
             this.elements.progress.classList.add('is-visible');
             this.elements.progress.classList.remove('is-indeterminate');
-            this.elements.progress.setAttribute('aria-valuenow', '100');
-            this.elements.progressBar.style.width = '100%';
+            this.elements.progress.value = 100;
         }
 
         showError(message) {

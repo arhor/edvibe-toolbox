@@ -21,7 +21,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'START_FULL_AUTOMATION':
             relayExportStatus({ state: 'started' });
 
-            window.postMessage({ type: 'EDVIBE_TOOLBOX_START_ALL' }, '*');
+            window.postMessage({
+                type: 'EDVIBE_TOOLBOX_START_ALL',
+                stylesheetUrl: chrome.runtime.getURL(
+                    'src/components/export-progress-dialog.css'
+                )
+            }, '*');
             sendResponse({ status: 'success', info: 'Automation sequence channeled to page engine.' });
             break;
         case 'OPEN_LESSON_RESET':
