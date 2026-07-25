@@ -12,6 +12,90 @@
     const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
     const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
     const HTMLElementBase = root.HTMLElement || class {};
+    const recorderTemplate = root.document?.createElement?.('template') || null;
+
+    if (recorderTemplate) {
+        recorderTemplate.innerHTML = `
+            <link class="recorder-stylesheet" rel="stylesheet">
+            <button class="recorder-indicator" type="button" hidden
+                aria-label="Открыть запись WebSocket">
+                <span></span>
+                <strong>REC</strong>
+                <span class="indicator-count">0</span>
+            </button>
+            <div class="recorder-overlay">
+                <section class="recorder-panel" role="dialog"
+                    aria-labelledby="recorder-title">
+                    <header class="recorder-header">
+                        <div>
+                            <h2 id="recorder-title">Запись действий WebSocket</h2>
+                            <p class="recorder-subtitle">
+                                Выполните одно действие в Edvibe и изучите обмен сообщениями.
+                            </p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="icon-button recorder-minimize"
+                                type="button" aria-label="Свернуть">−</button>
+                            <button class="icon-button recorder-close"
+                                type="button" aria-label="Закрыть">&times;</button>
+                        </div>
+                    </header>
+                    <div class="recorder-toolbar">
+                        <div class="recorder-state">
+                            <span class="state-dot"></span>
+                            <strong class="state-label">Готово к записи</strong>
+                            <span class="elapsed"></span>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button class="button primary recorder-start"
+                                type="button">Начать запись</button>
+                            <button class="button danger recorder-stop"
+                                type="button" hidden>Остановить</button>
+                            <button class="button recorder-clear"
+                                type="button" disabled>Очистить</button>
+                            <button class="button recorder-copy"
+                                type="button" disabled>Копировать рецепт</button>
+                            <button class="button recorder-export"
+                                type="button" disabled>Экспорт JSON</button>
+                        </div>
+                    </div>
+                    <div class="recorder-body">
+                        <aside class="privacy-warning">
+                            Запись может содержать данные учеников, уроки, ответы и
+                            идентификаторы. Проверьте файл перед отправкой или коммитом.
+                        </aside>
+                        <div class="recorder-summary">
+                            <span><strong class="operation-count">0</strong> операций</span>
+                            <span><strong class="frame-count">0</strong> кадров</span>
+                            <span><strong class="byte-count">0 Б</strong> текста</span>
+                            <label>
+                                <input class="show-toolbox" type="checkbox">
+                                Показать трафик Toolbox
+                            </label>
+                        </div>
+                        <p class="recorder-notice" role="status" hidden></p>
+                        <section>
+                            <h3>Операции</h3>
+                            <div class="operation-list"></div>
+                            <p class="empty-operations">
+                                Запустите запись и выполните действие в Edvibe.
+                            </p>
+                        </section>
+                        <details class="other-section">
+                            <summary>
+                                Другие кадры (<span class="other-count">0</span>)
+                            </summary>
+                            <div class="other-list"></div>
+                        </details>
+                        <label class="copy-fallback" hidden>
+                            Скопируйте текст вручную
+                            <textarea readonly></textarea>
+                        </label>
+                    </div>
+                </section>
+            </div>
+        `;
+    }
 
     class ActionRecorderDialog extends HTMLElementBase {
         constructor() {
@@ -24,9 +108,12 @@
             this.elapsedTimer = null;
             this.rendered = false;
             this.listenersConnected = false;
-            if (typeof this.attachShadow === 'function') {
-                this.attachShadow({ mode: 'open' });
-            }
+            if (typeof this.attachShadow !== 'function' || !recorderTemplate) return;
+            const shadowRoot = this.attachShadow({ mode: 'open' });
+            shadowRoot.append(recorderTemplate.content.cloneNode(true));
+            this.cacheElements();
+            this.updateStylesheet();
+            this.rendered = true;
         }
 
         connectedCallback() {
@@ -42,6 +129,7 @@
         }
 
         configure(options = {}) {
+            options = options && typeof options === 'object' ? options : {};
             if (options.stylesheetUrl !== undefined) {
                 this.stylesheetUrl = String(options.stylesheetUrl || '');
             }
@@ -58,7 +146,7 @@
         }
 
         mount() {
-            if (!this.isConnected) {
+            if (!this.isConnected && root.document?.body) {
                 root.document.body.appendChild(this);
             }
         }
@@ -69,101 +157,19 @@
         }
 
         setState(state) {
-            this.state = state || { status: 'idle', session: null };
+            this.state = state && typeof state === 'object'
+                ? state
+                : { status: 'idle', session: null };
             this.renderState();
+            return this;
         }
 
         render() {
-            if (this.rendered) return;
-            if (!this.shadowRoot) {
-                throw new Error('Action recorder requires Shadow DOM.');
-            }
-            this.shadowRoot.innerHTML = `
-                <link class="recorder-stylesheet" rel="stylesheet">
-                <button class="recorder-indicator" type="button" hidden
-                    aria-label="Открыть запись WebSocket">
-                    <span></span>
-                    <strong>REC</strong>
-                    <span class="indicator-count">0</span>
-                </button>
-                <div class="recorder-overlay">
-                    <section class="recorder-panel" role="dialog"
-                        aria-labelledby="recorder-title">
-                        <header class="recorder-header">
-                            <div>
-                                <h2 id="recorder-title">Запись действий WebSocket</h2>
-                                <p class="recorder-subtitle">
-                                    Выполните одно действие в Edvibe и изучите обмен сообщениями.
-                                </p>
-                            </div>
-                            <div class="header-actions">
-                                <button class="icon-button recorder-minimize"
-                                    type="button" aria-label="Свернуть">−</button>
-                                <button class="icon-button recorder-close"
-                                    type="button" aria-label="Закрыть">&times;</button>
-                            </div>
-                        </header>
-                        <div class="recorder-toolbar">
-                            <div class="recorder-state">
-                                <span class="state-dot"></span>
-                                <strong class="state-label">Готово к записи</strong>
-                                <span class="elapsed"></span>
-                            </div>
-                            <div class="toolbar-actions">
-                                <button class="button primary recorder-start"
-                                    type="button">Начать запись</button>
-                                <button class="button danger recorder-stop"
-                                    type="button" hidden>Остановить</button>
-                                <button class="button recorder-clear"
-                                    type="button" disabled>Очистить</button>
-                                <button class="button recorder-copy"
-                                    type="button" disabled>Копировать рецепт</button>
-                                <button class="button recorder-export"
-                                    type="button" disabled>Экспорт JSON</button>
-                            </div>
-                        </div>
-                        <div class="recorder-body">
-                            <aside class="privacy-warning">
-                                Запись может содержать данные учеников, уроки, ответы и
-                                идентификаторы. Проверьте файл перед отправкой или коммитом.
-                            </aside>
-                            <div class="recorder-summary">
-                                <span><strong class="operation-count">0</strong> операций</span>
-                                <span><strong class="frame-count">0</strong> кадров</span>
-                                <span><strong class="byte-count">0 Б</strong> текста</span>
-                                <label>
-                                    <input class="show-toolbox" type="checkbox">
-                                    Показать трафик Toolbox
-                                </label>
-                            </div>
-                            <p class="recorder-notice" role="status" hidden></p>
-                            <section>
-                                <h3>Операции</h3>
-                                <div class="operation-list"></div>
-                                <p class="empty-operations">
-                                    Запустите запись и выполните действие в Edvibe.
-                                </p>
-                            </section>
-                            <details class="other-section">
-                                <summary>
-                                    Другие кадры (<span class="other-count">0</span>)
-                                </summary>
-                                <div class="other-list"></div>
-                            </details>
-                            <label class="copy-fallback" hidden>
-                                Скопируйте текст вручную
-                                <textarea readonly></textarea>
-                            </label>
-                        </div>
-                    </section>
-                </div>
-            `;
-            this.cacheElements();
-            this.updateStylesheet();
-            this.rendered = true;
+            return this.rendered;
         }
 
         cacheElements() {
+            if (!this.shadowRoot) return;
             const find = (selector) => this.shadowRoot.querySelector(selector);
             this.elements = {
                 stylesheet: find('.recorder-stylesheet'),
@@ -195,7 +201,7 @@
         }
 
         connectListeners() {
-            if (this.listenersConnected) return;
+            if (!this.rendered || this.listenersConnected) return;
             this.listenersConnected = true;
             this.handleStart = () => {
                 if (
@@ -340,6 +346,7 @@
         }
 
         renderOtherFrames() {
+            if (!this.rendered) return;
             const frames = this.state.session?.otherFrames || [];
             this.elements.otherCount.textContent = String(frames.length);
             this.elements.otherList.replaceChildren();
@@ -351,6 +358,7 @@
         }
 
         updateElapsed() {
+            if (!this.rendered) return;
             const startedAt = this.state.session?.startedAt;
             if (!startedAt) {
                 this.elements.elapsed.textContent = '';

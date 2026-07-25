@@ -1,59 +1,111 @@
 (function initializePopupToolComponents(root) {
     'use strict';
 
+    const cardTemplate = root.document?.createElement?.('template') || null;
+    const groupTemplate = root.document?.createElement?.('template') || null;
+
+    if (cardTemplate) {
+        cardTemplate.innerHTML = `
+            <div class="tool-card-header">
+                <div class="tool-copy">
+                    <h3 class="tool-title"></h3>
+                    <p class="tool-description"></p>
+                    <p class="tool-requirement" hidden></p>
+                </div>
+                <button class="tool-action" type="button"></button>
+            </div>
+        `;
+    }
+    if (groupTemplate) {
+        groupTemplate.innerHTML = `
+            <h2 class="tool-group-title"></h2>
+            <div class="tool-list"></div>
+        `;
+    }
+
     class PopupToolCard extends root.HTMLElement {
-        configure({ tool, disabled, reason, busy, onExecute }) {
-            this.replaceChildren();
-            this.dataset.toolId = tool.id;
+        constructor() {
+            super();
+            this.toolId = '';
+            this.onExecute = null;
+            if (!cardTemplate) return;
+            this.append(cardTemplate.content.cloneNode(true));
+            this.elements = {
+                title: this.querySelector('.tool-title'),
+                description: this.querySelector('.tool-description'),
+                requirement: this.querySelector('.tool-requirement'),
+                button: this.querySelector('.tool-action')
+            };
+            this.elements.button?.addEventListener('click', () => {
+                if (typeof this.onExecute === 'function' && this.toolId) {
+                    this.onExecute(this.toolId);
+                }
+            });
+        }
+
+        configure(options = {}) {
+            const tool = options?.tool;
+            if (!tool || !this.elements) return this;
+            const disabled = Boolean(options.disabled);
+            const reason = String(options.reason || '');
+            this.toolId = String(tool.id || '');
+            this.onExecute = typeof options.onExecute === 'function' ? options.onExecute : null;
+            this.dataset.toolId = this.toolId;
             this.dataset.disabled = String(disabled);
-            const header = document.createElement('div');
-            const copy = document.createElement('div');
-            const title = document.createElement('h3');
-            const description = document.createElement('p');
-            const button = document.createElement('button');
-            header.className = 'tool-card-header';
-            copy.className = 'tool-copy';
-            title.className = 'tool-title';
-            title.textContent = tool.title;
-            description.className = 'tool-description';
-            description.textContent = tool.description;
-            button.className = 'tool-action';
-            button.type = 'button';
-            button.textContent = busy ? tool.busyLabel : tool.actionLabel;
-            button.disabled = disabled;
-            button.classList.toggle('is-danger', tool.appearance === 'danger');
-            button.addEventListener('click', () => onExecute(tool.id));
-            copy.append(title, description);
-            if (reason) {
-                const requirement = document.createElement('p');
-                requirement.className = 'tool-requirement';
-                requirement.textContent = reason;
-                copy.append(requirement);
-            }
-            header.append(copy, button);
-            this.append(header);
+            this.elements.title.textContent = String(tool.title || '');
+            this.elements.description.textContent = String(tool.description || '');
+            this.elements.requirement.textContent = reason;
+            this.elements.requirement.hidden = !reason;
+            this.elements.button.textContent = String(
+                options.busy ? tool.busyLabel || '' : tool.actionLabel || ''
+            );
+            this.elements.button.disabled = disabled;
+            this.elements.button.classList.toggle(
+                'is-danger',
+                tool.appearance === 'danger'
+            );
             return this;
         }
     }
 
     class PopupToolGroup extends root.HTMLElement {
-        configure({ title, tools, getState, onExecute }) {
-            this.replaceChildren();
-            const heading = document.createElement('h2');
-            const list = document.createElement('div');
-            heading.className = 'tool-group-title';
-            heading.textContent = title;
-            list.className = 'tool-list';
+        constructor() {
+            super();
+            if (!groupTemplate) return;
+            this.append(groupTemplate.content.cloneNode(true));
+            this.elements = {
+                heading: this.querySelector('.tool-group-title'),
+                list: this.querySelector('.tool-list')
+            };
+        }
+
+        configure(options = {}) {
+            if (!this.elements) return this;
+            const tools = Array.isArray(options.tools) ? options.tools : [];
+            const getState = typeof options.getState === 'function'
+                ? options.getState
+                : () => ({});
+            this.elements.heading.textContent = String(options.title || '');
+            this.elements.list.replaceChildren();
             for (const tool of tools) {
-                const card = document.createElement('popup-tool-card');
-                card.configure({ tool, ...getState(tool), onExecute });
-                list.append(card);
+                const card = root.document.createElement('popup-tool-card');
+                card.configure?.({
+                    tool,
+                    ...getState(tool),
+                    onExecute: options.onExecute
+                });
+                this.elements.list.append(card);
             }
-            this.append(heading, list);
             return this;
         }
     }
 
-    root.customElements.define('popup-tool-card', PopupToolCard);
-    root.customElements.define('popup-tool-group', PopupToolGroup);
+    if (root.customElements && root.HTMLElement) {
+        if (!root.customElements.get('popup-tool-card')) {
+            root.customElements.define('popup-tool-card', PopupToolCard);
+        }
+        if (!root.customElements.get('popup-tool-group')) {
+            root.customElements.define('popup-tool-group', PopupToolGroup);
+        }
+    }
 })(globalThis);

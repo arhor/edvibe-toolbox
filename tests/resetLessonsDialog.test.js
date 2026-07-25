@@ -52,7 +52,8 @@ test('registers the named class automatically in a browser context', () => {
     assert.equal(constructors.get(RESET_DIALOG_TAG), api.ResetLessonsDialog);
     const element = new api.ResetLessonsDialog();
     assert.equal(element.id, undefined);
-    assert.equal(element.shadowRoot.mode, 'open');
+    assert.equal(element.shadowRoot, undefined);
+    assert.doesNotThrow(() => element.connectedCallback());
 });
 
 test('keeps markup, rendering, and dialog state inside the component class', () => {
@@ -61,6 +62,9 @@ test('keeps markup, rendering, and dialog state inside the component class', () 
     assert.match(source, /renderPupils\(\)\s*\{/);
     assert.match(source, /renderLessons\(\)\s*\{/);
     assert.match(source, /renderState\(\)\s*\{/);
+    assert.match(source, /createElement\?\.\('template'\)/);
+    assert.match(source, /content\.cloneNode\(true\)/);
+    assert.doesNotMatch(source, /shadowRoot\.innerHTML/);
     assert.match(source, /role="dialog"/);
     assert.match(source, /aria-modal="true"/);
     assert.match(source, /class="edvibe-reset-live-region"/);
@@ -106,4 +110,13 @@ test('owns lifecycle cleanup and emits host-level workflow events', () => {
     assert.match(source, /disconnectListeners\(\)/);
     assert.match(source, /new root\.CustomEvent\('edvibe-dialog-close'/);
     assert.match(source, /new root\.CustomEvent\('edvibe-reset-request'/);
+});
+
+test('fails silently for unavailable DOM and unexpected workflow inputs', () => {
+    const dialog = new ResetLessonsDialog();
+    assert.doesNotThrow(() => dialog.connectedCallback());
+    assert.doesNotThrow(() => dialog.configure(null));
+    assert.doesNotThrow(() => dialog.showPupils(null));
+    assert.doesNotThrow(() => dialog.showLessons(null, null));
+    assert.doesNotThrow(() => dialog.showProgress(null));
 });

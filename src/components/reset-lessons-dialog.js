@@ -13,6 +13,74 @@
     const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
     
     const HTMLElementBase = root.HTMLElement || class {};
+    const resetDialogTemplate = root.document?.createElement?.('template') || null;
+
+    if (resetDialogTemplate) {
+        resetDialogTemplate.innerHTML = `
+            <link class="edvibe-reset-stylesheet" rel="stylesheet">
+            <div class="edvibe-reset-overlay">
+                <div class="edvibe-reset-card" role="dialog" aria-modal="true"
+                    aria-labelledby="edvibe-reset-title">
+                    <div class="edvibe-reset-header">
+                        <div>
+                            <h2 id="edvibe-reset-title" class="edvibe-reset-title">
+                                Сброс уроков
+                            </h2>
+                            <p class="edvibe-reset-subtitle">
+                                <span class="edvibe-reset-step-indicator">Шаг 1 из 2</span>
+                                <span class="edvibe-reset-step-description">Выберите пользователя.</span>
+                            </p>
+                        </div>
+                        <button class="edvibe-reset-close" type="button" aria-label="Закрыть">
+                            &times;
+                        </button>
+                    </div>
+                    <div class="edvibe-reset-body">
+                        <section class="edvibe-reset-user-step" aria-label="Выбор пользователя">
+                            <label class="edvibe-reset-label" for="edvibe-reset-search">
+                                Поиск по email
+                            </label>
+                            <input id="edvibe-reset-search" class="edvibe-reset-search" type="search" placeholder="user@example.com" autocomplete="off">
+                            <div class="edvibe-reset-pupils-shell">
+                                <div class="edvibe-reset-list edvibe-reset-pupils" role="listbox" aria-label="Пользователи марафона"></div>
+                                <div class="edvibe-reset-pupils-loading" role="status" aria-live="polite" hidden>
+                                    <span class="edvibe-reset-spinner" aria-hidden="true"></span>
+                                    <span>Загрузка пользователей...</span>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="edvibe-reset-lesson-step" aria-label="Выбор уроков" hidden>
+                            <div class="edvibe-reset-label edvibe-reset-selected-pupil"></div>
+                            <label class="edvibe-reset-select-all">
+                                <input class="edvibe-reset-select-all-input" type="checkbox">
+                                Выбрать все уроки
+                            </label>
+                            <div class="edvibe-reset-list edvibe-reset-lessons" aria-label="Уроки пользователя" tabindex="-1"></div>
+                        </section>
+                    </div>
+                    <div class="edvibe-reset-live-region">
+                        <p class="edvibe-reset-status" aria-live="polite"></p>
+                        <progress class="edvibe-reset-progress" max="100"
+                            value="0"></progress>
+                    </div>
+                    <div class="edvibe-reset-footer">
+                        <button class="edvibe-reset-button edvibe-reset-cancel" type="button">
+                            Закрыть
+                        </button>
+                        <button class="edvibe-reset-button edvibe-reset-back" type="button" hidden>
+                            Назад
+                        </button>
+                        <button class="edvibe-reset-button edvibe-reset-next" type="button" disabled>
+                            Далее
+                        </button>
+                        <button class="edvibe-reset-button edvibe-reset-submit" type="button" disabled hidden>
+                            Сбросить прогресс
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     class ResetLessonsDialog extends HTMLElementBase {
         constructor() {
@@ -44,9 +112,13 @@
             this.rendered = false;
             this.listenersConnected = false;
 
-            if (typeof this.attachShadow === 'function') {
-                this.attachShadow({ mode: 'open' });
-            }
+            if (typeof this.attachShadow !== 'function' || !resetDialogTemplate) return;
+            const shadowRoot = this.attachShadow({ mode: 'open' });
+            shadowRoot.append(resetDialogTemplate.content.cloneNode(true));
+            this.cacheElements();
+            this.updateStylesheet();
+            this.rendered = true;
+            this.renderState();
         }
 
         connectedCallback() {
@@ -61,102 +133,34 @@
             this.disconnectListeners();
         }
 
-        configure({
-            stylesheetUrl = '',
-            searchDelay = 1000,
-            loadLessons,
-            loadNextPupils,
-            log = () => {}
-        } = {}) {
+        configure(options = {}) {
+            options = options && typeof options === 'object' ? options : {};
+            const {
+                stylesheetUrl = '',
+                searchDelay = 1000,
+                loadLessons,
+                loadNextPupils,
+                log = () => {}
+            } = options;
             this.stylesheetUrl = String(stylesheetUrl || '');
-            this.searchDelay = searchDelay;
-            this.loadLessons = loadLessons;
-            this.loadNextPupils = loadNextPupils;
-            this.log = log;
+            this.searchDelay = Number.isFinite(Number(searchDelay))
+                ? Math.max(0, Number(searchDelay))
+                : 1000;
+            this.loadLessons = typeof loadLessons === 'function' ? loadLessons : null;
+            this.loadNextPupils = typeof loadNextPupils === 'function'
+                ? loadNextPupils
+                : null;
+            this.log = typeof log === 'function' ? log : () => {};
             this.updateStylesheet();
             return this;
         }
 
         render() {
-            if (this.rendered) {
-                return;
-            }
-            if (!this.shadowRoot) {
-                throw new Error('Reset lessons dialog requires Shadow DOM.');
-            }
-
-            this.shadowRoot.innerHTML = `
-                <link class="edvibe-reset-stylesheet" rel="stylesheet">
-                <div class="edvibe-reset-overlay">
-                    <div class="edvibe-reset-card" role="dialog" aria-modal="true"
-                        aria-labelledby="edvibe-reset-title">
-                        <div class="edvibe-reset-header">
-                            <div>
-                                <h2 id="edvibe-reset-title" class="edvibe-reset-title">
-                                    Сброс уроков
-                                </h2>
-                                <p class="edvibe-reset-subtitle">
-                                    <span class="edvibe-reset-step-indicator">Шаг 1 из 2</span>
-                                    <span class="edvibe-reset-step-description">Выберите пользователя.</span>
-                                </p>
-                            </div>
-                            <button class="edvibe-reset-close" type="button" aria-label="Закрыть">
-                                &times;
-                            </button>
-                        </div>
-                        <div class="edvibe-reset-body">
-                            <section class="edvibe-reset-user-step" aria-label="Выбор пользователя">
-                                <label class="edvibe-reset-label" for="edvibe-reset-search">
-                                    Поиск по email
-                                </label>
-                                <input id="edvibe-reset-search" class="edvibe-reset-search" type="search" placeholder="user@example.com" autocomplete="off">
-                                <div class="edvibe-reset-pupils-shell">
-                                    <div class="edvibe-reset-list edvibe-reset-pupils" role="listbox" aria-label="Пользователи марафона"></div>
-                                    <div class="edvibe-reset-pupils-loading" role="status" aria-live="polite" hidden>
-                                        <span class="edvibe-reset-spinner" aria-hidden="true"></span>
-                                        <span>Загрузка пользователей...</span>
-                                    </div>
-                                </div>
-                            </section>
-                            <section class="edvibe-reset-lesson-step" aria-label="Выбор уроков" hidden>
-                                <div class="edvibe-reset-label edvibe-reset-selected-pupil"></div>
-                                <label class="edvibe-reset-select-all">
-                                    <input class="edvibe-reset-select-all-input" type="checkbox">
-                                    Выбрать все уроки
-                                </label>
-                                <div class="edvibe-reset-list edvibe-reset-lessons" aria-label="Уроки пользователя" tabindex="-1"></div>
-                            </section>
-                        </div>
-                        <div class="edvibe-reset-live-region">
-                            <p class="edvibe-reset-status" aria-live="polite"></p>
-                            <progress class="edvibe-reset-progress" max="100"
-                                value="0"></progress>
-                        </div>
-                        <div class="edvibe-reset-footer">
-                            <button class="edvibe-reset-button edvibe-reset-cancel" type="button">
-                                Закрыть
-                            </button>
-                            <button class="edvibe-reset-button edvibe-reset-back" type="button" hidden>
-                                Назад
-                            </button>
-                            <button class="edvibe-reset-button edvibe-reset-next" type="button" disabled>
-                                Далее
-                            </button>
-                            <button class="edvibe-reset-button edvibe-reset-submit" type="button" disabled hidden>
-                                Сбросить прогресс
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            this.cacheElements();
-            this.updateStylesheet();
-            this.rendered = true;
-            this.renderState();
+            return this.rendered;
         }
 
         cacheElements() {
+            if (!this.shadowRoot) return;
             const find = (selector) => this.shadowRoot.querySelector(selector);
             this.elements = {
                 stylesheet: find('.edvibe-reset-stylesheet'),
@@ -272,6 +276,7 @@
         }
 
         setStatus(message, state = '') {
+            if (!this.elements) return;
             this.elements.status.textContent = message;
             this.elements.status.classList.toggle('is-error', state === 'error');
             this.elements.status.classList.toggle('is-success', state === 'success');
@@ -630,7 +635,13 @@
             this.elements.search.focus();
         }
 
-        showPupils({ pupils, total }) {
+        showPupils(options = {}) {
+            if (!this.elements) return this;
+            options = options && typeof options === 'object' ? options : {};
+            const pupils = Array.isArray(options.pupils) ? options.pupils : [];
+            const total = Number.isFinite(Number(options.total))
+                ? Number(options.total)
+                : pupils.length;
             this.allPupils = pupils;
             this.pupilTotal = total;
             this.currentStep = 'user';
@@ -639,9 +650,12 @@
             this.renderPupils();
             this.renderState();
             this.elements.search.focus();
+            return this;
         }
 
         showLessons(pupil, lessons) {
+            if (!this.elements || !pupil || typeof pupil !== 'object') return this;
+            lessons = Array.isArray(lessons) ? lessons : [];
             const pupilChanged = this.loadedPupilId !== pupil.PupilId;
             this.selectedPupil = pupil;
             this.loadedPupilId = pupil.PupilId;
@@ -655,6 +669,7 @@
             this.renderLessons();
             this.renderState();
             this.elements.lessonsList.focus();
+            return this;
         }
 
         setLoading(message) {
@@ -690,7 +705,15 @@
             this.elements.progress.removeAttribute('value');
         }
 
-        showProgress({ completed, total, lesson, exerciseId }) {
+        showProgress(options = {}) {
+            if (!this.elements) return;
+            options = options && typeof options === 'object' ? options : {};
+            const completed = Number(options.completed) || 0;
+            const total = Number(options.total) || 0;
+            const lesson = options.lesson && typeof options.lesson === 'object'
+                ? options.lesson
+                : {};
+            const exerciseId = options.exerciseId;
             const percent = total > 0 ? Math.round((completed / total) * 100) : 100;
             const detail = exerciseId ? `Упражнение ${exerciseId}` : 'Удаление запроса урока';
             this.setStatus(`${lesson.Name}\n${detail} — ${completed} / ${total}`);
@@ -724,11 +747,6 @@
         const existing = root.customElements.get(RESET_DIALOG_TAG);
         if (!existing) {
             root.customElements.define(RESET_DIALOG_TAG, ResetLessonsDialog);
-        } else if (existing !== ResetLessonsDialog) {
-            throw new Error(
-                `Custom element ${RESET_DIALOG_TAG} is already registered `
-                + 'with an incompatible constructor.'
-            );
         }
     }
 

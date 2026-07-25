@@ -19,8 +19,10 @@ test('popup uses a CSP-safe, data-driven tool catalog', () => {
     assert.match(popupScript, /id: 'lesson-reset'/);
     assert.match(popupScript, /id: 'action-recorder'/);
     assert.match(popupScript, /createElement\('popup-tool-group'\)/);
-    assert.match(popupComponents, /button\.addEventListener\('click'/);
+    assert.match(popupComponents, /button\?\.addEventListener\('click'/);
     assert.match(popupComponents, /customElements\.define\('popup-tool-card'/);
+    assert.match(popupComponents, /createElement\?\.\('template'\)/);
+    assert.match(popupComponents, /content\.cloneNode\(true\)/);
     assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
     assert.doesNotMatch(popupScript, /window\.openLessonReset\s*=/);
 });

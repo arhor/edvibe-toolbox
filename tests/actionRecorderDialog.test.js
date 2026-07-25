@@ -45,12 +45,17 @@ test('registers the recorder element in a browser context', () => {
 
     const api = context.EdVibeActionRecorderDialog;
     assert.equal(constructors.get(RECORDER_DIALOG_TAG), api.ActionRecorderDialog);
-    assert.equal(new api.ActionRecorderDialog().shadowRoot.mode, 'open');
+    const element = new api.ActionRecorderDialog();
+    assert.equal(element.shadowRoot, undefined);
+    assert.doesNotThrow(() => element.connectedCallback());
 });
 
 test('keeps rendering, sensitivity warning, and safe controls in the component', () => {
     assert.match(source, /class ActionRecorderDialog extends HTMLElementBase/);
     assert.match(source, /attachShadow\(\{ mode: 'open' \}\)/);
+    assert.match(source, /createElement\?\.\('template'\)/);
+    assert.match(source, /content\.cloneNode\(true\)/);
+    assert.doesNotMatch(source, /shadowRoot\.innerHTML/);
     assert.match(source, /Запись может содержать данные учеников/);
     assert.match(source, /Копировать рецепт/);
     assert.match(source, /Экспорт JSON/);
@@ -64,4 +69,11 @@ test('minimizes rather than closes an active recording', () => {
         /if \(this\.state\.status === 'recording'\) \{\s*this\.minimized = true/
     );
     assert.match(source, /this\.callbacks\.onClose\?\.\(\)/);
+});
+
+test('fails silently for unavailable DOM and unexpected options', () => {
+    const dialog = new ActionRecorderDialog();
+    assert.doesNotThrow(() => dialog.connectedCallback());
+    assert.doesNotThrow(() => dialog.configure(null));
+    assert.doesNotThrow(() => dialog.setState(null));
 });
