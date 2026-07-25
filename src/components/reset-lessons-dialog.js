@@ -112,7 +112,9 @@
             this.rendered = false;
             this.listenersConnected = false;
 
-            if (typeof this.attachShadow !== 'function' || !resetDialogTemplate) return;
+            if (typeof this.attachShadow !== 'function' || !resetDialogTemplate) {
+                return;
+            }
             const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.append(resetDialogTemplate.content.cloneNode(true));
             this.cacheElements();
@@ -160,7 +162,9 @@
         }
 
         cacheElements() {
-            if (!this.shadowRoot) return;
+            if (!this.shadowRoot) {
+                return;
+            }
             const find = (selector) => this.shadowRoot.querySelector(selector);
             this.elements = {
                 stylesheet: find('.edvibe-reset-stylesheet'),
@@ -187,7 +191,9 @@
         }
 
         connectListeners() {
-            if (!this.rendered || this.listenersConnected) return;
+            if (!this.rendered || this.listenersConnected) {
+                return;
+            }
             this.listenersConnected = true;
 
             this.handleSearchInput = this.handleSearchInput.bind(this);
@@ -213,7 +219,9 @@
         }
 
         disconnectListeners() {
-            if (!this.listenersConnected) return;
+            if (!this.listenersConnected) {
+                return;
+            }
             this.listenersConnected = false;
             this.cancelSearch();
 
@@ -241,7 +249,9 @@
 
         filterPupils(query) {
             const normalized = this.normalizeSearchQuery(query);
-            if (!normalized) return this.allPupils;
+            if (!normalized) {
+                return this.allPupils;
+            }
             return this.allPupils.filter((pupil) =>
                 String(pupil.Email || '').toLowerCase().includes(normalized)
             );
@@ -276,14 +286,18 @@
         }
 
         setStatus(message, state = '') {
-            if (!this.elements) return;
+            if (!this.elements) {
+                return;
+            }
             this.elements.status.textContent = message;
             this.elements.status.classList.toggle('is-error', state === 'error');
             this.elements.status.classList.toggle('is-success', state === 'success');
         }
 
         renderState() {
-            if (!this.rendered) return;
+            if (!this.rendered) {
+                return;
+            }
             const view = this.getViewState();
             const inputsBlocked = this.locked || this.loading || this.finished;
 
@@ -429,8 +443,12 @@
         }
 
         toggleLesson(lessonId, selected) {
-            if (selected) this.selectedLessonIds.add(lessonId);
-            else this.selectedLessonIds.delete(lessonId);
+            if (selected) {
+                this.selectedLessonIds.add(lessonId);
+            }
+            else {
+                this.selectedLessonIds.delete(lessonId);
+            }
             this.elements.selectAll.checked = this.lessons.length > 0
                 && this.selectedLessonIds.size === this.lessons.length;
             this.elements.selectAll.indeterminate = this.selectedLessonIds.size > 0
@@ -454,7 +472,9 @@
             const query = this.normalizeSearchQuery(this.elements.search.value);
             const generation = this.searchGeneration;
             this.searchTimer = root.setTimeout(async () => {
-                if (!this.isCurrentSearch(generation, query)) return;
+                if (!this.isCurrentSearch(generation, query)) {
+                    return;
+                }
                 this.searchTimer = null;
                 const needsRemotePupils = Boolean(
                     query && this.filterPupils(query).length === 0 && this.hasMorePupils()
@@ -464,8 +484,12 @@
                     this.suppressPupilPageLoading = false;
                 }
                 this.renderPupilLoadingState();
-                if (needsRemotePupils && !await this.continueSearch(generation, query)) return;
-                if (!this.isCurrentSearch(generation, query)) return;
+                if (needsRemotePupils && !await this.continueSearch(generation, query)) {
+                    return;
+                }
+                if (!this.isCurrentSearch(generation, query)) {
+                    return;
+                }
                 this.appliedSearchQuery = query;
                 this.renderPupils();
             }, this.searchDelay);
@@ -478,7 +502,9 @@
         }
 
         cancelSearchTimer() {
-            if (this.searchTimer === null) return;
+            if (this.searchTimer === null) {
+                return;
+            }
             root.clearTimeout(this.searchTimer);
             this.searchTimer = null;
         }
@@ -494,14 +520,20 @@
                 && this.filterPupils(query).length === 0
                 && this.hasMorePupils()
             ) {
-                if (!await this.loadNextPupilPage()) return false;
+                if (!await this.loadNextPupilPage()) {
+                    return false;
+                }
             }
             return true;
         }
 
         async loadNextPupilPage() {
-            if (this.closed || !this.loadNextPupils || !this.hasMorePupils()) return false;
-            if (this.pupilPagePromise) return this.pupilPagePromise;
+            if (this.closed || !this.loadNextPupils || !this.hasMorePupils()) {
+                return false;
+            }
+            if (this.pupilPagePromise) {
+                return this.pupilPagePromise;
+            }
 
             this.suppressPupilPageLoading = false;
             this.pupilPageLoading = true;
@@ -509,7 +541,9 @@
             this.pupilPagePromise = (async () => {
                 try {
                     const page = await this.loadNextPupils();
-                    if (this.closed) return false;
+                    if (this.closed) {
+                        return false;
+                    }
                     this.allPupils = page.pupils;
                     this.pupilTotal = page.total;
                     this.renderPupils();
@@ -529,7 +563,9 @@
                 } finally {
                     this.pupilPagePromise = null;
                     this.pupilPageLoading = false;
-                    if (!this.searchDebouncing) this.suppressPupilPageLoading = false;
+                    if (!this.searchDebouncing) {
+                        this.suppressPupilPageLoading = false;
+                    }
                     this.renderPupilLoadingState();
                 }
             })();
@@ -537,21 +573,29 @@
         }
 
         handlePupilsScroll() {
-            if (this.searchDebouncing) return;
+            if (this.searchDebouncing) {
+                return;
+            }
             const list = this.elements.pupilsList;
             const distanceFromBottom = list.scrollHeight - list.scrollTop - list.clientHeight;
-            if (distanceFromBottom <= 24) this.loadNextPupilPage();
+            if (distanceFromBottom <= 24) {
+                this.loadNextPupilPage();
+            }
         }
 
         async handleNext() {
-            if (this.elements.next.disabled || !this.selectedPupil) return;
+            if (this.elements.next.disabled || !this.selectedPupil) {
+                return;
+            }
             if (this.hasLoadedLessonsForSelectedPupil()) {
                 this.currentStep = 'lessons';
                 this.renderState();
                 this.elements.lessonsList.focus();
                 return;
             }
-            if (!this.loadLessons) return;
+            if (!this.loadLessons) {
+                return;
+            }
 
             try {
                 this.setLoading(`Загрузка уроков для ${this.selectedPupil.Email}...`);
@@ -570,7 +614,9 @@
         }
 
         handleBack() {
-            if (this.elements.back.disabled) return;
+            if (this.elements.back.disabled) {
+                return;
+            }
             if (this.finished) {
                 this.resetForAnotherUser();
                 return;
@@ -584,7 +630,9 @@
         }
 
         handleSubmit() {
-            if (this.elements.submit.disabled) return;
+            if (this.elements.submit.disabled) {
+                return;
+            }
             this.dispatchEvent(new root.CustomEvent('edvibe-reset-request', {
                 detail: {
                     pupil: this.selectedPupil,
@@ -596,15 +644,21 @@
         }
 
         handleBackdropClick(event) {
-            if (event.target === this.elements.backdrop) this.close();
+            if (event.target === this.elements.backdrop) {
+                this.close();
+            }
         }
 
         handleKeydown(event) {
-            if (event.key === 'Escape') this.close();
+            if (event.key === 'Escape') {
+                this.close();
+            }
         }
 
         close() {
-            if (this.locked || this.loading || this.closed) return;
+            if (this.locked || this.loading || this.closed) {
+                return;
+            }
             this.closed = true;
             this.cancelSearch();
             this.dispatchEvent(new root.CustomEvent('edvibe-dialog-close'));
@@ -636,7 +690,9 @@
         }
 
         showPupils(options = {}) {
-            if (!this.elements) return this;
+            if (!this.elements) {
+                return this;
+            }
             options = options && typeof options === 'object' ? options : {};
             const pupils = Array.isArray(options.pupils) ? options.pupils : [];
             const total = Number.isFinite(Number(options.total))
@@ -654,13 +710,17 @@
         }
 
         showLessons(pupil, lessons) {
-            if (!this.elements || !pupil || typeof pupil !== 'object') return this;
+            if (!this.elements || !pupil || typeof pupil !== 'object') {
+                return this;
+            }
             lessons = Array.isArray(lessons) ? lessons : [];
             const pupilChanged = this.loadedPupilId !== pupil.PupilId;
             this.selectedPupil = pupil;
             this.loadedPupilId = pupil.PupilId;
             this.lessons = lessons;
-            if (pupilChanged) this.selectedLessonIds = new Set();
+            if (pupilChanged) {
+                this.selectedLessonIds = new Set();
+            }
             this.loading = false;
             this.currentStep = 'lessons';
             this.elements.selectedPupilLabel.textContent =
@@ -706,7 +766,9 @@
         }
 
         showProgress(options = {}) {
-            if (!this.elements) return;
+            if (!this.elements) {
+                return;
+            }
             options = options && typeof options === 'object' ? options : {};
             const completed = Number(options.completed) || 0;
             const total = Number(options.total) || 0;

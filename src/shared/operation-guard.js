@@ -17,13 +17,17 @@
                 return activeOperation === null;
             },
             activate(operationName) {
-                if (activeOperation !== null) return false;
+                if (activeOperation !== null) {
+                    return false;
+                }
 
                 activeOperation = operationName;
                 return true;
             },
             release(operationName) {
-                if (activeOperation !== operationName) return false;
+                if (activeOperation !== operationName) {
+                    return false;
+                }
 
                 activeOperation = null;
                 return true;

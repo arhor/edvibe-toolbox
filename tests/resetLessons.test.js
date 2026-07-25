@@ -30,8 +30,12 @@ function createModalTestDocument() {
 
         toggle(name, force) {
             const enabled = force === undefined ? !this.names.has(name) : force;
-            if (enabled) this.names.add(name);
-            else this.names.delete(name);
+            if (enabled) {
+                this.names.add(name);
+            }
+            else {
+                this.names.delete(name);
+            }
             return enabled;
         }
     }
@@ -58,7 +62,9 @@ function createModalTestDocument() {
         }
 
         set innerHTML(_markup) {
-            if (this.elementsBySelector) return;
+            if (this.elementsBySelector) {
+                return;
+            }
 
             const selectors = [
                 '.edvibe-reset-search',
@@ -104,7 +110,9 @@ function createModalTestDocument() {
             const tagName = selector.toUpperCase();
             const matches = [];
             const visit = (element) => {
-                if (element.tagName === tagName) matches.push(element);
+                if (element.tagName === tagName) {
+                    matches.push(element);
+                }
                 element.children.forEach(visit);
             };
             this.children.forEach(visit);

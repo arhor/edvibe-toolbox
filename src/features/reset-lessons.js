@@ -93,7 +93,9 @@
         }
 
         async function requestNextPage() {
-            if (total !== null && pupils.length >= total) return snapshot();
+            if (total !== null && pupils.length >= total) {
+                return snapshot();
+            }
 
             const response = await sendRequest(
                 'MarathonPupilsWsController',
@@ -125,7 +127,9 @@
 
         return {
             loadNext() {
-                if (inFlight) return inFlight;
+                if (inFlight) {
+                    return inFlight;
+                }
                 inFlight = requestNextPage().finally(() => {
                     inFlight = null;
                 });
@@ -318,13 +322,17 @@
         let active = false;
 
         function releaseOperation() {
-            if (!active) return;
+            if (!active) {
+                return;
+            }
             active = false;
             onActiveChange(false);
         }
 
         async function open({ stylesheetUrl = '' } = {}) {
-            if (document.getElementById(dialogComponent.RESET_OVERLAY_ID)) return;
+            if (document.getElementById(dialogComponent.RESET_OVERLAY_ID)) {
+                return;
+            }
             if (!canStart()) {
                 window.alert('Another Edvibe Toolbox operation is already running.');
                 return;
@@ -346,7 +354,9 @@
                 const confirmed = window.confirm(
                     `Reset ${lessons.length} lesson(s) for ${pupil.Email}?`
                 );
-                if (!confirmed) return;
+                if (!confirmed) {
+                    return;
+                }
 
                 running = true;
                 dialog.lock();
@@ -386,8 +396,12 @@
                     dialog.showError(error.message);
                 } finally {
                     running = false;
-                    if (completed) dialog.completeRun();
-                    else dialog.unlockAfterRun();
+                    if (completed) {
+                        dialog.completeRun();
+                    }
+                    else {
+                        dialog.unlockAfterRun();
+                    }
                 }
             });
 

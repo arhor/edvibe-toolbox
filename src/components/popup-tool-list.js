@@ -28,24 +28,40 @@
             super();
             this.toolId = '';
             this.onExecute = null;
-            if (!cardTemplate) return;
-            this.append(cardTemplate.content.cloneNode(true));
-            this.elements = {
-                title: this.querySelector('.tool-title'),
-                description: this.querySelector('.tool-description'),
-                requirement: this.querySelector('.tool-requirement'),
-                button: this.querySelector('.tool-action')
-            };
-            this.elements.button?.addEventListener('click', () => {
-                if (typeof this.onExecute === 'function' && this.toolId) {
-                    this.onExecute(this.toolId);
-                }
-            });
+            this.elements = null;
+            this.pendingOptions = {};
+        }
+
+        connectedCallback() {
+            if (!this.elements && cardTemplate) {
+                this.append(cardTemplate.content.cloneNode(true));
+                this.elements = {
+                    title: this.querySelector('.tool-title'),
+                    description: this.querySelector('.tool-description'),
+                    requirement: this.querySelector('.tool-requirement'),
+                    button: this.querySelector('.tool-action')
+                };
+                this.elements.button?.addEventListener('click', () => {
+                    if (typeof this.onExecute === 'function' && this.toolId) {
+                        this.onExecute(this.toolId);
+                    }
+                });
+            }
+            this.applyOptions();
         }
 
         configure(options = {}) {
-            const tool = options?.tool;
-            if (!tool || !this.elements) return this;
+            this.pendingOptions = options && typeof options === 'object' ? options : {};
+            this.applyOptions();
+            return this;
+        }
+
+        applyOptions() {
+            const options = this.pendingOptions;
+            const tool = options.tool;
+            if (!tool || !this.elements) {
+                return;
+            }
             const disabled = Boolean(options.disabled);
             const reason = String(options.reason || '');
             this.toolId = String(tool.id || '');
@@ -64,23 +80,38 @@
                 'is-danger',
                 tool.appearance === 'danger'
             );
-            return this;
         }
     }
 
     class PopupToolGroup extends root.HTMLElement {
         constructor() {
             super();
-            if (!groupTemplate) return;
-            this.append(groupTemplate.content.cloneNode(true));
-            this.elements = {
-                heading: this.querySelector('.tool-group-title'),
-                list: this.querySelector('.tool-list')
-            };
+            this.elements = null;
+            this.pendingOptions = {};
+        }
+
+        connectedCallback() {
+            if (!this.elements && groupTemplate) {
+                this.append(groupTemplate.content.cloneNode(true));
+                this.elements = {
+                    heading: this.querySelector('.tool-group-title'),
+                    list: this.querySelector('.tool-list')
+                };
+            }
+            this.applyOptions();
         }
 
         configure(options = {}) {
-            if (!this.elements) return this;
+            this.pendingOptions = options && typeof options === 'object' ? options : {};
+            this.applyOptions();
+            return this;
+        }
+
+        applyOptions() {
+            if (!this.elements) {
+                return;
+            }
+            const options = this.pendingOptions;
             const tools = Array.isArray(options.tools) ? options.tools : [];
             const getState = typeof options.getState === 'function'
                 ? options.getState
@@ -96,7 +127,6 @@
                 });
                 this.elements.list.append(card);
             }
-            return this;
         }
     }
 

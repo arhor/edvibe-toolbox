@@ -26,7 +26,9 @@
     ]);
 
     function parseJson(value) {
-        if (typeof value !== 'string') return { parsed: false, value };
+        if (typeof value !== 'string') {
+            return { parsed: false, value };
+        }
         try {
             return { parsed: true, value: JSON.parse(value) };
         } catch (_) {
@@ -40,7 +42,9 @@
                 redactValue(item, `${path}[${index}]`, redactions)
             );
         }
-        if (!value || typeof value !== 'object') return value;
+        if (!value || typeof value !== 'object') {
+            return value;
+        }
 
         const redacted = {};
         for (const [key, entry] of Object.entries(value)) {
@@ -63,7 +67,9 @@
 
         const envelope = { ...outer.value };
         const nested = parseJson(envelope.Value);
-        if (nested.parsed) envelope.Value = nested.value;
+        if (nested.parsed) {
+            envelope.Value = nested.value;
+        }
         return {
             parsed: true,
             value: redactValue(envelope, '', redactions)
@@ -73,7 +79,9 @@
     function pickExtra(envelope, knownKeys) {
         const extra = {};
         for (const [key, value] of Object.entries(envelope)) {
-            if (!knownKeys.has(key)) extra[key] = value;
+            if (!knownKeys.has(key)) {
+                extra[key] = value;
+            }
         }
         return Object.keys(extra).length > 0 ? extra : undefined;
     }
@@ -195,7 +203,9 @@
         }
 
         function finish(nextStatus, reason = '') {
-            if (status !== 'recording') return;
+            if (status !== 'recording') {
+                return;
+            }
             clearTimeoutFn(durationTimer);
             durationTimer = null;
             status = nextStatus;
@@ -209,7 +219,9 @@
         }
 
         function start() {
-            if (status === 'recording') return;
+            if (status === 'recording') {
+                return;
+            }
             const startedAtMs = now();
             status = 'recording';
             copyFallback = '';
@@ -280,8 +292,12 @@
                 dataType: frame.dataType,
                 byteLength: frame.byteLength
             };
-            if (envelope !== undefined) otherFrame.envelope = envelope;
-            if (rawText !== undefined) otherFrame.rawText = rawText;
+            if (envelope !== undefined) {
+                otherFrame.envelope = envelope;
+            }
+            if (rawText !== undefined) {
+                otherFrame.rawText = rawText;
+            }
             session.otherFrames.push(otherFrame);
         }
 
@@ -355,7 +371,9 @@
         }
 
         function handleFrame(frame) {
-            if (status !== 'recording' || !session) return;
+            if (status !== 'recording' || !session) {
+                return;
+            }
             const reason = limitReason(frame);
             if (reason) {
                 finish('limit-reached', reason);
@@ -391,7 +409,9 @@
         }
 
         function buildExport() {
-            if (!session) return null;
+            if (!session) {
+                return null;
+            }
             return {
                 schemaVersion: session.schemaVersion,
                 sessionId: session.sessionId,
@@ -413,7 +433,9 @@
 
         function exportJson() {
             const exported = buildExport();
-            if (!exported) return;
+            if (!exported) {
+                return;
+            }
             const filename = `edvibe-ws-recording-${
                 sanitizeIsoForFilename(exported.startedAt)
             }.json`;
@@ -439,12 +461,16 @@
             const operation = session?.operations.find((entry) =>
                 entry.sequence === sequence
             );
-            if (operation) return copy(makeRequestSnippet(operation));
+            if (operation) {
+                return copy(makeRequestSnippet(operation));
+            }
             return Promise.resolve();
         }
 
         function copyRecipe() {
-            if (!session) return Promise.resolve();
+            if (!session) {
+                return Promise.resolve();
+            }
             return copy(makeRecipe(session.operations));
         }
 

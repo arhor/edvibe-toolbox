@@ -163,7 +163,9 @@ function renderTools() {
 
     for (const [groupId, groupTitle] of Object.entries(TOOL_GROUPS)) {
         const tools = TOOL_DEFINITIONS.filter((tool) => tool.group === groupId);
-        if (tools.length === 0) continue;
+        if (tools.length === 0) {
+            continue;
+        }
 
         const group = document.createElement('popup-tool-group');
         group.configure({

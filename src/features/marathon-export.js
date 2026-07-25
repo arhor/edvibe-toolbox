@@ -65,7 +65,9 @@
     }
 
     function preprocessHtml(html) {
-        if (!html) return '';
+        if (!html) {
+            return '';
+        }
 
         return String(html)
             .replace(/<br\s+style="[^"]*"\s*\/?>/gi, '<br>')
@@ -83,7 +85,9 @@
 
     function htmlToMarkdown(html, turndown, log) {
         const preprocessed = preprocessHtml(html);
-        if (!preprocessed.trim()) return '';
+        if (!preprocessed.trim()) {
+            return '';
+        }
 
         try {
             return postprocessMarkdown(turndown.turndown(preprocessed));
@@ -97,7 +101,9 @@
         try {
             const pathname = new URL(url).pathname;
             const ext = pathname.split('.').pop()?.toLowerCase();
-            if (ext && /^[a-z0-9]{2,5}$/.test(ext)) return ext;
+            if (ext && /^[a-z0-9]{2,5}$/.test(ext)) {
+                return ext;
+            }
         } catch (_) {
             // Use a safe default for malformed URLs.
         }
@@ -106,8 +112,12 @@
     }
 
     async function localizeImage(url, imageId, imagesFolder, urlMap, log) {
-        if (!url) return null;
-        if (urlMap.has(url)) return urlMap.get(url);
+        if (!url) {
+            return null;
+        }
+        if (urlMap.has(url)) {
+            return urlMap.get(url);
+        }
 
         const filename = `${imageId || 'img'}_`
             + `${crypto.randomUUID().slice(0, 8)}.${extensionFromUrl(url)}`;
@@ -115,7 +125,9 @@
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
 
             const blob = await response.blob();
             imagesFolder.file(filename, blob);
@@ -130,7 +142,9 @@
 
     async function renderImageMarkdown(imageEntry, imagesFolder, urlMap, log) {
         const url = imageEntry.UrlFull || imageEntry.Url;
-        if (!url) return '';
+        if (!url) {
+            return '';
+        }
 
         const localPath = await localizeImage(
             url,
@@ -213,7 +227,9 @@
 
             case 3:
                 for (const video of item.Videos || []) {
-                    if (!video.Link) continue;
+                    if (!video.Link) {
+                        continue;
+                    }
                     const label = video.Text
                         ? ctx.htmlToMarkdown(video.Text)
                         : 'Watch video';
@@ -380,10 +396,14 @@
                 markdownParts.push('');
 
                 for (const item of section.items || []) {
-                    if (item.IsHideExercise) continue;
+                    if (item.IsHideExercise) {
+                        continue;
+                    }
 
                     const block = await processItemToMarkdown(item, ctx);
-                    if (!block) continue;
+                    if (!block) {
+                        continue;
+                    }
 
                     markdownParts.push(block);
                     markdownParts.push('---');
@@ -436,7 +456,9 @@
 
     function createExportProgressOverlay({ stylesheetUrl = '' } = {}) {
         const componentApi = root.EdVibeExportProgressDialog;
-        if (!componentApi) throw new Error('Export progress component is unavailable.');
+        if (!componentApi) {
+            throw new Error('Export progress component is unavailable.');
+        }
         document.querySelector(componentApi.EXPORT_PROGRESS_TAG)?.remove();
         const dialog = document.createElement(componentApi.EXPORT_PROGRESS_TAG);
         dialog.configure({ stylesheetUrl });

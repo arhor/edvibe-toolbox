@@ -37,15 +37,23 @@
                 return data.size;
             }
             if (typeof ArrayBuffer !== 'undefined') {
-                if (data instanceof ArrayBuffer) return data.byteLength;
-                if (ArrayBuffer.isView(data)) return data.byteLength;
+                if (data instanceof ArrayBuffer) {
+                    return data.byteLength;
+                }
+                if (ArrayBuffer.isView(data)) {
+                    return data.byteLength;
+                }
             }
             return null;
         }
 
         function getDataType(data) {
-            if (typeof data === 'string') return 'text';
-            if (typeof Blob !== 'undefined' && data instanceof Blob) return 'blob';
+            if (typeof data === 'string') {
+                return 'text';
+            }
+            if (typeof Blob !== 'undefined' && data instanceof Blob) {
+                return 'blob';
+            }
             if (
                 typeof ArrayBuffer !== 'undefined'
                 && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))
@@ -56,7 +64,9 @@
         }
 
         function emitFrame({ direction, socketId, data, origin }) {
-            if (frameObservers.size === 0) return;
+            if (frameObservers.size === 0) {
+                return;
+            }
 
             const dataType = getDataType(data);
             const frame = {
@@ -119,10 +129,16 @@
                 origin: isToolboxResponse ? 'toolbox' : 'page'
             });
 
-            if (typeof event.data !== 'string') return;
+            if (typeof event.data !== 'string') {
+                return;
+            }
             try {
-                if (!data) return;
-                if (!data.RequestId || !pendingRequests.has(data.RequestId)) return;
+                if (!data) {
+                    return;
+                }
+                if (!data.RequestId || !pendingRequests.has(data.RequestId)) {
+                    return;
+                }
 
                 const pending = pendingRequests.get(data.RequestId);
                 pendingRequests.delete(data.RequestId);

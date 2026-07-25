@@ -48,8 +48,12 @@ const marathonExportFeature = exportApi.createMarathonExportFeature({
     wait,
     canStart: operationGuard.canStart,
     onActiveChange(isActive) {
-        if (isActive) operationGuard.activate('export');
-        else operationGuard.release('export');
+        if (isActive) {
+            operationGuard.activate('export');
+        }
+        else {
+            operationGuard.release('export');
+        }
     },
     notifyStatus: notifyExportStatus,
     log: exportLog,
@@ -65,8 +69,12 @@ const lessonResetFeature = resetApi.createResetLessonsFeature({
     wait,
     canStart: operationGuard.canStart,
     onActiveChange(isActive) {
-        if (isActive) operationGuard.activate('reset');
-        else operationGuard.release('reset');
+        if (isActive) {
+            operationGuard.activate('reset');
+        }
+        else {
+            operationGuard.release('reset');
+        }
     },
     log: resetLog
 });
@@ -80,7 +88,9 @@ const actionRecorderFeature = recorderApi.createActionRecorderFeature({
 });
 
 window.addEventListener('message', (event) => {
-    if (event.source !== window) return;
+    if (event.source !== window) {
+        return;
+    }
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_START_ALL') {
         marathonExportFeature.start({ stylesheetUrl: event.data.stylesheetUrl });

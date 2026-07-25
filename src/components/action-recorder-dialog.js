@@ -108,7 +108,9 @@
             this.elapsedTimer = null;
             this.rendered = false;
             this.listenersConnected = false;
-            if (typeof this.attachShadow !== 'function' || !recorderTemplate) return;
+            if (typeof this.attachShadow !== 'function' || !recorderTemplate) {
+                return;
+            }
             const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.append(recorderTemplate.content.cloneNode(true));
             this.cacheElements();
@@ -117,7 +119,9 @@
         }
 
         connectedCallback() {
-            if (!this.id) this.id = RECORDER_DIALOG_ID;
+            if (!this.id) {
+                this.id = RECORDER_DIALOG_ID;
+            }
             this.render();
             this.connectListeners();
             this.renderState();
@@ -169,7 +173,9 @@
         }
 
         cacheElements() {
-            if (!this.shadowRoot) return;
+            if (!this.shadowRoot) {
+                return;
+            }
             const find = (selector) => this.shadowRoot.querySelector(selector);
             this.elements = {
                 stylesheet: find('.recorder-stylesheet'),
@@ -201,7 +207,9 @@
         }
 
         connectListeners() {
-            if (!this.rendered || this.listenersConnected) return;
+            if (!this.rendered || this.listenersConnected) {
+                return;
+            }
             this.listenersConnected = true;
             this.handleStart = () => {
                 if (
@@ -248,7 +256,9 @@
         }
 
         disconnectListeners() {
-            if (!this.listenersConnected) return;
+            if (!this.listenersConnected) {
+                return;
+            }
             this.listenersConnected = false;
             this.elements.start.removeEventListener('click', this.handleStart);
             this.elements.stop.removeEventListener('click', this.handleStop);
@@ -266,15 +276,25 @@
         }
 
         formatBytes(bytes) {
-            if (bytes < 1024) return `${bytes} Б`;
-            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КиБ`;
+            if (bytes < 1024) {
+                return `${bytes} Б`;
+            }
+            if (bytes < 1024 * 1024) {
+                return `${(bytes / 1024).toFixed(1)} КиБ`;
+            }
             return `${(bytes / 1024 / 1024).toFixed(1)} МиБ`;
         }
 
         operationStatus(operation) {
-            if (!operation.response) return 'Ожидается';
-            if (operation.response.isSuccess === true) return 'Успешно';
-            if (operation.response.isSuccess === false) return 'Ошибка';
+            if (!operation.response) {
+                return 'Ожидается';
+            }
+            if (operation.response.isSuccess === true) {
+                return 'Успешно';
+            }
+            if (operation.response.isSuccess === false) {
+                return 'Ошибка';
+            }
             return 'Ответ получен';
         }
 
@@ -289,7 +309,9 @@
         }
 
         renderOperations() {
-            if (!this.rendered) return;
+            if (!this.rendered) {
+                return;
+            }
             const operations = (this.state.session?.operations || []).filter(
                 (operation) => this.showToolbox || operation.origin === 'page'
             );
@@ -346,7 +368,9 @@
         }
 
         renderOtherFrames() {
-            if (!this.rendered) return;
+            if (!this.rendered) {
+                return;
+            }
             const frames = this.state.session?.otherFrames || [];
             this.elements.otherCount.textContent = String(frames.length);
             this.elements.otherList.replaceChildren();
@@ -358,7 +382,9 @@
         }
 
         updateElapsed() {
-            if (!this.rendered) return;
+            if (!this.rendered) {
+                return;
+            }
             const startedAt = this.state.session?.startedAt;
             if (!startedAt) {
                 this.elements.elapsed.textContent = '';
@@ -378,7 +404,9 @@
 
         startElapsedTimer() {
             this.stopElapsedTimer();
-            if (this.state.status !== 'recording') return;
+            if (this.state.status !== 'recording') {
+                return;
+            }
             this.elapsedTimer = root.setInterval?.(() => this.updateElapsed(), 1000);
         }
 
@@ -390,7 +418,9 @@
         }
 
         renderState() {
-            if (!this.rendered) return;
+            if (!this.rendered) {
+                return;
+            }
             const recording = this.state.status === 'recording';
             const hasSession = Boolean(this.state.session);
             const operations = this.state.session?.operations || [];

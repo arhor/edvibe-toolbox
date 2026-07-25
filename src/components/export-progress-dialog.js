@@ -35,7 +35,9 @@
             this.stylesheetUrl = '';
             this.rendered = false;
             this.elements = null;
-            if (typeof this.attachShadow !== 'function' || !exportProgressTemplate) return;
+            if (typeof this.attachShadow !== 'function' || !exportProgressTemplate) {
+                return;
+            }
             const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.append(exportProgressTemplate.content.cloneNode(true));
             this.elements = {
@@ -55,7 +57,9 @@
                 ? options.stylesheetUrl
                 : '';
             this.stylesheetUrl = String(stylesheetUrl || '');
-            if (this.elements?.stylesheet) this.elements.stylesheet.href = this.stylesheetUrl;
+            if (this.elements?.stylesheet) {
+                this.elements.stylesheet.href = this.stylesheetUrl;
+            }
             return this;
         }
 
@@ -68,7 +72,9 @@
         }
 
         update(options = {}) {
-            if (!this.elements) return this;
+            if (!this.elements) {
+                return this;
+            }
             options = options && typeof options === 'object' ? options : {};
             const {
                 statusText = '',

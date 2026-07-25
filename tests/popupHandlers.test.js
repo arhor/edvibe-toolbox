@@ -27,6 +27,30 @@ test('popup uses a CSP-safe, data-driven tool catalog', () => {
     assert.doesNotMatch(popupScript, /window\.openLessonReset\s*=/);
 });
 
+test('popup custom-element constructors do not mutate or inspect light DOM', () => {
+    const constructors = [
+        popupComponents.match(
+            /class PopupToolCard[\s\S]*?constructor\(\) \{([\s\S]*?)\n        \}\n\n        connectedCallback/
+        )?.[1],
+        popupComponents.match(
+            /class PopupToolGroup[\s\S]*?constructor\(\) \{([\s\S]*?)\n        \}\n\n        connectedCallback/
+        )?.[1]
+    ];
+
+    assert.equal(constructors.every(Boolean), true);
+    for (const constructorBody of constructors) {
+        assert.doesNotMatch(
+            constructorBody,
+            /(?:append|querySelector|setAttribute|dataset|classList)/
+        );
+    }
+    assert.match(
+        popupComponents,
+        /connectedCallback\(\)[\s\S]*?content\.cloneNode\(true\)/
+    );
+    assert.match(popupComponents, /this\.pendingOptions = options/);
+});
+
 test('popup presents export and management as separate tool groups', () => {
     assert.match(popupScript, /export: 'Экспорт'/);
     assert.match(popupScript, /management: 'Управление'/);
