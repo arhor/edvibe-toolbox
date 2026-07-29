@@ -469,7 +469,7 @@ test('executeResetWork does not drop statistics when saving the reset answer fai
     assert.deepEqual(methods, ['SaveAnswer']);
 });
 
-test('executeResetWork leaves an applicable lesson request untouched', async () => {
+test('executeResetWork deletes an applicable lesson request after resetting answers', async () => {
     const deletedIds = [];
     const progress = [];
 
@@ -487,7 +487,7 @@ test('executeResetWork leaves an applicable lesson request untouched', async () 
         onProgress: (update) => progress.push(update)
     });
 
-    assert.deepEqual(deletedIds, []);
+    assert.deepEqual(deletedIds, [3690753]);
     assert.deepEqual(
         progress.map(({ completed, total, exerciseId }) => ({ completed, total, exerciseId })),
         [
