@@ -1,0 +1,4 @@
+interface:
+  display_name: "Preserve Edvibe Manifest Scripts"
+  short_description: "Protect intentional content-script path and ordering"
+  default_prompt: "Use $preserving-edvibe-manifest-scripts when editing or reviewing manifest.json."

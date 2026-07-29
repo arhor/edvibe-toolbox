@@ -14,9 +14,9 @@ test('manifest loads shared infrastructure and features before main', () => {
     );
 
     assert.deepEqual(mainWorld.js, [
-        'src/shared/logger.js',
         'lib/jszip.min.js',
         'lib/turndown.min.js',
+        'src/shared/logger.js',
         'src/shared/websocket-transport.js',
         'src/shared/operation-guard.js',
         'src/components/reset-lessons-dialog.js',
@@ -32,7 +32,7 @@ test('manifest loads shared infrastructure and features before main', () => {
         (entry) => entry.world === 'ISOLATED'
     );
     assert.deepEqual(isolatedWorld.js, [
-        'src/shared/logger.js',
+        'src/shared//logger.js',
         'src/isolated.js'
     ]);
 
