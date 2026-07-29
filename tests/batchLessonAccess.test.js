@@ -601,7 +601,13 @@ test('executeAccessPlan serializes mutations, validates responses, and aggregate
     assert.equal(result.failures[0].lessonName, 'Lesson two');
     assert.equal(result.failures[0].attempts, 1);
     assert.equal(result.attempts, 2);
-    assert.deepEqual(progress.map((snapshot) => snapshot.completed), [1, 2]);
+    assert.deepEqual(progress.map((snapshot) => snapshot.completed), [0, 1, 1, 2]);
+    assert.deepEqual(progress.map((snapshot) => snapshot.current), [
+        { email: 'first@example.com', lessonName: 'Lesson one' },
+        { email: 'first@example.com', lessonName: 'Lesson one' },
+        { email: 'second@example.com', lessonName: 'Lesson two' },
+        { email: 'second@example.com', lessonName: 'Lesson two' }
+    ]);
     assert.ok(Object.isFrozen(progress[0]));
 });
 
@@ -629,6 +635,110 @@ test('executeAccessPlan treats a successful transport response without Value tru
     assert.equal(result.failures.length, 1);
     assert.equal(result.failures[0].code, 'INVALID_RESPONSE');
     assert.equal(result.failures[0].attempts, 1);
+});
+
+test('executeAccessPlan stops after an internal mutation error and carries a safe partial result', async () => {
+    const calls = [];
+    const progress = [];
+    const needsOpening = [1, 2, 3].map((id) => ({
+        email: `user-${id}@example.com`,
+        pupilId: id,
+        marathonPupilId: 100 + id,
+        marathonLessonId: 200 + id,
+        lessonNumber: id,
+        lessonName: `Lesson ${id}`
+    }));
+
+    await assert.rejects(
+        executeAccessPlan({
+            marathonId: 18508,
+            requestedEmails: needsOpening.map((item) => item.email),
+            matchedUsers: 3,
+            selectedLessons: 1,
+            needsOpening,
+            sendRequest: async (_controller, _method, _project, value) => {
+                calls.push(value.MarathonLessonId);
+                if (value.MarathonLessonId === 202) {
+                    throw new TypeError('SENTINEL_INTERNAL_PAYLOAD');
+                }
+                return { Value: true };
+            },
+            wait: async () => {},
+            getConnectionState: () => ({ isOpen: true }),
+            onProgress: (snapshot) => progress.push(snapshot)
+        }),
+        (error) => {
+            assert.equal(error.code, 'INTERNAL_ERROR');
+            assert.deepEqual(
+                error.partialResult.opened.map((item) => item.marathonLessonId),
+                [201]
+            );
+            assert.equal(error.partialResult.failures.length, 1);
+            assert.equal(error.partialResult.failures[0].code, 'INTERNAL_ERROR');
+            assert.equal(error.partialResult.failures[0].marathonLessonId, 202);
+            assert.doesNotMatch(
+                error.partialResult.failures[0].message,
+                /SENTINEL_INTERNAL_PAYLOAD/
+            );
+            assert.equal(error.partialResult.attempts, 2);
+            return true;
+        }
+    );
+
+    assert.deepEqual(calls, [201, 202]);
+    assert.deepEqual(progress.map((snapshot) => snapshot.completed), [0, 1, 1]);
+    assert.deepEqual(progress.map((snapshot) => snapshot.current.email), [
+        'user-1@example.com',
+        'user-1@example.com',
+        'user-2@example.com'
+    ]);
+});
+
+test('executeAccessPlan preserves a successful write when completion progress rendering throws', async () => {
+    const calls = [];
+    const needsOpening = [1, 2, 3].map((id) => ({
+        email: `progress-${id}@example.com`,
+        pupilId: id,
+        marathonPupilId: 100 + id,
+        marathonLessonId: 300 + id,
+        lessonNumber: id,
+        lessonName: `Progress lesson ${id}`
+    }));
+
+    await assert.rejects(
+        executeAccessPlan({
+            marathonId: 18508,
+            requestedEmails: needsOpening.map((item) => item.email),
+            matchedUsers: 3,
+            selectedLessons: 1,
+            needsOpening,
+            sendRequest: async (_controller, _method, _project, value) => {
+                calls.push(value.MarathonLessonId);
+                return { Value: true };
+            },
+            wait: async () => {},
+            getConnectionState: () => ({ isOpen: true }),
+            onProgress: (snapshot) => {
+                if (snapshot.completed === 1) {
+                    throw new TypeError('render failed');
+                }
+            }
+        }),
+        (error) => {
+            assert.equal(error.code, 'INTERNAL_ERROR');
+            assert.deepEqual(
+                error.partialResult.opened.map((item) => item.marathonLessonId),
+                [301]
+            );
+            assert.equal(error.partialResult.failures.length, 1);
+            assert.equal(error.partialResult.failures[0].code, 'INTERNAL_ERROR');
+            assert.equal(error.partialResult.failures[0].marathonLessonId, 301);
+            assert.equal(error.partialResult.attempts, 1);
+            return true;
+        }
+    );
+
+    assert.deepEqual(calls, [301]);
 });
 
 test('formatBatchReport includes actionable failures without internal IDs or payloads', () => {
@@ -977,6 +1087,7 @@ test('batch feature aggregates final read and plan errors while issuing zero wri
     ];
     let initializing = true;
     let writes = 0;
+    const logs = [];
 
     try {
         const feature = createBatchLessonAccessFeature({
@@ -992,7 +1103,10 @@ test('batch feature aggregates final read and plan errors while issuing zero wri
                     return responsePage([createLesson({ id: 10 })], 1);
                 }
                 if (value.PupilId === 2) {
-                    throw createFeatureError('SERVER_REJECTED', 'Read denied.');
+                    throw createFeatureError(
+                        'SERVER_REJECTED',
+                        'SENTINEL_RAW_READ_RESPONSE'
+                    );
                 }
                 return responsePage([], 0);
             },
@@ -1002,7 +1116,7 @@ test('batch feature aggregates final read and plan errors while issuing zero wri
             onActiveChange: () => {},
             createDialog: () => dialog,
             copyText: async () => {},
-            log: () => {}
+            log: (message) => logs.push(message)
         });
         await feature.open();
         initializing = false;
@@ -1018,6 +1132,11 @@ test('batch feature aggregates final read and plan errors while issuing zero wri
             'SERVER_REJECTED',
             'INVALID_RESPONSE'
         ]);
+        assert.equal(errors[0].email, 'failed-read@example.com');
+        assert.match(errors[0].message, /failed-read@example\.com/);
+        assert.match(errors[0].message, /SERVER_REJECTED/);
+        assert.doesNotMatch(errors[0].message, /SENTINEL_RAW_READ_RESPONSE/);
+        assert.doesNotMatch(logs.join('\n'), /failed-read@example\.com|SENTINEL_RAW_READ_RESPONSE/);
         assert.equal(findDialogCalls(dialog, 'showConfirmation').length, 0);
         assert.equal(writes, 0);
     } finally {
@@ -1073,6 +1192,222 @@ test('batch feature completes an all-already-open plan without confirmation or w
             failures: [],
             attempts: 0
         });
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature renders and copies a partial result after an internal mutation error', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const pupil = createPupil({
+        pupilId: 1,
+        marathonPupilId: 101,
+        email: 'internal@example.com'
+    });
+    const lessons = [10, 11, 12].map((id, index) => createLesson({
+        id,
+        number: index,
+        name: `Internal lesson ${index + 1}`,
+        isOpen: false
+    }));
+    const writes = [];
+    const copied = [];
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method, _project, value) => {
+                if (method === 'GetMarathonPupils') {
+                    return responsePage([pupil], 1);
+                }
+                if (method === 'GetMarathonLessonsForPupilPagination') {
+                    return responsePage(lessons, lessons.length);
+                }
+                writes.push(value.MarathonLessonId);
+                if (value.MarathonLessonId === 11) {
+                    throw new TypeError('SENTINEL_INTERNAL_MUTATION');
+                }
+                return { Value: true };
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async (text) => copied.push(text),
+            log: () => {}
+        });
+
+        await feature.open();
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'internal@example.com',
+            selectedLessonIds: [10, 11, 12]
+        });
+        await dialog.emit('edvibe-batch-access-confirm');
+
+        assert.deepEqual(writes, [10, 11]);
+        assert.equal(feature.isRunning(), false);
+        const completed = findDialogCalls(dialog, 'showComplete').at(-1).args[0];
+        assert.deepEqual(completed.opened.map((item) => item.marathonLessonId), [10]);
+        assert.equal(completed.failures.length, 1);
+        assert.equal(completed.failures[0].code, 'INTERNAL_ERROR');
+        assert.equal(completed.failures[0].marathonLessonId, 11);
+        assert.equal(completed.attempts, 2);
+
+        await dialog.emit('edvibe-batch-access-copy-report');
+        assert.equal(copied.length, 1);
+        assert.match(copied[0], /Opened: 1/);
+        assert.match(copied[0], /Failed: 1/);
+        assert.match(copied[0], /INTERNAL_ERROR/);
+        assert.doesNotMatch(copied[0], /SENTINEL_INTERNAL_MUTATION/);
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature renders a partial result when progress rendering throws after a write', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const pupil = createPupil({
+        pupilId: 1,
+        marathonPupilId: 101,
+        email: 'render@example.com'
+    });
+    const lessons = [20, 21, 22].map((id, index) => createLesson({
+        id,
+        number: index,
+        name: `Render lesson ${index + 1}`,
+        isOpen: false
+    }));
+    const writes = [];
+    const recordExecution = dialog.showExecution;
+    dialog.showExecution = (progress) => {
+        recordExecution(progress);
+        if (progress.completed === 1) {
+            throw new TypeError('render failed');
+        }
+        return dialog;
+    };
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method, _project, value) => {
+                if (method === 'GetMarathonPupils') {
+                    return responsePage([pupil], 1);
+                }
+                if (method === 'GetMarathonLessonsForPupilPagination') {
+                    return responsePage(lessons, lessons.length);
+                }
+                writes.push(value.MarathonLessonId);
+                return { Value: true };
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async () => {},
+            log: () => {}
+        });
+
+        await feature.open();
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'render@example.com',
+            selectedLessonIds: [20, 21, 22]
+        });
+        await dialog.emit('edvibe-batch-access-confirm');
+
+        assert.deepEqual(writes, [20]);
+        assert.equal(feature.isRunning(), false);
+        const completed = findDialogCalls(dialog, 'showComplete').at(-1).args[0];
+        assert.deepEqual(completed.opened.map((item) => item.marathonLessonId), [20]);
+        assert.equal(completed.failures.length, 1);
+        assert.equal(completed.failures[0].code, 'INTERNAL_ERROR');
+        assert.equal(completed.failures[0].marathonLessonId, 20);
+        assert.equal(completed.attempts, 1);
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature continues after an expected write failure with accurate safe reporting', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const sentinelEmail = 'sentinel-email@example.com';
+    const pupil = createPupil({
+        pupilId: 1,
+        marathonPupilId: 101,
+        email: sentinelEmail
+    });
+    const lessons = [
+        createLesson({
+            id: 30,
+            number: 0,
+            name: 'SENTINEL_LESSON_ONE',
+            isOpen: false
+        }),
+        createLesson({
+            id: 31,
+            number: 1,
+            name: 'SENTINEL_LESSON_TWO',
+            isOpen: false
+        })
+    ];
+    const writes = [];
+    const copied = [];
+    const logs = [];
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method, _project, value) => {
+                if (method === 'GetMarathonPupils') {
+                    return responsePage([pupil], 1);
+                }
+                if (method === 'GetMarathonLessonsForPupilPagination') {
+                    return responsePage(lessons, lessons.length);
+                }
+                writes.push(value.MarathonLessonId);
+                if (value.MarathonLessonId === 30) {
+                    throw createFeatureError(
+                        'SERVER_REJECTED',
+                        'SENTINEL_PAYLOAD_REJECTED'
+                    );
+                }
+                return { Value: true };
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async (text) => copied.push(text),
+            log: (message) => logs.push(message)
+        });
+
+        await feature.open();
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: sentinelEmail,
+            selectedLessonIds: [30, 31]
+        });
+        await dialog.emit('edvibe-batch-access-confirm');
+
+        assert.deepEqual(writes, [30, 31]);
+        const completed = findDialogCalls(dialog, 'showComplete').at(-1).args[0];
+        assert.equal(completed.opened.length, 1);
+        assert.equal(completed.opened[0].marathonLessonId, 31);
+        assert.equal(completed.failures.length, 1);
+        assert.equal(completed.failures[0].code, 'SERVER_REJECTED');
+        assert.equal(completed.attempts, 2);
+
+        await dialog.emit('edvibe-batch-access-copy-report');
+        assert.equal(copied.length, 1);
+        assert.match(copied[0], /Opened: 1/);
+        assert.match(copied[0], /Failed: 1/);
+        assert.match(copied[0], /Attempts: 2/);
+        assert.doesNotMatch(
+            logs.join('\n'),
+            /sentinel-email@example\.com|SENTINEL_LESSON|SENTINEL_PAYLOAD/
+        );
     } finally {
         browser.restore();
     }

@@ -15,6 +15,11 @@
         'REQUEST_TIMEOUT',
         'SEND_FAILED'
     ]);
+    const OPERATIONAL_WRITE_CODES = new Set([
+        ...TRANSIENT_CODES,
+        'SERVER_REJECTED',
+        'INVALID_RESPONSE'
+    ]);
     const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
     const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
 
@@ -288,6 +293,42 @@
         });
     }
 
+    function createExecutionFailure(item, error, {
+        code = error?.code || 'UNKNOWN_ERROR',
+        message = error?.message || 'The lesson access change failed.',
+        attempts = error?.attempts || 1
+    } = {}) {
+        return {
+            email: item.email,
+            lessonNumber: item.lessonNumber,
+            lessonName: item.lessonName,
+            marathonLessonId: item.marathonLessonId,
+            attempts,
+            code,
+            message
+        };
+    }
+
+    function createExecutionResult({
+        requestedEmails,
+        matchedUsers,
+        selectedLessons,
+        opened,
+        alreadyOpen,
+        failures,
+        attempts
+    }) {
+        return {
+            requestedEmails,
+            matchedUsers,
+            selectedLessons,
+            opened,
+            alreadyOpen: alreadyOpen.length,
+            failures,
+            attempts
+        };
+    }
+
     async function executeAccessPlan({
         marathonId,
         requestedEmails,
@@ -306,65 +347,98 @@
 
         for (let index = 0; index < needsOpening.length; index += 1) {
             const item = needsOpening[index];
-            await wait(300);
+            let itemAttempts = 0;
             try {
-                const result = await runWithRetry(
-                    async () => {
-                        const response = await sendRequest(
-                            'MarathonLessonWsController',
-                            'ChangeIsOpenLessonForPupil',
-                            'Marathons',
-                            {
-                                IsOpen: true,
-                                MarathonLessonId: item.marathonLessonId,
-                                MarathonPupilId: item.marathonPupilId,
-                                MarathonId: marathonId
-                            }
-                        );
-                        if (response?.Value !== true) {
-                            throw createFeatureError(
-                                'INVALID_RESPONSE',
-                                'The lesson access change was not confirmed.'
+                onProgress(createProgressSnapshot({
+                    completed: index,
+                    total: needsOpening.length,
+                    opened: opened.length,
+                    failures: failures.length,
+                    alreadyOpen: alreadyOpen.length,
+                    item
+                }));
+                await wait(300);
+
+                try {
+                    const result = await runWithRetry(
+                        async () => {
+                            const response = await sendRequest(
+                                'MarathonLessonWsController',
+                                'ChangeIsOpenLessonForPupil',
+                                'Marathons',
+                                {
+                                    IsOpen: true,
+                                    MarathonLessonId: item.marathonLessonId,
+                                    MarathonPupilId: item.marathonPupilId,
+                                    MarathonId: marathonId
+                                }
                             );
-                        }
-                        return response;
-                    },
-                    { wait, getConnectionState }
-                );
-                attempts += result.attempts;
-                opened.push(item);
+                            if (response?.Value !== true) {
+                                throw createFeatureError(
+                                    'INVALID_RESPONSE',
+                                    'The lesson access change was not confirmed.'
+                                );
+                            }
+                            return response;
+                        },
+                        { wait, getConnectionState }
+                    );
+                    itemAttempts = result.attempts;
+                    attempts += itemAttempts;
+                    opened.push(item);
+                } catch (error) {
+                    itemAttempts = error.attempts || 1;
+                    attempts += itemAttempts;
+                    if (!OPERATIONAL_WRITE_CODES.has(error?.code)) {
+                        throw error;
+                    }
+                    failures.push(createExecutionFailure(item, error, {
+                        attempts: itemAttempts
+                    }));
+                }
+
+                onProgress(createProgressSnapshot({
+                    completed: index + 1,
+                    total: needsOpening.length,
+                    opened: opened.length,
+                    failures: failures.length,
+                    alreadyOpen: alreadyOpen.length,
+                    item
+                }));
             } catch (error) {
-                const itemAttempts = error.attempts || 1;
-                attempts += itemAttempts;
-                failures.push({
-                    email: item.email,
-                    lessonNumber: item.lessonNumber,
-                    lessonName: item.lessonName,
-                    marathonLessonId: item.marathonLessonId,
-                    attempts: itemAttempts,
-                    code: error.code || 'UNKNOWN_ERROR',
-                    message: error.message
-                });
+                failures.push(createExecutionFailure(item, error, {
+                    code: 'INTERNAL_ERROR',
+                    message: 'An internal error stopped the batch operation.',
+                    attempts: itemAttempts
+                }));
+                throw createFeatureError(
+                    'INTERNAL_ERROR',
+                    'An internal error stopped the batch operation.',
+                    {
+                        cause: error,
+                        partialResult: createExecutionResult({
+                            requestedEmails,
+                            matchedUsers,
+                            selectedLessons,
+                            opened,
+                            alreadyOpen,
+                            failures,
+                            attempts
+                        })
+                    }
+                );
             }
-            onProgress(createProgressSnapshot({
-                completed: index + 1,
-                total: needsOpening.length,
-                opened: opened.length,
-                failures: failures.length,
-                alreadyOpen: alreadyOpen.length,
-                item
-            }));
         }
 
-        return {
+        return createExecutionResult({
             requestedEmails,
             matchedUsers,
             selectedLessons,
             opened,
-            alreadyOpen: alreadyOpen.length,
+            alreadyOpen,
             failures,
             attempts
-        };
+        });
     }
 
     function formatBatchReport(result) {
@@ -446,6 +520,20 @@
 
         function getErrorCode(error) {
             return typeof error?.code === 'string' ? error.code : 'UNKNOWN_ERROR';
+        }
+
+        function createReadError(error, pupil, pupilId) {
+            const code = getErrorCode(error);
+            const email = String(pupil?.Email || '').trim();
+            return createFeatureError(
+                code,
+                `Could not load lesson access for ${email || 'the selected pupil'} (${code}).`,
+                {
+                    email,
+                    pupilId,
+                    attempts: error?.attempts || 1
+                }
+            );
         }
 
         function createInputErrors(parsed, selectedLessonIds) {
@@ -540,7 +628,7 @@
                             + `PupilId ${pupilId} after ${result.attempts} attempt(s).`
                         );
                     } catch (error) {
-                        readErrors.push(error);
+                        readErrors.push(createReadError(error, pupil, pupilId));
                         log(
                             `Batch access state read failed for PupilId ${pupilId} `
                             + `in MarathonId ${marathonId} (${getErrorCode(error)}).`
@@ -607,27 +695,32 @@
             running = true;
             const executionPlan = pendingPlan;
             pendingPlan = null;
-            dialog.showExecution({
-                completed: 0,
-                total: executionPlan.needsOpening.length,
-                opened: 0,
-                failures: 0,
-                alreadyOpen: executionPlan.alreadyOpen.length
-            });
 
             try {
-                completedResult = await executeAccessPlan({
-                    marathonId,
-                    requestedEmails: executionPlan.requestedEmails,
-                    matchedUsers: executionPlan.matchedUsers,
-                    selectedLessons: executionPlan.selectedLessonIds.length,
-                    alreadyOpen: executionPlan.alreadyOpen,
-                    needsOpening: executionPlan.needsOpening,
-                    sendRequest,
-                    wait,
-                    getConnectionState,
-                    onProgress: (progress) => dialog.showExecution(progress)
-                });
+                try {
+                    completedResult = await executeAccessPlan({
+                        marathonId,
+                        requestedEmails: executionPlan.requestedEmails,
+                        matchedUsers: executionPlan.matchedUsers,
+                        selectedLessons: executionPlan.selectedLessonIds.length,
+                        alreadyOpen: executionPlan.alreadyOpen,
+                        needsOpening: executionPlan.needsOpening,
+                        sendRequest,
+                        wait,
+                        getConnectionState,
+                        onProgress: (progress) => dialog.showExecution(progress)
+                    });
+                } catch (error) {
+                    if (error?.code !== 'INTERNAL_ERROR' || !error.partialResult) {
+                        throw error;
+                    }
+                    completedResult = error.partialResult;
+                    log(
+                        `Batch access execution stopped for MarathonId ${marathonId}; `
+                        + `${completedResult.opened.length} opened, `
+                        + `${completedResult.failures.length} failed (INTERNAL_ERROR).`
+                    );
+                }
                 log(
                     `Batch access execution complete for MarathonId ${marathonId}; `
                     + `${completedResult.opened.length} opened, `
