@@ -261,6 +261,7 @@
                     pupilId,
                     marathonPupilId: getMarathonPupilId(pupil),
                     marathonLessonId,
+                    lessonNumber: lesson.Number + 1,
                     lessonName: lesson.Name
                 };
                 if (lesson.IsOpen === true) {
@@ -335,6 +336,7 @@
                 attempts += itemAttempts;
                 failures.push({
                     email: item.email,
+                    lessonNumber: item.lessonNumber,
                     lessonName: item.lessonName,
                     marathonLessonId: item.marathonLessonId,
                     attempts: itemAttempts,
@@ -375,7 +377,7 @@
         ];
         for (const failure of result.failures) {
             lines.push(
-                `FAILED ${failure.email} — ${failure.marathonLessonId}. ${failure.lessonName} `
+                `FAILED ${failure.email} — ${failure.lessonNumber}. ${failure.lessonName} `
                 + `— ${failure.attempts} attempts — ${failure.code}: ${failure.message}`
             );
         }

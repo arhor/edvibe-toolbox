@@ -242,12 +242,12 @@ test('buildAccessPlan classifies selected boolean lesson states for every pupil'
         selectedLessonIds: [10, 11],
         lessonsByPupilId: new Map([
             [1001, [
-                { MarathonLessonId: 10, Name: 'Introduction', IsOpen: true },
-                { MarathonLessonId: 11, Name: 'Practice', IsOpen: false }
+                { MarathonLessonId: 10, Number: 0, Name: 'Introduction', IsOpen: true },
+                { MarathonLessonId: 11, Number: 4, Name: 'Practice', IsOpen: false }
             ]],
             [1002, [
-                { MarathonLessonId: 10, Name: 'Introduction', IsOpen: true },
-                { MarathonLessonId: 11, Name: 'Practice', IsOpen: false }
+                { MarathonLessonId: 10, Number: 0, Name: 'Introduction', IsOpen: true },
+                { MarathonLessonId: 11, Number: 4, Name: 'Practice', IsOpen: false }
             ]]
         ])
     });
@@ -259,6 +259,7 @@ test('buildAccessPlan classifies selected boolean lesson states for every pupil'
         pupilId: 1001,
         marathonPupilId: 2001,
         marathonLessonId: 11,
+        lessonNumber: 5,
         lessonName: 'Practice'
     });
     assert.deepEqual(plan.errors, []);
@@ -366,6 +367,60 @@ test('runWithRetry rejects the third transient failure with three attempts', asy
     assert.equal(calls, 3);
 });
 
+test('runWithRetry retries SEND_FAILED with a cause after a closed connection', async () => {
+    let calls = 0;
+    let connectionChecks = 0;
+    const waits = [];
+    const result = await runWithRetry(async () => {
+        calls += 1;
+        if (calls === 1) {
+            throw createFeatureError('SEND_FAILED', 'Socket closed.', { cause: new Error('closed') });
+        }
+        return 'opened';
+    }, {
+        wait: async (delay) => waits.push(delay),
+        getConnectionState: () => ({ isOpen: connectionChecks++ > 0 })
+    });
+
+    assert.deepEqual(result, { value: 'opened', attempts: 2 });
+    assert.equal(calls, 2);
+    assert.deepEqual(waits, [1000]);
+});
+
+test('runWithRetry does not retry SEND_FAILED without a cause', async () => {
+    let calls = 0;
+    const waits = [];
+    await assert.rejects(
+        runWithRetry(async () => {
+            calls += 1;
+            throw createFeatureError('SEND_FAILED', 'Socket closed.');
+        }, {
+            wait: async (delay) => waits.push(delay),
+            getConnectionState: () => ({ isOpen: false })
+        }),
+        (error) => error.code === 'SEND_FAILED' && error.attempts === 1
+    );
+    assert.equal(calls, 1);
+    assert.deepEqual(waits, []);
+});
+
+test('runWithRetry does not retry SEND_FAILED while the connection is open', async () => {
+    let calls = 0;
+    const waits = [];
+    await assert.rejects(
+        runWithRetry(async () => {
+            calls += 1;
+            throw createFeatureError('SEND_FAILED', 'Socket closed.', { cause: new Error('closed') });
+        }, {
+            wait: async (delay) => waits.push(delay),
+            getConnectionState: () => ({ isOpen: true })
+        }),
+        (error) => error.code === 'SEND_FAILED' && error.attempts === 1
+    );
+    assert.equal(calls, 1);
+    assert.deepEqual(waits, []);
+});
+
 test('executeAccessPlan serializes mutations, validates responses, and aggregates results', async () => {
     const calls = [];
     const waits = [];
@@ -382,6 +437,7 @@ test('executeAccessPlan serializes mutations, validates responses, and aggregate
             pupilId: 1001,
             marathonPupilId: 228018,
             marathonLessonId: 2034970,
+            lessonNumber: 1,
             lessonName: 'Already open'
         }],
         needsOpening: [
@@ -390,6 +446,7 @@ test('executeAccessPlan serializes mutations, validates responses, and aggregate
                 pupilId: 1001,
                 marathonPupilId: 228019,
                 marathonLessonId: 2034971,
+                lessonNumber: 5,
                 lessonName: 'Lesson one'
             },
             {
@@ -397,6 +454,7 @@ test('executeAccessPlan serializes mutations, validates responses, and aggregate
                 pupilId: 1002,
                 marathonPupilId: 228020,
                 marathonLessonId: 2034972,
+                lessonNumber: 6,
                 lessonName: 'Lesson two'
             }
         ],
@@ -433,6 +491,7 @@ test('executeAccessPlan serializes mutations, validates responses, and aggregate
     assert.equal(result.alreadyOpen, 1);
     assert.equal(result.failures.length, 1);
     assert.equal(result.failures[0].email, 'second@example.com');
+    assert.equal(result.failures[0].lessonNumber, 6);
     assert.equal(result.failures[0].lessonName, 'Lesson two');
     assert.equal(result.failures[0].attempts, 1);
     assert.equal(result.attempts, 2);
@@ -452,6 +511,7 @@ test('executeAccessPlan treats a successful transport response without Value tru
             pupilId: 1,
             marathonPupilId: 2,
             marathonLessonId: 3,
+            lessonNumber: 3,
             lessonName: 'Lesson three'
         }],
         wait: async () => {},
@@ -477,7 +537,8 @@ test('formatBatchReport includes actionable failures without internal IDs or pay
             email: 'user@example.com',
             pupilId: 123,
             marathonPupilId: 456,
-            marathonLessonId: 5,
+            marathonLessonId: 2034971,
+            lessonNumber: 5,
             lessonName: 'Lesson name',
             attempts: 3,
             code: 'REQUEST_TIMEOUT',
@@ -492,5 +553,5 @@ test('formatBatchReport includes actionable failures without internal IDs or pay
         report,
         /FAILED user@example\.com — 5\. Lesson name — 3 attempts — REQUEST_TIMEOUT: The request timed out\./
     );
-    assert.doesNotMatch(report, /PupilId|MarathonPupilId|\{"Value":false\}/);
+    assert.doesNotMatch(report, /PupilId|MarathonPupilId|2034971|\{"Value":false\}/);
 });
