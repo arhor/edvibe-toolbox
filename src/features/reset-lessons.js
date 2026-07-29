@@ -289,8 +289,6 @@
                 });
             }
 
-            // Disabled for now: the consequences of deleting a lesson request are unclear.
-            /*
             if (item.deleteRequestId) {
                 sendWithoutResponse(
                     'MarathonLessonWsController',
@@ -299,7 +297,6 @@
                     { RequestId: item.deleteRequestId }
                 );
             }
-            */
         }
 
         log(`Completed all ${total} operation(s) for PupilId ${pupilId}.`);
