@@ -84,6 +84,13 @@ test('popup preserves commands and marathon requirements', () => {
     assert.match(popupScript, /chrome\.tabs\.sendMessage\(tabId, \{ action \}/);
 });
 
+test('popup exposes batch lesson access for marathon management', () => {
+    assert.match(
+        popupScript,
+        /id: 'batch-lesson-access',\s*group: 'management',\s*title: 'Открыть доступ к урокам',\s*description: 'Открыть выбранные уроки для списка учеников\.',\s*command: 'OPEN_BATCH_LESSON_ACCESS',\s*requirement: 'marathon',\s*actionLabel: 'Открыть мастер',\s*busyLabel: 'Открывается…',\s*closeOnSuccess: true/
+    );
+});
+
 test('popup restores and renders export progress', () => {
     assert.match(popupScript, /chrome\.storage\.local\.get\('exportInProgress'\)/);
     assert.match(popupScript, /message\?\.action !== 'EXPORT_STATUS'/);

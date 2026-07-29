@@ -31,6 +31,17 @@ const TOOL_DEFINITIONS = Object.freeze([
         closeOnSuccess: true
     }),
     Object.freeze({
+        id: 'batch-lesson-access',
+        group: 'management',
+        title: 'Открыть доступ к урокам',
+        description: 'Открыть выбранные уроки для списка учеников.',
+        command: 'OPEN_BATCH_LESSON_ACCESS',
+        requirement: 'marathon',
+        actionLabel: 'Открыть мастер',
+        busyLabel: 'Открывается…',
+        closeOnSuccess: true
+    }),
+    Object.freeze({
         id: 'action-recorder',
         group: 'development',
         title: 'Запись действий WebSocket',
