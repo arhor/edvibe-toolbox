@@ -158,7 +158,8 @@
 
 .edvibe-batch-access-lessons,
 .edvibe-batch-access-errors,
-.edvibe-batch-access-summary {
+.edvibe-batch-access-summary,
+.edvibe-batch-access-failures {
     overflow: auto;
     max-height: 248px;
     margin-top: 10px;
@@ -215,6 +216,25 @@
 }
 
 .edvibe-batch-access-error:last-child {
+    border-bottom: 0;
+}
+
+.edvibe-batch-access-failures {
+    border-color: #fed7aa;
+    background: #fff7ed;
+}
+
+.edvibe-batch-access-failure {
+    margin: 0;
+    padding: 12px;
+    border-bottom: 1px solid #ffedd5;
+    color: #9a3412;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.edvibe-batch-access-failure:last-child {
     border-bottom: 0;
 }
 

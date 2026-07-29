@@ -56,6 +56,7 @@
                         </section>
                         <section class="edvibe-batch-access-errors" aria-live="polite" hidden></section>
                         <section class="edvibe-batch-access-summary" aria-live="polite" hidden></section>
+                        <section class="edvibe-batch-access-failures" aria-live="polite" hidden></section>
                     </div>
                     <div class="edvibe-batch-access-live-region">
                         <p class="edvibe-batch-access-status" role="status" aria-live="polite"></p>
@@ -142,6 +143,7 @@
                 clearAll: find('.edvibe-batch-access-clear-all'),
                 errors: find('.edvibe-batch-access-errors'),
                 summary: find('.edvibe-batch-access-summary'),
+                failures: find('.edvibe-batch-access-failures'),
                 status: find('.edvibe-batch-access-status'),
                 progress: find('.edvibe-batch-access-progress'),
                 submit: find('.edvibe-batch-access-submit'),
@@ -290,7 +292,8 @@
         }
 
         showComplete(summary = {}) {
-            this.mode = summary.failures?.length ? 'partial-complete' : 'complete';
+            const failures = Array.isArray(summary.failures) ? summary.failures : [];
+            this.mode = failures.length ? 'partial-complete' : 'complete';
             this.clearMessages();
             if (this.elements) {
                 this.elements.progress.hidden = true;
@@ -301,10 +304,11 @@
                 `Уроков выбрано: ${this.count(summary.selectedLessons, summary.selectedLessonCount)}`,
                 `Доступов открыто: ${this.count(summary.opened, summary.openedCount)}`,
                 `Уже открыто: ${this.count(summary.alreadyOpen, summary.alreadyOpenCount)}`,
-                `Ошибок: ${this.count(summary.failures, summary.failureCount)}`,
+                `Ошибок: ${this.count(failures, summary.failureCount)}`,
                 `Попыток запросов: ${Math.max(0, Number(summary.attempts) || 0)}`
             ]);
-            this.setStatus(summary.failures?.length
+            this.renderFailures(failures);
+            this.setStatus(failures.length
                 ? 'Завершено с ошибками. Скопируйте отчёт для подробностей.'
                 : 'Готово.');
             this.renderState();
@@ -400,6 +404,29 @@
             this.elements.summary.hidden = false;
         }
 
+        renderFailures(failures) {
+            if (!this.elements) {
+                return;
+            }
+            const document = this.ownerDocument || root.document;
+            this.elements.failures.replaceChildren();
+            for (const failure of failures) {
+                const entry = document?.createElement?.('p');
+                if (!entry) {
+                    continue;
+                }
+                const lessonNumber = Math.max(0, Number(failure?.lessonNumber) || 0);
+                const attempts = Math.max(0, Number(failure?.attempts) || 0);
+                entry.className = 'edvibe-batch-access-failure';
+                entry.textContent = `${String(failure?.email || 'Email отсутствует')} — `
+                    + `${lessonNumber}. ${String(failure?.lessonName || 'Урок без названия')} — `
+                    + `${attempts} попытки — ${String(failure?.code || 'UNKNOWN_ERROR')}: `
+                    + String(failure?.message || 'Неизвестная ошибка.');
+                this.elements.failures.appendChild(entry);
+            }
+            this.elements.failures.hidden = failures.length === 0;
+        }
+
         clearMessages() {
             if (!this.elements) {
                 return;
@@ -408,6 +435,8 @@
             this.elements.errors.hidden = true;
             this.elements.summary.textContent = '';
             this.elements.summary.hidden = true;
+            this.elements.failures.replaceChildren();
+            this.elements.failures.hidden = true;
         }
 
         setStatus(message, state = '') {

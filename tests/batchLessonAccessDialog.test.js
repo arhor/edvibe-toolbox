@@ -363,3 +363,100 @@ test('renders confirmation counts and completion actions, then restarts cleanly'
     assert.deepEqual([...dialog.selectedLessonIds], []);
     assert.equal(dialog.lessons, lessons);
 });
+
+test('locks controls after entering execution even without a prior validation render', () => {
+    const { dialog } = createDialog();
+    dialog.showConfigure({
+        lessons: [{ MarathonLessonId: 10, Number: 0, Name: 'Welcome' }],
+        emailState: { validCount: 1, malformedCount: 0 }
+    });
+
+    dialog.showExecution({ completed: 0, total: 2, opened: 0, failures: 0, alreadyOpen: 0 });
+
+    assert.equal(dialog.elements.emails.disabled, true);
+    assert.equal(dialog.elements.lessonsList.querySelectorAll('input')[0].disabled, true);
+    assert.equal(dialog.elements.selectAll.disabled, true);
+    assert.equal(dialog.elements.clearAll.disabled, true);
+    assert.equal(dialog.elements.close.disabled, true);
+});
+
+test('emits confirm and copy events without workflow data', () => {
+    const { dialog } = createDialog();
+    dialog.showConfirmation({ matchedUsers: 1, selectedLessons: [10], needsOpening: [{}] });
+    dialog.elements.confirm.dispatchEvent({ type: 'click' });
+    assert.equal(emitted(dialog, 'edvibe-batch-access-confirm').detail, undefined);
+
+    dialog.showComplete({
+        requestedEmails: 1,
+        matchedUsers: 1,
+        selectedLessons: [10],
+        opened: [],
+        alreadyOpen: [],
+        failures: [{
+            email: 'first@example.com',
+            lessonNumber: 5,
+            lessonName: 'Practice',
+            attempts: 3,
+            code: 'REQUEST_TIMEOUT',
+            message: 'Timed out'
+        }],
+        attempts: 3
+    });
+    dialog.elements.copy.dispatchEvent({ type: 'click' });
+    assert.equal(emitted(dialog, 'edvibe-batch-access-copy-report').detail, undefined);
+});
+
+test('allows backdrop and Escape close only from editable or completed states', () => {
+    const { dialog } = createDialog();
+    dialog.showConfigure({
+        lessons: [{ MarathonLessonId: 10, Number: 0, Name: 'Welcome' }],
+        emailState: { validCount: 1, malformedCount: 0 }
+    });
+    dialog.showValidation();
+    dialog.elements.backdrop.dispatchEvent({
+        type: 'click',
+        target: dialog.elements.backdrop
+    });
+    dialog.handleKeydown({ key: 'Escape' });
+    assert.equal(dialog.emitted.filter((event) => event.type === 'edvibe-dialog-close').length, 0);
+
+    dialog.showValidationErrors(['Try again']);
+    dialog.elements.backdrop.dispatchEvent({
+        type: 'click',
+        target: dialog.elements.backdrop
+    });
+    assert.equal(dialog.emitted.filter((event) => event.type === 'edvibe-dialog-close').length, 1);
+    assert.equal(emitted(dialog, 'edvibe-dialog-close').detail, undefined);
+
+    const { dialog: completedDialog } = createDialog();
+    completedDialog.showComplete({ failures: [], attempts: 0 });
+    completedDialog.handleKeydown({ key: 'Escape' });
+    assert.equal(emitted(completedDialog, 'edvibe-dialog-close').detail, undefined);
+});
+
+test('renders supplied partial-completion failure details as text nodes', () => {
+    const { dialog } = createDialog();
+    dialog.showComplete({
+        requestedEmails: 1,
+        matchedUsers: 1,
+        selectedLessons: [10],
+        opened: [],
+        alreadyOpen: [],
+        failures: [{
+            email: 'first@example.com',
+            lessonNumber: 5,
+            lessonName: 'Practice <unsafe>',
+            attempts: 3,
+            code: 'REQUEST_TIMEOUT',
+            message: 'Timed out <unsafe>'
+        }],
+        attempts: 3
+    });
+
+    assert.equal(dialog.mode, 'partial-complete');
+    assert.equal(dialog.elements.failures.hidden, false);
+    assert.equal(
+        dialog.elements.failures.children[0].textContent,
+        'first@example.com — 5. Practice <unsafe> — 3 попытки — REQUEST_TIMEOUT: Timed out <unsafe>'
+    );
+});
