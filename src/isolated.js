@@ -45,6 +45,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }, '*');
             sendResponse({ status: 'success', info: 'Action recorder opened.' });
             break;
+        case 'OPEN_BATCH_LESSON_ACCESS':
+            window.postMessage({
+                type: 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS',
+                stylesheetUrl: chrome.runtime.getURL(
+                    'src/components/batch-lesson-access-dialog.css'
+                )
+            }, '*');
+            sendResponse({ status: 'success', info: 'Batch lesson access opened.' });
+            break;
         default:
             sendResponse({ status: 'ignored' });
             break;

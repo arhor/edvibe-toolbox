@@ -18,12 +18,15 @@ const exportApi = requireToolboxModule('EdVibeMarathonExport');
 const resetApi = requireToolboxModule('EdVibeLessonReset');
 const recorderApi = requireToolboxModule('EdVibeActionRecorder');
 const recorderDialogApi = requireToolboxModule('EdVibeActionRecorderDialog');
+const batchAccessApi = requireToolboxModule('EdVibeBatchLessonAccess');
+const batchAccessDialogApi = requireToolboxModule('EdVibeBatchAccessDialogComponent');
 
 const transportLog = createMainLog('Transport');
 const exportLog = createMainLog('Export');
 const zipLog = createMainLog('Zip');
 const resetLog = createMainLog('Reset');
 const recorderLog = createMainLog('Recorder');
+const batchAccessLog = createMainLog('BatchAccess');
 
 const transport = transportApi.createWebSocketTransport({
     WebSocketClass: window.WebSocket,
@@ -87,6 +90,26 @@ const actionRecorderFeature = recorderApi.createActionRecorderFeature({
     log: recorderLog
 });
 
+const batchLessonAccessFeature = batchAccessApi.createBatchLessonAccessFeature({
+    sendRequest: transport.sendRequest,
+    getConnectionState: transport.getConnectionState,
+    wait,
+    canStart: operationGuard.canStart,
+    onActiveChange(isActive) {
+        if (isActive) {
+            operationGuard.activate('batch-access');
+        }
+        else {
+            operationGuard.release('batch-access');
+        }
+    },
+    createDialog() {
+        return document.createElement(batchAccessDialogApi.BATCH_ACCESS_DIALOG_TAG);
+    },
+    copyText: (text) => navigator.clipboard.writeText(text),
+    log: batchAccessLog
+});
+
 window.addEventListener('message', (event) => {
     if (event.source !== window) {
         return;
@@ -102,6 +125,10 @@ window.addEventListener('message', (event) => {
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_RECORDER') {
         actionRecorderFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
+    }
+
+    if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') {
+        batchLessonAccessFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
     }
 });
 

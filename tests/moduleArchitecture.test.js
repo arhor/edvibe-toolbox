@@ -22,9 +22,11 @@ test('manifest loads shared infrastructure and features before main', () => {
         'src/components/reset-lessons-dialog.js',
         'src/components/action-recorder-dialog.js',
         'src/components/export-progress-dialog.js',
+        'src/components/batch-lesson-access-dialog.js',
         'src/features/reset-lessons.js',
         'src/features/marathon-export.js',
         'src/features/action-recorder.js',
+        'src/features/batch-lesson-access.js',
         'src/main.js'
     ]);
 
@@ -40,7 +42,8 @@ test('manifest loads shared infrastructure and features before main', () => {
         resources: [
             'src/components/reset-lessons-dialog.css',
             'src/components/action-recorder-dialog.css',
-            'src/components/export-progress-dialog.css'
+            'src/components/export-progress-dialog.css',
+            'src/components/batch-lesson-access-dialog.css'
         ],
         matches: ['*://*.edvibe.com/*']
     }]);
@@ -60,7 +63,8 @@ test('dynamic UI and presentation stay in components and stylesheets', () => {
         'src/main.js',
         'src/features/marathon-export.js',
         'src/features/reset-lessons.js',
-        'src/features/action-recorder.js'
+        'src/features/action-recorder.js',
+        'src/features/batch-lesson-access.js'
     ];
 
     for (const file of coordinatorFiles) {
@@ -103,6 +107,7 @@ test('main remains a coordinator without concrete feature logic', () => {
     assert.match(source, /createMarathonExportFeature/);
     assert.match(source, /createResetLessonsFeature/);
     assert.match(source, /createActionRecorderFeature/);
+    assert.match(source, /createBatchLessonAccessFeature/);
 });
 
 test('marathon export owns its ZIP compiler implementation', () => {
@@ -136,4 +141,33 @@ test('action recorder routing crosses worlds without captured payload storage', 
     assert.match(recorderSource, /subscribeFrames\(handleFrame\)/);
     assert.doesNotMatch(recorderSource, /chrome\.storage/);
     assert.doesNotMatch(isolatedSource, /recordedFrames|operations|otherFrames/);
+});
+
+test('batch lesson access routing crosses worlds with its stylesheet only', () => {
+    const isolatedSource = fs.readFileSync(
+        path.join(root, 'src/isolated.js'),
+        'utf8'
+    );
+    const mainSource = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
+
+    assert.match(
+        isolatedSource,
+        /case 'OPEN_BATCH_LESSON_ACCESS':\s*window\.postMessage\(\{\s*type: 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS',\s*stylesheetUrl: chrome\.runtime\.getURL\(\s*'src\/components\/batch-lesson-access-dialog\.css'\s*\)\s*\}, '\*'\)/
+    );
+    assert.match(
+        mainSource,
+        /requireToolboxModule\('EdVibeBatchLessonAccess'\)/
+    );
+    assert.match(
+        mainSource,
+        /requireToolboxModule\('EdVibeBatchAccessDialogComponent'\)/
+    );
+    assert.match(
+        mainSource,
+        /createBatchLessonAccessFeature\(\{[\s\S]*?getConnectionState: transport\.getConnectionState/
+    );
+    assert.match(
+        mainSource,
+        /event\.data\?\.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS'[\s\S]*?batchLessonAccessFeature\.open\(\{ stylesheetUrl: event\.data\.stylesheetUrl \}\)/
+    );
 });
