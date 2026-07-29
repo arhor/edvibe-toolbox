@@ -3,6 +3,10 @@ const log = createIsolatedLog();
 
 log('Script successfully injected and initialized.');
 
+chrome.storage.local.set({ exportInProgress: false }, () => {
+    log('Reset stale export state for the loaded page.');
+});
+
 window.addEventListener('message', (event) => {
     if (event.source !== window || !event.data?.type) {
         return;

@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const vm = require('node:vm');
 
 const projectRoot = path.resolve(__dirname, '..');
 const popupHtml = fs.readFileSync(path.join(projectRoot, 'popup.html'), 'utf8');
@@ -11,6 +12,46 @@ const popupComponents = fs.readFileSync(
     path.join(projectRoot, 'src/components/popup-tool-list.js'),
     'utf8'
 );
+const isolatedScript = fs.readFileSync(
+    path.join(projectRoot, 'src/isolated.js'),
+    'utf8'
+);
+
+test('isolated page initialization clears stale export progress', () => {
+    const storedValues = [];
+    const context = {
+        EdVibeLogger: {
+            createLoggerFactory: () => () => () => {}
+        },
+        window: {
+            addEventListener() {}
+        },
+        chrome: {
+            runtime: {
+                onMessage: {
+                    addListener() {}
+                },
+                sendMessage() {},
+                getURL: (value) => value
+            },
+            storage: {
+                local: {
+                    set(value, callback) {
+                        storedValues.push(value);
+                        callback?.();
+                    }
+                }
+            }
+        }
+    };
+
+    vm.runInNewContext(isolatedScript, context);
+
+    assert.equal(
+        JSON.stringify(storedValues),
+        JSON.stringify([{ exportInProgress: false }])
+    );
+});
 
 test('popup uses a CSP-safe, data-driven tool catalog', () => {
     assert.doesNotMatch(popupHtml, /\sonclick=/);
