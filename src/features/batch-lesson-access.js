@@ -15,6 +15,8 @@
         'REQUEST_TIMEOUT',
         'SEND_FAILED'
     ]);
+    const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
+    const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
 
     function createFeatureError(code, message, details = {}) {
         const error = new Error(message);
@@ -384,6 +386,351 @@
         return lines.join('\n');
     }
 
+    function freezeItems(items) {
+        return Object.freeze(items.map((item) => Object.freeze({ ...item })));
+    }
+
+    function freezePlan({
+        requestedEmails,
+        matchedUsers,
+        selectedLessonIds,
+        alreadyOpen,
+        needsOpening
+    }) {
+        return Object.freeze({
+            requestedEmails: Object.freeze([...requestedEmails]),
+            matchedUsers,
+            selectedLessonIds: Object.freeze([...selectedLessonIds]),
+            alreadyOpen: freezeItems(alreadyOpen),
+            needsOpening: freezeItems(needsOpening)
+        });
+    }
+
+    function createBatchLessonAccessFeature({
+        sendRequest,
+        getConnectionState,
+        wait,
+        canStart,
+        onActiveChange,
+        createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
+        copyText = async () => {},
+        log = () => {}
+    }) {
+        let active = false;
+        let running = false;
+        let pupils = [];
+        let lessonCatalogue = [];
+        let pendingPlan = null;
+        let completedResult = null;
+        let marathonId = null;
+        let dialog = null;
+
+        function releaseOperation() {
+            if (!active) {
+                return;
+            }
+            active = false;
+            onActiveChange(false);
+        }
+
+        function getErrorCode(error) {
+            return typeof error?.code === 'string' ? error.code : 'UNKNOWN_ERROR';
+        }
+
+        function createInputErrors(parsed, selectedLessonIds) {
+            const errors = parsed.malformed.map((input) => createFeatureError(
+                'INVALID_EMAIL',
+                `Invalid email address: ${input}.`
+            ));
+            if (parsed.entries.length === 0 && parsed.malformed.length === 0) {
+                errors.push(createFeatureError(
+                    'EMAILS_REQUIRED',
+                    'Enter at least one email address.'
+                ));
+            }
+            if (selectedLessonIds.length === 0) {
+                errors.push(createFeatureError(
+                    'LESSONS_REQUIRED',
+                    'Select at least one lesson.'
+                ));
+            }
+            return errors;
+        }
+
+        function showCompletedPlan(plan) {
+            completedResult = {
+                requestedEmails: [...plan.requestedEmails],
+                matchedUsers: plan.matchedUsers,
+                selectedLessons: plan.selectedLessonIds.length,
+                opened: [],
+                alreadyOpen: plan.alreadyOpen.length,
+                failures: [],
+                attempts: 0
+            };
+            pendingPlan = null;
+            dialog.showComplete(completedResult);
+        }
+
+        async function handleSubmit(event) {
+            if (running) {
+                return;
+            }
+
+            running = true;
+            pendingPlan = null;
+            completedResult = null;
+
+            const submittedEmailInput = String(event?.detail?.emailInput || '');
+            const selectedLessonIds = Object.freeze(
+                Array.isArray(event?.detail?.selectedLessonIds)
+                    ? [...event.detail.selectedLessonIds]
+                    : []
+            );
+
+            try {
+                dialog.showValidation();
+                const parsed = parseEmailInput(submittedEmailInput);
+                const inputErrors = createInputErrors(parsed, selectedLessonIds);
+                const resolution = resolvePupilsByEmail(parsed.entries, pupils);
+                const validationErrors = inputErrors.concat(resolution.errors);
+
+                if (validationErrors.length > 0) {
+                    log(
+                        `Batch access validation blocked for MarathonId ${marathonId}; `
+                        + `${validationErrors.length} error(s).`
+                    );
+                    dialog.showValidationErrors(validationErrors);
+                    return;
+                }
+
+                const lessonsByPupilId = new Map();
+                const pupilsWithLessons = [];
+                const readErrors = [];
+
+                for (const pupil of resolution.matches) {
+                    const pupilId = getPupilId(pupil);
+                    try {
+                        log(
+                            `Loading batch access state for PupilId ${pupilId} `
+                            + `in MarathonId ${marathonId}.`
+                        );
+                        const result = await runWithRetry(
+                            () => loadAllPupilLessons({
+                                sendRequest,
+                                marathonId,
+                                pupilId
+                            }),
+                            { wait, getConnectionState }
+                        );
+                        lessonsByPupilId.set(pupilId, result.value);
+                        pupilsWithLessons.push(pupil);
+                        log(
+                            `Loaded ${result.value.length} lesson state(s) for `
+                            + `PupilId ${pupilId} after ${result.attempts} attempt(s).`
+                        );
+                    } catch (error) {
+                        readErrors.push(error);
+                        log(
+                            `Batch access state read failed for PupilId ${pupilId} `
+                            + `in MarathonId ${marathonId} (${getErrorCode(error)}).`
+                        );
+                    }
+                }
+
+                const plan = buildAccessPlan({
+                    pupils: pupilsWithLessons,
+                    selectedLessonIds,
+                    lessonsByPupilId
+                });
+                const preflightErrors = readErrors.concat(plan.errors);
+                if (preflightErrors.length > 0) {
+                    log(
+                        `Batch access preflight blocked for MarathonId ${marathonId}; `
+                        + `${preflightErrors.length} error(s), zero writes issued.`
+                    );
+                    dialog.showValidationErrors(preflightErrors);
+                    return;
+                }
+
+                pendingPlan = freezePlan({
+                    requestedEmails: parsed.entries.map((entry) => entry.input),
+                    matchedUsers: resolution.matches.length,
+                    selectedLessonIds,
+                    alreadyOpen: plan.alreadyOpen,
+                    needsOpening: plan.needsOpening
+                });
+
+                log(
+                    `Batch access preflight complete for MarathonId ${marathonId}; `
+                    + `${pendingPlan.needsOpening.length} pending, `
+                    + `${pendingPlan.alreadyOpen.length} already open.`
+                );
+
+                if (pendingPlan.needsOpening.length === 0) {
+                    showCompletedPlan(pendingPlan);
+                    return;
+                }
+
+                dialog.showConfirmation(Object.freeze({
+                    matchedUsers: pendingPlan.matchedUsers,
+                    selectedLessons: pendingPlan.selectedLessonIds.length,
+                    needsOpening: pendingPlan.needsOpening,
+                    alreadyOpen: pendingPlan.alreadyOpen
+                }));
+            } catch (error) {
+                log(
+                    `Batch access preflight failed for MarathonId ${marathonId} `
+                    + `(${getErrorCode(error)}).`
+                );
+                dialog.showValidationErrors([error]);
+            } finally {
+                running = false;
+            }
+        }
+
+        async function handleConfirm() {
+            if (running || !pendingPlan) {
+                return;
+            }
+
+            running = true;
+            const executionPlan = pendingPlan;
+            pendingPlan = null;
+            dialog.showExecution({
+                completed: 0,
+                total: executionPlan.needsOpening.length,
+                opened: 0,
+                failures: 0,
+                alreadyOpen: executionPlan.alreadyOpen.length
+            });
+
+            try {
+                completedResult = await executeAccessPlan({
+                    marathonId,
+                    requestedEmails: executionPlan.requestedEmails,
+                    matchedUsers: executionPlan.matchedUsers,
+                    selectedLessons: executionPlan.selectedLessonIds.length,
+                    alreadyOpen: executionPlan.alreadyOpen,
+                    needsOpening: executionPlan.needsOpening,
+                    sendRequest,
+                    wait,
+                    getConnectionState,
+                    onProgress: (progress) => dialog.showExecution(progress)
+                });
+                log(
+                    `Batch access execution complete for MarathonId ${marathonId}; `
+                    + `${completedResult.opened.length} opened, `
+                    + `${completedResult.alreadyOpen} already open, `
+                    + `${completedResult.failures.length} failed.`
+                );
+                for (const failure of completedResult.failures) {
+                    log(
+                        `Batch access write failed for MarathonLessonId `
+                        + `${failure.marathonLessonId} (${failure.code}).`
+                    );
+                }
+                dialog.showComplete(completedResult);
+            } finally {
+                running = false;
+            }
+        }
+
+        async function handleCopyReport() {
+            if (!completedResult) {
+                return;
+            }
+            await copyText(formatBatchReport(completedResult));
+        }
+
+        function handleRestart() {
+            pendingPlan = null;
+            completedResult = null;
+            running = false;
+        }
+
+        async function open({ stylesheetUrl = '' } = {}) {
+            if (
+                active
+                || document.getElementById(BATCH_ACCESS_OVERLAY_ID)
+            ) {
+                return;
+            }
+            if (!canStart()) {
+                window.alert('Another Edvibe Toolbox operation is already running.');
+                return;
+            }
+
+            marathonId = parseMarathonId(window.location.href);
+            if (!marathonId) {
+                window.alert('Open an Edvibe marathon page before opening batch lesson access.');
+                return;
+            }
+
+            active = true;
+            onActiveChange(true);
+
+            try {
+                dialog = createDialog();
+                dialog.addEventListener('edvibe-dialog-close', releaseOperation);
+                dialog.addEventListener('edvibe-batch-access-input-change', (event) => {
+                    const parsed = parseEmailInput(event?.detail?.emailInput);
+                    dialog.setEmailState({
+                        validCount: parsed.entries.length,
+                        malformedCount: parsed.malformed.length
+                    });
+                });
+                dialog.addEventListener('edvibe-batch-access-submit', handleSubmit);
+                dialog.addEventListener('edvibe-batch-access-confirm', handleConfirm);
+                dialog.addEventListener('edvibe-batch-access-copy-report', handleCopyReport);
+                dialog.addEventListener('edvibe-batch-access-restart', handleRestart);
+
+                dialog.configure({ stylesheetUrl });
+                (document.body || document.documentElement).appendChild(dialog);
+
+                log(`Initializing batch access for MarathonId ${marathonId}.`);
+                pupils = await loadAllPupils({ sendRequest, marathonId });
+                if (pupils.length === 0) {
+                    throw createFeatureError(
+                        'EMPTY_ROSTER',
+                        'No pupils were found in this marathon.'
+                    );
+                }
+
+                const firstPupilId = getPupilId(pupils[0]);
+                lessonCatalogue = await loadAllPupilLessons({
+                    sendRequest,
+                    marathonId,
+                    pupilId: firstPupilId
+                });
+                log(
+                    `Initialized batch access for MarathonId ${marathonId}; `
+                    + `${pupils.length} pupil(s), ${lessonCatalogue.length} lesson(s), `
+                    + `catalogue PupilId ${firstPupilId}.`
+                );
+                dialog.showConfigure({
+                    lessons: lessonCatalogue,
+                    emailState: { validCount: 0, malformedCount: 0 }
+                });
+            } catch (error) {
+                log(
+                    `Batch access initialization failed for MarathonId ${marathonId} `
+                    + `(${getErrorCode(error)}).`
+                );
+                try {
+                    if (typeof dialog?.showFatalError === 'function') {
+                        dialog.showFatalError(error);
+                    } else {
+                        throw error;
+                    }
+                } finally {
+                    releaseOperation();
+                }
+            }
+        }
+
+        return { open, isRunning: () => running };
+    }
+
     return {
         parseMarathonId,
         parseEmailInput,
@@ -395,6 +742,7 @@
         runWithRetry,
         buildAccessPlan,
         executeAccessPlan,
-        formatBatchReport
+        formatBatchReport,
+        createBatchLessonAccessFeature
     };
 });

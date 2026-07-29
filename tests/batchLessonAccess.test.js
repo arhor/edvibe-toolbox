@@ -11,8 +11,114 @@ const {
     runWithRetry,
     buildAccessPlan,
     executeAccessPlan,
-    formatBatchReport
+    formatBatchReport,
+    createBatchLessonAccessFeature
 } = require('../src/features/batch-lesson-access.js');
+
+function createFeatureDialog() {
+    const listeners = new Map();
+    const calls = [];
+    const dialog = {
+        calls,
+        addEventListener(type, listener) {
+            const typeListeners = listeners.get(type) || [];
+            typeListeners.push(listener);
+            listeners.set(type, typeListeners);
+        },
+        async emit(type, detail) {
+            for (const listener of listeners.get(type) || []) {
+                await listener({ detail });
+            }
+        }
+    };
+
+    for (const method of [
+        'configure',
+        'showConfigure',
+        'setEmailState',
+        'showValidation',
+        'showValidationErrors',
+        'showConfirmation',
+        'showExecution',
+        'showComplete',
+        'showFatalError'
+    ]) {
+        dialog[method] = (...args) => {
+            calls.push({ method, args });
+            return dialog;
+        };
+    }
+
+    return dialog;
+}
+
+function installFeatureBrowser({
+    href = 'https://app.edvibe.com/marathon/18508',
+    existingOverlay = null
+} = {}) {
+    const previousWindow = global.window;
+    const previousDocument = global.document;
+    const appended = [];
+    const alerts = [];
+
+    global.window = {
+        location: { href },
+        alert: (message) => alerts.push(message)
+    };
+    global.document = {
+        getElementById: () => existingOverlay,
+        body: {
+            appendChild(element) {
+                appended.push(element);
+                return element;
+            }
+        },
+        createElement: () => createFeatureDialog()
+    };
+
+    return {
+        alerts,
+        appended,
+        restore() {
+            global.window = previousWindow;
+            global.document = previousDocument;
+        }
+    };
+}
+
+function responsePage(items, total) {
+    return { Value: { Items: items, Page: { Count: total } } };
+}
+
+function createPupil({
+    pupilId,
+    marathonPupilId = pupilId + 1000,
+    email
+}) {
+    return {
+        PupilId: pupilId,
+        MarathonPupilId: marathonPupilId,
+        Email: email
+    };
+}
+
+function createLesson({
+    id,
+    number = id - 1,
+    name = `Lesson ${id}`,
+    isOpen = false
+}) {
+    return {
+        MarathonLessonId: id,
+        Number: number,
+        Name: name,
+        IsOpen: isOpen
+    };
+}
+
+function findDialogCalls(dialog, method) {
+    return dialog.calls.filter((call) => call.method === method);
+}
 
 test('parseMarathonId accepts only a numeric marathon path segment', () => {
     assert.equal(parseMarathonId('https://app.edvibe.com/marathon/18508'), 18508);
@@ -554,4 +660,523 @@ test('formatBatchReport includes actionable failures without internal IDs or pay
         /FAILED user@example\.com — 5\. Lesson name — 3 attempts — REQUEST_TIMEOUT: The request timed out\./
     );
     assert.doesNotMatch(report, /PupilId|MarathonPupilId|2034971|\{"Value":false\}/);
+});
+
+test('batch feature refuses duplicate or concurrent overlays before activating', async () => {
+    const existing = installFeatureBrowser({ existingOverlay: {} });
+    try {
+        let createCount = 0;
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async () => {
+                assert.fail('duplicate overlay must not read data');
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => assert.fail('duplicate overlay must not activate'),
+            createDialog: () => {
+                createCount += 1;
+                return createFeatureDialog();
+            },
+            copyText: async () => {},
+            log: () => {}
+        });
+
+        await feature.open();
+        assert.equal(createCount, 0);
+    } finally {
+        existing.restore();
+    }
+
+    const concurrent = installFeatureBrowser();
+    try {
+        const activeChanges = [];
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async () => {
+                assert.fail('concurrent operation must not read data');
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => false,
+            onActiveChange: (active) => activeChanges.push(active),
+            createDialog: () => createFeatureDialog(),
+            copyText: async () => {},
+            log: () => {}
+        });
+
+        await feature.open();
+        assert.deepEqual(activeChanges, []);
+        assert.equal(concurrent.appended.length, 0);
+        assert.deepEqual(concurrent.alerts, [
+            'Another Edvibe Toolbox operation is already running.'
+        ]);
+    } finally {
+        concurrent.restore();
+    }
+});
+
+test('batch feature initializes from the marathon URL, complete roster, and first-pupil catalogue', async () => {
+    const browser = installFeatureBrowser();
+    const roster = Array.from({ length: 51 }, (_, index) => createPupil({
+        pupilId: index + 1,
+        email: `pupil-${index + 1}@example.com`
+    }));
+    const catalogue = Array.from({ length: 21 }, (_, index) => createLesson({
+        id: index + 1,
+        number: index,
+        isOpen: index % 2 === 0
+    }));
+    const requests = [];
+    const activeChanges = [];
+    const dialog = createFeatureDialog();
+    let createCount = 0;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (controller, method, project, value) => {
+                requests.push({ controller, method, project, value });
+                if (method === 'GetMarathonPupils') {
+                    return responsePage(
+                        roster.slice(value.Skip, value.Skip + value.Take),
+                        roster.length
+                    );
+                }
+                return responsePage(
+                    catalogue.slice(value.Page.Skip, value.Page.Skip + value.Page.Take),
+                    catalogue.length
+                );
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: (active) => activeChanges.push(active),
+            createDialog: () => {
+                createCount += 1;
+                return dialog;
+            },
+            copyText: async () => {},
+            log: () => {}
+        });
+
+        await feature.open({ stylesheetUrl: 'chrome-extension://id/batch.css' });
+
+        assert.equal(createCount, 1);
+        assert.deepEqual(activeChanges, [true]);
+        assert.deepEqual(browser.appended, [dialog]);
+        assert.equal(requests.filter((request) => request.method === 'GetMarathonPupils').length, 2);
+        assert.equal(
+            requests.filter((request) => request.method === 'GetMarathonLessonsForPupilPagination').length,
+            2
+        );
+        assert.equal(requests[0].value.MarathonId, 18508);
+        assert.equal(requests[2].value.PupilId, roster[0].PupilId);
+        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, [{
+            stylesheetUrl: 'chrome-extension://id/batch.css'
+        }]);
+        assert.deepEqual(findDialogCalls(dialog, 'showConfigure')[0].args, [{
+            lessons: catalogue,
+            emailState: { validCount: 0, malformedCount: 0 }
+        }]);
+        assert.equal(feature.isRunning(), false);
+
+        await dialog.emit('edvibe-dialog-close');
+        await dialog.emit('edvibe-dialog-close');
+        assert.deepEqual(activeChanges, [true, false]);
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature shows a fatal empty-roster error and releases initialization guard', async () => {
+    const browser = installFeatureBrowser();
+    const activeChanges = [];
+    const dialog = createFeatureDialog();
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async () => responsePage([], 0),
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: (active) => activeChanges.push(active),
+            createDialog: () => dialog,
+            copyText: async () => {},
+            log: () => {}
+        });
+
+        await feature.open();
+
+        assert.deepEqual(activeChanges, [true, false]);
+        assert.deepEqual(browser.appended, [dialog]);
+        assert.equal(findDialogCalls(dialog, 'showConfigure').length, 0);
+        const fatal = findDialogCalls(dialog, 'showFatalError');
+        assert.equal(fatal.length, 1);
+        assert.equal(fatal[0].args[0].code, 'EMPTY_ROSTER');
+        assert.equal(feature.isRunning(), false);
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature aggregates malformed, missing, and ambiguous emails before state reads', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const roster = [
+        createPupil({ pupilId: 1, email: 'catalogue@example.com' }),
+        createPupil({ pupilId: 2, email: 'duplicate@example.com' }),
+        createPupil({ pupilId: 3, email: 'Duplicate@example.com' })
+    ];
+    let stateReads = 0;
+    let writes = 0;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method, _project, value) => {
+                if (method === 'GetMarathonPupils') {
+                    return responsePage(roster, roster.length);
+                }
+                if (method === 'ChangeIsOpenLessonForPupil') {
+                    writes += 1;
+                    return { Value: true };
+                }
+                if (value.PupilId !== roster[0].PupilId) {
+                    stateReads += 1;
+                }
+                return responsePage([createLesson({ id: 10 })], 1);
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async () => {},
+            log: () => {}
+        });
+        await feature.open();
+
+        await dialog.emit('edvibe-batch-access-input-change', {
+            emailInput: 'valid@example.com; invalid'
+        });
+        assert.deepEqual(findDialogCalls(dialog, 'setEmailState').at(-1).args, [{
+            validCount: 1,
+            malformedCount: 1
+        }]);
+
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'bad address; missing@example.com; duplicate@example.com',
+            selectedLessonIds: [10]
+        });
+
+        assert.equal(stateReads, 0);
+        assert.equal(writes, 0);
+        const errors = findDialogCalls(dialog, 'showValidationErrors').at(-1).args[0];
+        assert.equal(errors.length, 3);
+        assert.deepEqual(
+            errors.map((error) => error.code || error.type),
+            ['INVALID_EMAIL', 'missing', 'ambiguous']
+        );
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature retries and completes all matched-pupil state reads before confirmation', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const pupils = [
+        createPupil({ pupilId: 1, email: 'first@example.com' }),
+        createPupil({ pupilId: 2, email: 'second@example.com' })
+    ];
+    const waits = [];
+    const stateRequests = [];
+    let initializing = true;
+    let firstPupilSecondPageFailures = 0;
+    let writes = 0;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method, _project, value) => {
+                if (method === 'GetMarathonPupils') {
+                    return responsePage(pupils, pupils.length);
+                }
+                if (method === 'ChangeIsOpenLessonForPupil') {
+                    writes += 1;
+                    return { Value: true };
+                }
+                if (initializing) {
+                    return responsePage([
+                        createLesson({ id: 10 }),
+                        createLesson({ id: 11 })
+                    ], 2);
+                }
+
+                stateRequests.push({ pupilId: value.PupilId, skip: value.Page.Skip });
+                if (
+                    value.PupilId === 1
+                    && value.Page.Skip === 1
+                    && firstPupilSecondPageFailures++ === 0
+                ) {
+                    throw createFeatureError('REQUEST_TIMEOUT', 'Timed out.');
+                }
+                const lessons = value.PupilId === 1
+                    ? [
+                        createLesson({ id: 10, isOpen: false }),
+                        createLesson({ id: 11, isOpen: true })
+                    ]
+                    : [
+                        createLesson({ id: 10, isOpen: false }),
+                        createLesson({ id: 11, isOpen: false })
+                    ];
+                return responsePage(
+                    lessons.slice(value.Page.Skip, value.Page.Skip + 1),
+                    lessons.length
+                );
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async (delay) => waits.push(delay),
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async () => {},
+            log: () => {}
+        });
+        await feature.open();
+        initializing = false;
+
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'first@example.com; second@example.com',
+            selectedLessonIds: [10, 11]
+        });
+
+        assert.deepEqual(waits, [1000]);
+        assert.deepEqual(stateRequests, [
+            { pupilId: 1, skip: 0 },
+            { pupilId: 1, skip: 1 },
+            { pupilId: 1, skip: 0 },
+            { pupilId: 1, skip: 1 },
+            { pupilId: 2, skip: 0 },
+            { pupilId: 2, skip: 1 }
+        ]);
+        assert.equal(writes, 0);
+        const confirmation = findDialogCalls(dialog, 'showConfirmation').at(-1).args[0];
+        assert.equal(confirmation.matchedUsers, 2);
+        assert.equal(confirmation.selectedLessons, 2);
+        assert.equal(confirmation.needsOpening.length, 3);
+        assert.equal(confirmation.alreadyOpen.length, 1);
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature aggregates final read and plan errors while issuing zero writes', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const pupils = [
+        createPupil({ pupilId: 1, email: 'inconsistent@example.com' }),
+        createPupil({ pupilId: 2, email: 'failed-read@example.com' })
+    ];
+    let initializing = true;
+    let writes = 0;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method, _project, value) => {
+                if (method === 'GetMarathonPupils') {
+                    return responsePage(pupils, pupils.length);
+                }
+                if (method === 'ChangeIsOpenLessonForPupil') {
+                    writes += 1;
+                    return { Value: true };
+                }
+                if (initializing) {
+                    return responsePage([createLesson({ id: 10 })], 1);
+                }
+                if (value.PupilId === 2) {
+                    throw createFeatureError('SERVER_REJECTED', 'Read denied.');
+                }
+                return responsePage([], 0);
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async () => {},
+            log: () => {}
+        });
+        await feature.open();
+        initializing = false;
+
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'inconsistent@example.com; failed-read@example.com',
+            selectedLessonIds: [10]
+        });
+
+        const errors = findDialogCalls(dialog, 'showValidationErrors').at(-1).args[0];
+        assert.equal(errors.length, 2);
+        assert.deepEqual(errors.map((error) => error.code), [
+            'SERVER_REJECTED',
+            'INVALID_RESPONSE'
+        ]);
+        assert.equal(findDialogCalls(dialog, 'showConfirmation').length, 0);
+        assert.equal(writes, 0);
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature completes an all-already-open plan without confirmation or writes', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const pupil = createPupil({ pupilId: 1, email: 'open@example.com' });
+    let initializing = true;
+    let writes = 0;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method) => {
+                if (method === 'GetMarathonPupils') {
+                    return responsePage([pupil], 1);
+                }
+                if (method === 'ChangeIsOpenLessonForPupil') {
+                    writes += 1;
+                    return { Value: true };
+                }
+                return responsePage([
+                    createLesson({ id: 10, isOpen: initializing ? false : true })
+                ], 1);
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async () => {},
+            log: () => {}
+        });
+        await feature.open();
+        initializing = false;
+
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'open@example.com',
+            selectedLessonIds: [10]
+        });
+
+        assert.equal(findDialogCalls(dialog, 'showConfirmation').length, 0);
+        assert.equal(writes, 0);
+        assert.deepEqual(findDialogCalls(dialog, 'showComplete').at(-1).args[0], {
+            requestedEmails: ['open@example.com'],
+            matchedUsers: 1,
+            selectedLessons: 1,
+            opened: [],
+            alreadyOpen: 1,
+            failures: [],
+            attempts: 0
+        });
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature executes a frozen plan once, forwards progress, copies result, and reuses caches', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const pupil = createPupil({
+        pupilId: 1,
+        marathonPupilId: 101,
+        email: 'frozen@example.com'
+    });
+    const activeChanges = [];
+    const copied = [];
+    let rosterReads = 0;
+    let catalogueOrStateReads = 0;
+    let writes = 0;
+    let resolveWrite;
+    let initializationComplete = false;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method, _project, value) => {
+                if (method === 'GetMarathonPupils') {
+                    rosterReads += 1;
+                    return responsePage([pupil], 1);
+                }
+                if (method === 'GetMarathonLessonsForPupilPagination') {
+                    catalogueOrStateReads += 1;
+                    return responsePage([
+                        createLesson({ id: 10, number: 4, name: 'Frozen lesson', isOpen: false })
+                    ], 1);
+                }
+                writes += 1;
+                assert.deepEqual(value, {
+                    IsOpen: true,
+                    MarathonLessonId: 10,
+                    MarathonPupilId: 101,
+                    MarathonId: 18508
+                });
+                if (!initializationComplete) {
+                    assert.fail('writes cannot occur during initialization');
+                }
+                return new Promise((resolve) => {
+                    resolveWrite = resolve;
+                });
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: (active) => activeChanges.push(active),
+            createDialog: () => dialog,
+            copyText: async (text) => copied.push(text),
+            log: () => {}
+        });
+        await feature.open();
+        initializationComplete = true;
+
+        const submitted = {
+            emailInput: 'frozen@example.com',
+            selectedLessonIds: [10]
+        };
+        await dialog.emit('edvibe-batch-access-submit', submitted);
+        submitted.emailInput = 'changed@example.com';
+        submitted.selectedLessonIds[0] = 999;
+
+        const confirmation = findDialogCalls(dialog, 'showConfirmation').at(-1).args[0];
+        assert.ok(Object.isFrozen(confirmation.needsOpening));
+        assert.ok(Object.isFrozen(confirmation.needsOpening[0]));
+
+        const firstConfirmation = dialog.emit('edvibe-batch-access-confirm');
+        await Promise.resolve();
+        await dialog.emit('edvibe-batch-access-confirm');
+        assert.equal(feature.isRunning(), true);
+        assert.equal(writes, 1);
+
+        resolveWrite({ Value: true });
+        await firstConfirmation;
+
+        assert.equal(feature.isRunning(), false);
+        assert.equal(writes, 1);
+        const progress = findDialogCalls(dialog, 'showExecution');
+        assert.equal(progress.length, 2);
+        assert.equal(progress[0].args[0].total, 1);
+        assert.equal(progress[1].args[0].completed, 1);
+        const completed = findDialogCalls(dialog, 'showComplete').at(-1).args[0];
+        assert.deepEqual(completed.requestedEmails, ['frozen@example.com']);
+        assert.equal(completed.selectedLessons, 1);
+        assert.equal(completed.opened[0].marathonLessonId, 10);
+
+        await dialog.emit('edvibe-batch-access-copy-report');
+        assert.equal(copied.length, 1);
+        assert.equal(copied[0], formatBatchReport(completed));
+
+        const readsBeforeRestart = { rosterReads, catalogueOrStateReads };
+        await dialog.emit('edvibe-batch-access-restart');
+        assert.deepEqual({ rosterReads, catalogueOrStateReads }, readsBeforeRestart);
+        await dialog.emit('edvibe-batch-access-copy-report');
+        assert.equal(copied.length, 1);
+
+        await dialog.emit('edvibe-dialog-close');
+        assert.deepEqual(activeChanges, [true, false]);
+    } finally {
+        browser.restore();
+    }
 });
