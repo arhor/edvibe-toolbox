@@ -290,8 +290,20 @@ test('popup preserves commands and marathon requirements', () => {
 test('popup exposes batch lesson access for marathon management', () => {
     assert.match(
         popupScript,
-        /id: 'batch-lesson-access',\s*group: 'management',\s*title: 'Открыть доступ к урокам',\s*description: 'Открыть выбранные уроки для списка учеников\.',\s*command: 'OPEN_BATCH_LESSON_ACCESS',\s*requirement: 'marathon',\s*actionLabel: 'Открыть мастер',\s*busyLabel: 'Открывается…',\s*closeOnSuccess: true/
+        /id: 'batch-lesson-access',\s*group: 'management',\s*title: 'Открыть доступ к урокам',\s*description: 'Открыть выбранные уроки для списка учеников\.',\s*command: 'OPEN_BATCH_LESSON_ACCESS',\s*requirement: 'marathon',\s*busyLabel: 'Открывается…',\s*closeOnSuccess: true/
     );
+});
+
+test('popup styles interaction states on cards instead of action buttons', () => {
+    assert.doesNotMatch(popupScript, /actionLabel:/);
+    assert.doesNotMatch(popupStyles, /\.tool-action/);
+    assert.match(
+        popupStyles,
+        /popup-tool-card:hover:not\(\[data-disabled="true"\]\)/
+    );
+    assert.match(popupStyles, /popup-tool-card:focus-visible/);
+    assert.match(popupStyles, /popup-tool-card\.is-danger/);
+    assert.match(popupStyles, /\.tool-busy/);
 });
 
 test('popup restores and renders export progress', () => {
@@ -309,5 +321,5 @@ test('popup loads its stylesheet and scripts in the required order', () => {
     );
     assert.match(popupScript, /createLoggerFactory\('POPUP'\)/);
     assert.match(popupStyles, /popup-tool-card/);
-    assert.match(popupStyles, /\.tool-action\.is-danger/);
+    assert.match(popupStyles, /popup-tool-card\.is-danger/);
 });

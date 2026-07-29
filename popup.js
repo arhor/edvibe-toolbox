@@ -15,7 +15,6 @@ const TOOL_DEFINITIONS = Object.freeze([
         description: 'Скачать уроки, материалы и резервный JSON.',
         command: 'START_FULL_AUTOMATION',
         requirement: 'marathon',
-        actionLabel: 'Экспортировать',
         busyLabel: 'Экспортируется…'
     }),
     Object.freeze({
@@ -25,7 +24,6 @@ const TOOL_DEFINITIONS = Object.freeze([
         description: 'Очистить сохранённые ответы в выбранных уроках.',
         command: 'OPEN_LESSON_RESET',
         requirement: 'marathon',
-        actionLabel: 'Открыть мастер',
         busyLabel: 'Открывается…',
         appearance: 'danger',
         closeOnSuccess: true
@@ -37,7 +35,6 @@ const TOOL_DEFINITIONS = Object.freeze([
         description: 'Открыть выбранные уроки для списка учеников.',
         command: 'OPEN_BATCH_LESSON_ACCESS',
         requirement: 'marathon',
-        actionLabel: 'Открыть мастер',
         busyLabel: 'Открывается…',
         closeOnSuccess: true
     }),
@@ -48,7 +45,6 @@ const TOOL_DEFINITIONS = Object.freeze([
         description: 'Записать запросы и ответы выполненного действия.',
         command: 'OPEN_ACTION_RECORDER',
         requirement: 'edvibe',
-        actionLabel: 'Открыть рекордер',
         busyLabel: 'Открывается…',
         closeOnSuccess: true
     })
