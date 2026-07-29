@@ -10,6 +10,62 @@
     'use strict';
 
     const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const TRANSIENT_CODES = new Set([
+        'WS_UNAVAILABLE',
+        'REQUEST_TIMEOUT',
+        'SEND_FAILED'
+    ]);
+
+    function createFeatureError(code, message, details = {}) {
+        const error = new Error(message);
+        error.code = code;
+        Object.assign(error, details);
+        return error;
+    }
+
+    function getPupilId(pupil) {
+        return pupil.PupilId === undefined ? pupil.Id : pupil.PupilId;
+    }
+
+    function getMarathonPupilId(pupil) {
+        return pupil.MarathonPupilId === undefined ? pupil.Id : pupil.MarathonPupilId;
+    }
+
+    function isTransientError(error, getConnectionState) {
+        if (!TRANSIENT_CODES.has(error?.code)) {
+            return false;
+        }
+        if (error.code !== 'SEND_FAILED') {
+            return true;
+        }
+        return Boolean(error.cause) && !getConnectionState().isOpen;
+    }
+
+    async function runWithRetry(operation, {
+        wait,
+        getConnectionState,
+        retryDelays = [1000, 3000]
+    }) {
+        let attempts = 0;
+        while (attempts <= retryDelays.length) {
+            attempts += 1;
+            try {
+                if (attempts > 1 && !getConnectionState().isOpen) {
+                    throw createFeatureError(
+                        'WS_UNAVAILABLE',
+                        'The Edvibe connection is unavailable.'
+                    );
+                }
+                return { value: await operation(), attempts };
+            } catch (error) {
+                if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
+                    error.attempts = attempts;
+                    throw error;
+                }
+                await wait(retryDelays[attempts - 1]);
+            }
+        }
+    }
 
     function parseMarathonId(url) {
         const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
@@ -146,12 +202,197 @@
         return { matches, errors };
     }
 
+    function buildAccessPlan({ pupils, selectedLessonIds, lessonsByPupilId }) {
+        const alreadyOpen = [];
+        const needsOpening = [];
+        const errors = [];
+
+        for (const pupil of pupils) {
+            const pupilId = getPupilId(pupil);
+            const lessons = lessonsByPupilId.get(pupilId) || [];
+            const selectedLessons = new Map();
+            const duplicateLessonIds = new Set();
+
+            for (const lesson of lessons) {
+                if (!selectedLessonIds.includes(lesson.MarathonLessonId)) {
+                    continue;
+                }
+                const existing = selectedLessons.get(lesson.MarathonLessonId);
+                if (existing) {
+                    duplicateLessonIds.add(lesson.MarathonLessonId);
+                    errors.push(createFeatureError(
+                        'INVALID_RESPONSE',
+                        `Multiple lesson states were returned for lesson ${lesson.MarathonLessonId}.`,
+                        {
+                            email: pupil.Email,
+                            pupilId,
+                            marathonLessonId: lesson.MarathonLessonId
+                        }
+                    ));
+                    continue;
+                }
+                selectedLessons.set(lesson.MarathonLessonId, lesson);
+            }
+
+            for (const marathonLessonId of selectedLessonIds) {
+                const lesson = selectedLessons.get(marathonLessonId);
+                if (duplicateLessonIds.has(marathonLessonId)) {
+                    continue;
+                }
+                if (!lesson) {
+                    errors.push(createFeatureError(
+                        'INVALID_RESPONSE',
+                        `Lesson ${marathonLessonId} was not returned for ${pupil.Email}.`,
+                        { email: pupil.Email, pupilId, marathonLessonId }
+                    ));
+                    continue;
+                }
+                if (typeof lesson.IsOpen !== 'boolean') {
+                    errors.push(createFeatureError(
+                        'INVALID_RESPONSE',
+                        `Lesson ${marathonLessonId} returned an invalid access state.`,
+                        { email: pupil.Email, pupilId, marathonLessonId }
+                    ));
+                    continue;
+                }
+
+                const item = {
+                    email: pupil.Email,
+                    pupilId,
+                    marathonPupilId: getMarathonPupilId(pupil),
+                    marathonLessonId,
+                    lessonName: lesson.Name
+                };
+                if (lesson.IsOpen === true) {
+                    alreadyOpen.push(item);
+                } else {
+                    needsOpening.push(item);
+                }
+            }
+        }
+
+        return { alreadyOpen, needsOpening, errors };
+    }
+
+    function createProgressSnapshot({ completed, total, opened, failures, alreadyOpen, item }) {
+        return Object.freeze({
+            completed,
+            total,
+            opened,
+            failures,
+            alreadyOpen,
+            current: Object.freeze({ email: item.email, lessonName: item.lessonName })
+        });
+    }
+
+    async function executeAccessPlan({
+        marathonId,
+        requestedEmails,
+        matchedUsers,
+        selectedLessons,
+        alreadyOpen = [],
+        needsOpening = [],
+        sendRequest,
+        wait,
+        getConnectionState,
+        onProgress = () => {}
+    }) {
+        const opened = [];
+        const failures = [];
+        let attempts = 0;
+
+        for (let index = 0; index < needsOpening.length; index += 1) {
+            const item = needsOpening[index];
+            await wait(300);
+            try {
+                const result = await runWithRetry(
+                    async () => {
+                        const response = await sendRequest(
+                            'MarathonLessonWsController',
+                            'ChangeIsOpenLessonForPupil',
+                            'Marathons',
+                            {
+                                IsOpen: true,
+                                MarathonLessonId: item.marathonLessonId,
+                                MarathonPupilId: item.marathonPupilId,
+                                MarathonId: marathonId
+                            }
+                        );
+                        if (response?.Value !== true) {
+                            throw createFeatureError(
+                                'INVALID_RESPONSE',
+                                'The lesson access change was not confirmed.'
+                            );
+                        }
+                        return response;
+                    },
+                    { wait, getConnectionState }
+                );
+                attempts += result.attempts;
+                opened.push(item);
+            } catch (error) {
+                const itemAttempts = error.attempts || 1;
+                attempts += itemAttempts;
+                failures.push({
+                    email: item.email,
+                    lessonName: item.lessonName,
+                    marathonLessonId: item.marathonLessonId,
+                    attempts: itemAttempts,
+                    code: error.code || 'UNKNOWN_ERROR',
+                    message: error.message
+                });
+            }
+            onProgress(createProgressSnapshot({
+                completed: index + 1,
+                total: needsOpening.length,
+                opened: opened.length,
+                failures: failures.length,
+                alreadyOpen: alreadyOpen.length,
+                item
+            }));
+        }
+
+        return {
+            requestedEmails,
+            matchedUsers,
+            selectedLessons,
+            opened,
+            alreadyOpen: alreadyOpen.length,
+            failures,
+            attempts
+        };
+    }
+
+    function formatBatchReport(result) {
+        const lines = [
+            `Requested emails: ${result.requestedEmails.length}`,
+            `Matched users: ${result.matchedUsers}`,
+            `Selected lessons: ${result.selectedLessons}`,
+            `Opened: ${result.opened.length}`,
+            `Already open: ${result.alreadyOpen}`,
+            `Failed: ${result.failures.length}`,
+            `Attempts: ${result.attempts}`
+        ];
+        for (const failure of result.failures) {
+            lines.push(
+                `FAILED ${failure.email} — ${failure.marathonLessonId}. ${failure.lessonName} `
+                + `— ${failure.attempts} attempts — ${failure.code}: ${failure.message}`
+            );
+        }
+        return lines.join('\n');
+    }
+
     return {
         parseMarathonId,
         parseEmailInput,
         appendPage,
         loadAllPupils,
         loadAllPupilLessons,
-        resolvePupilsByEmail
+        resolvePupilsByEmail,
+        createFeatureError,
+        runWithRetry,
+        buildAccessPlan,
+        executeAccessPlan,
+        formatBatchReport
     };
 });
