@@ -79,6 +79,106 @@ test('transport rejects when no intercepted socket is open', async () => {
     );
 });
 
+test('transport exposes connection state and typed unavailable errors', async () => {
+    const root = { WebSocket: FakeWebSocket };
+    const transport = createWebSocketTransport({
+        WebSocketClass: FakeWebSocket,
+        cryptoApi: { randomUUID: () => 'request-state' },
+        log() {}
+    });
+
+    assert.deepEqual(transport.getConnectionState(), { isOpen: false });
+    await assert.rejects(
+        transport.sendRequest('Controller', 'Method', 'Project', {}),
+        (error) => error.code === 'WS_UNAVAILABLE'
+            && error.controller === 'Controller'
+            && error.method === 'Method'
+    );
+
+    transport.install(root);
+    new root.WebSocket('wss://example.test');
+    assert.deepEqual(transport.getConnectionState(), { isOpen: true });
+});
+
+test('transport rejects timed out requests with typed request metadata', async () => {
+    const root = { WebSocket: FakeWebSocket };
+    let timeoutCallback;
+    const transport = createWebSocketTransport({
+        WebSocketClass: FakeWebSocket,
+        cryptoApi: { randomUUID: () => 'request-timeout' },
+        requestTimeoutMs: 20,
+        setTimeoutFn(callback) {
+            timeoutCallback = callback;
+            return 'timeout-id';
+        },
+        clearTimeoutFn() {},
+        log() {}
+    });
+    transport.install(root);
+    new root.WebSocket('wss://example.test');
+
+    const response = transport.sendRequest('Controller', 'Method', 'Project', {});
+    timeoutCallback();
+
+    await assert.rejects(response, (error) => error.code === 'REQUEST_TIMEOUT'
+        && error.controller === 'Controller'
+        && error.method === 'Method'
+        && error.requestId === 'request-timeout');
+});
+
+test('transport rejects server errors with typed request and server metadata', async () => {
+    const root = { WebSocket: FakeWebSocket };
+    const transport = createWebSocketTransport({
+        WebSocketClass: FakeWebSocket,
+        cryptoApi: { randomUUID: () => 'request-rejected' },
+        log() {}
+    });
+    transport.install(root);
+    const socket = new root.WebSocket('wss://example.test');
+
+    const response = transport.sendRequest('Controller', 'Method', 'Project', {});
+    socket.receive({
+        RequestId: 'request-rejected',
+        IsSuccess: false,
+        ErrorCode: 403
+    });
+
+    await assert.rejects(response, (error) => {
+        assert.equal(error.code, 'SERVER_REJECTED');
+        assert.equal(error.controller, 'Controller');
+        assert.equal(error.method, 'Method');
+        assert.equal(error.requestId, 'request-rejected');
+        assert.equal(error.serverErrorCode, 403);
+        return true;
+    });
+});
+
+test('transport rejects send failures with typed request metadata and cause', async () => {
+    class ThrowingWebSocket extends FakeWebSocket {
+        send() {
+            throw new Error('socket write failed');
+        }
+    }
+
+    const root = { WebSocket: ThrowingWebSocket };
+    const transport = createWebSocketTransport({
+        WebSocketClass: ThrowingWebSocket,
+        cryptoApi: { randomUUID: () => 'request-send-failed' },
+        log() {}
+    });
+    transport.install(root);
+    new root.WebSocket('wss://example.test');
+
+    await assert.rejects(
+        transport.sendRequest('Controller', 'Method', 'Project', {}),
+        (error) => error.code === 'SEND_FAILED'
+            && error.controller === 'Controller'
+            && error.method === 'Method'
+            && error.requestId === 'request-send-failed'
+            && error.cause?.message === 'socket write failed'
+    );
+});
+
 test('transport sends fire-and-forget packets through the active socket', () => {
     const root = { WebSocket: FakeWebSocket };
     const transport = createWebSocketTransport({

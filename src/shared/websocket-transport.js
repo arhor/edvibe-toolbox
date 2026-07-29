@@ -11,6 +11,23 @@
 
     const REQUEST_TIMEOUT_MS = 15000;
 
+    function createTransportError(code, message, details = {}) {
+        const error = new Error(message);
+        error.code = code;
+        for (const key of [
+            'controller',
+            'method',
+            'requestId',
+            'serverErrorCode',
+            'cause'
+        ]) {
+            if (details[key] !== undefined) {
+                error[key] = details[key];
+            }
+        }
+        return error;
+    }
+
     function createWebSocketTransport({
         WebSocketClass,
         cryptoApi,
@@ -153,9 +170,15 @@
                 );
 
                 if (data.IsSuccess !== true) {
-                    pending.reject(new Error(
+                    pending.reject(createTransportError('SERVER_REJECTED',
                         `${data.Class || 'Edvibe'}:${data.Method || 'request'} `
-                        + `failed with ErrorCode ${data.ErrorCode}`
+                        + `failed with ErrorCode ${data.ErrorCode}`,
+                        {
+                            controller: pending.controller,
+                            method: pending.method,
+                            requestId: data.RequestId,
+                            serverErrorCode: data.ErrorCode
+                        }
                     ));
                     return;
                 }
@@ -196,22 +219,31 @@
             rootObject.WebSocket = InterceptedWebSocket;
         }
 
-        function requireOpenSocket() {
+        function requireOpenSocket(controller, method) {
             if (!activeSocket || activeSocket.readyState !== WebSocketClass.OPEN) {
-                throw new Error(
+                throw createTransportError('WS_UNAVAILABLE',
                     'Active WebSocket connection is missing. '
-                    + 'Please reload the Edvibe tab context.'
+                    + 'Please reload the Edvibe tab context.',
+                    { controller, method }
                 );
             }
 
             return activeSocket;
         }
 
+        function getConnectionState() {
+            return {
+                isOpen: Boolean(
+                    activeSocket && activeSocket.readyState === WebSocketClass.OPEN
+                )
+            };
+        }
+
         function sendRequest(controller, method, projectName, valueObject) {
             return new Promise((resolve, reject) => {
                 let socket;
                 try {
-                    socket = requireOpenSocket();
+                    socket = requireOpenSocket(controller, method);
                 } catch (error) {
                     log('No active WebSocket connection.');
                     reject(error);
@@ -225,8 +257,14 @@
                         `✕ ${controller}.${method} `
                         + `[${packet.RequestId}] timed out after ${requestTimeoutMs}ms`
                     );
-                    reject(new Error(
-                        `${controller}:${method} timed out after ${requestTimeoutMs}ms.`
+                    reject(createTransportError(
+                        'REQUEST_TIMEOUT',
+                        `${controller}:${method} timed out after ${requestTimeoutMs}ms.`,
+                        {
+                            controller,
+                            method,
+                            requestId: packet.RequestId
+                        }
                     ));
                 }, requestTimeoutMs);
 
@@ -257,13 +295,18 @@
                         `✕ ${controller}.${method} `
                         + `[${packet.RequestId}] send failed: ${error.message}`
                     );
-                    reject(error);
+                    reject(createTransportError('SEND_FAILED', error.message, {
+                        controller,
+                        method,
+                        requestId: packet.RequestId,
+                        cause: error
+                    }));
                 }
             });
         }
 
         function sendWithoutResponse(controller, method, projectName, valueObject) {
-            const socket = requireOpenSocket();
+            const socket = requireOpenSocket(controller, method);
             const packet = createPacket(controller, method, projectName, valueObject);
             log(
                 `→ ${controller}.${method} `
@@ -277,7 +320,13 @@
             }
         }
 
-        return { install, sendRequest, sendWithoutResponse, subscribeFrames };
+        return {
+            install,
+            sendRequest,
+            sendWithoutResponse,
+            subscribeFrames,
+            getConnectionState
+        };
     }
 
     return { createWebSocketTransport };
