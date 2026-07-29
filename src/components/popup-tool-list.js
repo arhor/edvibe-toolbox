@@ -11,8 +11,8 @@
                     <h3 class="tool-title"></h3>
                     <p class="tool-description"></p>
                     <p class="tool-requirement" hidden></p>
+                    <p class="tool-busy" hidden></p>
                 </div>
-                <button class="tool-action" type="button"></button>
             </div>
         `;
     }
@@ -39,15 +39,35 @@
                     title: this.querySelector('.tool-title'),
                     description: this.querySelector('.tool-description'),
                     requirement: this.querySelector('.tool-requirement'),
-                    button: this.querySelector('.tool-action')
+                    busy: this.querySelector('.tool-busy')
                 };
-                this.elements.button?.addEventListener('click', () => {
-                    if (typeof this.onExecute === 'function' && this.toolId) {
-                        this.onExecute(this.toolId);
-                    }
-                });
+                this.setAttribute('role', 'button');
+                this.addEventListener('click', () => this.activate());
+                this.addEventListener(
+                    'keydown',
+                    (event) => this.handleKeydown(event)
+                );
             }
             this.applyOptions();
+        }
+
+        activate() {
+            if (
+                this.dataset.disabled === 'true'
+                || typeof this.onExecute !== 'function'
+                || !this.toolId
+            ) {
+                return;
+            }
+            this.onExecute(this.toolId);
+        }
+
+        handleKeydown(event) {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+            event.preventDefault();
+            this.activate();
         }
 
         configure(options = {}) {
@@ -68,18 +88,15 @@
             this.onExecute = typeof options.onExecute === 'function' ? options.onExecute : null;
             this.dataset.toolId = this.toolId;
             this.dataset.disabled = String(disabled);
+            this.setAttribute('aria-disabled', String(disabled));
+            this.tabIndex = disabled ? -1 : 0;
+            this.classList.toggle('is-danger', tool.appearance === 'danger');
             this.elements.title.textContent = String(tool.title || '');
             this.elements.description.textContent = String(tool.description || '');
             this.elements.requirement.textContent = reason;
             this.elements.requirement.hidden = !reason;
-            this.elements.button.textContent = String(
-                options.busy ? tool.busyLabel || '' : tool.actionLabel || ''
-            );
-            this.elements.button.disabled = disabled;
-            this.elements.button.classList.toggle(
-                'is-danger',
-                tool.appearance === 'danger'
-            );
+            this.elements.busy.textContent = String(tool.busyLabel || '');
+            this.elements.busy.hidden = !options.busy;
         }
     }
 
