@@ -1180,3 +1180,123 @@ test('batch feature executes a frozen plan once, forwards progress, copies resul
         browser.restore();
     }
 });
+
+test('batch feature close clears a pending plan, releases once, and reinitializes on reopen', async () => {
+    const browser = installFeatureBrowser();
+    const dialogs = [createFeatureDialog(), createFeatureDialog()];
+    const pupil = createPupil({
+        pupilId: 1,
+        marathonPupilId: 101,
+        email: 'pending@example.com'
+    });
+    const activeChanges = [];
+    let rosterReads = 0;
+    let lessonReads = 0;
+    let writes = 0;
+    let dialogIndex = 0;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method) => {
+                if (method === 'GetMarathonPupils') {
+                    rosterReads += 1;
+                    return responsePage([pupil], 1);
+                }
+                if (method === 'GetMarathonLessonsForPupilPagination') {
+                    lessonReads += 1;
+                    return responsePage([createLesson({ id: 10, isOpen: false })], 1);
+                }
+                writes += 1;
+                return { Value: true };
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: (active) => activeChanges.push(active),
+            createDialog: () => dialogs[dialogIndex++],
+            copyText: async () => {},
+            log: () => {}
+        });
+
+        await feature.open();
+        await dialogs[0].emit('edvibe-batch-access-submit', {
+            emailInput: 'pending@example.com',
+            selectedLessonIds: [10]
+        });
+        assert.equal(findDialogCalls(dialogs[0], 'showConfirmation').length, 1);
+
+        await dialogs[0].emit('edvibe-dialog-close');
+        await dialogs[0].emit('edvibe-dialog-close');
+        await dialogs[0].emit('edvibe-batch-access-confirm');
+
+        assert.equal(writes, 0);
+        assert.deepEqual(activeChanges, [true, false]);
+
+        await feature.open();
+
+        assert.equal(rosterReads, 2);
+        assert.equal(lessonReads, 3);
+        assert.equal(findDialogCalls(dialogs[1], 'showConfigure').length, 1);
+        assert.deepEqual(activeChanges, [true, false, true]);
+
+        await dialogs[1].emit('edvibe-dialog-close');
+        await dialogs[1].emit('edvibe-dialog-close');
+        assert.deepEqual(activeChanges, [true, false, true, false]);
+    } finally {
+        browser.restore();
+    }
+});
+
+test('batch feature close discards the completed result while restart remains cache-preserving', async () => {
+    const browser = installFeatureBrowser();
+    const dialog = createFeatureDialog();
+    const pupil = createPupil({ pupilId: 1, email: 'complete@example.com' });
+    const copied = [];
+    let initializationComplete = false;
+    let reads = 0;
+
+    try {
+        const feature = createBatchLessonAccessFeature({
+            sendRequest: async (_controller, method) => {
+                reads += 1;
+                if (method === 'GetMarathonPupils') {
+                    return responsePage([pupil], 1);
+                }
+                return responsePage([
+                    createLesson({ id: 10, isOpen: initializationComplete })
+                ], 1);
+            },
+            getConnectionState: () => ({ isOpen: true }),
+            wait: async () => {},
+            canStart: () => true,
+            onActiveChange: () => {},
+            createDialog: () => dialog,
+            copyText: async (text) => copied.push(text),
+            log: () => {}
+        });
+
+        await feature.open();
+        initializationComplete = true;
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'complete@example.com',
+            selectedLessonIds: [10]
+        });
+        await dialog.emit('edvibe-batch-access-copy-report');
+        assert.equal(copied.length, 1);
+
+        const readsBeforeRestart = reads;
+        await dialog.emit('edvibe-batch-access-restart');
+        assert.equal(reads, readsBeforeRestart);
+
+        await dialog.emit('edvibe-batch-access-submit', {
+            emailInput: 'complete@example.com',
+            selectedLessonIds: [10]
+        });
+        await dialog.emit('edvibe-dialog-close');
+        await dialog.emit('edvibe-batch-access-copy-report');
+
+        assert.equal(copied.length, 1);
+    } finally {
+        browser.restore();
+    }
+});

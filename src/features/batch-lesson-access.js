@@ -433,6 +433,17 @@
             onActiveChange(false);
         }
 
+        function handleClose() {
+            running = false;
+            pupils = [];
+            lessonCatalogue = [];
+            pendingPlan = null;
+            completedResult = null;
+            marathonId = null;
+            dialog = null;
+            releaseOperation();
+        }
+
         function getErrorCode(error) {
             return typeof error?.code === 'string' ? error.code : 'UNKNOWN_ERROR';
         }
@@ -671,7 +682,7 @@
 
             try {
                 dialog = createDialog();
-                dialog.addEventListener('edvibe-dialog-close', releaseOperation);
+                dialog.addEventListener('edvibe-dialog-close', handleClose);
                 dialog.addEventListener('edvibe-batch-access-input-change', (event) => {
                     const parsed = parseEmailInput(event?.detail?.emailInput);
                     dialog.setEmailState({
