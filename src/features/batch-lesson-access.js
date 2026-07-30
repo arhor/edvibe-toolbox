@@ -790,6 +790,7 @@
 
                 dialog.configure({ stylesheetUrl });
                 (document.body || document.documentElement).appendChild(dialog);
+                dialog.showLoading();
 
                 log(`Initializing batch access for MarathonId ${marathonId}.`);
                 pupils = await loadAllPupils({ sendRequest, marathonId });
@@ -812,8 +813,7 @@
                     + `catalogue PupilId ${firstPupilId}.`
                 );
                 dialog.showConfigure({
-                    lessons: lessonCatalogue,
-                    emailState: { validCount: 0, malformedCount: 0 }
+                    lessons: lessonCatalogue
                 });
             } catch (error) {
                 log(

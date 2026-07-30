@@ -259,6 +259,35 @@ test('starts with no selected lessons and blocks submission without supplied val
     assert.equal(dialog.elements.lessonsList.querySelectorAll('input')[0].checked, false);
 });
 
+test('shows an explicit loading state while keeping email input available', () => {
+    const { dialog } = createDialog();
+
+    dialog.showLoading();
+
+    assert.equal(dialog.mode, 'loading');
+    assert.match(dialog.elements.status.textContent, /Загружаем уроки/);
+    assert.equal(dialog.elements.progress.hidden, false);
+    assert.equal(dialog.elements.progress.getAttribute('aria-label'), 'Загрузка уроков');
+    assert.equal(dialog.elements.emails.disabled, false);
+    assert.equal(dialog.elements.selectAll.disabled, true);
+});
+
+test('retains pasted email state when the lesson catalogue finishes loading', () => {
+    const { dialog } = createDialog();
+    dialog.showLoading();
+    dialog.elements.emails.value = 'first@example.com';
+    dialog.setEmailState({ validCount: 1, malformedCount: 0 });
+
+    dialog.showConfigure({
+        lessons: [{ MarathonLessonId: 10, Number: 0, Name: 'Welcome' }]
+    });
+    dialog.selectLesson(10, true);
+
+    assert.equal(dialog.elements.emails.value, 'first@example.com');
+    assert.equal(dialog.emailState.validCount, 1);
+    assert.equal(dialog.elements.submit.disabled, false);
+});
+
 test('renders numbered lessons and uses supplied email state without parsing input', () => {
     const { dialog } = createDialog();
     dialog.showConfigure({

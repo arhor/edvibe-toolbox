@@ -34,6 +34,7 @@ function createFeatureDialog() {
 
     for (const method of [
         'configure',
+        'showLoading',
         'showConfigure',
         'setEmailState',
         'showValidation',
@@ -873,6 +874,7 @@ test('batch feature initializes from the marathon URL, complete roster, and firs
         assert.equal(createCount, 1);
         assert.deepEqual(activeChanges, [true]);
         assert.deepEqual(browser.appended, [dialog]);
+        assert.equal(findDialogCalls(dialog, 'showLoading').length, 1);
         assert.equal(requests.filter((request) => request.method === 'GetMarathonPupils').length, 2);
         assert.equal(
             requests.filter((request) => request.method === 'GetMarathonLessonsForPupilPagination').length,
@@ -884,8 +886,7 @@ test('batch feature initializes from the marathon URL, complete roster, and firs
             stylesheetUrl: 'chrome-extension://id/batch.css'
         }]);
         assert.deepEqual(findDialogCalls(dialog, 'showConfigure')[0].args, [{
-            lessons: catalogue,
-            emailState: { validCount: 0, malformedCount: 0 }
+            lessons: catalogue
         }]);
         assert.equal(feature.isRunning(), false);
 

@@ -59,6 +59,8 @@
                         <section class="edvibe-batch-access-failures" aria-live="polite" hidden></section>
                     </div>
                     <div class="edvibe-batch-access-live-region">
+                        <span class="edvibe-batch-access-loading-indicator" role="img"
+                            aria-label="Загрузка уроков" hidden></span>
                         <p class="edvibe-batch-access-status" role="status" aria-live="polite"></p>
                         <progress class="edvibe-batch-access-progress" max="0" value="0" hidden></progress>
                     </div>
@@ -144,6 +146,7 @@
                 errors: find('.edvibe-batch-access-errors'),
                 summary: find('.edvibe-batch-access-summary'),
                 failures: find('.edvibe-batch-access-failures'),
+                loadingIndicator: find('.edvibe-batch-access-loading-indicator'),
                 status: find('.edvibe-batch-access-status'),
                 progress: find('.edvibe-batch-access-progress'),
                 submit: find('.edvibe-batch-access-submit'),
@@ -228,8 +231,25 @@
             }
             this.mode = 'configure';
             this.clearMessages();
-            this.setEmailState(options.emailState || this.emailState);
+            if (options.emailState !== undefined) {
+                this.setEmailState(options.emailState);
+            }
             this.renderLessons();
+            this.renderState();
+            return this;
+        }
+
+        showLoading(message = 'Загружаем уроки…') {
+            this.mode = 'loading';
+            this.clearMessages();
+            this.setStatus(message);
+            if (this.elements) {
+                this.elements.loadingIndicator.hidden = false;
+                this.elements.progress.hidden = false;
+                this.elements.progress.removeAttribute?.('value');
+                this.elements.progress.max = 0;
+                this.elements.progress.setAttribute('aria-label', 'Загрузка уроков');
+            }
             this.renderState();
             return this;
         }
@@ -270,6 +290,9 @@
 
         showExecution(progress = {}) {
             this.mode = 'executing';
+            if (this.elements) {
+                this.elements.loadingIndicator.hidden = true;
+            }
             const completed = Math.max(0, Number(progress.completed) || 0);
             const total = Math.max(0, Number(progress.total) || 0);
             const opened = Math.max(0, Number(progress.opened) || 0);
@@ -296,6 +319,7 @@
             this.mode = failures.length ? 'partial-complete' : 'complete';
             this.clearMessages();
             if (this.elements) {
+                this.elements.loadingIndicator.hidden = true;
                 this.elements.progress.hidden = true;
             }
             this.renderSummary([
@@ -451,6 +475,10 @@
             return ['validating', 'confirm', 'executing', 'fatal-error'].includes(this.mode);
         }
 
+        isLessonSelectionLocked() {
+            return this.mode === 'loading' || this.isEditingLocked();
+        }
+
         canClose() {
             return ['configure', 'validation-error', 'complete', 'partial-complete', 'fatal-error']
                 .includes(this.mode);
@@ -469,10 +497,11 @@
             const locked = this.isEditingLocked();
             const completed = ['complete', 'partial-complete'].includes(this.mode);
             this.elements.emails.disabled = locked || this.mode === 'fatal-error';
-            this.elements.selectAll.disabled = locked || this.lessons.length === 0;
+            const lessonsLocked = this.isLessonSelectionLocked();
+            this.elements.selectAll.disabled = lessonsLocked || this.lessons.length === 0;
             this.elements.clearAll.disabled = locked || this.selectedLessonIds.size === 0;
             this.elements.lessonsList.querySelectorAll('input').forEach((input) => {
-                input.disabled = locked || this.mode === 'fatal-error';
+                input.disabled = lessonsLocked || this.mode === 'fatal-error';
             });
             this.elements.submit.hidden = !['configure', 'validation-error'].includes(this.mode);
             this.elements.submit.disabled = !this.canSubmit();
@@ -483,13 +512,14 @@
             this.elements.restart.hidden = !completed;
             this.elements.restart.disabled = !completed;
             this.elements.close.disabled = !this.canClose();
-            if (this.mode !== 'executing') {
+            if (!['loading', 'executing'].includes(this.mode)) {
                 this.elements.progress.hidden = true;
             }
+            this.elements.loadingIndicator.hidden = this.mode !== 'loading';
         }
 
         selectLesson(lessonId, selected) {
-            if (this.isEditingLocked()) {
+            if (this.isLessonSelectionLocked()) {
                 return;
             }
             if (selected) {
@@ -508,7 +538,7 @@
         }
 
         handleSelectAll() {
-            if (this.isEditingLocked()) {
+            if (this.isLessonSelectionLocked()) {
                 return;
             }
             this.selectedLessonIds = this.elements.selectAll.checked
@@ -519,7 +549,7 @@
         }
 
         handleClearAll() {
-            if (this.isEditingLocked()) {
+            if (this.isLessonSelectionLocked()) {
                 return;
             }
             this.selectedLessonIds = new Set();
