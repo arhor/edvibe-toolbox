@@ -58,6 +58,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }, '*');
             sendResponse({ status: 'success', info: 'Batch lesson access opened.' });
             break;
+        case 'OPEN_BATCH_USER_MANAGEMENT':
+            window.postMessage({
+                type: 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT',
+                stylesheetUrl: chrome.runtime.getURL(
+                    'src/components/batch-user-management-dialog.css'
+                )
+            }, '*');
+            sendResponse({ status: 'success', info: 'Batch user management opened.' });
+            break;
         default:
             sendResponse({ status: 'ignored' });
             break;

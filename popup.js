@@ -39,6 +39,17 @@ const TOOL_DEFINITIONS = Object.freeze([
         closeOnSuccess: true
     }),
     Object.freeze({
+        id: 'batch-user-management',
+        group: 'management',
+        title: 'Управление пользователями',
+        description: 'Снять кураторов и удалить пользователей по списку email.',
+        command: 'OPEN_BATCH_USER_MANAGEMENT',
+        requirement: 'marathon',
+        busyLabel: 'Открывается…',
+        appearance: 'danger',
+        closeOnSuccess: true
+    }),
+    Object.freeze({
         id: 'action-recorder',
         group: 'development',
         title: 'Запись действий WebSocket',

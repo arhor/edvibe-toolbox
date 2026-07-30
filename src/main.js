@@ -20,6 +20,8 @@ const recorderApi = requireToolboxModule('EdVibeActionRecorder');
 const recorderDialogApi = requireToolboxModule('EdVibeActionRecorderDialog');
 const batchAccessApi = requireToolboxModule('EdVibeBatchLessonAccess');
 const batchAccessDialogApi = requireToolboxModule('EdVibeBatchAccessDialogComponent');
+const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement');
+const batchUserManagementDialogApi = requireToolboxModule('EdVibeBatchUserManagementDialog');
 
 const transportLog = createMainLog('Transport');
 const exportLog = createMainLog('Export');
@@ -27,6 +29,7 @@ const zipLog = createMainLog('Zip');
 const resetLog = createMainLog('Reset');
 const recorderLog = createMainLog('Recorder');
 const batchAccessLog = createMainLog('BatchAccess');
+const batchUserManagementLog = createMainLog('BatchUserManagement');
 
 const transport = transportApi.createWebSocketTransport({
     WebSocketClass: window.WebSocket,
@@ -110,6 +113,25 @@ const batchLessonAccessFeature = batchAccessApi.createBatchLessonAccessFeature({
     log: batchAccessLog
 });
 
+const batchUserManagementFeature = batchUserManagementApi.createBatchUserManagementFeature({
+    sendRequest: transport.sendRequest,
+    getConnectionState: transport.getConnectionState,
+    wait,
+    canStart: operationGuard.canStart,
+    onActiveChange(isActive) {
+        if (isActive) {
+            operationGuard.activate('batch-user-management');
+        }
+        else {
+            operationGuard.release('batch-user-management');
+        }
+    },
+    createDialog() {
+        return document.createElement(batchUserManagementDialogApi.USER_MANAGEMENT_DIALOG_TAG);
+    },
+    log: batchUserManagementLog
+});
+
 window.addEventListener('message', (event) => {
     if (event.source !== window) {
         return;
@@ -129,6 +151,10 @@ window.addEventListener('message', (event) => {
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') {
         batchLessonAccessFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
+    }
+
+    if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') {
+        batchUserManagementFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
     }
 });
 

@@ -222,12 +222,23 @@ test('popup uses a CSP-safe, data-driven tool catalog', () => {
     assert.match(popupScript, /id: 'marathon-export'/);
     assert.match(popupScript, /id: 'lesson-reset'/);
     assert.match(popupScript, /id: 'action-recorder'/);
+    assert.match(popupScript, /id: 'batch-user-management'/);
+    assert.match(popupScript, /command: 'OPEN_BATCH_USER_MANAGEMENT'/);
     assert.match(popupScript, /createElement\('popup-tool-group'\)/);
     assert.match(popupComponents, /customElements\.define\('popup-tool-card'/);
     assert.match(popupComponents, /createElement\?\.\('template'\)/);
     assert.match(popupComponents, /content\.cloneNode\(true\)/);
     assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
     assert.doesNotMatch(popupScript, /window\.openLessonReset\s*=/);
+});
+
+test('isolated bridge exposes batch user management with only its stylesheet', () => {
+    assert.match(isolatedScript, /case 'OPEN_BATCH_USER_MANAGEMENT'/);
+    assert.match(isolatedScript, /EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT/);
+    assert.match(
+        isolatedScript,
+        /src\/components\/batch-user-management-dialog\.css/
+    );
 });
 
 test('popup custom-element constructors do not mutate or inspect light DOM', () => {
