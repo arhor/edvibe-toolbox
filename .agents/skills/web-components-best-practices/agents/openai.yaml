@@ -1,0 +1,4 @@
+interface:
+  display_name: "Web Components Best Practices"
+  short_description: "Build robust, fast, maintainable Web Components"
+  default_prompt: "Use $web-components-best-practices to design or review standards-based Web Components."
