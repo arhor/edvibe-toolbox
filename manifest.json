@@ -21,7 +21,8 @@
                 "src/components/action-recorder-dialog.css",
                 "src/components/export-progress-dialog.css",
                 "src/components/batch-lesson-access-dialog.css",
-                "src/components/batch-user-management-dialog.css"
+                "src/components/batch-user-management-dialog.css",
+                "src/components/batch-section-creation-dialog.css"
             ],
             "matches": [
                 "*://*.edvibe.com/*"
@@ -55,11 +56,13 @@
                 "src/components/export-progress-dialog.js",
                 "src/components/batch-lesson-access-dialog.js",
                 "src/components/batch-user-management-dialog.js",
+                "src/components/batch-section-creation-dialog.js",
                 "src/features/reset-lessons.js",
                 "src/features/marathon-export.js",
                 "src/features/action-recorder.js",
                 "src/features/batch-lesson-access.js",
                 "src/features/batch-user-management.js",
+                "src/features/batch-section-creation.js",
                 "src/main.js"
             ],
             "run_at": "document_start",
