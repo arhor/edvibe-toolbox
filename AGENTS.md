@@ -4,7 +4,7 @@ Guidance for AI agents working in this repository.
 
 ## Project Overview
 
-Edvibe Toolbox is a Manifest V3 Chrome extension for automating workflows on `edvibe.com`. It uses plain HTML, CSS, and JavaScript with no package manager, build step, framework, or test runner currently checked in.
+Edvibe Toolbox is a Manifest V3 Chrome extension for automating workflows on `edvibe.com`. It uses plain HTML, CSS, and JavaScript, with a committed Node.js test toolchain for reproducible local and CI validation.
 
 The extension has two content-script contexts:
 
@@ -16,16 +16,24 @@ The extension has two content-script contexts:
 - `manifest.json`: Chrome extension manifest and content-script wiring.
 - `popup.html`: Extension popup markup and inline styles.
 - `popup.js`: Popup UI control flow and message dispatch to the active Edvibe tab.
-- `isolated.js`: Message bridge between the extension sandbox and the page world.
-- `main.js`: Page-world automation, WebSocket interception, scraping, and download logic.
-- `jszip.min.js`: Vendored dependency. Do not edit manually.
+- `src/`: Runtime modules with colocated `*.test.js` files.
+- `package.json` and `package-lock.json`: Reproducible Node.js test configuration.
+- `.github/workflows/ci.yml`: Pull-request and default-branch test workflow.
+- `lib/`: Vendored dependencies. Do not edit minified files manually.
 - `export-*.json`: Generated/exported data artifacts. Treat as local data unless the user explicitly asks to inspect or modify them.
 
 ## Development Commands
 
-There is no install or build command for the current project.
+Use Node.js 22, as pinned by `.nvmrc` and `package.json`.
 
-For manual validation:
+```bash
+npm ci
+npm test
+```
+
+Use `npm run test:ci` when validating the exact command executed by GitHub Actions.
+
+For manual browser validation:
 
 1. Open `chrome://extensions/`.
 2. Enable Developer Mode.
@@ -46,11 +54,11 @@ For manual validation:
 - Implement dynamically created user-interface HTML as Web Components. Keep all CSS
   in dedicated `.css` files; do not embed styles or assign presentation styles from
   JavaScript.
+- Keep tests beside the primary module they exercise and name them in kebab-case with the `.test.js` suffix.
 
 ## Validation Expectations
 
-Because there is no automated test suite, validate changes through focused manual checks:
-
+- Run `npm ci && npm test` from a clean checkout before submitting changes.
 - Popup changes: open the extension popup and verify the relevant button state, labels, and error handling.
 - Messaging changes: confirm `popup.js` can send messages to `isolated.js`, and `isolated.js` forwards only expected commands to `main.js`.
 - Automation changes: test on an Edvibe marathon URL and confirm the generated JSON shape still includes `exportedAt`, `marathonId`, `totalLessons`, and `lessons`.
