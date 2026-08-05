@@ -34,7 +34,10 @@ test('isolated page initialization clears stale export progress', () => {
     };
 
     vm.runInNewContext(isolatedScript, context);
-    assert.deepEqual(storedValues, [{ exportInProgress: false }]);
+    assert.equal(
+        JSON.stringify(storedValues),
+        JSON.stringify([{ exportInProgress: false }])
+    );
 });
 
 test('popup uses a CSP-safe data-driven tool catalog', () => {
