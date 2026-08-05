@@ -30,6 +30,7 @@ test('manifest loads shared infrastructure and features before main', () => {
         'src/features/action-recorder.js',
         'src/features/batch-lesson-access.js',
         'src/features/batch-user-management.js',
+        'src/features/batch-section-creation-recipe.js',
         'src/features/batch-section-creation.js',
         'src/main.js'
     ]);
@@ -205,12 +206,16 @@ test('batch user management routing crosses worlds with its stylesheet only', ()
     );
 });
 
-test('batch section creation routing crosses worlds and uses a reviewed recipe adapter', () => {
+test('batch section creation routing crosses worlds and uses the recorded recipe', () => {
     const isolatedSource = fs.readFileSync(
         path.join(root, 'src/isolated.js'),
         'utf8'
     );
     const mainSource = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
+    const recipeSource = fs.readFileSync(
+        path.join(root, 'src/features/batch-section-creation-recipe.js'),
+        'utf8'
+    );
 
     assert.match(
         isolatedSource,
@@ -218,10 +223,16 @@ test('batch section creation routing crosses worlds and uses a reviewed recipe a
     );
     assert.match(mainSource, /requireToolboxModule\('EdVibeBatchSectionCreation'\)/);
     assert.match(mainSource, /requireToolboxModule\('EdVibeBatchSectionCreationDialog'\)/);
+    assert.match(mainSource, /requireToolboxModule\('EdVibeBatchSectionCreationRecipe'\)/);
     assert.match(
         mainSource,
-        /createRecordedCreationAdapter\(\{[\s\S]*?recipe: window\.EdVibeBatchSectionCreationRecipe \|\| null/
+        /createRecordedCreationAdapter\(\{[\s\S]*?recipe: batchSectionCreationRecipe/
     );
+    assert.match(recipeSource, /LessonSectionWsController/);
+    assert.match(recipeSource, /AddStageSection/);
+    assert.match(recipeSource, /SaveExerciseWsController/);
+    assert.match(recipeSource, /Type: 27/);
+    assert.match(recipeSource, /Type: 29/);
     assert.match(
         mainSource,
         /createBatchSectionCreationFeature\(\{[\s\S]*?adapter: batchSectionCreationAdapter/
