@@ -3,48 +3,30 @@
     "name": "Edvibe Toolbox",
     "version": "1.0",
     "description": "A universal toolkit for automation and backup on the Edvibe platform.",
-    "permissions": [
-        "storage",
-        "activeTab",
-        "scripting"
-    ],
-    "host_permissions": [
-        "*://*.edvibe.com/*"
-    ],
-    "action": {
-        "default_popup": "popup.html"
-    },
-    "web_accessible_resources": [
-        {
-            "resources": [
-                "src/components/reset-lessons-dialog.css",
-                "src/components/action-recorder-dialog.css",
-                "src/components/export-progress-dialog.css",
-                "src/components/batch-lesson-access-dialog.css",
-                "src/components/batch-user-management-dialog.css",
-                "src/components/batch-section-creation-dialog.css"
-            ],
-            "matches": [
-                "*://*.edvibe.com/*"
-            ]
-        }
-    ],
+    "permissions": ["storage", "activeTab", "scripting"],
+    "host_permissions": ["*://*.edvibe.com/*"],
+    "action": { "default_popup": "popup.html" },
+    "web_accessible_resources": [{
+        "resources": [
+            "src/components/reset-lessons-dialog.css",
+            "src/components/action-recorder-dialog.css",
+            "src/components/export-progress-dialog.css",
+            "src/components/batch-lesson-access-dialog.css",
+            "src/components/batch-user-management-dialog.css",
+            "src/components/batch-section-creation-dialog.css",
+            "src/components/batch-section-deletion-dialog.css"
+        ],
+        "matches": ["*://*.edvibe.com/*"]
+    }],
     "content_scripts": [
         {
-            "matches": [
-                "*://*.edvibe.com/*"
-            ],
-            "js": [
-                "src/shared//logger.js",
-                "src/isolated.js"
-            ],
+            "matches": ["*://*.edvibe.com/*"],
+            "js": ["src/shared//logger.js", "src/isolated.js"],
             "run_at": "document_start",
             "world": "ISOLATED"
         },
         {
-            "matches": [
-                "*://*.edvibe.com/*"
-            ],
+            "matches": ["*://*.edvibe.com/*"],
             "js": [
                 "lib/jszip.min.js",
                 "lib/turndown.min.js",
@@ -57,6 +39,7 @@
                 "src/components/batch-lesson-access-dialog.js",
                 "src/components/batch-user-management-dialog.js",
                 "src/components/batch-section-creation-dialog.js",
+                "src/components/batch-section-deletion-dialog.js",
                 "src/features/reset-lessons.js",
                 "src/features/marathon-export.js",
                 "src/features/action-recorder.js",
@@ -64,6 +47,7 @@
                 "src/features/batch-user-management.js",
                 "src/features/batch-section-creation-recipe.js",
                 "src/features/batch-section-creation.js",
+                "src/features/batch-section-deletion.js",
                 "src/main.js"
             ],
             "run_at": "document_start",
