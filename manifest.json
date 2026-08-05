@@ -62,6 +62,7 @@
                 "src/features/action-recorder.js",
                 "src/features/batch-lesson-access.js",
                 "src/features/batch-user-management.js",
+                "src/features/batch-section-creation-recipe.js",
                 "src/features/batch-section-creation.js",
                 "src/main.js"
             ],
