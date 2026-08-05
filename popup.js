@@ -39,6 +39,16 @@ const TOOL_DEFINITIONS = Object.freeze([
         closeOnSuccess: true
     }),
     Object.freeze({
+        id: 'batch-section-creation',
+        group: 'management',
+        title: 'Создать раздел в уроках',
+        description: 'Добавить один раздел в несколько выбранных уроков.',
+        command: 'OPEN_BATCH_SECTION_CREATION',
+        requirement: 'marathon',
+        busyLabel: 'Открывается…',
+        closeOnSuccess: true
+    }),
+    Object.freeze({
         id: 'batch-user-management',
         group: 'management',
         title: 'Управление пользователями',

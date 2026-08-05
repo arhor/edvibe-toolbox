@@ -22,6 +22,9 @@ const batchAccessApi = requireToolboxModule('EdVibeBatchLessonAccess');
 const batchAccessDialogApi = requireToolboxModule('EdVibeBatchAccessDialogComponent');
 const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement');
 const batchUserManagementDialogApi = requireToolboxModule('EdVibeBatchUserManagementDialog');
+const batchSectionCreationApi = requireToolboxModule('EdVibeBatchSectionCreation');
+const batchSectionCreationDialogApi = requireToolboxModule('EdVibeBatchSectionCreationDialog');
+const batchSectionCreationRecipe = requireToolboxModule('EdVibeBatchSectionCreationRecipe');
 
 const transportLog = createMainLog('Transport');
 const exportLog = createMainLog('Export');
@@ -30,6 +33,7 @@ const resetLog = createMainLog('Reset');
 const recorderLog = createMainLog('Recorder');
 const batchAccessLog = createMainLog('BatchAccess');
 const batchUserManagementLog = createMainLog('BatchUserManagement');
+const batchSectionCreationLog = createMainLog('BatchSectionCreation');
 
 const transport = transportApi.createWebSocketTransport({
     WebSocketClass: window.WebSocket,
@@ -85,10 +89,25 @@ const lessonResetFeature = resetApi.createResetLessonsFeature({
     log: resetLog
 });
 
+let recorderOpen = false;
 const actionRecorderFeature = recorderApi.createActionRecorderFeature({
     subscribeFrames: transport.subscribeFrames,
     createPanel() {
-        return document.createElement(recorderDialogApi.RECORDER_DIALOG_TAG);
+        const panel = document.createElement(recorderDialogApi.RECORDER_DIALOG_TAG);
+        const configure = panel.configure.bind(panel);
+        panel.configure = (options = {}) => configure({
+            ...options,
+            onClose() {
+                try {
+                    options.onClose?.();
+                } finally {
+                    recorderOpen = false;
+                    operationGuard.release('recording');
+                }
+            }
+        });
+        recorderOpen = true;
+        return panel;
     },
     log: recorderLog
 });
@@ -132,6 +151,32 @@ const batchUserManagementFeature = batchUserManagementApi.createBatchUserManagem
     log: batchUserManagementLog
 });
 
+const batchSectionCreationAdapter = batchSectionCreationApi.createRecordedCreationAdapter({
+    recipe: batchSectionCreationRecipe,
+    cryptoApi: window.crypto
+});
+
+const batchSectionCreationFeature = batchSectionCreationApi.createBatchSectionCreationFeature({
+    sendRequest: transport.sendRequest,
+    getConnectionState: transport.getConnectionState,
+    wait,
+    canStart: operationGuard.canStart,
+    onActiveChange(isActive) {
+        if (isActive) {
+            operationGuard.activate('batch-section-creation');
+        }
+        else {
+            operationGuard.release('batch-section-creation');
+        }
+    },
+    adapter: batchSectionCreationAdapter,
+    createDialog() {
+        return document.createElement(batchSectionCreationDialogApi.BATCH_SECTION_DIALOG_TAG);
+    },
+    copyText: (text) => navigator.clipboard.writeText(text),
+    log: batchSectionCreationLog
+});
+
 window.addEventListener('message', (event) => {
     if (event.source !== window) {
         return;
@@ -146,7 +191,18 @@ window.addEventListener('message', (event) => {
     }
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_RECORDER') {
-        actionRecorderFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
+        if (recorderOpen) {
+            actionRecorderFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
+        } else if (operationGuard.activate('recording')) {
+            try {
+                actionRecorderFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
+            } catch (error) {
+                operationGuard.release('recording');
+                throw error;
+            }
+        } else {
+            window.alert('Another Edvibe Toolbox operation is already running.');
+        }
     }
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') {
@@ -155,6 +211,10 @@ window.addEventListener('message', (event) => {
 
     if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') {
         batchUserManagementFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
+    }
+
+    if (event.data?.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION') {
+        batchSectionCreationFeature.open({ stylesheetUrl: event.data.stylesheetUrl });
     }
 });
 

@@ -67,6 +67,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }, '*');
             sendResponse({ status: 'success', info: 'Batch user management opened.' });
             break;
+        case 'OPEN_BATCH_SECTION_CREATION':
+            window.postMessage({
+                type: 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION',
+                stylesheetUrl: chrome.runtime.getURL(
+                    'src/components/batch-section-creation-dialog.css'
+                )
+            }, '*');
+            sendResponse({ status: 'success', info: 'Batch section creation opened.' });
+            break;
         default:
             sendResponse({ status: 'ignored' });
             break;

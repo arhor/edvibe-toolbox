@@ -24,11 +24,14 @@ test('manifest loads shared infrastructure and features before main', () => {
         'src/components/export-progress-dialog.js',
         'src/components/batch-lesson-access-dialog.js',
         'src/components/batch-user-management-dialog.js',
+        'src/components/batch-section-creation-dialog.js',
         'src/features/reset-lessons.js',
         'src/features/marathon-export.js',
         'src/features/action-recorder.js',
         'src/features/batch-lesson-access.js',
         'src/features/batch-user-management.js',
+        'src/features/batch-section-creation-recipe.js',
+        'src/features/batch-section-creation.js',
         'src/main.js'
     ]);
 
@@ -46,7 +49,8 @@ test('manifest loads shared infrastructure and features before main', () => {
             'src/components/action-recorder-dialog.css',
             'src/components/export-progress-dialog.css',
             'src/components/batch-lesson-access-dialog.css',
-            'src/components/batch-user-management-dialog.css'
+            'src/components/batch-user-management-dialog.css',
+            'src/components/batch-section-creation-dialog.css'
         ],
         matches: ['*://*.edvibe.com/*']
     }]);
@@ -68,7 +72,8 @@ test('dynamic UI and presentation stay in components and stylesheets', () => {
         'src/features/reset-lessons.js',
         'src/features/action-recorder.js',
         'src/features/batch-lesson-access.js',
-        'src/features/batch-user-management.js'
+        'src/features/batch-user-management.js',
+        'src/features/batch-section-creation.js'
     ];
 
     for (const file of coordinatorFiles) {
@@ -113,6 +118,7 @@ test('main remains a coordinator without concrete feature logic', () => {
     assert.match(source, /createActionRecorderFeature/);
     assert.match(source, /createBatchLessonAccessFeature/);
     assert.match(source, /createBatchUserManagementFeature/);
+    assert.match(source, /createBatchSectionCreationFeature/);
 });
 
 test('marathon export owns its ZIP compiler implementation', () => {
@@ -197,5 +203,42 @@ test('batch user management routing crosses worlds with its stylesheet only', ()
     assert.match(
         mainSource,
         /event\.data\?\.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT'[\s\S]*?batchUserManagementFeature\.open\(\{ stylesheetUrl: event\.data\.stylesheetUrl \}\)/
+    );
+});
+
+test('batch section creation routing crosses worlds and uses the recorded recipe', () => {
+    const isolatedSource = fs.readFileSync(
+        path.join(root, 'src/isolated.js'),
+        'utf8'
+    );
+    const mainSource = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
+    const recipeSource = fs.readFileSync(
+        path.join(root, 'src/features/batch-section-creation-recipe.js'),
+        'utf8'
+    );
+
+    assert.match(
+        isolatedSource,
+        /case 'OPEN_BATCH_SECTION_CREATION':\s*window\.postMessage\(\{\s*type: 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION',\s*stylesheetUrl: chrome\.runtime\.getURL\(\s*'src\/components\/batch-section-creation-dialog\.css'\s*\)\s*\}, '\*'\)/
+    );
+    assert.match(mainSource, /requireToolboxModule\('EdVibeBatchSectionCreation'\)/);
+    assert.match(mainSource, /requireToolboxModule\('EdVibeBatchSectionCreationDialog'\)/);
+    assert.match(mainSource, /requireToolboxModule\('EdVibeBatchSectionCreationRecipe'\)/);
+    assert.match(
+        mainSource,
+        /createRecordedCreationAdapter\(\{[\s\S]*?recipe: batchSectionCreationRecipe/
+    );
+    assert.match(recipeSource, /LessonSectionWsController/);
+    assert.match(recipeSource, /AddStageSection/);
+    assert.match(recipeSource, /SaveExerciseWsController/);
+    assert.match(recipeSource, /Type: 27/);
+    assert.match(recipeSource, /Type: 29/);
+    assert.match(
+        mainSource,
+        /createBatchSectionCreationFeature\(\{[\s\S]*?adapter: batchSectionCreationAdapter/
+    );
+    assert.match(
+        mainSource,
+        /event\.data\?\.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION'[\s\S]*?batchSectionCreationFeature\.open\(\{ stylesheetUrl: event\.data\.stylesheetUrl \}\)/
     );
 });
