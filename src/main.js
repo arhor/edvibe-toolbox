@@ -24,6 +24,7 @@ const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement')
 const batchUserManagementDialogApi = requireToolboxModule('EdVibeBatchUserManagementDialog');
 const batchSectionCreationApi = requireToolboxModule('EdVibeBatchSectionCreation');
 const batchSectionCreationDialogApi = requireToolboxModule('EdVibeBatchSectionCreationDialog');
+const batchSectionCreationRecipe = requireToolboxModule('EdVibeBatchSectionCreationRecipe');
 
 const transportLog = createMainLog('Transport');
 const exportLog = createMainLog('Export');
@@ -151,7 +152,7 @@ const batchUserManagementFeature = batchUserManagementApi.createBatchUserManagem
 });
 
 const batchSectionCreationAdapter = batchSectionCreationApi.createRecordedCreationAdapter({
-    recipe: window.EdVibeBatchSectionCreationRecipe || null,
+    recipe: batchSectionCreationRecipe,
     cryptoApi: window.crypto
 });
 
