@@ -3,13 +3,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(
-    path.join(root, 'src/components/batch-section-creation-dialog.js'),
+    path.join(__dirname, 'batch-section-creation-dialog.js'),
     'utf8'
 );
 const styles = fs.readFileSync(
-    path.join(root, 'src/components/batch-section-creation-dialog.css'),
+    path.join(__dirname, 'batch-section-creation-dialog.css'),
     'utf8'
 );
 
