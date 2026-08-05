@@ -1,186 +1,64 @@
 const createPopupLog = EdVibeLogger.createLoggerFactory('POPUP');
 const log = createPopupLog();
 
-const TOOL_GROUPS = Object.freeze({
-    export: 'Экспорт',
-    management: 'Управление',
-    development: 'Разработка'
-});
-
+const TOOL_GROUPS = Object.freeze({ export: 'Экспорт', management: 'Управление', development: 'Разработка' });
 const TOOL_DEFINITIONS = Object.freeze([
-    Object.freeze({
-        id: 'marathon-export',
-        group: 'export',
-        title: 'Экспорт марафона',
-        description: 'Скачать уроки, материалы и резервный JSON.',
-        command: 'START_FULL_AUTOMATION',
-        requirement: 'marathon',
-        busyLabel: 'Экспортируется…'
-    }),
-    Object.freeze({
-        id: 'lesson-reset',
-        group: 'management',
-        title: 'Сброс прогресса учеников',
-        description: 'Очистить сохранённые ответы в выбранных уроках.',
-        command: 'OPEN_LESSON_RESET',
-        requirement: 'marathon',
-        busyLabel: 'Открывается…',
-        appearance: 'danger',
-        closeOnSuccess: true
-    }),
-    Object.freeze({
-        id: 'batch-lesson-access',
-        group: 'management',
-        title: 'Открыть доступ к урокам',
-        description: 'Открыть выбранные уроки для списка учеников.',
-        command: 'OPEN_BATCH_LESSON_ACCESS',
-        requirement: 'marathon',
-        busyLabel: 'Открывается…',
-        closeOnSuccess: true
-    }),
-    Object.freeze({
-        id: 'batch-section-creation',
-        group: 'management',
-        title: 'Создать раздел в уроках',
-        description: 'Добавить один раздел в несколько выбранных уроков.',
-        command: 'OPEN_BATCH_SECTION_CREATION',
-        requirement: 'marathon',
-        busyLabel: 'Открывается…',
-        closeOnSuccess: true
-    }),
-    Object.freeze({
-        id: 'batch-user-management',
-        group: 'management',
-        title: 'Управление пользователями',
-        description: 'Снять кураторов и удалить пользователей по списку email.',
-        command: 'OPEN_BATCH_USER_MANAGEMENT',
-        requirement: 'marathon',
-        busyLabel: 'Открывается…',
-        appearance: 'danger',
-        closeOnSuccess: true
-    }),
-    Object.freeze({
-        id: 'action-recorder',
-        group: 'development',
-        title: 'Запись действий WebSocket',
-        description: 'Записать запросы и ответы выполненного действия.',
-        command: 'OPEN_ACTION_RECORDER',
-        requirement: 'edvibe',
-        busyLabel: 'Открывается…',
-        closeOnSuccess: true
-    })
-]);
+    { id: 'marathon-export', group: 'export', title: 'Экспорт марафона', description: 'Скачать уроки, материалы и резервный JSON.', command: 'START_FULL_AUTOMATION', requirement: 'marathon', busyLabel: 'Экспортируется…' },
+    { id: 'lesson-reset', group: 'management', title: 'Сброс прогресса учеников', description: 'Очистить сохранённые ответы в выбранных уроках.', command: 'OPEN_LESSON_RESET', requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
+    { id: 'batch-lesson-access', group: 'management', title: 'Открыть доступ к урокам', description: 'Открыть выбранные уроки для списка учеников.', command: 'OPEN_BATCH_LESSON_ACCESS', requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
+    { id: 'batch-section-creation', group: 'management', title: 'Создать раздел в уроках', description: 'Добавить один раздел в несколько выбранных уроков.', command: 'OPEN_BATCH_SECTION_CREATION', requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
+    { id: 'batch-section-deletion', group: 'management', title: 'Удалить раздел из уроков', description: 'Безопасно удалить раздел с точным именем из выбранных уроков.', command: 'OPEN_BATCH_SECTION_DELETION', requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
+    { id: 'batch-user-management', group: 'management', title: 'Управление пользователями', description: 'Снять кураторов и удалить пользователей по списку email.', command: 'OPEN_BATCH_USER_MANAGEMENT', requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
+    { id: 'action-recorder', group: 'development', title: 'Запись действий WebSocket', description: 'Записать запросы и ответы выполненного действия.', command: 'OPEN_ACTION_RECORDER', requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true }
+].map(Object.freeze));
 
 const pageContextElement = document.getElementById('pageContext');
 const pageContextTitle = document.getElementById('pageContextTitle');
 const pageContextDescription = document.getElementById('pageContextDescription');
 const toolGroupsElement = document.getElementById('toolGroups');
 const popupStatusElement = document.getElementById('popupStatus');
-
 let activeTab = null;
 let pageContext = { type: 'loading' };
 let exportInProgress = false;
 let pendingToolId = null;
 
 chrome.runtime.onMessage.addListener((message) => {
-    if (message?.action !== 'EXPORT_STATUS') {
-        return;
-    }
-
-    log(`Received export status: ${message.state}.`);
+    if (message?.action !== 'EXPORT_STATUS') return;
     exportInProgress = message.state === 'started';
     renderTools();
-
-    if (message.state === 'complete') {
-        showStatus('Экспорт завершён.');
-    } else if (message.state === 'error') {
-        showStatus(message.message || 'Не удалось экспортировать марафон.', true);
-    }
+    if (message.state === 'complete') showStatus('Экспорт завершён.');
+    else if (message.state === 'error') showStatus(message.message || 'Не удалось экспортировать марафон.', true);
 });
 
 initializePopup();
 
 async function initializePopup() {
-    log('Popup initialized.');
-
-    const [contextResult, storageResult] = await Promise.allSettled([
-        getPageContext(),
-        chrome.storage.local.get('exportInProgress')
-    ]);
-
-    if (contextResult.status === 'fulfilled') {
-        pageContext = contextResult.value;
-        activeTab = pageContext.tab || null;
-    } else {
-        log('Failed to determine page context:', contextResult.reason);
-        pageContext = { type: 'unavailable' };
-    }
-
-    if (storageResult.status === 'fulfilled') {
-        exportInProgress = Boolean(storageResult.value.exportInProgress);
-        log(`Restored export state: ${exportInProgress}.`);
-    } else {
-        log('Failed to restore export state:', storageResult.reason);
-    }
-
+    const [contextResult, storageResult] = await Promise.allSettled([getPageContext(), chrome.storage.local.get('exportInProgress')]);
+    if (contextResult.status === 'fulfilled') { pageContext = contextResult.value; activeTab = pageContext.tab || null; }
+    else pageContext = { type: 'unavailable' };
+    if (storageResult.status === 'fulfilled') exportInProgress = Boolean(storageResult.value.exportInProgress);
     renderPageContext();
     renderTools();
 }
 
 async function getPageContext() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-    if (!tab?.id || !tab.url) {
-        return { type: 'unavailable' };
-    }
-
+    if (!tab?.id || !tab.url) return { type: 'unavailable' };
     let url;
-    try {
-        url = new URL(tab.url);
-    } catch (_) {
-        return { type: 'unsupported', tab };
-    }
-
-    const isEdvibe = url.hostname === 'edvibe.com'
-        || url.hostname.endsWith('.edvibe.com');
-
-    if (!isEdvibe) {
-        return { type: 'unsupported', tab };
-    }
-
+    try { url = new URL(tab.url); } catch (_) { return { type: 'unsupported', tab }; }
+    const isEdvibe = url.hostname === 'edvibe.com' || url.hostname.endsWith('.edvibe.com');
+    if (!isEdvibe) return { type: 'unsupported', tab };
     const marathonMatch = url.pathname.match(/\/marathon\/(\d+)(?:\/|$)/);
-    if (!marathonMatch) {
-        return { type: 'edvibe', tab };
-    }
-
-    return {
-        type: 'marathon',
-        marathonId: marathonMatch[1],
-        tab
-    };
+    return marathonMatch ? { type: 'marathon', marathonId: marathonMatch[1], tab } : { type: 'edvibe', tab };
 }
 
 function renderPageContext() {
-    const contextContent = {
-        marathon: {
-            title: `Марафон #${pageContext.marathonId}`,
-            description: 'Инструменты марафона доступны'
-        },
-        edvibe: {
-            title: 'Страница Edvibe',
-            description: 'Откройте страницу марафона для работы с инструментами'
-        },
-        unsupported: {
-            title: 'Не страница Edvibe',
-            description: 'Toolbox работает на страницах edvibe.com'
-        },
-        unavailable: {
-            title: 'Страница недоступна',
-            description: 'Не удалось определить активную вкладку'
-        }
-    };
-    const content = contextContent[pageContext.type] || contextContent.unavailable;
-
+    const content = ({
+        marathon: { title: `Марафон #${pageContext.marathonId}`, description: 'Инструменты марафона доступны' },
+        edvibe: { title: 'Страница Edvibe', description: 'Откройте страницу марафона для работы с инструментами' },
+        unsupported: { title: 'Не страница Edvibe', description: 'Toolbox работает на страницах edvibe.com' },
+        unavailable: { title: 'Страница недоступна', description: 'Не удалось определить активную вкладку' }
+    })[pageContext.type] || { title: 'Страница недоступна', description: 'Не удалось определить активную вкладку' };
     pageContextElement.className = `page-context is-${pageContext.type}`;
     pageContextTitle.textContent = content.title;
     pageContextDescription.textContent = content.description;
@@ -188,115 +66,49 @@ function renderPageContext() {
 
 function renderTools() {
     toolGroupsElement.replaceChildren();
-
     for (const [groupId, groupTitle] of Object.entries(TOOL_GROUPS)) {
         const tools = TOOL_DEFINITIONS.filter((tool) => tool.group === groupId);
-        if (tools.length === 0) {
-            continue;
-        }
-
+        if (!tools.length) continue;
         const group = document.createElement('popup-tool-group');
-        group.configure({
-            title: groupTitle,
-            tools,
-            getState: getToolRenderState,
-            onExecute: executeTool
-        });
+        group.configure({ title: groupTitle, tools, getState: getToolRenderState, onExecute: executeTool });
         toolGroupsElement.append(group);
     }
 }
 
 function getToolRenderState(tool) {
     const unavailableReason = getUnavailableReason(tool);
-    const isExportTool = tool.id === 'marathon-export';
-    const isBusy = isExportTool && exportInProgress;
+    const isBusy = tool.id === 'marathon-export' && exportInProgress;
     const isPending = pendingToolId === tool.id;
-    const isBlocked = (exportInProgress || pendingToolId !== null)
-        && !isBusy
-        && !isPending;
-
-    const reason = unavailableReason || (isBlocked
-        ? 'Дождитесь завершения другого инструмента.'
-        : '');
-    return {
-        disabled: Boolean(unavailableReason || isBusy || isPending || isBlocked),
-        reason,
-        busy: isBusy || isPending
-    };
+    const isBlocked = (exportInProgress || pendingToolId !== null) && !isBusy && !isPending;
+    return { disabled: Boolean(unavailableReason || isBusy || isPending || isBlocked), reason: unavailableReason || (isBlocked ? 'Дождитесь завершения другого инструмента.' : ''), busy: isBusy || isPending };
 }
 
 function getUnavailableReason(tool) {
-    if (tool.requirement === 'edvibe') {
-        return pageContext.type === 'edvibe' || pageContext.type === 'marathon'
-            ? ''
-            : 'Откройте страницу Edvibe.';
-    }
-    if (tool.requirement !== 'marathon' || pageContext.type === 'marathon') {
-        return '';
-    }
-    return 'Откройте страницу марафона.';
+    if (tool.requirement === 'edvibe') return pageContext.type === 'edvibe' || pageContext.type === 'marathon' ? '' : 'Откройте страницу Edvibe.';
+    return tool.requirement !== 'marathon' || pageContext.type === 'marathon' ? '' : 'Откройте страницу марафона.';
 }
 
 async function executeTool(toolId) {
-    const tool = TOOL_DEFINITIONS.find((definition) => definition.id === toolId);
-    if (
-        !tool
-        || getUnavailableReason(tool)
-        || !activeTab?.id
-        || exportInProgress
-        || pendingToolId !== null
-    ) {
-        return;
-    }
-
-    clearStatus();
-    pendingToolId = tool.id;
-    if (tool.id === 'marathon-export') {
-        exportInProgress = true;
-    }
+    const tool = TOOL_DEFINITIONS.find((item) => item.id === toolId);
+    if (!tool || getUnavailableReason(tool) || !activeTab?.id || exportInProgress || pendingToolId !== null) return;
+    clearStatus(); pendingToolId = tool.id;
+    if (tool.id === 'marathon-export') exportInProgress = true;
     renderTools();
-
     try {
-        log(`Sending ${tool.command} to tab ${activeTab.id}.`);
-        const response = await sendTabCommand(activeTab.id, tool.command);
-        log(`${tool.command} acknowledged: ${response?.status || 'unknown'}.`);
-        pendingToolId = null;
-        renderTools();
-
-        if (tool.closeOnSuccess) {
-            window.close();
-        }
+        await sendTabCommand(activeTab.id, tool.command);
+        pendingToolId = null; renderTools();
+        if (tool.closeOnSuccess) window.close();
     } catch (error) {
-        log(`Failed to execute ${tool.id}:`, error);
-        if (tool.id === 'marathon-export') {
-            exportInProgress = false;
-        }
-        pendingToolId = null;
-        renderTools();
-        showStatus(error.message || 'Не удалось запустить инструмент.', true);
+        if (tool.id === 'marathon-export') exportInProgress = false;
+        pendingToolId = null; renderTools(); showStatus(error.message || 'Не удалось запустить инструмент.', true);
     }
 }
 
 function sendTabCommand(tabId, action) {
-    return new Promise((resolve, reject) => {
-        chrome.tabs.sendMessage(tabId, { action }, (response) => {
-            if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError.message));
-                return;
-            }
-            resolve(response);
-        });
-    });
+    return new Promise((resolve, reject) => chrome.tabs.sendMessage(tabId, { action }, (response) => {
+        if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+        else resolve(response);
+    }));
 }
-
-function showStatus(message, isError = false) {
-    popupStatusElement.textContent = message;
-    popupStatusElement.classList.toggle('is-error', isError);
-    popupStatusElement.hidden = false;
-}
-
-function clearStatus() {
-    popupStatusElement.textContent = '';
-    popupStatusElement.classList.remove('is-error');
-    popupStatusElement.hidden = true;
-}
+function showStatus(message, isError = false) { popupStatusElement.textContent = message; popupStatusElement.classList.toggle('is-error', isError); popupStatusElement.hidden = false; }
+function clearStatus() { popupStatusElement.textContent = ''; popupStatusElement.classList.remove('is-error'); popupStatusElement.hidden = true; }
