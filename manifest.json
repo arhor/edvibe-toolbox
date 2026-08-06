@@ -14,7 +14,8 @@
             "src/components/batch-lesson-access-dialog.css",
             "src/components/batch-user-management-dialog.css",
             "src/components/batch-section-creation-dialog.css",
-            "src/components/batch-section-deletion-dialog.css"
+            "src/components/batch-section-deletion-dialog.css",
+            "src/components/execution-history-dialog.css"
         ],
         "matches": ["*://*.edvibe.com/*"]
     }],
@@ -33,6 +34,13 @@
                 "src/shared/logger.js",
                 "src/shared/websocket-transport.js",
                 "src/shared/operation-guard.js",
+                "src/shared/indexeddb.js",
+                "src/shared/execution-history-record.js",
+                "src/shared/execution-history-repository.js",
+                "src/shared/execution-history-retention.js",
+                "src/shared/execution-history-export.js",
+                "src/shared/chrome-storage-bridge.js",
+                "src/shared/execution-history-service.js",
                 "src/components/reset-lessons-dialog.js",
                 "src/components/action-recorder-dialog.js",
                 "src/components/export-progress-dialog.js",
@@ -40,6 +48,7 @@
                 "src/components/batch-user-management-dialog.js",
                 "src/components/batch-section-creation-dialog.js",
                 "src/components/batch-section-deletion-dialog.js",
+                "src/components/execution-history-dialog.js",
                 "src/features/reset-lessons.js",
                 "src/features/marathon-export.js",
                 "src/features/action-recorder.js",
@@ -48,6 +57,7 @@
                 "src/features/batch-section-creation-recipe.js",
                 "src/features/batch-section-creation.js",
                 "src/features/batch-section-deletion.js",
+                "src/features/execution-history.js",
                 "src/main.js"
             ],
             "run_at": "document_start",
