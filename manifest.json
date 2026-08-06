@@ -67,6 +67,7 @@
                 "src/features/batch-section-creation-history.js",
                 "src/features/batch-section-image-upload.js",
                 "src/features/batch-section-deletion.js",
+                "src/features/batch-section-deletion-history.js",
                 "src/features/execution-history.js",
                 "src/main.js"
             ],
