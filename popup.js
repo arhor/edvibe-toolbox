@@ -1,8 +1,9 @@
 const createPopupLog = EdVibeLogger.createLoggerFactory('POPUP');
 const log = createPopupLog();
 
-const TOOL_GROUPS = Object.freeze({ export: 'Экспорт', management: 'Управление', development: 'Разработка' });
+const TOOL_GROUPS = Object.freeze({ history: 'История', export: 'Экспорт', management: 'Управление', development: 'Разработка' });
 const TOOL_DEFINITIONS = Object.freeze([
+    { id: 'execution-history', group: 'history', title: 'История операций', description: 'Просмотреть, отфильтровать и скачать сохранённые отчёты.', command: 'OPEN_EXECUTION_HISTORY', requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true },
     { id: 'marathon-export', group: 'export', title: 'Экспорт марафона', description: 'Скачать уроки, материалы и резервный JSON.', command: 'START_FULL_AUTOMATION', requirement: 'marathon', busyLabel: 'Экспортируется…' },
     { id: 'lesson-reset', group: 'management', title: 'Сброс прогресса учеников', description: 'Очистить сохранённые ответы в выбранных уроках.', command: 'OPEN_LESSON_RESET', requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
     { id: 'batch-lesson-access', group: 'management', title: 'Открыть доступ к урокам', description: 'Открыть выбранные уроки для списка учеников.', command: 'OPEN_BATCH_LESSON_ACCESS', requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
