@@ -26,6 +26,7 @@ const recorderDialogApi = requireToolboxModule('EdVibeActionRecorderDialog');
 const batchAccessApi = requireToolboxModule('EdVibeBatchLessonAccess');
 const batchAccessDialogApi = requireToolboxModule('EdVibeBatchAccessDialogComponent');
 const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement');
+const batchUserManagementHistoryApi = requireToolboxModule('EdVibeBatchUserManagementHistory');
 const batchUserManagementDialogApi = requireToolboxModule('EdVibeBatchUserManagementDialog');
 const batchSectionCreationApi = requireToolboxModule('EdVibeBatchSectionCreation');
 const batchSectionCreationDialogApi = requireToolboxModule('EdVibeBatchSectionCreationDialog');
@@ -114,13 +115,24 @@ const batchLessonAccessFeature = batchAccessApi.createBatchLessonAccessFeature({
     log: createMainLog('BatchAccess')
 });
 
+const createBatchUserManagementDialog = batchUserManagementHistoryApi.createHistoryAwareDialog({
+    createDialog: () => document.createElement(batchUserManagementDialogApi.USER_MANAGEMENT_DIALOG_TAG),
+    persistExecution: historyService.persistTerminal,
+    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
+        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
+        executionId
+    }),
+    getLocationHref: () => window.location.href,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    log: createMainLog('BatchUserManagementHistory')
+});
 const batchUserManagementFeature = batchUserManagementApi.createBatchUserManagementFeature({
     sendRequest: transport.sendRequest,
     getConnectionState: transport.getConnectionState,
     wait,
     canStart: operationGuard.canStart,
     onActiveChange: guardedActiveChange('batch-user-management'),
-    createDialog: () => document.createElement(batchUserManagementDialogApi.USER_MANAGEMENT_DIALOG_TAG),
+    createDialog: createBatchUserManagementDialog,
     log: createMainLog('BatchUserManagement')
 });
 
