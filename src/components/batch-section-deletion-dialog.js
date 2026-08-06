@@ -13,6 +13,7 @@
                 this.attachShadow({ mode: 'open' });
                 this.plan = null;
                 this.options = null;
+                this.executionId = null;
             }
 
             configure(options) {
@@ -39,7 +40,7 @@
                             <div class="lessons"></div>
                             <div class="status" hidden></div>
                             <section class="preflight" hidden></section>
-                            <section class="result" hidden><textarea readonly></textarea><button class="copy">Copy report</button></section>
+                            <section class="result" hidden><textarea readonly></textarea><div class="result-actions"><button class="copy">Copy report</button><button class="history" hidden>Open in history</button></div></section>
                         </main>
                         <footer><button class="secondary close">Cancel</button><button class="inspect">Inspect selected lessons</button><button class="danger execute" hidden>Confirm deletion</button></footer>
                     </section>`;
@@ -60,6 +61,9 @@
                 root.querySelector('.inspect').addEventListener('click', () => this.inspect());
                 root.querySelector('.execute').addEventListener('click', () => this.execute());
                 root.querySelector('.copy').addEventListener('click', () => this.options.onCopy(root.querySelector('textarea').value));
+                root.querySelector('.history').addEventListener('click', () => {
+                    if (this.executionId) this.options.onOpenHistory?.(this.executionId);
+                });
                 update();
             }
 
@@ -115,9 +119,19 @@
                     const area = this.shadowRoot.querySelector('.result');
                     area.hidden = false;
                     area.querySelector('textarea').value = result.report;
+                    this.executionId = result.history?.stored ? result.history.record?.id || null : null;
+                    area.querySelector('.history').hidden = !this.executionId;
                     this.shadowRoot.querySelector('.execute').hidden = true;
                     this.shadowRoot.querySelector('.inspect').hidden = true;
-                    this.showStatus(result.fatalError ? 'Stopped after an operation-wide error. Partial results retained.' : 'Deletion finished.');
+                    const outcome = result.fatalError
+                        ? 'Stopped after an operation-wide error. Partial results retained.'
+                        : 'Deletion finished.';
+                    const history = result.history?.stored
+                        ? ' Saved to execution history.'
+                        : result.history?.persistenceError
+                            ? ' The visible report is intact, but history could not be saved.'
+                            : '';
+                    this.showStatus(`${outcome}${history}`);
                 } catch (error) {
                     this.showStatus(error.message || 'Deletion failed.');
                 } finally {
