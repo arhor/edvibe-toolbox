@@ -11,6 +11,14 @@ function requireToolboxModule(name) {
 
 const transportApi = requireToolboxModule('EdVibeWebSocketTransport');
 const operationGuardApi = requireToolboxModule('EdVibeOperationGuard');
+const indexedDbApi = requireToolboxModule('EdVibeIndexedDb');
+const historyRepositoryApi = requireToolboxModule('EdVibeExecutionHistoryRepository');
+const historyRetentionApi = requireToolboxModule('EdVibeExecutionHistoryRetention');
+const historyExportApi = requireToolboxModule('EdVibeExecutionHistoryExport');
+const storageBridgeApi = requireToolboxModule('EdVibeChromeStorageBridge');
+const historyServiceApi = requireToolboxModule('EdVibeExecutionHistoryService');
+const historyDialogApi = requireToolboxModule('EdVibeExecutionHistoryDialog');
+const historyFeatureApi = requireToolboxModule('EdVibeExecutionHistory');
 const exportApi = requireToolboxModule('EdVibeMarathonExport');
 const resetApi = requireToolboxModule('EdVibeLessonReset');
 const recorderApi = requireToolboxModule('EdVibeActionRecorder');
@@ -38,6 +46,23 @@ const guardedActiveChange = (key) => (isActive) => {
     if (isActive) operationGuard.activate(key);
     else operationGuard.release(key);
 };
+
+const storageBridge = storageBridgeApi.createStorageBridge({ window, cryptoApi: window.crypto });
+const historyRepository = historyRepositoryApi.createExecutionHistoryRepository({ indexedDbApi, indexedDB: window.indexedDB });
+const historyPreferenceStore = historyRetentionApi.createRetentionPreferenceStore(storageBridge);
+const historyService = historyServiceApi.createExecutionHistoryService({
+    repository: historyRepository,
+    preferenceStore: historyPreferenceStore,
+    downloader: historyExportApi.createJsonDownloader({ document, URL: window.URL, Blob: window.Blob }),
+    cryptoApi: window.crypto
+});
+const executionHistoryFeature = historyFeatureApi.createExecutionHistoryFeature({
+    service: historyService,
+    canStart: operationGuard.canStart,
+    onActiveChange: guardedActiveChange('history'),
+    createDialog: () => document.createElement(historyDialogApi.EXECUTION_HISTORY_DIALOG_TAG),
+    log: createMainLog('History')
+});
 
 function notifyExportStatus(state, message = '') {
     window.postMessage({ type: 'EDVIBE_TOOLBOX_EXPORT_STATUS', state, message }, '*');
@@ -120,6 +145,11 @@ const batchSectionDeletionFeature = batchSectionDeletionApi.createBatchSectionDe
     onActiveChange: guardedActiveChange('batch-section-deletion'),
     createDialog: () => document.createElement(batchSectionDeletionDialogApi.BATCH_SECTION_DELETION_DIALOG_TAG),
     copyText: (text) => navigator.clipboard.writeText(text),
+    persistExecution: historyService.persistTerminal,
+    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
+        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
+        executionId
+    }),
     log: createMainLog('BatchSectionDeletion')
 });
 
@@ -132,6 +162,7 @@ window.addEventListener('message', (event) => {
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') batchUserManagementFeature.open({ stylesheetUrl: data.stylesheetUrl });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION') batchSectionCreationFeature.open({ stylesheetUrl: data.stylesheetUrl });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION') batchSectionDeletionFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY') executionHistoryFeature.open({ stylesheetUrl: data.stylesheetUrl, executionId: data.executionId || null });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_RECORDER') {
         if (recorderOpen) actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
         else if (operationGuard.activate('recording')) {
