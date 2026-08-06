@@ -30,6 +30,7 @@ const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement')
 const batchUserManagementHistoryApi = requireToolboxModule('EdVibeBatchUserManagementHistory');
 const batchUserManagementDialogApi = requireToolboxModule('EdVibeBatchUserManagementDialog');
 const batchSectionCreationApi = requireToolboxModule('EdVibeBatchSectionCreation');
+const batchSectionCreationHistoryApi = requireToolboxModule('EdVibeBatchSectionCreationHistory');
 const batchSectionCreationDialogApi = requireToolboxModule('EdVibeBatchSectionCreationDialog');
 const batchSectionCreationRecipe = requireToolboxModule('EdVibeBatchSectionCreationRecipe');
 const batchSectionDeletionApi = requireToolboxModule('EdVibeBatchSectionDeletion');
@@ -145,6 +146,17 @@ const batchUserManagementFeature = batchUserManagementApi.createBatchUserManagem
     log: createMainLog('BatchUserManagement')
 });
 
+const createBatchSectionCreationDialog = batchSectionCreationHistoryApi.createHistoryAwareDialog({
+    createDialog: () => document.createElement(batchSectionCreationDialogApi.BATCH_SECTION_DIALOG_TAG),
+    persistExecution: historyService.persistTerminal,
+    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
+        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
+        executionId
+    }),
+    getLocationHref: () => window.location.href,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    log: createMainLog('BatchSectionCreationHistory')
+});
 const batchSectionCreationAdapter = batchSectionCreationApi.createRecordedCreationAdapter({ recipe: batchSectionCreationRecipe, cryptoApi: window.crypto });
 const batchSectionCreationFeature = batchSectionCreationApi.createBatchSectionCreationFeature({
     sendRequest: transport.sendRequest,
@@ -153,7 +165,7 @@ const batchSectionCreationFeature = batchSectionCreationApi.createBatchSectionCr
     canStart: operationGuard.canStart,
     onActiveChange: guardedActiveChange('batch-section-creation'),
     adapter: batchSectionCreationAdapter,
-    createDialog: () => document.createElement(batchSectionCreationDialogApi.BATCH_SECTION_DIALOG_TAG),
+    createDialog: createBatchSectionCreationDialog,
     copyText: (text) => navigator.clipboard.writeText(text),
     log: createMainLog('BatchSectionCreation')
 });
