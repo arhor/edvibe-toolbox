@@ -23,6 +23,10 @@ test('manifest loads execution-history infrastructure before UI and features', (
         'src/features/batch-lesson-access-history-model.js',
         'src/features/batch-lesson-access-history-record.js',
         'src/features/batch-lesson-access-history.js',
+        'src/features/batch-section-creation.js',
+        'src/features/batch-section-creation-history-model.js',
+        'src/features/batch-section-creation-history-record.js',
+        'src/features/batch-section-creation-history.js',
         'src/features/execution-history.js',
         'src/main.js'
     ];
@@ -39,16 +43,22 @@ test('popup, isolated bridge, main coordinator, and representative batch results
     const batchDeletionDialog = read('src/components/batch-section-deletion-dialog.js');
     const batchAccessHistory = read('src/features/batch-lesson-access-history.js');
     const batchAccessHistoryRecord = read('src/features/batch-lesson-access-history-record.js');
+    const batchSectionCreationHistory = read('src/features/batch-section-creation-history.js');
 
     assert.match(popup, /id: 'execution-history'.*command: 'OPEN_EXECUTION_HISTORY'.*requirement: 'edvibe'/s);
     assert.match(isolated, /OPEN_EXECUTION_HISTORY: \['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY'/);
     assert.match(isolated, /ALLOWED_STORAGE_KEYS = new Set\(\['executionHistoryPreferences'\]\)/);
     assert.match(main, /batchAccessHistoryApi\.createHistoryAwareFeature/);
+    assert.match(main, /batchSectionCreationHistoryApi\.createHistoryAwareDialog/);
+    assert.match(main, /createDialog: createBatchSectionCreationDialog/);
     assert.match(main, /persistExecution: historyService\.persistTerminal/);
     assert.match(main, /openHistory: \(executionId, sourceStylesheetUrl\)/);
     assert.match(batchAccessHistoryRecord, /buildExecutionHistoryInput/);
     assert.match(batchAccessHistory, /Результат сохранён в истории/);
     assert.match(batchAccessHistory, /Экранный результат сохранён, но записать историю не удалось/);
+    assert.match(batchSectionCreationHistory, /buildExecutionHistoryInput/);
+    assert.match(batchSectionCreationHistory, /Результат сохранён в истории/);
+    assert.match(batchSectionCreationHistory, /Экранный результат сохранён, но записать историю не удалось/);
     assert.match(batchDeletionFeature, /buildExecutionHistoryInput/);
     assert.match(batchDeletionDialog, /Open in history/);
     assert.match(batchDeletionDialog, /visible report is intact, but history could not be saved/);
