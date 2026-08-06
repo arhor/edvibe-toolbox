@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(__dirname, '../..');
 const popup = fs.readFileSync(path.join(root, 'popup.js'), 'utf8');
 const isolated = fs.readFileSync(path.join(root, 'src/isolated.js'), 'utf8');
 const main = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
@@ -18,12 +18,11 @@ test('popup exposes batch section creation only on marathon pages', () => {
 });
 
 test('popup command crosses the isolated and main worlds', () => {
-    assert.match(isolated, /case 'OPEN_BATCH_SECTION_CREATION'/);
+    assert.match(isolated, /OPEN_BATCH_SECTION_CREATION:\s*\[/);
     assert.match(isolated, /EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION/);
     assert.match(isolated, /batch-section-creation-dialog\.css/);
     assert.match(main, /batchSectionCreationFeature\.open/);
-    assert.match(main, /operationGuard\.activate\('batch-section-creation'\)/);
-    assert.match(main, /operationGuard\.release\('batch-section-creation'\)/);
+    assert.match(main, /guardedActiveChange\('batch-section-creation'\)/);
     assert.match(main, /operationGuard\.activate\('recording'\)/);
     assert.match(main, /operationGuard\.release\('recording'\)/);
 });

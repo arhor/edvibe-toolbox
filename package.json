@@ -1,0 +1,13 @@
+{
+  "name": "edvibe-toolbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension utilities for Edvibe workflows",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "test": "node --require ./test-path-compat.cjs --test \"src/**/*.test.js\"",
+    "test:ci": "npm test"
+  }
+}

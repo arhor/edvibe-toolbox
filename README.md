@@ -55,3 +55,14 @@ The project is built in compliance with the **Manifest V3** standard and utilize
 * **Vanilla JavaScript** — Isolated runtime architecture (Content Scripts) for secure interaction with the Edvibe page context.
 
 Whenever you make changes to the source code, simply click the **"Reload"** (circular arrow) icon on the extension's card within the `chrome://extensions/` dashboard.
+
+## Development
+
+The reproducible development and CI environment uses Node.js 22, pinned in `.nvmrc` and the `package.json` engines field.
+
+```bash
+npm ci
+npm test
+```
+
+`npm run test:ci` is the canonical CI entry point and currently delegates to the same complete suite as `npm test`. Tests are colocated with the source modules they cover and use kebab-case names ending in `.test.js`.
