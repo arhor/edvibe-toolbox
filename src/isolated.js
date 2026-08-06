@@ -1,5 +1,8 @@
 const createIsolatedLog = EdVibeLogger.createLoggerFactory('ISOLATED');
 const log = createIsolatedLog();
+const STORAGE_REQUEST_TYPE = 'EDVIBE_TOOLBOX_STORAGE_REQUEST';
+const STORAGE_RESPONSE_TYPE = 'EDVIBE_TOOLBOX_STORAGE_RESPONSE';
+const ALLOWED_STORAGE_KEYS = new Set(['executionHistoryPreferences']);
 
 log('Script successfully injected and initialized.');
 
@@ -10,6 +13,7 @@ chrome.storage.local.set({ exportInProgress: false }, () => {
 window.addEventListener('message', (event) => {
     if (event.source !== window || !event.data?.type) return;
     if (event.data.type === 'EDVIBE_TOOLBOX_EXPORT_STATUS') relayExportStatus(event.data);
+    if (event.data.type === STORAGE_REQUEST_TYPE) handleStorageRequest(event.data);
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -20,7 +24,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         OPEN_BATCH_LESSON_ACCESS: ['EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS', 'src/components/batch-lesson-access-dialog.css', 'Batch lesson access opened.'],
         OPEN_BATCH_USER_MANAGEMENT: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT', 'src/components/batch-user-management-dialog.css', 'Batch user management opened.'],
         OPEN_BATCH_SECTION_CREATION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION', 'src/components/batch-section-creation-dialog.css', 'Batch section creation opened.'],
-        OPEN_BATCH_SECTION_DELETION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'src/components/batch-section-deletion-dialog.css', 'Batch section deletion opened.']
+        OPEN_BATCH_SECTION_DELETION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'src/components/batch-section-deletion-dialog.css', 'Batch section deletion opened.'],
+        OPEN_EXECUTION_HISTORY: ['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY', 'src/components/execution-history-dialog.css', 'Execution history opened.']
     };
 
     if (message.action === 'START_FULL_AUTOMATION') {
@@ -41,5 +46,44 @@ function relayExportStatus(payload) {
     const isActive = payload.state === 'started';
     chrome.storage.local.set({ exportInProgress: isActive }, () => {
         chrome.runtime.sendMessage({ action: 'EXPORT_STATUS', state: payload.state, message: payload.message || '' });
+    });
+}
+
+async function handleStorageRequest(request) {
+    const response = { type: STORAGE_RESPONSE_TYPE, requestId: request.requestId };
+    try {
+        if (!ALLOWED_STORAGE_KEYS.has(request.key)) throw new Error('Storage key is not allowed');
+        if (request.action === 'get') {
+            const values = await getLocalStorage(request.key);
+            response.value = values[request.key];
+        } else if (request.action === 'set') {
+            await setLocalStorage({ [request.key]: request.value });
+            response.value = request.value;
+        } else {
+            throw new Error('Storage action is not supported');
+        }
+        response.ok = true;
+    } catch (error) {
+        response.ok = false;
+        response.error = error.message || 'Storage request failed';
+    }
+    window.postMessage(response, '*');
+}
+
+function getLocalStorage(key) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(key, (values) => {
+            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+            else resolve(values || {});
+        });
+    });
+}
+
+function setLocalStorage(values) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.set(values, () => {
+            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+            else resolve();
+        });
     });
 }
