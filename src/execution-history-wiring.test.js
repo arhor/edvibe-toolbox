@@ -19,6 +19,10 @@ test('manifest loads execution-history infrastructure before UI and features', (
         'src/shared/chrome-storage-bridge.js',
         'src/shared/execution-history-service.js',
         'src/components/execution-history-dialog.js',
+        'src/features/batch-lesson-access.js',
+        'src/features/batch-lesson-access-history-model.js',
+        'src/features/batch-lesson-access-history-record.js',
+        'src/features/batch-lesson-access-history.js',
         'src/features/execution-history.js',
         'src/main.js'
     ];
@@ -27,19 +31,25 @@ test('manifest loads execution-history infrastructure before UI and features', (
     assert.ok(manifest.web_accessible_resources[0].resources.includes('src/components/execution-history-dialog.css'));
 });
 
-test('popup, isolated bridge, main coordinator, and representative batch result are connected', () => {
+test('popup, isolated bridge, main coordinator, and representative batch results are connected', () => {
     const popup = read('popup.js');
     const isolated = read('src/isolated.js');
     const main = read('src/main.js');
-    const batchFeature = read('src/features/batch-section-deletion.js');
-    const batchDialog = read('src/components/batch-section-deletion-dialog.js');
+    const batchDeletionFeature = read('src/features/batch-section-deletion.js');
+    const batchDeletionDialog = read('src/components/batch-section-deletion-dialog.js');
+    const batchAccessHistory = read('src/features/batch-lesson-access-history.js');
+    const batchAccessHistoryRecord = read('src/features/batch-lesson-access-history-record.js');
 
     assert.match(popup, /id: 'execution-history'.*command: 'OPEN_EXECUTION_HISTORY'.*requirement: 'edvibe'/s);
     assert.match(isolated, /OPEN_EXECUTION_HISTORY: \['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY'/);
     assert.match(isolated, /ALLOWED_STORAGE_KEYS = new Set\(\['executionHistoryPreferences'\]\)/);
+    assert.match(main, /batchAccessHistoryApi\.createHistoryAwareFeature/);
     assert.match(main, /persistExecution: historyService\.persistTerminal/);
     assert.match(main, /openHistory: \(executionId, sourceStylesheetUrl\)/);
-    assert.match(batchFeature, /buildExecutionHistoryInput/);
-    assert.match(batchDialog, /Open in history/);
-    assert.match(batchDialog, /visible report is intact, but history could not be saved/);
+    assert.match(batchAccessHistoryRecord, /buildExecutionHistoryInput/);
+    assert.match(batchAccessHistory, /Результат сохранён в истории/);
+    assert.match(batchAccessHistory, /Экранный результат сохранён, но записать историю не удалось/);
+    assert.match(batchDeletionFeature, /buildExecutionHistoryInput/);
+    assert.match(batchDeletionDialog, /Open in history/);
+    assert.match(batchDeletionDialog, /visible report is intact, but history could not be saved/);
 });
