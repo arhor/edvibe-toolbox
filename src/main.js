@@ -24,6 +24,7 @@ const resetApi = requireToolboxModule('EdVibeLessonReset');
 const recorderApi = requireToolboxModule('EdVibeActionRecorder');
 const recorderDialogApi = requireToolboxModule('EdVibeActionRecorderDialog');
 const batchAccessApi = requireToolboxModule('EdVibeBatchLessonAccess');
+const batchAccessHistoryApi = requireToolboxModule('EdVibeBatchLessonAccessHistory');
 const batchAccessDialogApi = requireToolboxModule('EdVibeBatchAccessDialogComponent');
 const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement');
 const batchUserManagementHistoryApi = requireToolboxModule('EdVibeBatchUserManagementHistory');
@@ -104,7 +105,8 @@ const actionRecorderFeature = recorderApi.createActionRecorderFeature({
     log: createMainLog('Recorder')
 });
 
-const batchLessonAccessFeature = batchAccessApi.createBatchLessonAccessFeature({
+const batchLessonAccessFeature = batchAccessHistoryApi.createHistoryAwareFeature({
+    createFeature: batchAccessApi.createBatchLessonAccessFeature,
     sendRequest: transport.sendRequest,
     getConnectionState: transport.getConnectionState,
     wait,
@@ -112,7 +114,14 @@ const batchLessonAccessFeature = batchAccessApi.createBatchLessonAccessFeature({
     onActiveChange: guardedActiveChange('batch-access'),
     createDialog: () => document.createElement(batchAccessDialogApi.BATCH_ACCESS_DIALOG_TAG),
     copyText: (text) => navigator.clipboard.writeText(text),
-    log: createMainLog('BatchAccess')
+    persistExecution: historyService.persistTerminal,
+    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
+        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
+        executionId
+    }),
+    getLocationHref: () => window.location.href,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    log: createMainLog('BatchAccessHistory')
 });
 
 const createBatchUserManagementDialog = batchUserManagementHistoryApi.createHistoryAwareDialog({
