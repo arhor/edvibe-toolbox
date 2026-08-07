@@ -20,9 +20,8 @@ test('runtime entry points load dependencies in explicit source order', () => {
         '../shared/logger.js',
         '../isolated.js'
     ]);
-    assert.deepEqual(mainImports.slice(0, 3), [
-        '../../lib/jszip.min.js',
-        '../../lib/turndown.min.js',
+    assert.deepEqual(mainImports.slice(0, 2), [
+        './runtime-dependencies.js',
         '../shared/logger.js'
     ]);
     assert.equal(mainImports.at(-1), '../main.js');

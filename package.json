@@ -12,6 +12,10 @@
     "test": "node --require ./test-path-compat.cjs --test \"src/**/*.test.js\"",
     "test:ci": "npm test"
   },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "turndown": "7.2.2"
+  },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.7.1",
     "vite": "8.1.5"
