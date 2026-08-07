@@ -1,4 +1,3 @@
-# Temporary build validation for issue #26.
 name: CI
 
 on:
@@ -25,5 +24,3 @@ jobs:
         run: npm ci
       - name: Run test suite
         run: npm run test:ci
-      - name: Build extension
-        run: npm run build
