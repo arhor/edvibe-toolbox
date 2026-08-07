@@ -7,14 +7,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createModule(baseApi) {
     'use strict';
 
-    if (!baseApi) {
-        throw new Error('EdVibeBatchUserManagement is required.');
-    }
+    if (!baseApi) throw new Error('EdVibeBatchUserManagement is required.');
 
     const DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
     const OPERATION_TYPE = 'batch_user_onboarding';
-    const ADD_METHOD = 'AddMarathonPupil';
-    const ASSIGN_METHOD = 'AddModeratorsToPupil';
     const EXPECTED_WRITE_CODES = new Set([
         'SERVER_REJECTED',
         'INVALID_RESPONSE',
@@ -27,13 +23,9 @@
     }
 
     function deepFreeze(value) {
-        if (!value || typeof value !== 'object' || Object.isFrozen(value)) {
-            return value;
-        }
+        if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
         Object.freeze(value);
-        for (const item of Object.values(value)) {
-            deepFreeze(item);
-        }
+        for (const nested of Object.values(value)) deepFreeze(nested);
         return value;
     }
 
@@ -41,10 +33,7 @@
         const id = Number(item?.Id);
         const teacherId = Number(item?.TeacherId);
         if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(teacherId) || teacherId <= 0) {
-            throw featureError(
-                'INVALID_MODERATOR_RESPONSE',
-                'The moderator catalogue contained an invalid identifier.'
-            );
+            throw featureError('INVALID_MODERATOR_RESPONSE', 'The moderator catalogue contained an invalid identifier.');
         }
         return Object.freeze({
             id,
@@ -56,20 +45,14 @@
 
     function normalizeModeratorCatalogue(items) {
         if (!Array.isArray(items)) {
-            throw featureError(
-                'INVALID_MODERATOR_RESPONSE',
-                'The moderator catalogue was not an array.'
-            );
+            throw featureError('INVALID_MODERATOR_RESPONSE', 'The moderator catalogue was not an array.');
         }
         const moderators = items.map(normalizeModerator);
         const ids = new Set();
         const teacherIds = new Set();
         for (const moderator of moderators) {
             if (ids.has(moderator.id) || teacherIds.has(moderator.teacherId)) {
-                throw featureError(
-                    'INVALID_MODERATOR_RESPONSE',
-                    'The moderator catalogue contained ambiguous identifiers.'
-                );
+                throw featureError('INVALID_MODERATOR_RESPONSE', 'The moderator catalogue contained ambiguous identifiers.');
             }
             ids.add(moderator.id);
             teacherIds.add(moderator.teacherId);
@@ -88,13 +71,7 @@
     }
 
     function buildModeratorIndex(moderators) {
-        const byId = new Map();
-        const byTeacherId = new Map();
-        for (const moderator of moderators || []) {
-            byId.set(Number(moderator.id), moderator);
-            byTeacherId.set(Number(moderator.teacherId), moderator);
-        }
-        return { byId, byTeacherId };
+        return new Map((moderators || []).map((moderator) => [moderator.teacherId, moderator]));
     }
 
     function resolvePupilModerators(pupilModerators, moderators) {
@@ -106,7 +83,7 @@
                 message: 'Current curator assignments could not be interpreted safely.'
             });
         }
-        const { byTeacherId } = buildModeratorIndex(moderators);
+        const byTeacherId = buildModeratorIndex(moderators);
         const resolved = [];
         const seen = new Set();
         for (const current of pupilModerators) {
@@ -132,9 +109,7 @@
     }
 
     function serializePupil(pupil) {
-        if (!pupil) {
-            return null;
-        }
+        if (!pupil) return null;
         return Object.freeze({
             email: String(pupil.Email || '').trim() || null,
             name: String(pupil.Name || pupil.DisplayName || pupil.FullName || '').trim() || null,
@@ -149,9 +124,7 @@
         const index = new Map();
         for (const pupil of Array.isArray(pupils) ? pupils : []) {
             const email = String(pupil?.Email || '').trim().toLowerCase();
-            if (!email) {
-                continue;
-            }
+            if (!email) continue;
             const values = index.get(email) || [];
             values.push(pupil);
             index.set(email, values);
@@ -215,20 +188,17 @@
                 continue;
             }
 
-            const pupil = candidates[0];
-            const current = resolvePupilModerators(pupil.Moderators, moderators);
+            const current = resolvePupilModerators(candidates[0].Moderators, moderators);
             rows.push(Object.freeze({
                 email: item.input,
                 normalizedEmail: item.normalized,
                 resolution: 'in_marathon',
                 membership: 'in_marathon',
-                user: serializePupil(pupil),
+                user: serializePupil(candidates[0]),
                 currentModerators: current.moderators,
                 moderatorStateSafe: current.safe,
                 actionable: true,
-                message: current.safe
-                    ? 'Already in the marathon.'
-                    : current.message,
+                message: current.safe ? 'Already in the marathon.' : current.message,
                 addSelected: false,
                 assignSelected: false
             }));
@@ -248,14 +218,9 @@
     function buildExecutionPlan({ rows, moderators, targetModeratorId }) {
         const values = Array.isArray(rows) ? rows : [];
         const assignmentSelected = values.some((row) => Boolean(row.assignSelected));
-        const target = assignmentSelected
-            ? findTargetModerator(moderators, targetModeratorId)
-            : null;
+        const target = assignmentSelected ? findTargetModerator(moderators, targetModeratorId) : null;
         if (assignmentSelected && !target) {
-            throw featureError(
-                'CURATOR_REQUIRED',
-                'Select a curator before preparing the execution plan.'
-            );
+            throw featureError('CURATOR_REQUIRED', 'Select a curator before preparing the execution plan.');
         }
 
         const planRows = values.map((row) => {
@@ -265,13 +230,11 @@
             let assign = null;
 
             if (addSelected) {
-                if (!row.actionable) {
-                    add = operationPreview('rejected', 'INVALID_USER_INPUT', row.message || 'The user is not actionable.');
-                } else if (row.membership === 'in_marathon') {
-                    add = operationPreview('noop', 'USER_ALREADY_IN_MARATHON', 'User is already in the marathon.');
-                } else {
-                    add = operationPreview('pending', 'USER_ADD_PENDING', 'User will be added to the marathon.');
-                }
+                add = !row.actionable
+                    ? operationPreview('rejected', 'INVALID_USER_INPUT', row.message || 'The user is not actionable.')
+                    : row.membership === 'in_marathon'
+                        ? operationPreview('noop', 'USER_ALREADY_IN_MARATHON', 'User is already in the marathon.')
+                        : operationPreview('pending', 'USER_ADD_PENDING', 'User will be added to the marathon.');
             }
 
             if (assignSelected) {
@@ -301,9 +264,7 @@
                         row.membership === 'not_in_marathon'
                             ? 'The curator will be assigned by the recorded add-user request.'
                             : 'The curator will be added while preserving all current curators.',
-                        row.membership === 'not_in_marathon'
-                            ? Object.freeze({ blockedBy: 'add_user' })
-                            : null
+                        row.membership === 'not_in_marathon' ? Object.freeze({ blockedBy: 'add_user' }) : null
                     );
                 }
             }
@@ -331,32 +292,19 @@
             });
         });
 
-        const operationCount = planRows.reduce(
-            (sum, row) => sum + row.selectedOperations.length,
-            0
-        );
-        const noOpCount = planRows.reduce(
-            (sum, row) => sum
-                + (row.add?.status === 'noop' ? 1 : 0)
-                + (row.assign?.status === 'noop' ? 1 : 0),
-            0
-        );
-        const rejectedCount = planRows.reduce(
-            (sum, row) => sum
-                + (row.add?.status === 'rejected' ? 1 : 0)
-                + (row.assign?.status === 'rejected' ? 1 : 0),
-            0
-        );
+        const countStatus = (status) => planRows.reduce((sum, row) => sum
+            + (row.add?.status === status ? 1 : 0)
+            + (row.assign?.status === status ? 1 : 0), 0);
         return deepFreeze({
             rows: planRows,
             targetModerator: target ? { ...target } : null,
             counts: {
                 requested: planRows.length,
-                selectedOperations: operationCount,
+                selectedOperations: planRows.reduce((sum, row) => sum + row.selectedOperations.length, 0),
                 additions: planRows.filter((row) => row.addSelected).length,
                 assignments: planRows.filter((row) => row.assignSelected).length,
-                noOps: noOpCount,
-                rejectedOperations: rejectedCount,
+                noOps: countStatus('noop'),
+                rejectedOperations: countStatus('rejected'),
                 dependentAssignments: planRows.filter((row) => row.assign?.dependency?.blockedBy === 'add_user').length
             }
         });
@@ -401,12 +349,10 @@
             DeviceType: 'desktop'
         };
         const numericUserId = Number(userId);
-        if (Number.isSafeInteger(numericUserId) && numericUserId > 0) {
-            value.UserId = numericUserId;
-        }
+        if (Number.isSafeInteger(numericUserId) && numericUserId > 0) value.UserId = numericUserId;
         return deepFreeze({
             controller: 'MarathonPupilsWsController',
-            method: ADD_METHOD,
+            method: 'AddMarathonPupil',
             projectName: 'Marathons',
             value
         });
@@ -418,14 +364,11 @@
             Number(targetModeratorId)
         ])];
         if (selected.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
-            throw featureError(
-                'UNSAFE_MODERATOR_REPLACEMENT',
-                'A safe complete curator list could not be constructed.'
-            );
+            throw featureError('UNSAFE_MODERATOR_REPLACEMENT', 'A safe complete curator list could not be constructed.');
         }
         return deepFreeze({
             controller: 'MarathonPupilsWsController',
-            method: ASSIGN_METHOD,
+            method: 'AddModeratorsToPupil',
             projectName: 'Marathons',
             value: {
                 MarathonId: marathonId,
@@ -436,58 +379,49 @@
     }
 
     function operationResult(status, code, message, attempts = 0, dependency = null) {
-        return {
-            status,
-            code,
-            message,
-            attempts,
-            dependency
-        };
+        return { status, code, message, attempts, dependency };
     }
 
     function initializeExecutionRows(plan) {
+        const fromPreview = (preview, label) => preview
+            ? operationResult(
+                preview.status === 'pending' ? 'not_attempted' : preview.status,
+                preview.status === 'pending' ? 'NOT_ATTEMPTED' : preview.code,
+                preview.status === 'pending' ? `${label} has not been attempted yet.` : preview.message,
+                0,
+                preview.dependency
+            )
+            : null;
         return plan.rows.map((row) => ({
             ...row,
             currentModerators: row.currentModerators.map((moderator) => ({ ...moderator })),
             runtimePupil: row.user ? { ...row.user } : null,
-            addResult: row.add
-                ? operationResult(
-                    row.add.status === 'pending' ? 'not_attempted' : row.add.status,
-                    row.add.status === 'pending' ? 'NOT_ATTEMPTED' : row.add.code,
-                    row.add.status === 'pending' ? 'The addition has not been attempted yet.' : row.add.message,
-                    0,
-                    row.add.dependency
-                )
-                : null,
-            assignResult: row.assign
-                ? operationResult(
-                    row.assign.status === 'pending' ? 'not_attempted' : row.assign.status,
-                    row.assign.status === 'pending' ? 'NOT_ATTEMPTED' : row.assign.code,
-                    row.assign.status === 'pending' ? 'The curator assignment has not been attempted yet.' : row.assign.message,
-                    0,
-                    row.assign.dependency
-                )
-                : null
+            addResult: fromPreview(row.add, 'The addition'),
+            assignResult: fromPreview(row.assign, 'The curator assignment')
         }));
-    }
-
-    function moderatorTeacherIds(values) {
-        return [...(values || []).map((moderator) => moderator.teacherId)].sort((a, b) => a - b);
-    }
-
-    function sameNumbers(left, right) {
-        return left.length === right.length && left.every((value, index) => value === right[index]);
     }
 
     function isPending(result) {
         return result?.status === 'not_attempted';
     }
 
-    function rejectPending(row, code, message) {
-        if (isPending(row.addResult)) {
+    function isRevalidatable(result) {
+        return result && !['rejected', 'failed', 'skipped'].includes(result.status);
+    }
+
+    function moderatorTeacherIds(values) {
+        return (values || []).map((moderator) => moderator.teacherId).sort((a, b) => a - b);
+    }
+
+    function sameNumbers(left, right) {
+        return left.length === right.length && left.every((value, index) => value === right[index]);
+    }
+
+    function rejectSelectedState(row, code, message) {
+        if (row.addSelected && isRevalidatable(row.addResult)) {
             row.addResult = operationResult('rejected', code, message);
         }
-        if (isPending(row.assignResult)) {
+        if (row.assignSelected && isRevalidatable(row.assignResult)) {
             row.assignResult = operationResult('rejected', code, message);
         }
     }
@@ -495,127 +429,102 @@
     function revalidateRows({ rows, pupils, moderators, targetModerator }) {
         const pupilIndex = buildPupilEmailIndex(pupils);
         for (const row of rows) {
-            if (!row.actionable || row.selectedOperations.length === 0) {
-                continue;
-            }
+            if (!row.actionable || row.selectedOperations.length === 0) continue;
             const candidates = pupilIndex.get(row.normalizedEmail) || [];
             if (candidates.length > 1) {
-                rejectPending(row, 'USER_AMBIGUOUS', 'The user became ambiguous before execution.');
+                rejectSelectedState(row, 'USER_AMBIGUOUS', 'The user became ambiguous before execution.');
                 continue;
             }
 
             if (row.membership === 'in_marathon') {
-                if (candidates.length !== 1) {
-                    rejectPending(row, 'STATE_CHANGED', 'Marathon membership changed after preflight.');
+                if (
+                    candidates.length !== 1
+                    || Number(candidates[0].MarathonPupilId) !== Number(row.user?.marathonPupilId)
+                ) {
+                    rejectSelectedState(row, 'STATE_CHANGED', 'Marathon membership changed after preflight.');
                     continue;
                 }
+
                 const currentPupil = candidates[0];
-                if (Number(currentPupil.MarathonPupilId) !== Number(row.user?.marathonPupilId)) {
-                    rejectPending(row, 'STATE_CHANGED', 'The marathon-user identity changed after preflight.');
+                row.runtimePupil = serializePupil(currentPupil);
+                if (row.addSelected && isRevalidatable(row.addResult)) {
+                    row.addResult = operationResult('noop', 'USER_ALREADY_IN_MARATHON', 'User is already in the marathon.');
+                }
+                if (!row.assignSelected || !isRevalidatable(row.assignResult)) continue;
+
+                const current = resolvePupilModerators(currentPupil.Moderators, moderators);
+                if (!current.safe) {
+                    row.assignResult = operationResult('rejected', current.code, current.message);
                     continue;
                 }
-                row.runtimePupil = serializePupil(currentPupil);
-                if (isPending(row.assignResult)) {
-                    const current = resolvePupilModerators(currentPupil.Moderators, moderators);
-                    if (!current.safe) {
-                        row.assignResult = operationResult('rejected', current.code, current.message);
-                        continue;
-                    }
-                    const before = moderatorTeacherIds(row.currentModerators);
-                    const latest = moderatorTeacherIds(current.moderators);
-                    if (!sameNumbers(before, latest)) {
-                        row.assignResult = operationResult(
-                            'rejected',
-                            'STATE_CHANGED',
-                            'Current curator assignments changed after preflight.'
-                        );
-                        continue;
-                    }
-                    row.currentModerators = current.moderators.map((moderator) => ({ ...moderator }));
-                    if (current.moderators.some((moderator) => moderator.teacherId === targetModerator?.teacherId)) {
-                        row.assignResult = operationResult(
-                            'noop',
-                            'CURATOR_ALREADY_ASSIGNED',
-                            'Target curator is already assigned.'
-                        );
-                    }
+                if (!sameNumbers(
+                    moderatorTeacherIds(row.currentModerators),
+                    moderatorTeacherIds(current.moderators)
+                )) {
+                    row.assignResult = operationResult(
+                        'rejected',
+                        'STATE_CHANGED',
+                        'Current curator assignments changed after preflight.'
+                    );
+                    continue;
                 }
+                row.currentModerators = current.moderators.map((moderator) => ({ ...moderator }));
+                row.assignResult = current.moderators.some((moderator) =>
+                    moderator.teacherId === targetModerator?.teacherId
+                )
+                    ? operationResult('noop', 'CURATOR_ALREADY_ASSIGNED', 'Target curator is already assigned.')
+                    : operationResult('not_attempted', 'NOT_ATTEMPTED', 'The curator assignment has not been attempted yet.');
                 continue;
             }
 
-            if (row.membership === 'not_in_marathon' && candidates.length === 1) {
-                const currentPupil = candidates[0];
-                row.runtimePupil = serializePupil(currentPupil);
-                if (isPending(row.addResult)) {
-                    row.addResult = operationResult(
-                        'noop',
-                        'USER_ALREADY_IN_MARATHON',
-                        'User entered the marathon after preflight; no duplicate add was sent.'
+            if (row.membership !== 'not_in_marathon' || candidates.length === 0) continue;
+            const currentPupil = candidates[0];
+            row.runtimePupil = serializePupil(currentPupil);
+            if (row.addSelected && isRevalidatable(row.addResult)) {
+                row.addResult = operationResult(
+                    'noop',
+                    'USER_ALREADY_IN_MARATHON',
+                    'User entered the marathon after preflight; no duplicate add was sent.'
+                );
+            }
+            if (row.assignSelected && isRevalidatable(row.assignResult)) {
+                const current = resolvePupilModerators(currentPupil.Moderators, moderators);
+                row.assignResult = current.safe && current.moderators.some((moderator) =>
+                    moderator.teacherId === targetModerator?.teacherId
+                )
+                    ? operationResult('noop', 'CURATOR_ALREADY_ASSIGNED', 'Target curator was assigned after preflight.')
+                    : operationResult(
+                        'rejected',
+                        'STATE_CHANGED',
+                        'The user entered the marathon after preflight; curator state was not part of the confirmed plan.'
                     );
-                }
-                if (isPending(row.assignResult)) {
-                    const current = resolvePupilModerators(currentPupil.Moderators, moderators);
-                    if (current.safe && current.moderators.some((moderator) =>
-                        moderator.teacherId === targetModerator?.teacherId
-                    )) {
-                        row.assignResult = operationResult(
-                            'noop',
-                            'CURATOR_ALREADY_ASSIGNED',
-                            'Target curator was assigned after preflight.'
-                        );
-                    } else {
-                        row.assignResult = operationResult(
-                            'rejected',
-                            'STATE_CHANGED',
-                            'The user entered the marathon after preflight; curator state was not part of the confirmed plan.'
-                        );
-                    }
-                }
             }
         }
         return rows;
     }
 
     function isOperationWide(error, getConnectionState) {
-        if (error?.code === 'WS_UNAVAILABLE') {
-            return true;
-        }
-        if (error?.code === 'SEND_FAILED' && !getConnectionState().isOpen) {
-            return true;
-        }
-        return Boolean(error?.code) && !EXPECTED_WRITE_CODES.has(error.code);
+        if (!error?.code) return true;
+        if (error.code === 'WS_UNAVAILABLE') return true;
+        if (error.code === 'SEND_FAILED' && !getConnectionState().isOpen) return true;
+        return !EXPECTED_WRITE_CODES.has(error.code);
     }
 
     function countTerminalOperations(rows) {
-        let completed = 0;
-        let total = 0;
-        let successes = 0;
-        let failures = 0;
-        for (const row of rows) {
-            for (const result of [row.addResult, row.assignResult]) {
-                if (!result) {
-                    continue;
-                }
-                total += 1;
-                if (result.status !== 'not_attempted') {
-                    completed += 1;
-                }
-                if (result.status === 'success' || result.status === 'noop') {
-                    successes += 1;
-                }
-                if (result.status === 'failed' || result.status === 'rejected' || result.status === 'skipped') {
-                    failures += 1;
-                }
-            }
-        }
-        return { completed, total, successes, failures };
+        const results = rows.flatMap((row) => [row.addResult, row.assignResult]).filter(Boolean);
+        return {
+            completed: results.filter((result) => result.status !== 'not_attempted').length,
+            total: results.length,
+            successes: results.filter((result) => ['success', 'noop'].includes(result.status)).length,
+            failures: results.filter((result) => ['failed', 'rejected', 'skipped'].includes(result.status)).length
+        };
     }
 
     function emitProgress(onProgress, rows, current = null) {
         try {
             onProgress?.({ ...countTerminalOperations(rows), current });
         } catch (_) {
-            // UI failures must not alter mutation bookkeeping.
+            // Rendering failures must not alter mutation bookkeeping.
         }
     }
 
@@ -632,12 +541,11 @@
     }) {
         const targets = rows.filter((row) =>
             isPending(row.addResult)
-            && Boolean(row.assignSelected) === includeModerator
             && row.membership === 'not_in_marathon'
+            && Boolean(row.assignSelected) === includeModerator
         );
-        if (targets.length === 0) {
-            return { targets, confirmed: false, fatalError: null };
-        }
+        if (targets.length === 0) return { targets, confirmed: false, fatalError: null };
+
         const context = getRequestContext?.() || {};
         const request = buildAddRequest({
             marathonId,
@@ -647,6 +555,7 @@
             userId: context.userId,
             now: now()
         });
+
         try {
             const result = await baseApi.runWithRetry(async () => {
                 const response = await sendRequest(
@@ -660,9 +569,7 @@
                 }
                 return response;
             }, { wait, getConnectionState });
-            for (const row of targets) {
-                row.addRequestAttempts = result.attempts;
-            }
+            for (const row of targets) row.addRequestAttempts = result.attempts;
             return { targets, confirmed: true, fatalError: null };
         } catch (error) {
             for (const row of targets) {
@@ -715,8 +622,9 @@
                     }
                     continue;
                 }
-                const pupil = candidates[0];
-                row.runtimePupil = serializePupil(pupil);
+
+                const currentPupil = candidates[0];
+                row.runtimePupil = serializePupil(currentPupil);
                 row.addResult = operationResult(
                     'success',
                     'USER_ADDED',
@@ -724,8 +632,8 @@
                     row.addRequestAttempts || 1
                 );
                 if (isPending(row.assignResult) && row.assignSelected) {
-                    const assigned = Array.isArray(pupil.Moderators)
-                        && pupil.Moderators.some((moderator) =>
+                    const assigned = Array.isArray(currentPupil.Moderators)
+                        && currentPupil.Moderators.some((moderator) =>
                             Number(moderator?.TeacherId) === Number(targetModerator?.teacherId)
                         );
                     row.assignResult = assigned
@@ -748,6 +656,29 @@
         }
     }
 
+    function markConfirmedGroupsUnverified(groups, error) {
+        for (const group of groups.filter((item) => item.confirmed)) {
+            for (const row of group.targets) {
+                if (!isPending(row.addResult)) continue;
+                row.addResult = operationResult(
+                    'failed',
+                    'ADD_VERIFICATION_FAILED',
+                    `The add request was accepted, but per-user verification could not finish: ${error?.message || 'operation interrupted'}`,
+                    row.addRequestAttempts || 1
+                );
+                if (isPending(row.assignResult)) {
+                    row.assignResult = operationResult(
+                        'skipped',
+                        'ASSIGNMENT_BLOCKED_BY_ADD_FAILURE',
+                        'Curator assignment could not be verified because the added user was not safely resolved.',
+                        0,
+                        { blockedBy: 'add_user' }
+                    );
+                }
+            }
+        }
+    }
+
     async function executeExistingAssignments({
         rows,
         marathonId,
@@ -765,9 +696,7 @@
             && row.runtimePupil?.marathonPupilId
         );
         for (const [index, row] of targets.entries()) {
-            if (fatalError) {
-                break;
-            }
+            if (fatalError) break;
             const request = buildAssignRequest({
                 marathonId,
                 marathonPupilId: row.runtimePupil.marathonPupilId,
@@ -783,10 +712,7 @@
                         request.value
                     );
                     if (response?.Value?.IsSuccess !== true) {
-                        throw featureError(
-                            'INVALID_RESPONSE',
-                            'Curator assignment was not positively confirmed.'
-                        );
+                        throw featureError('INVALID_RESPONSE', 'Curator assignment was not positively confirmed.');
                     }
                     return response;
                 }, { wait, getConnectionState });
@@ -803,14 +729,10 @@
                     error.message || 'Curator assignment failed.',
                     error.attempts || 1
                 );
-                if (isOperationWide(error, getConnectionState)) {
-                    fatalError = error;
-                }
+                if (isOperationWide(error, getConnectionState)) fatalError = error;
             }
             emitProgress(onProgress, rows, { email: row.email, operation: 'assign_curator' });
-            if (index < targets.length - 1 && requestDelayMs > 0 && !fatalError) {
-                await wait(requestDelayMs);
-            }
+            if (index < targets.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
         }
         return fatalError;
     }
@@ -826,6 +748,16 @@
         }
     }
 
+    function rejectRevalidatableRows(rows, error) {
+        for (const row of rows) {
+            rejectSelectedState(
+                row,
+                error?.code || 'STATE_CHANGED',
+                error?.message || 'The confirmed plan could not be revalidated.'
+            );
+        }
+    }
+
     async function executePlan({
         plan,
         marathonId,
@@ -838,7 +770,9 @@
         onProgress = () => {}
     }) {
         const rows = initializeExecutionRows(plan);
+        const groups = [];
         let fatalError = null;
+        let writesStarted = false;
 
         try {
             const [latestPupils, latestModerators] = await Promise.all([
@@ -848,22 +782,25 @@
             const target = plan.targetModerator
                 ? findTargetModerator(latestModerators, plan.targetModerator.id)
                 : null;
-            if (plan.targetModerator && (
-                !target || target.teacherId !== plan.targetModerator.teacherId
-            )) {
-                throw featureError(
-                    'STATE_CHANGED',
-                    'The selected curator changed or disappeared after preflight.'
-                );
+            if (plan.targetModerator && (!target || target.teacherId !== plan.targetModerator.teacherId)) {
+                throw featureError('STATE_CHANGED', 'The selected curator changed or disappeared after preflight.');
             }
-            revalidateRows({ rows, pupils: latestPupils, moderators: latestModerators, targetModerator: target });
+            revalidateRows({
+                rows,
+                pupils: latestPupils,
+                moderators: latestModerators,
+                targetModerator: target
+            });
             emitProgress(onProgress, rows, { operation: 'revalidate' });
 
-            const groups = [];
             for (const includeModerator of [false, true]) {
-                if (fatalError) {
-                    break;
-                }
+                const hasTargets = rows.some((row) =>
+                    isPending(row.addResult)
+                    && row.membership === 'not_in_marathon'
+                    && Boolean(row.assignSelected) === includeModerator
+                );
+                if (!hasTargets) continue;
+                writesStarted = true;
                 const group = await executeAddGroup({
                     rows,
                     marathonId,
@@ -880,9 +817,8 @@
                 emitProgress(onProgress, rows, {
                     operation: includeModerator ? 'add_user_with_curator' : 'add_user'
                 });
-                if (requestDelayMs > 0 && !fatalError && group.targets.length > 0) {
-                    await wait(requestDelayMs);
-                }
+                if (fatalError) break;
+                if (requestDelayMs > 0) await wait(requestDelayMs);
             }
 
             if (!fatalError && groups.some((group) => group.confirmed)) {
@@ -892,6 +828,9 @@
             }
 
             if (!fatalError && target) {
+                if (rows.some((row) => isPending(row.assignResult) && row.membership === 'in_marathon')) {
+                    writesStarted = true;
+                }
                 fatalError = await executeExistingAssignments({
                     rows,
                     marathonId,
@@ -907,12 +846,20 @@
             fatalError = error;
         }
 
-        if (fatalError) {
-            markRemainingNotAttempted(rows);
-        } else {
-            markRemainingNotAttempted(rows, 'The selected operation was not applicable after revalidation.');
+        if (fatalError && groups.some((group) => group.confirmed)) {
+            markConfirmedGroupsUnverified(groups, fatalError);
         }
+        if (fatalError && !writesStarted) {
+            rejectRevalidatableRows(rows, fatalError);
+        }
+        markRemainingNotAttempted(
+            rows,
+            fatalError
+                ? 'Not attempted because the operation stopped.'
+                : 'The selected operation was not applicable after revalidation.'
+        );
         emitProgress(onProgress, rows, null);
+
         return deepFreeze({
             plan,
             rows: rows.map((row) => ({
@@ -940,27 +887,13 @@
 
     function inferRowStatus(row) {
         const results = [row.addResult, row.assignResult].filter(Boolean);
-        if (row.resolution === 'invalid' || row.resolution === 'ambiguous') {
-            return 'rejected';
-        }
-        if (results.length === 0) {
-            return 'skipped';
-        }
-        if (results.some((result) => result.status === 'failed')) {
-            return 'failed';
-        }
-        if (results.some((result) => result.status === 'not_attempted')) {
-            return 'not_attempted';
-        }
-        if (results.some((result) => result.status === 'rejected')) {
-            return 'rejected';
-        }
-        if (results.some((result) => result.status === 'skipped')) {
-            return 'skipped';
-        }
-        if (results.every((result) => result.status === 'noop')) {
-            return 'noop';
-        }
+        if (row.resolution === 'invalid' || row.resolution === 'ambiguous') return 'rejected';
+        if (results.length === 0) return 'skipped';
+        if (results.some((result) => result.status === 'failed')) return 'failed';
+        if (results.some((result) => result.status === 'not_attempted')) return 'not_attempted';
+        if (results.some((result) => result.status === 'rejected')) return 'rejected';
+        if (results.some((result) => result.status === 'skipped')) return 'skipped';
+        if (results.every((result) => result.status === 'noop')) return 'noop';
         return 'success';
     }
 
@@ -976,9 +909,7 @@
             ''
         ];
         for (const row of result.rows) {
-            const label = row.user?.name
-                ? `${row.user.name} <${row.email}>`
-                : row.email;
+            const label = row.user?.name ? `${row.user.name} <${row.email}>` : row.email;
             lines.push(`[${inferRowStatus(row)}] ${label}`);
             if (row.addResult) {
                 lines.push(`  add_user: ${row.addResult.status} ${row.addResult.code} — ${row.addResult.message}`);
@@ -998,19 +929,17 @@
 
     function buildCounts(rows) {
         const statuses = rows.map(inferRowStatus);
-        const eligible = rows.filter((row) =>
-            !['invalid', 'ambiguous'].includes(row.resolution)
-            && row.selectedOperations.length > 0
-        ).length;
-        const attempted = rows.filter((row) =>
-            [row.addResult, row.assignResult]
-                .filter(Boolean)
-                .some((result) => !['not_attempted', 'rejected'].includes(result.status))
-        ).length;
         return Object.freeze({
             requested: rows.length,
-            eligible,
-            attempted,
+            eligible: rows.filter((row) =>
+                !['invalid', 'ambiguous'].includes(row.resolution)
+                && row.selectedOperations.length > 0
+            ).length,
+            attempted: rows.filter((row) =>
+                [row.addResult, row.assignResult]
+                    .filter(Boolean)
+                    .some((result) => !['not_attempted', 'rejected'].includes(result.status))
+            ).length,
             successful: statuses.filter((status) => status === 'success').length,
             noOp: statuses.filter((status) => status === 'noop').length,
             skipped: statuses.filter((status) => status === 'skipped' || status === 'rejected').length,
@@ -1020,17 +949,14 @@
     }
 
     function serializeHistoryOperation(name, result) {
-        if (!result) {
-            return null;
-        }
-        return Object.freeze({
+        return result ? Object.freeze({
             name,
             status: result.status,
             attemptCount: Number(result.attempts) || 0,
             code: result.code || null,
             message: result.message || null,
             dependency: result.dependency ? Object.freeze({ ...result.dependency }) : null
-        });
+        }) : null;
     }
 
     function buildExecutionHistoryInput({
@@ -1059,9 +985,7 @@
             ].filter(Boolean);
             for (const operation of operations) {
                 operationCounts.selected += 1;
-                if (!['not_attempted', 'rejected'].includes(operation.status)) {
-                    operationCounts.attempted += 1;
-                }
+                if (!['not_attempted', 'rejected'].includes(operation.status)) operationCounts.attempted += 1;
                 if (operation.status === 'success') operationCounts.successful += 1;
                 if (operation.status === 'noop') operationCounts.noOp += 1;
                 if (operation.status === 'skipped') operationCounts.skipped += 1;
@@ -1092,7 +1016,9 @@
                     resolution: row.resolution,
                     membershipPreflight: row.membership,
                     user: row.user ? Object.freeze({ ...row.user }) : null,
-                    existingCurators: Object.freeze(row.currentModerators.map((moderator) => Object.freeze({ ...moderator }))),
+                    existingCurators: Object.freeze(
+                        row.currentModerators.map((moderator) => Object.freeze({ ...moderator }))
+                    ),
                     targetCurator: row.targetModerator ? Object.freeze({ ...row.targetModerator }) : null,
                     selectedOperations: Object.freeze([...row.selectedOperations]),
                     operations: Object.freeze(operations)
@@ -1132,11 +1058,8 @@
         log = () => {}
     }) {
         let active = false;
-
         function release() {
-            if (!active) {
-                return;
-            }
+            if (!active) return;
             active = false;
             onActiveChange(false);
         }
@@ -1151,6 +1074,7 @@
                 window.alert('Open an Edvibe marathon page before adding users.');
                 return;
             }
+
             active = true;
             onActiveChange(true);
             const dialog = createDialog();
