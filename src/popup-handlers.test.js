@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const projectRoot = path.resolve(__dirname, '..');
 const popupHtml = fs.readFileSync(path.join(projectRoot, 'popup.html'), 'utf8');
+const popupEntrypoint = fs.readFileSync(path.join(projectRoot, 'src/entrypoints/popup.js'), 'utf8');
 const popupScript = fs.readFileSync(path.join(projectRoot, 'popup.js'), 'utf8');
 const popupStyles = fs.readFileSync(path.join(projectRoot, 'popup.css'), 'utf8');
 const popupComponents = fs.readFileSync(path.join(projectRoot, 'src/components/popup-tool-list.js'), 'utf8');
@@ -89,7 +90,9 @@ test('popup presents separate groups and preserves command requirements', () => 
 
 test('popup styling and script loading remain component-oriented', () => {
     assert.match(popupHtml, /<link rel="stylesheet" href="popup\.css">/);
-    assert.match(popupHtml, /src\/components\/popup-tool-list\.js/);
+    assert.match(popupHtml, /<script type="module" src="src\/entrypoints\/popup\.js"><\/script>/);
+    assert.doesNotMatch(popupHtml, /src\/components\/popup-tool-list\.js/);
+    assert.match(popupEntrypoint, /import '\.\.\/components\/popup-tool-list\.js';/);
     assert.match(popupStyles, /popup-tool-card:focus-visible/);
     assert.match(popupStyles, /popup-tool-card\.is-danger/);
     assert.doesNotMatch(popupStyles, /\.tool-action/);
