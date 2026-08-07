@@ -42,7 +42,7 @@ test('revalidation replaces stale already-in-marathon no-ops when membership dis
                 return { Value: { Items: [rawModerator(20, 200)] } };
             }
             if (method === 'GetMarathonPupils') {
-                return { Value: { Items: [], Page: { Count: 0 } };
+                return { Value: { Items: [], Page: { Count: 0 } } };
             }
             throw new Error(`Unexpected mutation ${method}`);
         }
