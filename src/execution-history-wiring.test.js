@@ -18,11 +18,13 @@ test('manifest loads execution-history infrastructure before UI and features', (
         'src/shared/execution-history-export.js',
         'src/shared/chrome-storage-bridge.js',
         'src/shared/execution-history-service.js',
+        'src/components/batch-user-onboarding-dialog.js',
         'src/components/execution-history-dialog.js',
         'src/features/batch-lesson-access.js',
         'src/features/batch-lesson-access-history-model.js',
         'src/features/batch-lesson-access-history-record.js',
         'src/features/batch-lesson-access-history.js',
+        'src/features/batch-user-onboarding.js',
         'src/features/batch-section-creation.js',
         'src/features/batch-section-creation-history-model.js',
         'src/features/batch-section-creation-history-record.js',
@@ -38,12 +40,15 @@ test('manifest loads execution-history infrastructure before UI and features', (
         [...expected.map((script) => scripts.indexOf(script))].sort((a, b) => a - b)
     );
     assert.ok(manifest.web_accessible_resources[0].resources.includes('src/components/execution-history-dialog.css'));
+    assert.ok(manifest.web_accessible_resources[0].resources.includes('src/components/batch-user-onboarding-dialog.css'));
 });
 
 test('popup, isolated bridge, main coordinator, and representative batch results are connected', () => {
     const popup = read('popup.js');
     const isolated = read('src/isolated.js');
     const main = read('src/main.js');
+    const onboardingFeature = read('src/features/batch-user-onboarding.js');
+    const onboardingDialog = read('src/components/batch-user-onboarding-dialog.js');
     const batchDeletionFeature = read('src/features/batch-section-deletion.js');
     const batchDeletionHistory = read('src/features/batch-section-deletion-history.js');
     const batchDeletionDialog = read('src/components/batch-section-deletion-dialog.js');
@@ -52,13 +57,21 @@ test('popup, isolated bridge, main coordinator, and representative batch results
     const batchSectionCreationHistory = read('src/features/batch-section-creation-history.js');
 
     assert.match(popup, /id: 'execution-history'.*command: 'OPEN_EXECUTION_HISTORY'.*requirement: 'edvibe'/s);
+    assert.match(popup, /id: 'batch-user-onboarding'.*command: 'OPEN_BATCH_USER_ONBOARDING'.*requirement: 'marathon'/s);
     assert.match(isolated, /OPEN_EXECUTION_HISTORY: \['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY'/);
+    assert.match(isolated, /OPEN_BATCH_USER_ONBOARDING: \['EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING'/);
     assert.match(isolated, /ALLOWED_STORAGE_KEYS = new Set\(\['executionHistoryPreferences'\]\)/);
     assert.match(main, /batchAccessHistoryApi\.createHistoryAwareFeature/);
+    assert.match(main, /batchUserOnboardingApi\.createBatchUserOnboardingFeature/);
     assert.match(main, /batchSectionCreationHistoryApi\.createHistoryAwareDialog/);
     assert.match(main, /batchSectionDeletionApi\.createBatchSectionDeletionFeature/);
     assert.match(main, /persistExecution: historyService\.persistTerminal/);
     assert.match(main, /openHistory: \(executionId, sourceStylesheetUrl\)/);
+    assert.match(onboardingFeature, /operationType: OPERATION_TYPE/);
+    assert.match(onboardingFeature, /buildExecutionHistoryInput/);
+    assert.match(onboardingFeature, /history = await persistExecution/);
+    assert.match(onboardingDialog, /Результат сохранён в истории/);
+    assert.match(onboardingDialog, /Видимый отчёт сохранён, но историю записать не удалось/);
     assert.match(batchAccessHistoryRecord, /buildExecutionHistoryInput/);
     assert.match(batchAccessHistory, /Результат сохранён в истории/);
     assert.match(batchAccessHistory, /Экранный результат сохранён, но записать историю не удалось/);
@@ -71,4 +84,5 @@ test('popup, isolated bridge, main coordinator, and representative batch results
     assert.match(batchDeletionHistory, /visible preflight is intact, but history could not be saved/i);
     assert.match(batchDeletionDialog, /Open in history/);
     assert.match(batchDeletionDialog, /visible report is intact, but history could not be saved/);
+    assert.match(batchDeletionFeature, /persistExecution/);
 });

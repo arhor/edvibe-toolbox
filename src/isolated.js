@@ -22,6 +22,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         OPEN_LESSON_RESET: ['EDVIBE_TOOLBOX_OPEN_RESET', 'src/components/reset-lessons-dialog.css', 'Lesson reset workflow opened.'],
         OPEN_ACTION_RECORDER: ['EDVIBE_TOOLBOX_OPEN_RECORDER', 'src/components/action-recorder-dialog.css', 'Action recorder opened.'],
         OPEN_BATCH_LESSON_ACCESS: ['EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS', 'src/components/batch-lesson-access-dialog.css', 'Batch lesson access opened.'],
+        OPEN_BATCH_USER_ONBOARDING: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING', 'src/components/batch-user-onboarding-dialog.css', 'Batch user onboarding opened.'],
         OPEN_BATCH_USER_MANAGEMENT: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT', 'src/components/batch-user-management-dialog.css', 'Batch user management opened.'],
         OPEN_BATCH_SECTION_CREATION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION', 'src/components/batch-section-creation-dialog.css', 'Batch section creation opened.'],
         OPEN_BATCH_SECTION_DELETION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'src/components/batch-section-deletion-dialog.css', 'Batch section deletion opened.'],

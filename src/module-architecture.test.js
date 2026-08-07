@@ -20,12 +20,14 @@ test('manifest loads infrastructure, components, features, and main in dependenc
         'src/shared/operation-guard.js',
         'src/components/action-recorder-dialog.js',
         'src/components/batch-lesson-access-dialog.js',
+        'src/components/batch-user-onboarding-dialog.js',
         'src/components/batch-user-management-dialog.js',
         'src/components/batch-section-creation-dialog.js',
         'src/components/batch-section-deletion-dialog.js',
         'src/features/action-recorder.js',
         'src/features/batch-lesson-access.js',
         'src/features/batch-user-management.js',
+        'src/features/batch-user-onboarding.js',
         'src/features/batch-section-creation.js',
         'src/features/batch-section-deletion.js'
     ];
@@ -40,6 +42,10 @@ test('manifest loads infrastructure, components, features, and main in dependenc
     const lastComponent = Math.max(...mainWorld.js
         .map((scriptPath, index) => scriptPath.startsWith('src/components/') ? index : -1));
     assert.ok(lastComponent < firstFeature);
+    assert.ok(
+        mainWorld.js.indexOf('src/features/batch-user-management.js')
+        < mainWorld.js.indexOf('src/features/batch-user-onboarding.js')
+    );
 });
 
 test('dynamic UI and presentation stay in components and stylesheets', () => {
@@ -51,6 +57,7 @@ test('dynamic UI and presentation stay in components and stylesheets', () => {
         'src/features/action-recorder.js',
         'src/features/batch-lesson-access.js',
         'src/features/batch-user-management.js',
+        'src/features/batch-user-onboarding.js',
         'src/features/batch-section-creation.js',
         'src/features/batch-section-deletion.js'
     ];
@@ -86,6 +93,7 @@ test('main remains a coordinator for feature modules', () => {
         'createActionRecorderFeature',
         'createBatchLessonAccessFeature',
         'createBatchUserManagementFeature',
+        'createBatchUserOnboardingFeature',
         'createBatchSectionCreationFeature',
         'createBatchSectionDeletionFeature'
     ]) {
@@ -101,6 +109,7 @@ test('isolated routing uses a command table and forwards only minimal metadata',
     const commands = [
         'OPEN_ACTION_RECORDER',
         'OPEN_BATCH_LESSON_ACCESS',
+        'OPEN_BATCH_USER_ONBOARDING',
         'OPEN_BATCH_USER_MANAGEMENT',
         'OPEN_BATCH_SECTION_CREATION',
         'OPEN_BATCH_SECTION_DELETION'
@@ -118,6 +127,7 @@ test('batch features are wired to transport state and their dialogs', () => {
     const expected = [
         ['EdVibeBatchLessonAccess', 'batchLessonAccessFeature'],
         ['EdVibeBatchUserManagement', 'batchUserManagementFeature'],
+        ['EdVibeBatchUserOnboarding', 'batchUserOnboardingFeature'],
         ['EdVibeBatchSectionCreation', 'batchSectionCreationFeature'],
         ['EdVibeBatchSectionDeletion', 'batchSectionDeletionFeature']
     ];

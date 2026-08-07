@@ -48,6 +48,7 @@ test('popup uses a CSP-safe data-driven tool catalog', () => {
         'lesson-reset',
         'action-recorder',
         'batch-lesson-access',
+        'batch-user-onboarding',
         'batch-section-creation',
         'batch-section-deletion',
         'batch-user-management'
@@ -62,6 +63,7 @@ test('popup uses a CSP-safe data-driven tool catalog', () => {
 test('isolated bridge exposes management commands with stylesheet-only metadata', () => {
     const expectedCommands = [
         ['OPEN_BATCH_LESSON_ACCESS', 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS', 'batch-lesson-access-dialog.css'],
+        ['OPEN_BATCH_USER_ONBOARDING', 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING', 'batch-user-onboarding-dialog.css'],
         ['OPEN_BATCH_USER_MANAGEMENT', 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT', 'batch-user-management-dialog.css'],
         ['OPEN_BATCH_SECTION_CREATION', 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION', 'batch-section-creation-dialog.css'],
         ['OPEN_BATCH_SECTION_DELETION', 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'batch-section-deletion-dialog.css']
@@ -81,6 +83,7 @@ test('popup presents separate groups and preserves command requirements', () => 
     assert.match(popupScript, /command: 'OPEN_ACTION_RECORDER',\s*requirement: 'edvibe'/);
     assert.match(popupScript, /command: 'START_FULL_AUTOMATION',\s*requirement: 'marathon'/);
     assert.match(popupScript, /command: 'OPEN_LESSON_RESET',\s*requirement: 'marathon'/);
+    assert.match(popupScript, /command: 'OPEN_BATCH_USER_ONBOARDING',\s*requirement: 'marathon'/);
     assert.match(popupScript, /chrome\.tabs\.sendMessage\(tabId, \{ action \}/);
 });
 
