@@ -1,158 +1,145 @@
-(function initializePopupToolComponents(root) {
-    'use strict';
+import { LitElement, html } from 'lit';
 
-    const cardTemplate = root.document?.createElement?.('template') || null;
-    const groupTemplate = root.document?.createElement?.('template') || null;
+class PopupToolCard extends LitElement {
+    static properties = {
+        configuration: { state: true }
+    };
 
-    if (cardTemplate) {
-        cardTemplate.innerHTML = `
+    constructor() {
+        super();
+        this.configuration = {};
+        this.setAttribute('role', 'button');
+        this.addEventListener('click', () => this.activate());
+        this.addEventListener('keydown', (event) => this.handleKeydown(event));
+    }
+
+    createRenderRoot() {
+        return this;
+    }
+
+    configure(options = {}) {
+        this.configuration = options && typeof options === 'object' ? options : {};
+        this.syncHostState();
+        return this;
+    }
+
+    get tool() {
+        const tool = this.configuration?.tool;
+        return tool && typeof tool === 'object' ? tool : null;
+    }
+
+    get disabled() {
+        return Boolean(this.configuration?.disabled);
+    }
+
+    get toolId() {
+        return String(this.tool?.id || '');
+    }
+
+    get onExecute() {
+        return typeof this.configuration?.onExecute === 'function'
+            ? this.configuration.onExecute
+            : null;
+    }
+
+    activate() {
+        if (this.disabled || !this.onExecute || !this.toolId) {
+            return;
+        }
+        this.onExecute(this.toolId);
+    }
+
+    handleKeydown(event) {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+        event.preventDefault();
+        this.activate();
+    }
+
+    syncHostState() {
+        if (!this.tool) {
+            return;
+        }
+        this.dataset.toolId = this.toolId;
+        this.dataset.disabled = String(this.disabled);
+        this.setAttribute('aria-disabled', String(this.disabled));
+        this.tabIndex = this.disabled ? -1 : 0;
+        this.classList.toggle('is-danger', this.tool.appearance === 'danger');
+    }
+
+    updated(changedProperties) {
+        if (changedProperties.has('configuration')) {
+            this.syncHostState();
+        }
+    }
+
+    render() {
+        const tool = this.tool || {};
+        const reason = String(this.configuration?.reason || '');
+        const busy = Boolean(this.configuration?.busy);
+
+        return html`
             <div class="tool-card-header">
                 <div class="tool-copy">
-                    <h3 class="tool-title"></h3>
-                    <p class="tool-description"></p>
-                    <p class="tool-requirement" hidden></p>
-                    <p class="tool-busy" hidden></p>
+                    <h3 class="tool-title">${String(tool.title || '')}</h3>
+                    <p class="tool-description">${String(tool.description || '')}</p>
+                    <p class="tool-requirement" ?hidden=${!reason}>${reason}</p>
+                    <p class="tool-busy" ?hidden=${!busy}>${String(tool.busyLabel || '')}</p>
                 </div>
             </div>
         `;
     }
-    if (groupTemplate) {
-        groupTemplate.innerHTML = `
-            <h2 class="tool-group-title"></h2>
-            <div class="tool-list"></div>
+}
+
+class PopupToolGroup extends LitElement {
+    static properties = {
+        configuration: { state: true }
+    };
+
+    constructor() {
+        super();
+        this.configuration = {};
+    }
+
+    createRenderRoot() {
+        return this;
+    }
+
+    configure(options = {}) {
+        this.configuration = options && typeof options === 'object' ? options : {};
+        return this;
+    }
+
+    render() {
+        const options = this.configuration;
+        const tools = Array.isArray(options.tools) ? options.tools : [];
+        const getState = typeof options.getState === 'function'
+            ? options.getState
+            : () => ({});
+
+        return html`
+            <h2 class="tool-group-title">${String(options.title || '')}</h2>
+            <div class="tool-list">
+                ${tools.map((tool) => html`
+                    <popup-tool-card
+                        .configuration=${{
+                            tool,
+                            ...getState(tool),
+                            onExecute: options.onExecute
+                        }}
+                    ></popup-tool-card>
+                `)}
+            </div>
         `;
     }
+}
 
-    class PopupToolCard extends root.HTMLElement {
-        constructor() {
-            super();
-            this.toolId = '';
-            this.onExecute = null;
-            this.elements = null;
-            this.pendingOptions = {};
-        }
+if (!customElements.get('popup-tool-card')) {
+    customElements.define('popup-tool-card', PopupToolCard);
+}
+if (!customElements.get('popup-tool-group')) {
+    customElements.define('popup-tool-group', PopupToolGroup);
+}
 
-        connectedCallback() {
-            if (!this.elements && cardTemplate) {
-                this.append(cardTemplate.content.cloneNode(true));
-                this.elements = {
-                    title: this.querySelector('.tool-title'),
-                    description: this.querySelector('.tool-description'),
-                    requirement: this.querySelector('.tool-requirement'),
-                    busy: this.querySelector('.tool-busy')
-                };
-                this.setAttribute('role', 'button');
-                this.addEventListener('click', () => this.activate());
-                this.addEventListener(
-                    'keydown',
-                    (event) => this.handleKeydown(event)
-                );
-            }
-            this.applyOptions();
-        }
-
-        activate() {
-            if (
-                this.dataset.disabled === 'true'
-                || typeof this.onExecute !== 'function'
-                || !this.toolId
-            ) {
-                return;
-            }
-            this.onExecute(this.toolId);
-        }
-
-        handleKeydown(event) {
-            if (event.key !== 'Enter' && event.key !== ' ') {
-                return;
-            }
-            event.preventDefault();
-            this.activate();
-        }
-
-        configure(options = {}) {
-            this.pendingOptions = options && typeof options === 'object' ? options : {};
-            this.applyOptions();
-            return this;
-        }
-
-        applyOptions() {
-            const options = this.pendingOptions;
-            const tool = options.tool;
-            if (!tool || !this.elements) {
-                return;
-            }
-            const disabled = Boolean(options.disabled);
-            const reason = String(options.reason || '');
-            this.toolId = String(tool.id || '');
-            this.onExecute = typeof options.onExecute === 'function' ? options.onExecute : null;
-            this.dataset.toolId = this.toolId;
-            this.dataset.disabled = String(disabled);
-            this.setAttribute('aria-disabled', String(disabled));
-            this.tabIndex = disabled ? -1 : 0;
-            this.classList.toggle('is-danger', tool.appearance === 'danger');
-            this.elements.title.textContent = String(tool.title || '');
-            this.elements.description.textContent = String(tool.description || '');
-            this.elements.requirement.textContent = reason;
-            this.elements.requirement.hidden = !reason;
-            this.elements.busy.textContent = String(tool.busyLabel || '');
-            this.elements.busy.hidden = !options.busy;
-        }
-    }
-
-    class PopupToolGroup extends root.HTMLElement {
-        constructor() {
-            super();
-            this.elements = null;
-            this.pendingOptions = {};
-        }
-
-        connectedCallback() {
-            if (!this.elements && groupTemplate) {
-                this.append(groupTemplate.content.cloneNode(true));
-                this.elements = {
-                    heading: this.querySelector('.tool-group-title'),
-                    list: this.querySelector('.tool-list')
-                };
-            }
-            this.applyOptions();
-        }
-
-        configure(options = {}) {
-            this.pendingOptions = options && typeof options === 'object' ? options : {};
-            this.applyOptions();
-            return this;
-        }
-
-        applyOptions() {
-            if (!this.elements) {
-                return;
-            }
-            const options = this.pendingOptions;
-            const tools = Array.isArray(options.tools) ? options.tools : [];
-            const getState = typeof options.getState === 'function'
-                ? options.getState
-                : () => ({});
-            this.elements.heading.textContent = String(options.title || '');
-            this.elements.list.replaceChildren();
-            for (const tool of tools) {
-                const card = root.document.createElement('popup-tool-card');
-                card.configure?.({
-                    tool,
-                    ...getState(tool),
-                    onExecute: options.onExecute
-                });
-                this.elements.list.append(card);
-            }
-        }
-    }
-
-    if (root.customElements && root.HTMLElement) {
-        if (!root.customElements.get('popup-tool-card')) {
-            root.customElements.define('popup-tool-card', PopupToolCard);
-        }
-        if (!root.customElements.get('popup-tool-group')) {
-            root.customElements.define('popup-tool-group', PopupToolGroup);
-        }
-    }
-})(globalThis);
+export { PopupToolCard, PopupToolGroup };

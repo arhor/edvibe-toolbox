@@ -9,8 +9,9 @@ import {
     keydown,
     shadowQuery
 } from './component-test-harness.js';
+import { runPopupToolListTests } from './popup-tool-list.test.js';
 
-async function run() {
+async function runHarnessSmokeTest() {
     const element = await fixture('<browser-fixture-element label="Initial"></browser-fixture-element>');
     assert(element instanceof HTMLElement, 'Fixture should mount a real custom element.');
     assert(element.shadowRoot instanceof ShadowRoot, 'Fixture should expose a real ShadowRoot.');
@@ -32,6 +33,11 @@ async function run() {
 
     await cleanup();
     equal(element.isConnected, false, 'cleanup() should remove mounted fixtures.');
+}
+
+async function run() {
+    await runHarnessSmokeTest();
+    await runPopupToolListTests();
 }
 
 try {

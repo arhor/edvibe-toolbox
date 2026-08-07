@@ -1,18 +1,9 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createServer } from 'vite';
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 const testPage = '/src/component-tests/index.html';
-const mimeTypes = new Map([
-    ['.html', 'text/html; charset=utf-8'],
-    ['.js', 'text/javascript; charset=utf-8'],
-    ['.mjs', 'text/javascript; charset=utf-8'],
-    ['.css', 'text/css; charset=utf-8'],
-    ['.json', 'application/json; charset=utf-8']
-]);
 
 function browserCandidates() {
     return [
@@ -45,31 +36,6 @@ function findBrowser() {
     throw new Error(
         'Chrome or Chromium is required for component tests. Set CHROME_BIN to the browser executable.'
     );
-}
-
-function createStaticServer() {
-    return createServer(async (request, response) => {
-        try {
-            const requestUrl = new URL(request.url || '/', 'http://localhost');
-            const pathname = requestUrl.pathname === '/' ? testPage : requestUrl.pathname;
-            const relativePath = decodeURIComponent(pathname).replace(/^\/+/, '');
-            const filePath = resolve(repositoryRoot, relativePath);
-            if (!filePath.startsWith(repositoryRoot)) {
-                response.writeHead(403).end('Forbidden');
-                return;
-            }
-
-            const body = await readFile(filePath);
-            response.writeHead(200, {
-                'Content-Type': mimeTypes.get(extname(filePath)) || 'application/octet-stream',
-                'Cache-Control': 'no-store'
-            });
-            response.end(body);
-        } catch (error) {
-            response.writeHead(404, {'Content-Type': 'text/plain; charset=utf-8'});
-            response.end(String(error?.message || error));
-        }
-    });
 }
 
 function runBrowser(browser, url) {
@@ -111,15 +77,25 @@ function runBrowser(browser, url) {
     });
 }
 
-const server = createStaticServer();
+const server = await createServer({
+    root: repositoryRoot,
+    configFile: false,
+    logLevel: 'error',
+    server: {
+        host: '127.0.0.1',
+        port: 0,
+        strictPort: false
+    }
+});
+
 try {
     const browser = findBrowser();
-    await new Promise((resolveListen, rejectListen) => {
-        server.once('error', rejectListen);
-        server.listen(0, '127.0.0.1', resolveListen);
-    });
+    await server.listen();
+    const address = server.httpServer?.address();
+    if (!address || typeof address === 'string') {
+        throw new Error('Unable to determine the component-test server port.');
+    }
 
-    const address = server.address();
     const url = `http://127.0.0.1:${address.port}${testPage}`;
     const {stdout, stderr} = await runBrowser(browser, url);
     if (!stdout.includes('data-test-status="passed"')) {
@@ -130,5 +106,5 @@ try {
     }
     console.log(`Component tests passed in ${browser}.`);
 } finally {
-    await new Promise((resolveClose) => server.close(resolveClose));
+    await server.close();
 }
