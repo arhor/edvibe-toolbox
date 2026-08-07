@@ -29,6 +29,8 @@ const batchAccessDialogApi = requireToolboxModule('EdVibeBatchAccessDialogCompon
 const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement');
 const batchUserManagementHistoryApi = requireToolboxModule('EdVibeBatchUserManagementHistory');
 const batchUserManagementDialogApi = requireToolboxModule('EdVibeBatchUserManagementDialog');
+const batchUserOnboardingApi = requireToolboxModule('EdVibeBatchUserOnboarding');
+const batchUserOnboardingDialogApi = requireToolboxModule('EdVibeBatchUserOnboardingDialog');
 const batchSectionCreationApi = requireToolboxModule('EdVibeBatchSectionCreation');
 const batchSectionCreationHistoryApi = requireToolboxModule('EdVibeBatchSectionCreationHistory');
 const batchSectionCreationDialogApi = requireToolboxModule('EdVibeBatchSectionCreationDialog');
@@ -146,6 +148,25 @@ const batchUserManagementFeature = batchUserManagementApi.createBatchUserManagem
     log: createMainLog('BatchUserManagement')
 });
 
+const batchUserOnboardingFeature = batchUserOnboardingApi.createBatchUserOnboardingFeature({
+    sendRequest: transport.sendRequest,
+    getConnectionState: transport.getConnectionState,
+    wait,
+    canStart: operationGuard.canStart,
+    onActiveChange: guardedActiveChange('batch-user-onboarding'),
+    createDialog: () => document.createElement(batchUserOnboardingDialogApi.BATCH_USER_ONBOARDING_DIALOG_TAG),
+    copyText: (text) => navigator.clipboard.writeText(text),
+    persistExecution: historyService.persistTerminal,
+    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
+        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
+        executionId
+    }),
+    getLocationHref: () => window.location.href,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    getRequestContext: () => ({ host: window.location.hostname }),
+    log: createMainLog('BatchUserOnboarding')
+});
+
 const createBatchSectionCreationDialog = batchSectionCreationHistoryApi.createHistoryAwareDialog({
     createDialog: () => document.createElement(batchSectionCreationDialogApi.BATCH_SECTION_DIALOG_TAG),
     persistExecution: historyService.persistTerminal,
@@ -192,6 +213,7 @@ window.addEventListener('message', (event) => {
     if (data.type === 'EDVIBE_TOOLBOX_START_ALL') marathonExportFeature.start({ stylesheetUrl: data.stylesheetUrl });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_RESET') lessonResetFeature.open({ stylesheetUrl: data.stylesheetUrl });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') batchLessonAccessFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING') batchUserOnboardingFeature.open({ stylesheetUrl: data.stylesheetUrl });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') batchUserManagementFeature.open({ stylesheetUrl: data.stylesheetUrl });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION') batchSectionCreationFeature.open({ stylesheetUrl: data.stylesheetUrl });
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION') batchSectionDeletionFeature.open({ stylesheetUrl: data.stylesheetUrl });
