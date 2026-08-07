@@ -8,6 +8,9 @@ const popup = fs.readFileSync(path.join(root, 'popup.js'), 'utf8');
 const isolated = fs.readFileSync(path.join(root, 'src/isolated.js'), 'utf8');
 const main = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+const mainEntrypoint = fs.readFileSync(path.join(root, 'src/entrypoints/main.js'), 'utf8');
+const mainImports = [...mainEntrypoint.matchAll(/^import ['"](.+?)['"];$/gm)]
+    .map((match) => match[1]);
 
 test('popup exposes batch section creation only on marathon pages', () => {
     assert.match(
@@ -27,12 +30,13 @@ test('popup command crosses the isolated and main worlds', () => {
     assert.match(main, /operationGuard\.release\('recording'\)/);
 });
 
-test('manifest loads the component before the feature and main coordinator', () => {
-    const scripts = manifest.content_scripts.find((entry) => entry.world === 'MAIN').js;
-    const componentIndex = scripts.indexOf('src/components/batch-section-creation-dialog.js');
-    const featureIndex = scripts.indexOf('src/features/batch-section-creation.js');
-    const mainIndex = scripts.indexOf('src/main.js');
+test('MAIN entry point loads the component before the feature and main coordinator', () => {
+    const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
+    const componentIndex = mainImports.indexOf('../components/batch-section-creation-dialog.js');
+    const featureIndex = mainImports.indexOf('../features/batch-section-creation.js');
+    const mainIndex = mainImports.indexOf('../main.js');
 
+    assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
     assert.ok(componentIndex >= 0);
     assert.ok(featureIndex > componentIndex);
     assert.ok(mainIndex > featureIndex);

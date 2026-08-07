@@ -5,17 +5,20 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
 
-test('manifest loads the image picker and upload enhancer before main', () => {
+test('MAIN entry point loads the image picker and upload enhancer before main', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
-    const scripts = mainWorld.js;
+    const mainEntrypoint = fs.readFileSync(path.join(root, 'src/entrypoints/main.js'), 'utf8');
+    const imports = [...mainEntrypoint.matchAll(/^import ['"](.+?)['"];$/gm)]
+        .map((match) => match[1]);
 
-    const dialogIndex = scripts.indexOf('src/components/batch-section-creation-dialog.js');
-    const pickerIndex = scripts.indexOf('src/components/batch-section-image-upload.js');
-    const featureIndex = scripts.indexOf('src/features/batch-section-creation.js');
-    const uploadIndex = scripts.indexOf('src/features/batch-section-image-upload.js');
-    const mainIndex = scripts.indexOf('src/main.js');
+    const dialogIndex = imports.indexOf('../components/batch-section-creation-dialog.js');
+    const pickerIndex = imports.indexOf('../components/batch-section-image-upload.js');
+    const featureIndex = imports.indexOf('../features/batch-section-creation.js');
+    const uploadIndex = imports.indexOf('../features/batch-section-image-upload.js');
+    const mainIndex = imports.indexOf('../main.js');
 
+    assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
     assert.ok(dialogIndex >= 0 && pickerIndex > dialogIndex);
     assert.ok(featureIndex >= 0 && uploadIndex > featureIndex);
     assert.ok(mainIndex > uploadIndex);

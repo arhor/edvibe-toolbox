@@ -5,39 +5,43 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
+const readImports = (relativePath) => [...read(relativePath).matchAll(/^import ['"](.+?)['"];$/gm)]
+    .map((match) => match[1]);
 
-test('manifest loads execution-history infrastructure before UI and features', () => {
+test('MAIN entry point loads execution-history infrastructure before UI and features', () => {
     const manifest = JSON.parse(read('manifest.json'));
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
-    const scripts = mainWorld.js;
+    const imports = readImports('src/entrypoints/main.js');
     const expected = [
-        'src/shared/indexeddb.js',
-        'src/shared/execution-history-record.js',
-        'src/shared/execution-history-repository.js',
-        'src/shared/execution-history-retention.js',
-        'src/shared/execution-history-export.js',
-        'src/shared/chrome-storage-bridge.js',
-        'src/shared/execution-history-service.js',
-        'src/components/batch-user-onboarding-dialog.js',
-        'src/components/execution-history-dialog.js',
-        'src/features/batch-lesson-access.js',
-        'src/features/batch-lesson-access-history-model.js',
-        'src/features/batch-lesson-access-history-record.js',
-        'src/features/batch-lesson-access-history.js',
-        'src/features/batch-user-onboarding.js',
-        'src/features/batch-section-creation.js',
-        'src/features/batch-section-creation-history-model.js',
-        'src/features/batch-section-creation-history-record.js',
-        'src/features/batch-section-creation-history.js',
-        'src/features/batch-section-deletion.js',
-        'src/features/batch-section-deletion-history.js',
-        'src/features/execution-history.js',
-        'src/main.js'
+        '../shared/indexeddb.js',
+        '../shared/execution-history-record.js',
+        '../shared/execution-history-repository.js',
+        '../shared/execution-history-retention.js',
+        '../shared/execution-history-export.js',
+        '../shared/chrome-storage-bridge.js',
+        '../shared/execution-history-service.js',
+        '../components/batch-user-onboarding-dialog.js',
+        '../components/execution-history-dialog.js',
+        '../features/batch-lesson-access.js',
+        '../features/batch-lesson-access-history-model.js',
+        '../features/batch-lesson-access-history-record.js',
+        '../features/batch-lesson-access-history.js',
+        '../features/batch-user-onboarding.js',
+        '../features/batch-section-creation.js',
+        '../features/batch-section-creation-history-model.js',
+        '../features/batch-section-creation-history-record.js',
+        '../features/batch-section-creation-history.js',
+        '../features/batch-section-deletion.js',
+        '../features/batch-section-deletion-history.js',
+        '../features/execution-history.js',
+        '../main.js'
     ];
-    for (const script of expected) assert.ok(scripts.includes(script), `${script} should be loaded`);
+
+    assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
+    for (const script of expected) assert.ok(imports.includes(script), `${script} should be imported`);
     assert.deepEqual(
-        expected.map((script) => scripts.indexOf(script)),
-        [...expected.map((script) => scripts.indexOf(script))].sort((a, b) => a - b)
+        expected.map((script) => imports.indexOf(script)),
+        [...expected.map((script) => imports.indexOf(script))].sort((a, b) => a - b)
     );
     assert.ok(manifest.web_accessible_resources[0].resources.includes('src/components/execution-history-dialog.css'));
     assert.ok(manifest.web_accessible_resources[0].resources.includes('src/components/batch-user-onboarding-dialog.css'));
