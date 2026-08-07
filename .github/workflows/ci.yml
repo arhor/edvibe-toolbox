@@ -1,29 +1,36 @@
-name: CI
+name: Refresh lockfile
 
 on:
   push:
     branches:
-      - master
-  pull_request:
+      - issue-27-package-managed-dependencies
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test:
+  refresh-lockfile:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out branch
         uses: actions/checkout@v4
+        with:
+          ref: issue-27-package-managed-dependencies
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Emit refreshed dependency lockfile
+      - name: Refresh package lock
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit generated lockfile
         run: |
-          npm install --package-lock-only --ignore-scripts
-          echo 'LOCKFILE_BASE64_BEGIN'
-          base64 -w0 package-lock.json
-          echo
-          echo 'LOCKFILE_BASE64_END'
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo 'package-lock.json is already current'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update dependency lockfile'
+          git push origin HEAD:issue-27-package-managed-dependencies
