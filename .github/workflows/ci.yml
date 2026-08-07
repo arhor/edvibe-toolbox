@@ -24,3 +24,5 @@ jobs:
         run: npm ci
       - name: Run test suite
         run: npm run test:ci
+      - name: Build extension
+        run: npm run build
