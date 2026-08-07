@@ -1,5 +1,4 @@
-import '../../lib/jszip.min.js';
-import '../../lib/turndown.min.js';
+import './runtime-dependencies.js';
 import '../shared/logger.js';
 import '../shared/websocket-transport.js';
 import '../shared/operation-guard.js';
