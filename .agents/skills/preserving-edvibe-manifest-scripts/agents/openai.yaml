@@ -1,4 +1,4 @@
 interface:
-  display_name: "Preserve Edvibe Manifest Scripts"
-  short_description: "Protect intentional content-script path and ordering"
-  default_prompt: "Use $preserving-edvibe-manifest-scripts when editing or reviewing manifest.json."
+  display_name: "Preserve Edvibe Runtime Wiring"
+  short_description: "Protect bundled entry-point ordering and early MAIN execution"
+  default_prompt: "Use $preserving-edvibe-manifest-scripts when editing runtime entry points or manifest content-script wiring."
