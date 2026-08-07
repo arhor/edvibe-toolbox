@@ -1,3 +1,4 @@
+# Temporary build validation for issue #26.
 name: CI
 
 on:
