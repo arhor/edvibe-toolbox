@@ -3,30 +3,25 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const source = fs.readFileSync(
-    path.join(__dirname, 'batch-section-creation-dialog.js'),
-    'utf8'
-);
-const styles = fs.readFileSync(
-    path.join(__dirname, 'batch-section-creation-dialog.css'),
-    'utf8'
-);
+const source = fs.readFileSync(path.join(__dirname, 'batch-section-creation-dialog.js'), 'utf8');
+const styles = fs.readFileSync(path.join(__dirname, 'batch-section-creation-dialog.css'), 'utf8');
 
-test('dialog is a dedicated Web Component with constructor, selection, preview, and report events', () => {
-    assert.match(source, /customElements\.define\(BATCH_SECTION_DIALOG_TAG/);
-    assert.match(source, /data-add-block="image"/);
-    assert.match(source, /data-add-block="text"/);
-    assert.match(source, /data-add-block="link"/);
-    assert.match(source, /dataset\.blockAction = action/);
+test('section creation dialog uses Lit for selection, block construction, preview, and reports', () => {
+    assert.match(source, /import \{ LitElement, html, nothing \} from 'lit';/);
+    assert.match(source, /class BatchSectionCreationDialog extends LitElement/);
+    assert.match(source, /data-add-block=\$\{type\}/);
+    assert.match(source, /renderBlock\(block, index, configurable\)/);
     assert.match(source, /edvibe-batch-section-preflight/);
     assert.match(source, /edvibe-batch-section-confirm/);
     assert.match(source, /edvibe-batch-section-copy/);
     assert.match(source, /edvibe-batch-section-restart/);
     assert.match(source, /recipeReady/);
-    assert.match(source, /SECTION_NAME_COLLISION|Отклонено проверкой/);
+    assert.match(source, /Отклонено проверкой/);
+    assert.doesNotMatch(source, /replaceChildren\(/);
+    assert.doesNotMatch(source, /module\.exports/);
 });
 
-test('dialog keeps presentation in its dedicated stylesheet', () => {
+test('section creation dialog keeps presentation in its dedicated stylesheet', () => {
     assert.doesNotMatch(source, /cssText|\.style\.|<style/);
     assert.match(styles, /\.edvibe-batch-section-overlay/);
     assert.match(styles, /\.edvibe-batch-section-grid/);
