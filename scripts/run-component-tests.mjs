@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 const testPage = '/src/component-tests/index.html';
+const resultPath = '/__component-test-result';
 const mimeTypes = new Map([
     ['.html', 'text/html; charset=utf-8'],
     ['.js', 'text/javascript; charset=utf-8'],
@@ -47,10 +48,25 @@ function findBrowser() {
     );
 }
 
-function createStaticServer() {
+function createStaticServer(onTestResult) {
     return createServer(async (request, response) => {
         try {
             const requestUrl = new URL(request.url || '/', 'http://localhost');
+            if (request.method === 'POST' && requestUrl.pathname === resultPath) {
+                let body = '';
+                request.setEncoding('utf-8');
+                for await (const chunk of request) {
+                    body += chunk;
+                    if (body.length > 1_000_000) {
+                        throw new Error('Component test result payload is too large.');
+                    }
+                }
+                const result = JSON.parse(body);
+                response.writeHead(204);
+                response.end(() => onTestResult(result));
+                return;
+            }
+
             const pathname = requestUrl.pathname === '/' ? testPage : requestUrl.pathname;
             const relativePath = decodeURIComponent(pathname).replace(/^\/+/, '');
             const filePath = resolve(repositoryRoot, relativePath);
@@ -66,52 +82,35 @@ function createStaticServer() {
             });
             response.end(body);
         } catch (error) {
-            response.writeHead(404, {'Content-Type': 'text/plain; charset=utf-8'});
+            response.writeHead(400, {'Content-Type': 'text/plain; charset=utf-8'});
             response.end(String(error?.message || error));
         }
     });
 }
 
-function runBrowser(browser, url) {
-    return new Promise((resolveRun, rejectRun) => {
-        const child = spawn(browser, [
-            '--headless=new',
-            '--disable-gpu',
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--dump-dom',
-            '--virtual-time-budget=5000',
-            url
-        ], {stdio: ['ignore', 'pipe', 'pipe']});
+function launchBrowser(browser, url) {
+    const child = spawn(browser, [
+        '--headless=new',
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+        '--no-sandbox',
+        url
+    ], {stdio: ['ignore', 'ignore', 'pipe']});
 
-        let stdout = '';
-        let stderr = '';
-        child.stdout.setEncoding('utf-8');
-        child.stderr.setEncoding('utf-8');
-        child.stdout.on('data', (chunk) => { stdout += chunk; });
-        child.stderr.on('data', (chunk) => { stderr += chunk; });
+    let stderr = '';
+    child.stderr.setEncoding('utf-8');
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
 
-        const timeout = setTimeout(() => {
-            child.kill('SIGKILL');
-            rejectRun(new Error('Component tests timed out after 15 seconds.'));
-        }, 15_000);
-
-        child.on('error', (error) => {
-            clearTimeout(timeout);
-            rejectRun(error);
-        });
-        child.on('close', (code) => {
-            clearTimeout(timeout);
-            if (code !== 0) {
-                rejectRun(new Error(`Browser exited with code ${code}.\n${stderr}`));
-                return;
-            }
-            resolveRun({stdout, stderr});
-        });
-    });
+    return {child, getStderr: () => stderr};
 }
 
-const server = createStaticServer();
+let resolveTestResult;
+const testResultPromise = new Promise((resolveResult) => {
+    resolveTestResult = resolveResult;
+});
+const server = createStaticServer(resolveTestResult);
+let browserProcess = null;
+
 try {
     const browser = findBrowser();
     await new Promise((resolveListen, rejectListen) => {
@@ -120,15 +119,45 @@ try {
     });
 
     const address = server.address();
-    const url = `http://127.0.0.1:${address.port}${testPage}`;
-    const {stdout, stderr} = await runBrowser(browser, url);
-    if (!stdout.includes('data-test-status="passed"')) {
-        const failure = stdout.match(/<pre id="test-result">([\s\S]*?)<\/pre>/)?.[1];
-        throw new Error(
-            `Component tests failed${failure ? `: ${failure}` : '.'}\n${stderr}`
-        );
+    if (!address || typeof address === 'string') {
+        throw new Error('Unable to determine the component-test server port.');
     }
+
+    const url = `http://127.0.0.1:${address.port}${testPage}`;
+    browserProcess = launchBrowser(browser, url);
+
+    const browserExitPromise = new Promise((_, rejectExit) => {
+        browserProcess.child.once('error', rejectExit);
+        browserProcess.child.once('close', (code, signal) => {
+            rejectExit(new Error(
+                `Browser exited before reporting component test results `
+                + `(code ${String(code)}, signal ${String(signal)}).\n`
+                + browserProcess.getStderr()
+            ));
+        });
+    });
+    const timeoutPromise = new Promise((_, rejectTimeout) => {
+        setTimeout(
+            () => rejectTimeout(new Error(
+                `Component tests timed out after 15 seconds.\n${browserProcess.getStderr()}`
+            )),
+            15_000
+        );
+    });
+
+    const result = await Promise.race([
+        testResultPromise,
+        browserExitPromise,
+        timeoutPromise
+    ]);
+    if (result?.status !== 'passed') {
+        throw new Error(`Component tests failed: ${result?.message || 'Unknown failure.'}`);
+    }
+
     console.log(`Component tests passed in ${browser}.`);
 } finally {
+    if (browserProcess?.child && browserProcess.child.exitCode === null) {
+        browserProcess.child.kill('SIGKILL');
+    }
     await new Promise((resolveClose) => server.close(resolveClose));
 }

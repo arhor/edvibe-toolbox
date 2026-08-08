@@ -96,7 +96,10 @@ test('popup styling and script loading remain component-oriented', () => {
     assert.match(popupStyles, /popup-tool-card:focus-visible/);
     assert.match(popupStyles, /popup-tool-card\.is-danger/);
     assert.doesNotMatch(popupStyles, /\.tool-action/);
-    assert.match(popupComponents, /content\.cloneNode\(true\)/);
+    assert.match(popupComponents, /import \{ LitElement, html \} from 'lit';/);
+    assert.match(popupComponents, /class PopupToolCard extends LitElement/);
+    assert.match(popupComponents, /class PopupToolGroup extends LitElement/);
+    assert.doesNotMatch(popupComponents, /content\.cloneNode\(true\)/);
 });
 
 test('popup restores and renders export progress', () => {
