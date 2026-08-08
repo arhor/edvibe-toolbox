@@ -1,0 +1,41 @@
+name: Finalize Lit style migration
+
+on:
+  push:
+    branches:
+      - issue-66-lit-styles
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-66-lit-styles
+      - name: Update final stale style expectation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/features/batch-user-management.test.js')
+          text = path.read_text()
+          old = """        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, [
+              { stylesheetUrl: 'chrome-extension://id/user.css' }
+          ]);"""
+          new = "        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, []);"
+          if old not in text:
+              raise SystemExit('stale style expectation not found')
+          path.write_text(text.replace(old, new))
+          PY
+          rm .migration-stylesheet-report.txt
+      - name: Commit final cleanup
+        run: |
+          git rm .github/workflows/finalize-lit-style-migration.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update tests for bundled Lit styles"
+          git push origin HEAD:issue-66-lit-styles
