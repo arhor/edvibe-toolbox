@@ -40,6 +40,9 @@ async function run() {
 
     const { runPopupToolListTests } = await import('./popup-tool-list-tests.js');
     await runPopupToolListTests();
+
+    const { runExportProgressDialogTests } = await import('./export-progress-dialog-tests.js');
+    await runExportProgressDialogTests();
 }
 
 async function report(status, message) {
