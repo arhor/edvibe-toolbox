@@ -196,9 +196,6 @@ function createHistoryAwareFeature(options = {}) {
     });
 }
 
-export {
-    ...modelApi,
-    ...recordApi
-};
-
+export * from './batch-lesson-access-history-model.js';
+export * from './batch-lesson-access-history-record.js';
 export { createHistoryAwareFeature };
