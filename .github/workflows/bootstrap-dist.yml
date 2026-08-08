@@ -1,0 +1,45 @@
+name: Bootstrap canonical dist
+
+on:
+  push:
+    branches:
+      - issue-40-canonical-dist
+
+permissions:
+  contents: write
+
+jobs:
+  build-dist:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run test suite
+        run: npm run test:ci
+      - name: Build and verify deterministic output
+        shell: bash
+        run: |
+          npm run build
+          cp -a dist "$RUNNER_TEMP/dist-first"
+          npm run build
+          diff -qr "$RUNNER_TEMP/dist-first" dist
+      - name: Commit canonical distribution
+        shell: bash
+        run: |
+          git add dist
+          if git diff --cached --quiet; then
+            echo "dist is already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Build canonical extension distribution"
+          git push
