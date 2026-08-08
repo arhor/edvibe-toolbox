@@ -52,6 +52,9 @@ async function run() {
 
     const { runActionRecorderDialogTests } = await import('./action-recorder-dialog-tests.js');
     await runActionRecorderDialogTests();
+
+    const { runBatchLessonAccessDialogTests } = await import('./batch-lesson-access-dialog-tests.js');
+    await runBatchLessonAccessDialogTests();
 }
 
 async function report(status, message) {
