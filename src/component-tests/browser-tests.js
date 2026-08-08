@@ -49,6 +49,9 @@ async function run() {
 
     const { runExecutionHistoryDialogTests } = await import('./execution-history-dialog-tests.js');
     await runExecutionHistoryDialogTests();
+
+    const { runActionRecorderDialogTests } = await import('./action-recorder-dialog-tests.js');
+    await runActionRecorderDialogTests();
 }
 
 async function report(status, message) {
