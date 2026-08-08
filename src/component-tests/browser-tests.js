@@ -33,7 +33,8 @@ async function run() {
         ['./batch-lesson-access-dialog-tests.js', 'runBatchLessonAccessDialogTests'],
         ['./batch-section-creation-dialog-tests.js', 'runBatchSectionCreationDialogTests'],
         ['./batch-section-deletion-dialog-tests.js', 'runBatchSectionDeletionDialogTests'],
-        ['./batch-user-management-dialog-tests.js', 'runBatchUserManagementDialogTests']
+        ['./batch-user-management-dialog-tests.js', 'runBatchUserManagementDialogTests'],
+        ['./batch-user-onboarding-dialog-tests.js', 'runBatchUserOnboardingDialogTests']
     ]) {
         const module = await import(modulePath);
         await module[exportName]();
