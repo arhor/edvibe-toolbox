@@ -14,7 +14,7 @@ export async function runBatchLessonAccessDialogTests() {
         {MarathonLessonId: 11, Number: 1, Name: 'Practice'}
     ];
     const dialog = await fixture('<edvibe-toolbox-batch-access-dialog></edvibe-toolbox-batch-access-dialog>');
-    dialog.configure({stylesheetUrl: '/src/components/batch-lesson-access-dialog.css'});
+    dialog.configure();
 
     dialog.showLoading();
     dialog.emailInput = 'first@example.com';

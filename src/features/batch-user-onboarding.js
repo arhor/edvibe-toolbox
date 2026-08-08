@@ -1055,7 +1055,7 @@ function createBatchUserOnboardingFeature({
         onActiveChange(false);
     }
 
-    async function open({ stylesheetUrl = '' } = {}) {
+    async function open() {
         if (active || !canStart()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
@@ -1078,7 +1078,6 @@ function createBatchUserOnboardingFeature({
             ]);
             let discoveryRows = [];
             dialog.configure({
-                stylesheetUrl,
                 moderators,
                 parseEmailInput: baseApi.parseEmailInput,
                 onDiscover({ emailInput }) {
@@ -1147,7 +1146,7 @@ function createBatchUserOnboardingFeature({
                 onOpenHistory(executionId) {
                     dialog.remove();
                     release();
-                    openHistory(executionId, stylesheetUrl);
+                    openHistory(executionId);
                 },
                 onClose() {
                     dialog.remove();

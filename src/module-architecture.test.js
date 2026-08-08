@@ -97,7 +97,7 @@ test('isolated routing uses a command table and forwards only minimal metadata',
         assert.match(isolatedSource, new RegExp(`${command}: \\[`));
     }
     assert.match(isolatedSource, /const \[type, stylesheet, info\] = commands\[message\.action\]/);
-    assert.match(isolatedSource, /window\.postMessage\(\{ type, stylesheetUrl:/);
+    assert.match(isolatedSource, /window\.postMessage\(\{ type \}, '\*'\)/);
     assert.doesNotMatch(isolatedSource, /recordedFrames|operations|otherFrames/);
 });
 

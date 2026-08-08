@@ -20,7 +20,7 @@ function row(email, overrides = {}) {
 
 export async function runBatchUserManagementDialogTests() {
     const dialog = await fixture('<edvibe-toolbox-batch-user-management-dialog></edvibe-toolbox-batch-user-management-dialog>');
-    dialog.configure({stylesheetUrl: '/src/components/batch-user-management-dialog.css'});
+    dialog.configure();
     dialog.setEmailState({validCount: 2, malformedCount: 1});
     dialog.showReview({rows: [
         row('first@example.com'),

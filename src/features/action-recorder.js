@@ -467,11 +467,10 @@ function createActionRecorderFeature({
         panel = null;
     }
 
-    function open(options = {}) {
+    function open() {
         if (!panel) {
             panel = createPanel();
             panel.configure?.({
-                stylesheetUrl,
                 onStart: start,
                 onStop: stop,
                 onClear: clear,

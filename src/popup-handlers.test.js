@@ -74,7 +74,7 @@ test('isolated bridge exposes management commands with stylesheet-only metadata'
         assert.match(isolatedScript, new RegExp(`${command}: \\['${messageType}'`));
         assert.match(isolatedScript, new RegExp(stylesheet.replace('.', '\\.')));
     }
-    assert.match(isolatedScript, /window\.postMessage\(\{ type, stylesheetUrl:/);
+    assert.match(isolatedScript, /window\.postMessage\(\{ type \}, '\*'\)/);
 });
 
 test('popup presents separate groups and preserves command requirements', () => {

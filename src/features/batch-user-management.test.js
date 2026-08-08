@@ -567,7 +567,7 @@ test('batch user feature loads the roster once and resolves visible rows on chec
             log: () => {}
         });
 
-        await feature.open({ stylesheetUrl: 'chrome-extension://id/user.css' });
+        await feature.open();
         assert.equal(requests.length, 1);
         assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, [
             { stylesheetUrl: 'chrome-extension://id/user.css' }

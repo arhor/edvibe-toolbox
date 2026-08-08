@@ -24,14 +24,6 @@ class ExportProgressDialog extends LitElement {
         this.progressState = 'loading';
     }
 
-    configure(options = {}) {
-        const stylesheetUrl = options && typeof options === 'object'
-            ? options.stylesheetUrl
-            : '';
-        this.stylesheetUrl = String(stylesheetUrl || '');
-        return this;
-    }
-
     update(options = new Map()) {
         if (options instanceof Map) {
             super.update(options);

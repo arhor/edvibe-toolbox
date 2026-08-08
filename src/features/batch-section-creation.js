@@ -637,7 +637,7 @@ function createBatchSectionCreationFeature({
         });
     }
 
-    async function open({ stylesheetUrl = '' } = {}) {
+    async function open() {
         if (active || document.getElementById(OVERLAY_ID)) return;
         if (!canStart()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
@@ -658,7 +658,7 @@ function createBatchSectionCreationFeature({
             dialog.addEventListener('edvibe-batch-section-confirm', confirm);
             dialog.addEventListener('edvibe-batch-section-copy', copyReport);
             dialog.addEventListener('edvibe-batch-section-restart', restart);
-            dialog.configure({ stylesheetUrl });
+            dialog.configure();
             (document.body || document.documentElement).appendChild(dialog);
             dialog.showLoading('Загружаем уроки марафона…');
             lessons = await loadLessonCatalogue({ sendRequest, marathonId });

@@ -444,7 +444,7 @@ test('releases the operation guard when initialization fails', async () => {
             adapter: api.createRecordedCreationAdapter(),
             createDialog: () => dialog
         });
-        await feature.open({ stylesheetUrl: 'dialog.css' });
+        await feature.open();
         assert.deepEqual(activeChanges, [true, false]);
         assert.equal(dialog.error.code, 'WS_UNAVAILABLE');
     } finally {

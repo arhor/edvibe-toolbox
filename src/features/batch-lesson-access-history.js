@@ -16,7 +16,7 @@ function appendStatus(dialog, message, isError = false) {
     dialog.setStatus?.(`${current}${current ? ' ' : ''}${message}`, isError ? 'error' : '');
 }
 
-function addHistoryButton(dialog, executionId, stylesheetUrl, openHistory) {
+function addHistoryButton(dialog, executionId, openHistory) {
     dialog.shadowRoot?.querySelector?.('.edvibe-batch-access-history')?.remove?.();
     const documentApi = dialog.ownerDocument || globalThis.document;
     const button = documentApi?.createElement?.('button');
@@ -26,7 +26,7 @@ function addHistoryButton(dialog, executionId, stylesheetUrl, openHistory) {
     button.textContent = 'Открыть в истории';
     button.addEventListener('click', () => {
         dialog.close?.();
-        openHistory(executionId, stylesheetUrl);
+        openHistory(executionId);
     });
     dialog.elements?.footer?.appendChild?.(button);
 }
@@ -63,7 +63,6 @@ function createHistoryAwareFeature(options = {}) {
         const dialog = createDialog();
         const current = createCapture();
         capture = current;
-        const originalConfigure = dialog.configure.bind(dialog);
         const originalShowConfigure = dialog.showConfigure.bind(dialog);
         const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
         const originalShowValidationErrors = dialog.showValidationErrors.bind(dialog);
@@ -129,7 +128,7 @@ function createHistoryAwareFeature(options = {}) {
                     if (history?.stored) {
                         appendStatus(dialog, 'Результат сохранён в истории.');
                         if (history.record?.id) {
-                            addHistoryButton(dialog, history.record.id, current.stylesheetUrl, openHistory);
+                            addHistoryButton(dialog, history.record.id, openHistory);
                         }
                     } else {
                         appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
@@ -142,11 +141,6 @@ function createHistoryAwareFeature(options = {}) {
                     log('Batch lesson access history persistence failed:', error);
                 });
         }
-
-        dialog.configure = (value = {}) => {
-            current.stylesheetUrl = String(value.stylesheetUrl || current.stylesheetUrl || '');
-            return originalConfigure(value);
-        };
         dialog.showConfigure = (value = {}) => {
             current.lessonCatalogue = Array.isArray(value.lessons) ? value.lessons.map(sanitizeLesson) : [];
             current.attempt = null;

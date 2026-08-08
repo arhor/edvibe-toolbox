@@ -869,7 +869,7 @@ test('batch feature initializes from the marathon URL, complete roster, and firs
             log: () => {}
         });
 
-        await feature.open({ stylesheetUrl: 'chrome-extension://id/batch.css' });
+        await feature.open();
 
         assert.equal(createCount, 1);
         assert.deepEqual(activeChanges, [true]);

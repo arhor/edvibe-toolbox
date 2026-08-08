@@ -206,7 +206,6 @@ function createHistoryAwareDialog({
         const dialog = createDialog();
         let startedAt = null;
         let persistenceSequence = 0;
-        const originalConfigure = dialog.configure.bind(dialog);
         const originalShowComplete = dialog.showComplete.bind(dialog);
         const originalShowReview = dialog.showReview.bind(dialog);
         const originalShowConfigure = dialog.showConfigure.bind(dialog);
@@ -230,18 +229,13 @@ function createHistoryAwareDialog({
             button.textContent = 'Открыть в истории';
             button.addEventListener('click', () => {
                 dialog.close?.();
-                openHistory(executionId, stylesheetUrl);
+                openHistory(executionId);
             });
             dialog.elements?.footer?.appendChild?.(button);
             if (!dialog.elements?.footer) {
                 dialog.shadowRoot?.querySelector?.('.edvibe-batch-user-management-footer')?.appendChild?.(button);
             }
         }
-
-        dialog.configure = (options = {}) => {
-            stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || '');
-            return originalConfigure(options);
-        };
         dialog.showReview = (value) => {
             startedAt = null;
             persistenceSequence += 1;

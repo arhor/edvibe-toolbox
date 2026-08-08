@@ -78,8 +78,7 @@ class ResetLessonsDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-        const { stylesheetUrl = '', searchDelay = 1000, loadLessons, loadNextPupils, log = () => {} } = options;
-        this.stylesheetUrl = String(stylesheetUrl || '');
+        const { searchDelay = 1000, loadLessons, loadNextPupils, log = () => {} } = options;
         this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1000;
         this.loadLessons = typeof loadLessons === 'function' ? loadLessons : null;
         this.loadNextPupils = typeof loadNextPupils === 'function' ? loadNextPupils : null;
@@ -93,7 +92,7 @@ class ResetLessonsDialog extends LitElement {
         if (!this.shadowRoot) { this.elements = null; return; }
         const find = (selector) => this.shadowRoot.querySelector(selector);
         this.elements = {
-            stylesheet: find('.edvibe-reset-stylesheet'), backdrop: find('.edvibe-reset-overlay'), search: find('.edvibe-reset-search'),
+backdrop: find('.edvibe-reset-overlay'), search: find('.edvibe-reset-search'),
             userStep: find('.edvibe-reset-user-step'), lessonStep: find('.edvibe-reset-lesson-step'), pupilsShell: find('.edvibe-reset-pupils-shell'),
             pupilsList: find('.edvibe-reset-pupils'), pupilsLoading: find('.edvibe-reset-pupils-loading'), lessonsList: find('.edvibe-reset-lessons'),
             selectAll: find('.edvibe-reset-select-all-input'), status: find('.edvibe-reset-status'), progress: find('.edvibe-reset-progress'),

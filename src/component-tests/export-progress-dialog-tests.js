@@ -10,7 +10,7 @@ import {
 
 export async function runExportProgressDialogTests() {
     const dialog = await fixture('<edvibe-toolbox-export-progress></edvibe-toolbox-export-progress>');
-    dialog.configure({stylesheetUrl: '/src/components/export-progress-dialog.css'});
+    dialog.configure();
     await elementUpdated(dialog);
 
     equal(shadowQuery(dialog, '.status').textContent, 'Preparing export...');

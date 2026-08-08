@@ -20,7 +20,6 @@ export async function runBatchUserOnboardingDialogTests() {
     const calls = {preflight: null, executed: null, copied: '', history: null, closed: 0};
     const dialog = await fixture('<edvibe-toolbox-batch-user-onboarding-dialog></edvibe-toolbox-batch-user-onboarding-dialog>');
     dialog.configure({
-        stylesheetUrl: '/src/components/batch-user-onboarding-dialog.css',
         moderators: [{id: 7, name: 'Curator', email: 'curator@example.com'}],
         parseEmailInput: (value) => ({
             entries: value.trim() ? value.split(/\s+/).filter((entry) => entry.includes('@')) : [],

@@ -16,7 +16,7 @@ export async function runBatchSectionCreationDialogTests() {
         {lessonId: 11, number: 2, name: 'Practice'}
     ];
     const dialog = await fixture('<edvibe-toolbox-batch-section-creation-dialog></edvibe-toolbox-batch-section-creation-dialog>');
-    dialog.configure({stylesheetUrl: '/src/components/batch-section-creation-dialog.css'});
+    dialog.configure();
     dialog.showConfigure({lessons, recipeReady: true});
     await elementUpdated(dialog);
 

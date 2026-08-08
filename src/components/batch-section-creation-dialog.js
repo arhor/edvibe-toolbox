@@ -65,9 +65,6 @@ class BatchSectionCreationDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-        if (options.stylesheetUrl !== undefined) {
-            this.stylesheetUrl = String(options.stylesheetUrl || '');
-        }
         if (options.imageController) {
             this.imageController = options.imageController;
         }
