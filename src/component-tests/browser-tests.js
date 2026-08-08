@@ -32,7 +32,8 @@ async function run() {
         ['./action-recorder-dialog-tests.js', 'runActionRecorderDialogTests'],
         ['./batch-lesson-access-dialog-tests.js', 'runBatchLessonAccessDialogTests'],
         ['./batch-section-creation-dialog-tests.js', 'runBatchSectionCreationDialogTests'],
-        ['./batch-section-deletion-dialog-tests.js', 'runBatchSectionDeletionDialogTests']
+        ['./batch-section-deletion-dialog-tests.js', 'runBatchSectionDeletionDialogTests'],
+        ['./batch-user-management-dialog-tests.js', 'runBatchUserManagementDialogTests']
     ]) {
         const module = await import(modulePath);
         await module[exportName]();
@@ -42,16 +43,11 @@ async function run() {
 async function report(status, message) {
     document.documentElement.dataset.testStatus = status;
     document.querySelector('#test-result').textContent = message;
-    await fetch('/__component-test-result', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({status, message})
-    });
+    await fetch('/__component-test-result', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status, message})});
 }
 
-try {
-    await run();
-    await report('passed', 'PASS');
-} catch (error) {
+try { await run(); await report('passed', 'PASS'); }
+catch (error) {
     const message = error?.stack || String(error);
     console.error(error);
     try { await report('failed', message); }
