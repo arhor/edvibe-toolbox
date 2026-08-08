@@ -569,9 +569,7 @@ test('batch user feature loads the roster once and resolves visible rows on chec
 
         await feature.open();
         assert.equal(requests.length, 1);
-        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, [
-            { stylesheetUrl: 'chrome-extension://id/user.css' }
-        ]);
+        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, []);
 
         await dialog.emit('edvibe-batch-user-management-check', {
             emailInput: 'found@example.com; missing@example.com; duplicate@example.com'

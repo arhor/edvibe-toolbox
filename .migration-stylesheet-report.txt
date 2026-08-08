@@ -1,1 +1,0 @@
-src/features/batch-user-management.test.js:573:            { stylesheetUrl: 'chrome-extension://id/user.css' }
