@@ -5,46 +5,31 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
-const readImports = (relativePath) => [...read(relativePath).matchAll(/^import ['"](.+?)['"];$/gm)]
-    .map((match) => match[1]);
 
-test('MAIN entry point loads execution-history infrastructure before UI and features', () => {
+test('MAIN composition preserves execution-history infrastructure through direct ESM imports', () => {
     const manifest = JSON.parse(read('manifest.json'));
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
-    const imports = readImports('src/entrypoints/main.js');
-    const expected = [
-        '../shared/indexeddb.js',
-        '../shared/execution-history-record.js',
-        '../shared/execution-history-repository.js',
-        '../shared/execution-history-retention.js',
-        '../shared/execution-history-export.js',
-        '../shared/chrome-storage-bridge.js',
-        '../shared/execution-history-service.js',
-        '../components/batch-user-onboarding-dialog.js',
-        '../components/execution-history-dialog.js',
-        '../features/batch-lesson-access.js',
-        '../features/batch-lesson-access-history-model.js',
-        '../features/batch-lesson-access-history-record.js',
-        '../features/batch-lesson-access-history.js',
-        '../features/batch-user-onboarding.js',
-        '../features/batch-section-creation.js',
-        '../features/batch-section-creation-history-model.js',
-        '../features/batch-section-creation-history-record.js',
-        '../features/batch-section-creation-history.js',
-        '../features/batch-section-deletion.js',
-        '../features/batch-section-deletion-history.js',
-        '../features/execution-history.js',
-        '../main.js'
-    ];
+    const entrypoint = read('src/entrypoints/main.js');
+    const main = read('src/main.js');
 
     assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
-    for (const script of expected) assert.ok(imports.includes(script), `${script} should be imported`);
-    assert.deepEqual(
-        expected.map((script) => imports.indexOf(script)),
-        [...expected.map((script) => imports.indexOf(script))].sort((a, b) => a - b)
-    );
-    assert.ok(manifest.web_accessible_resources[0].resources.includes('src/components/execution-history-dialog.css'));
-    assert.ok(manifest.web_accessible_resources[0].resources.includes('src/components/batch-user-onboarding-dialog.css'));
+    assert.equal(mainWorld.run_at, 'document_start');
+    assert.match(entrypoint, /import ['"]\.\.\/main\.js['"];?/);
+    for (const modulePath of [
+        './shared/indexeddb.js',
+        './shared/execution-history-repository.js',
+        './shared/execution-history-retention.js',
+        './shared/execution-history-export.js',
+        './shared/chrome-storage-bridge.js',
+        './shared/execution-history-service.js',
+        './components/execution-history-dialog.js',
+        './features/execution-history.js'
+    ]) {
+        assert.ok(main.includes(`from '${modulePath}'`) || main.includes(`from "${modulePath}"`), `${modulePath} should be imported by the coordinator`);
+    }
+    assert.match(main, /createExecutionHistoryService\(/);
+    assert.match(main, /createExecutionHistoryFeature\(/);
+    assert.doesNotMatch(main, /requireToolboxModule|window\.EdVibe|globalThis\.EdVibe/);
 });
 
 test('popup, isolated bridge, main coordinator, and representative batch results are connected', () => {
@@ -84,7 +69,8 @@ test('popup, isolated bridge, main coordinator, and representative batch results
     assert.match(batchSectionCreationHistory, /Экранный результат сохранён, но записать историю не удалось/);
     assert.match(batchDeletionHistory, /buildExecutionHistoryInput/);
     assert.match(batchDeletionHistory, /installHistoryAwareFeature/);
-    assert.match(batchDeletionHistory, /root\.EdVibeBatchSectionDeletion = historyApi\.installHistoryAwareFeature/);
+    assert.match(batchDeletionHistory, /createBatchSectionDeletionFeature\(options = \{\}\)/);
+    assert.doesNotMatch(batchDeletionHistory, /root\.EdVibeBatchSectionDeletion|globalThis\.EdVibeBatchSectionDeletion/);
     assert.match(batchDeletionHistory, /visible preflight is intact, but history could not be saved/i);
     assert.match(batchDeletionDialog, /Open in history/);
     assert.match(batchDeletionDialog, /visible report is intact, but history could not be saved/);

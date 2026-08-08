@@ -1,42 +1,40 @@
-const createMainLog = EdVibeLogger.createLoggerFactory('MAIN');
+import { createLoggerFactory } from './shared/logger.js';
+import * as transportApi from './shared/websocket-transport.js';
+import * as operationGuardApi from './shared/operation-guard.js';
+import * as indexedDbApi from './shared/indexeddb.js';
+import * as historyRepositoryApi from './shared/execution-history-repository.js';
+import * as historyRetentionApi from './shared/execution-history-retention.js';
+import * as historyExportApi from './shared/execution-history-export.js';
+import * as storageBridgeApi from './shared/chrome-storage-bridge.js';
+import * as historyServiceApi from './shared/execution-history-service.js';
+import * as historyDialogApi from './components/execution-history-dialog.js';
+import * as historyFeatureApi from './features/execution-history.js';
+import * as exportApi from './features/marathon-export.js';
+import * as resetApi from './features/reset-lessons.js';
+import * as recorderApi from './features/action-recorder.js';
+import * as recorderDialogApi from './components/action-recorder-dialog.js';
+import * as batchAccessApi from './features/batch-lesson-access.js';
+import * as batchAccessHistoryApi from './features/batch-lesson-access-history.js';
+import * as batchAccessDialogApi from './components/batch-lesson-access-dialog.js';
+import * as batchUserManagementApi from './features/batch-user-management.js';
+import * as batchUserManagementHistoryApi from './features/batch-user-management-history.js';
+import * as batchUserManagementDialogApi from './components/batch-user-management-dialog.js';
+import * as batchUserOnboardingApi from './features/batch-user-onboarding.js';
+import * as batchUserOnboardingDialogApi from './components/batch-user-onboarding-dialog.js';
+import * as batchSectionCreationApi from './features/batch-section-creation.js';
+import * as batchSectionCreationHistoryApi from './features/batch-section-creation-history.js';
+import * as batchSectionCreationDialogApi from './components/batch-section-creation-dialog.js';
+import {
+    createImageUploadCreationAdapter,
+    dynamicImageRecipe
+} from './features/batch-section-image-upload.js';
+import * as batchSectionDeletionApi from './features/batch-section-deletion-history.js';
+import * as batchSectionDeletionDialogApi from './components/batch-section-deletion-dialog.js';
+
+const createMainLog = createLoggerFactory('MAIN');
 const log = createMainLog();
 
 log('Initializing Toolbox modules...');
-
-function requireToolboxModule(name) {
-    const module = window[name];
-    if (!module) throw new Error(`Required module is missing: ${name}`);
-    return module;
-}
-
-const transportApi = requireToolboxModule('EdVibeWebSocketTransport');
-const operationGuardApi = requireToolboxModule('EdVibeOperationGuard');
-const indexedDbApi = requireToolboxModule('EdVibeIndexedDb');
-const historyRepositoryApi = requireToolboxModule('EdVibeExecutionHistoryRepository');
-const historyRetentionApi = requireToolboxModule('EdVibeExecutionHistoryRetention');
-const historyExportApi = requireToolboxModule('EdVibeExecutionHistoryExport');
-const storageBridgeApi = requireToolboxModule('EdVibeChromeStorageBridge');
-const historyServiceApi = requireToolboxModule('EdVibeExecutionHistoryService');
-const historyDialogApi = requireToolboxModule('EdVibeExecutionHistoryDialog');
-const historyFeatureApi = requireToolboxModule('EdVibeExecutionHistory');
-const exportApi = requireToolboxModule('EdVibeMarathonExport');
-const resetApi = requireToolboxModule('EdVibeLessonReset');
-const recorderApi = requireToolboxModule('EdVibeActionRecorder');
-const recorderDialogApi = requireToolboxModule('EdVibeActionRecorderDialog');
-const batchAccessApi = requireToolboxModule('EdVibeBatchLessonAccess');
-const batchAccessHistoryApi = requireToolboxModule('EdVibeBatchLessonAccessHistory');
-const batchAccessDialogApi = requireToolboxModule('EdVibeBatchAccessDialogComponent');
-const batchUserManagementApi = requireToolboxModule('EdVibeBatchUserManagement');
-const batchUserManagementHistoryApi = requireToolboxModule('EdVibeBatchUserManagementHistory');
-const batchUserManagementDialogApi = requireToolboxModule('EdVibeBatchUserManagementDialog');
-const batchUserOnboardingApi = requireToolboxModule('EdVibeBatchUserOnboarding');
-const batchUserOnboardingDialogApi = requireToolboxModule('EdVibeBatchUserOnboardingDialog');
-const batchSectionCreationApi = requireToolboxModule('EdVibeBatchSectionCreation');
-const batchSectionCreationHistoryApi = requireToolboxModule('EdVibeBatchSectionCreationHistory');
-const batchSectionCreationDialogApi = requireToolboxModule('EdVibeBatchSectionCreationDialog');
-const batchSectionCreationRecipe = requireToolboxModule('EdVibeBatchSectionCreationRecipe');
-const batchSectionDeletionApi = requireToolboxModule('EdVibeBatchSectionDeletion');
-const batchSectionDeletionDialogApi = requireToolboxModule('EdVibeBatchSectionDeletionDialog');
 
 const transport = transportApi.createWebSocketTransport({
     WebSocketClass: window.WebSocket,
@@ -53,12 +51,19 @@ const guardedActiveChange = (key) => (isActive) => {
 };
 
 const storageBridge = storageBridgeApi.createStorageBridge({ window, cryptoApi: window.crypto });
-const historyRepository = historyRepositoryApi.createExecutionHistoryRepository({ indexedDbApi, indexedDB: window.indexedDB });
+const historyRepository = historyRepositoryApi.createExecutionHistoryRepository({
+    indexedDbApi,
+    indexedDB: window.indexedDB
+});
 const historyPreferenceStore = historyRetentionApi.createRetentionPreferenceStore(storageBridge);
 const historyService = historyServiceApi.createExecutionHistoryService({
     repository: historyRepository,
     preferenceStore: historyPreferenceStore,
-    downloader: historyExportApi.createJsonDownloader({ document, URL: window.URL, Blob: window.Blob }),
+    downloader: historyExportApi.createJsonDownloader({
+        document,
+        URL: window.URL,
+        Blob: window.Blob
+    }),
     cryptoApi: window.crypto
 });
 const executionHistoryFeature = historyFeatureApi.createExecutionHistoryFeature({
@@ -80,7 +85,10 @@ const marathonExportFeature = exportApi.createMarathonExportFeature({
     onActiveChange: guardedActiveChange('export'),
     notifyStatus: notifyExportStatus,
     log: createMainLog('Export'),
-    compileToZip: (backupData, options) => exportApi.compileMarathonToZip(backupData, { ...options, log: createMainLog('Zip') })
+    compileToZip: (backupData, options) => exportApi.compileMarathonToZip(
+        backupData,
+        { ...options, log: createMainLog('Zip') }
+    )
 });
 
 const lessonResetFeature = resetApi.createResetLessonsFeature({
@@ -98,10 +106,17 @@ const actionRecorderFeature = recorderApi.createActionRecorderFeature({
     createPanel() {
         const panel = document.createElement(recorderDialogApi.RECORDER_DIALOG_TAG);
         const configure = panel.configure.bind(panel);
-        panel.configure = (options = {}) => configure({ ...options, onClose() {
-            try { options.onClose?.(); }
-            finally { recorderOpen = false; operationGuard.release('recording'); }
-        }});
+        panel.configure = (options = {}) => configure({
+            ...options,
+            onClose() {
+                try {
+                    options.onClose?.();
+                } finally {
+                    recorderOpen = false;
+                    operationGuard.release('recording');
+                }
+            }
+        });
         recorderOpen = true;
         return panel;
     },
@@ -123,7 +138,9 @@ const batchLessonAccessFeature = batchAccessHistoryApi.createHistoryAwareFeature
         executionId
     }),
     getLocationHref: () => window.location.href,
-    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+        || document.title
+        || null,
     log: createMainLog('BatchAccessHistory')
 });
 
@@ -135,7 +152,9 @@ const createBatchUserManagementDialog = batchUserManagementHistoryApi.createHist
         executionId
     }),
     getLocationHref: () => window.location.href,
-    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+        || document.title
+        || null,
     log: createMainLog('BatchUserManagementHistory')
 });
 const batchUserManagementFeature = batchUserManagementApi.createBatchUserManagementFeature({
@@ -162,7 +181,9 @@ const batchUserOnboardingFeature = batchUserOnboardingApi.createBatchUserOnboard
         executionId
     }),
     getLocationHref: () => window.location.href,
-    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+        || document.title
+        || null,
     getRequestContext: () => ({ host: window.location.hostname }),
     log: createMainLog('BatchUserOnboarding')
 });
@@ -175,10 +196,15 @@ const createBatchSectionCreationDialog = batchSectionCreationHistoryApi.createHi
         executionId
     }),
     getLocationHref: () => window.location.href,
-    getMarathonName: () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
+    getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+        || document.title
+        || null,
     log: createMainLog('BatchSectionCreationHistory')
 });
-const batchSectionCreationAdapter = batchSectionCreationApi.createRecordedCreationAdapter({ recipe: batchSectionCreationRecipe, cryptoApi: window.crypto });
+const batchSectionCreationAdapter = createImageUploadCreationAdapter({
+    recipe: dynamicImageRecipe,
+    cryptoApi: window.crypto
+});
 const batchSectionCreationFeature = batchSectionCreationApi.createBatchSectionCreationFeature({
     sendRequest: transport.sendRequest,
     getConnectionState: transport.getConnectionState,
@@ -210,20 +236,46 @@ const batchSectionDeletionFeature = batchSectionDeletionApi.createBatchSectionDe
 window.addEventListener('message', (event) => {
     if (event.source !== window) return;
     const data = event.data || {};
-    if (data.type === 'EDVIBE_TOOLBOX_START_ALL') marathonExportFeature.start({ stylesheetUrl: data.stylesheetUrl });
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_RESET') lessonResetFeature.open({ stylesheetUrl: data.stylesheetUrl });
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') batchLessonAccessFeature.open({ stylesheetUrl: data.stylesheetUrl });
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING') batchUserOnboardingFeature.open({ stylesheetUrl: data.stylesheetUrl });
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') batchUserManagementFeature.open({ stylesheetUrl: data.stylesheetUrl });
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION') batchSectionCreationFeature.open({ stylesheetUrl: data.stylesheetUrl });
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION') batchSectionDeletionFeature.open({ stylesheetUrl: data.stylesheetUrl });
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY') executionHistoryFeature.open({ stylesheetUrl: data.stylesheetUrl, executionId: data.executionId || null });
+    if (data.type === 'EDVIBE_TOOLBOX_START_ALL') {
+        marathonExportFeature.start({ stylesheetUrl: data.stylesheetUrl });
+    }
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_RESET') {
+        lessonResetFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    }
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') {
+        batchLessonAccessFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    }
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING') {
+        batchUserOnboardingFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    }
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') {
+        batchUserManagementFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    }
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION') {
+        batchSectionCreationFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    }
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION') {
+        batchSectionDeletionFeature.open({ stylesheetUrl: data.stylesheetUrl });
+    }
+    if (data.type === 'EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY') {
+        executionHistoryFeature.open({
+            stylesheetUrl: data.stylesheetUrl,
+            executionId: data.executionId || null
+        });
+    }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_RECORDER') {
-        if (recorderOpen) actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
-        else if (operationGuard.activate('recording')) {
-            try { actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl }); }
-            catch (error) { operationGuard.release('recording'); throw error; }
-        } else window.alert('Another Edvibe Toolbox operation is already running.');
+        if (recorderOpen) {
+            actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
+        } else if (operationGuard.activate('recording')) {
+            try {
+                actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
+            } catch (error) {
+                operationGuard.release('recording');
+                throw error;
+            }
+        } else {
+            window.alert('Another Edvibe Toolbox operation is already running.');
+        }
     }
 });
 
