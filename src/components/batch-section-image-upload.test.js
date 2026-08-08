@@ -1,46 +1,34 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
-const {
-    createPlaceholderUrl,
-    parseClientId,
-    formatFileSize,
-    createRegistry,
-    enhanceImageBlock,
-    resolveEnhancementStylesheet
-} = require('./batch-section-image-upload.js');
+const source = fs.readFileSync(path.resolve(__dirname, 'batch-section-image-upload.js'), 'utf8');
 
-test('image blocks receive stable upload placeholders without storing the file in the URL', () => {
-    const block = enhanceImageBlock(
-        { id: 'block-1', type: 'image', url: '', alt: '' },
-        { randomUUID: () => 'client-image-1' }
-    );
-
-    assert.equal(block.clientId, 'client-image-1');
-    assert.equal(block.url, createPlaceholderUrl('client-image-1'));
-    assert.equal(parseClientId(block.url), 'client-image-1');
-    assert.equal(block.fileName, '');
+test('section image upload exposes an explicit integration controller', () => {
+    assert.match(source, /class BatchSectionImageUploadController/);
+    assert.match(source, /selectFile\(block, file\)/);
+    assert.match(source, /clearFile\(block\)/);
+    assert.match(source, /releaseBlock\(block\)/);
+    assert.match(source, /releaseAll\(blocks = \[\]\)/);
+    assert.match(source, /canSubmit\(blocks = \[\]\)/);
+    assert.match(source, /globalThis\.EdVibeBatchSectionImageRegistry = registry;/);
 });
 
-test('image registry keeps selected files only in memory', () => {
-    const registry = createRegistry();
-    const file = { name: 'banner.png', type: 'image/png', size: 2048 };
-
-    registry.register('client-image-1', file);
-    assert.equal(registry.get('client-image-1'), file);
-    assert.equal(registry.size(), 1);
-
-    registry.remove('client-image-1');
-    assert.equal(registry.get('client-image-1'), null);
-    assert.equal(registry.size(), 0);
+test('section image upload no longer patches dialog prototypes or DOM rendering hooks', () => {
+    assert.doesNotMatch(source, /BatchSectionCreationDialog\.prototype/);
+    assert.doesNotMatch(source, /\.prototype\[/);
+    assert.doesNotMatch(source, /enhanceDialog/);
+    assert.doesNotMatch(source, /createElement\(/);
+    assert.doesNotMatch(source, /replaceChildren\(/);
+    assert.doesNotMatch(source, /querySelector\(/);
 });
 
-test('file metadata and enhancement stylesheet are formatted for the dialog', () => {
-    assert.equal(formatFileSize(512), '512 Б');
-    assert.equal(formatFileSize(2048), '2.0 КБ');
-    assert.equal(formatFileSize(2 * 1024 * 1024), '2.0 МБ');
-    assert.equal(
-        resolveEnhancementStylesheet('chrome-extension://toolbox/src/components/batch-section-creation-dialog.css'),
-        'chrome-extension://toolbox/src/components/batch-section-image-upload.css'
-    );
+test('section image upload keeps placeholder and file metadata helpers for feature compatibility', () => {
+    assert.match(source, /IMAGE_PLACEHOLDER_PREFIX/);
+    assert.match(source, /createPlaceholderUrl\(clientId\)/);
+    assert.match(source, /parseClientId\(value\)/);
+    assert.match(source, /formatFileSize\(value\)/);
+    assert.match(source, /createRegistry\(\)/);
+    assert.match(source, /enhanceImageBlock\(block/);
 });
