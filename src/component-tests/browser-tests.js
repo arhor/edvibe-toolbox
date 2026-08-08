@@ -43,6 +43,9 @@ async function run() {
 
     const { runExportProgressDialogTests } = await import('./export-progress-dialog-tests.js');
     await runExportProgressDialogTests();
+
+    const { runResetLessonsDialogTests } = await import('./reset-lessons-dialog-tests.js');
+    await runResetLessonsDialogTests();
 }
 
 async function report(status, message) {

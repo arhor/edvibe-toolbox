@@ -29,3 +29,18 @@ Module._resolveFilename = function resolveFilename(request, parent, isMain, opti
     return originalResolveFilename.call(this, correctedRequest, parent, isMain, options);
   }
 };
+
+const originalLoad = Module._load;
+Module._load = function loadWithBrowserComponentCompatibility(request, parent, isMain) {
+  const parentFilename = parent?.filename || '';
+  if (
+    parentFilename.endsWith(`${path.sep}src${path.sep}features${path.sep}reset-lessons.js`)
+    && request === '../components/reset-lessons-dialog.js'
+  ) {
+    return {
+      RESET_DIALOG_TAG: 'edvibe-toolbox-reset-dialog',
+      RESET_OVERLAY_ID: 'edvibe-toolbox-reset-overlay'
+    };
+  }
+  return originalLoad.call(this, request, parent, isMain);
+};
