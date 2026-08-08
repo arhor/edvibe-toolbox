@@ -1,68 +1,99 @@
 # Edvibe Toolbox
 
-**Edvibe Toolbox** is a versatile Google Chrome browser extension designed to automate routine processes, extend interface capabilities, and optimize workflows on the Edvibe platform.
-
----
+**Edvibe Toolbox** is a Google Chrome extension for automating routine processes, extending interface capabilities, and optimizing workflows on the Edvibe platform.
 
 ## ✨ Key Features
 
-* **Process Automation:** Execute repetitive and uniform actions in just a few clicks via the built-in control panel.
-* **Data Management:** Real-time tools to analyze, intercept, and process the platform's internal data structures.
-* **Interface Customization:** Local UI/UX enhancements tailored to adapt the platform to specific user needs.
-* **WebSocket Action Recorder:** Capture a manual Edvibe workflow as correlated
-  request/response operations, copy `sendRequest(...)` scaffolding, and export a
-  local JSON trace without opening DevTools.
+- **Process Automation:** Execute repetitive and uniform actions in a few clicks through the extension popup and in-page dialogs.
+- **Data Management:** Analyze, intercept, and process Edvibe data needed by Toolbox workflows.
+- **Interface Customization:** Local UI/UX enhancements for supported Edvibe workflows.
+- **WebSocket Action Recorder:** Capture a manual Edvibe workflow as correlated request/response operations, copy `sendRequest(...)` scaffolding, and export a local JSON trace without opening DevTools.
 
 ## WebSocket Action Recorder
 
-Open any Edvibe page, select **Запись действий WebSocket** in the extension
-popup, and start recording in the in-page panel. Perform one logical operation,
-stop the recording, then inspect its requests and responses. Individual
-requests and a review-only recipe can be copied; the complete trace can be
-downloaded as JSON.
+Open any Edvibe page, select **Запись действий WebSocket** in the extension popup, and start recording in the in-page panel. Perform one logical operation, stop the recording, then inspect its requests and responses. Individual requests and a review-only recipe can be copied; the complete trace can be downloaded as JSON.
 
-The recorder never replays traffic. Generated code contains the exact observed
-values and must be reviewed for dynamic IDs, sequencing, and mutation effects.
-If an operation produces no frames, it may use HTTP, uploads, browser storage,
-or DOM-only behavior instead of WebSocket messaging.
+The recorder never replays traffic. Generated code contains the exact observed values and must be reviewed for dynamic IDs, sequencing, and mutation effects. If an operation produces no frames, it may use HTTP, uploads, browser storage, or DOM-only behavior instead of WebSocket messaging.
 
-Recordings stay in page memory until exported and are lost on navigation or
-reload. Common credential fields are redacted, but traces may still contain
-pupil data, names, answers, lesson content, email addresses, and stable IDs.
-Review recordings before sharing or committing them. A session stops at 1,000
-frames, 5 MiB of text traffic, or 10 minutes.
-
----
+Recordings stay in page memory until exported and are lost on navigation or reload. Common credential fields are redacted, but traces may still contain pupil data, names, answers, lesson content, email addresses, and stable IDs. Review recordings before sharing or committing them. A session stops at 1,000 frames, 5 MiB of text traffic, or 10 minutes.
 
 ## 🚀 Installation (Developer Mode)
 
-Since this is a custom tool, it is installed directly from the source code, bypassing the Chrome Web Store:
+The repository contains a committed, ready-to-load extension build in `dist/`. Installing dependencies or running a build is not required just to use the extension.
 
-1.  **Download the Project:** Clone this repository or download it as a ZIP archive and unpack it into a local folder.
-2.  **Open Extensions Page:** Open Google Chrome and navigate to `chrome://extensions/`.
-3.  **Enable Developer Mode:** Toggle the **"Developer mode"** switch in the top-right corner of the page.
-4.  **Load the Extension:** Click the **"Load unpacked"** button that appears in the top-left corner.
-5.  **Select the Folder:** In the file picker, select the directory containing the `manifest.json` file.
+1. Clone this repository or download and unpack its ZIP archive.
+2. Open `chrome://extensions/` in Google Chrome.
+3. Enable **Developer mode**.
+4. Click **Load unpacked**.
+5. Select the repository's **`dist/` directory**. The manifest Chrome loads is `dist/manifest.json`.
 
-> 💡 **Tip:** Once installed, click the "puzzle" icon on the Chrome toolbar and pin the extension for quick access to the control panel.
+After updating to a newer repository revision, click **Reload** on the extension card if Chrome does not pick up the changed files automatically.
 
----
+> 💡 Pin Edvibe Toolbox from Chrome's extensions menu for quick access to the popup.
 
 ## 🛠️ Tech Stack
 
-The project is built in compliance with the **Manifest V3** standard and utilizes a clean web stack without heavy frameworks:
-* **HTML5 / CSS3** — Modular layout for the control panel interface (Popup).
-* **Vanilla JavaScript** — Isolated runtime architecture (Content Scripts) for secure interaction with the Edvibe page context.
+Edvibe Toolbox targets **Manifest V3** and uses a bundled browser-extension toolchain:
 
-Whenever you make changes to the source code, simply click the **"Reload"** (circular arrow) icon on the extension's card within the `chrome://extensions/` dashboard.
+- **Vite + CRXJS** build the extension and its isolated, MAIN-world, and popup entry points.
+- **Lit** is the standard implementation for Toolbox Web Components and reactive UI.
+- **HTML/CSS/JavaScript** remain the underlying browser platform technologies.
+- Runtime libraries such as **JSZip** and **Turndown** are installed through npm and bundled into the extension.
+
+The source manifest is `manifest.json`. Production builds are written to `dist/`; generated files there are build-owned output and must not be edited manually.
 
 ## Development
 
 The reproducible development and CI environment uses Node.js 22, pinned in `.nvmrc` and the `package.json` engines field.
 
+Install dependencies once from a clean checkout:
+
 ```bash
 npm ci
+```
+
+For development builds that rebuild when source files change:
+
+```bash
+npm run dev
+```
+
+Load or reload `dist/` in Chrome while developing. The development command is still a build pipeline, so edits belong in source files, never directly in generated `dist/` files.
+
+Create a production build with:
+
+```bash
+npm run build
+```
+
+Pull requests do **not** need to include regenerated `dist/` changes. CI verifies that the production extension builds successfully. After a source change reaches `master`, CI rebuilds the extension and commits an updated `dist/` only when generated output actually changed.
+
+## Testing
+
+Tests are colocated with the source modules they cover and use kebab-case names ending in `.test.js`.
+
+Run the non-browser Node.js tests:
+
+```bash
 npm test
 ```
 
-`npm run test:ci` is the canonical CI entry point and currently delegates to the same complete suite as `npm test`. Tests are colocated with the source modules they cover and use kebab-case names ending in `.test.js`.
+Run Web Component tests in a real local Chrome or Chromium process:
+
+```bash
+npm run test:components
+```
+
+Run the complete test command used by CI:
+
+```bash
+npm run test:ci
+```
+
+GitHub Actions installs dependencies with `npm ci`, runs `npm run test:ci`, and then runs `npm run build` for pull requests and changes to `master`.
+
+## Component Conventions
+
+Dynamic Toolbox UI is implemented as custom elements with Lit. Keep component state reactive and markup declarative, preserve existing public methods/events when refactoring, and keep presentation in dedicated `.css` files. Use Shadow DOM or light DOM according to the component's styling and integration contract rather than bypassing Lit with manual DOM rendering.
+
+Static extension assets and component stylesheets are referenced from source paths and copied or bundled by CRXJS/Vite into `dist/`. Update the source asset, manifest, or build configuration as appropriate; do not patch the generated copy.
