@@ -1,17 +1,19 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { batchSectionCreationDialogStyles } from './batch-section-creation-dialog.styles.js';
+import { batchSectionImageUploadStyles } from './batch-section-image-upload.styles.js';
 import {
     controller as defaultImageController,
     formatFileSize,
-    resolveEnhancementStylesheet
 } from './batch-section-image-upload.js';
 
 const BATCH_SECTION_DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
 
 class BatchSectionCreationDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, batchSectionCreationDialogStyles, batchSectionImageUploadStyles];
+
     static properties = {
-        stylesheetUrl: {state: true},
-        imageStylesheetUrl: {state: true},
         lessons: {state: true},
         selectedLessonIds: {state: true},
         blocks: {state: true},
@@ -30,8 +32,6 @@ class BatchSectionCreationDialog extends LitElement {
 
     constructor() {
         super();
-        this.stylesheetUrl = '';
-        this.imageStylesheetUrl = '';
         this.imageController = defaultImageController;
         this.lessons = [];
         this.selectedLessonIds = new Set();
@@ -67,7 +67,6 @@ class BatchSectionCreationDialog extends LitElement {
         options = options && typeof options === 'object' ? options : {};
         if (options.stylesheetUrl !== undefined) {
             this.stylesheetUrl = String(options.stylesheetUrl || '');
-            this.imageStylesheetUrl = resolveEnhancementStylesheet(this.stylesheetUrl);
         }
         if (options.imageController) {
             this.imageController = options.imageController;
@@ -492,11 +491,7 @@ class BatchSectionCreationDialog extends LitElement {
         const canPreflight = this.canPreflight();
 
         return html`
-            <link class="edvibe-batch-section-stylesheet" rel="stylesheet"
-                href=${this.stylesheetUrl || nothing}>
-            <link class="edvibe-batch-section-image-stylesheet" rel="stylesheet"
-                href=${this.imageStylesheetUrl || nothing}>
-            <div class="edvibe-batch-section-overlay" @click=${this.onBackdrop}>
+<div class="edvibe-batch-section-overlay" @click=${this.onBackdrop}>
                 <section class="edvibe-batch-section-card" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-section-title">
                     <header class="edvibe-batch-section-header">

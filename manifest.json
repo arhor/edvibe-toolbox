@@ -3,34 +3,35 @@
     "name": "Edvibe Toolbox",
     "version": "1.0",
     "description": "A universal toolkit for automation and backup on the Edvibe platform.",
-    "permissions": ["storage", "activeTab", "scripting"],
-    "host_permissions": ["*://*.edvibe.com/*"],
-    "action": { "default_popup": "popup.html" },
-    "web_accessible_resources": [{
-        "resources": [
-            "src/components/reset-lessons-dialog.css",
-            "src/components/action-recorder-dialog.css",
-            "src/components/export-progress-dialog.css",
-            "src/components/batch-lesson-access-dialog.css",
-            "src/components/batch-user-onboarding-dialog.css",
-            "src/components/batch-user-management-dialog.css",
-            "src/components/batch-section-creation-dialog.css",
-            "src/components/batch-section-image-upload.css",
-            "src/components/batch-section-deletion-dialog.css",
-            "src/components/execution-history-dialog.css"
-        ],
-        "matches": ["*://*.edvibe.com/*"]
-    }],
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "*://*.edvibe.com/*"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
     "content_scripts": [
         {
-            "matches": ["*://*.edvibe.com/*"],
-            "js": ["src/entrypoints/isolated.js"],
+            "matches": [
+                "*://*.edvibe.com/*"
+            ],
+            "js": [
+                "src/entrypoints/isolated.js"
+            ],
             "run_at": "document_start",
             "world": "ISOLATED"
         },
         {
-            "matches": ["*://*.edvibe.com/*"],
-            "js": ["src/entrypoints/main.js"],
+            "matches": [
+                "*://*.edvibe.com/*"
+            ],
+            "js": [
+                "src/entrypoints/main.js"
+            ],
             "run_at": "document_start",
             "world": "MAIN"
         }

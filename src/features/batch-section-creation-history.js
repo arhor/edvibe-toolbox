@@ -44,7 +44,6 @@ function createHistoryAwareDialog({
         let latestResult = null;
         let startedAt = null;
         let terminal = false;
-        let stylesheetUrl = '';
         let sequence = 0;
 
         const originalConfigure = dialog.configure.bind(dialog);

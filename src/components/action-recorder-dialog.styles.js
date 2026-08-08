@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const actionRecorderDialogStyles = css`
 :host {
     color: #172033;
     font: 13px/1.45 Inter, "Segoe UI", system-ui, sans-serif;
@@ -339,3 +342,5 @@ textarea {
         text-align: left;
     }
 }
+
+`;

@@ -1,10 +1,13 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { exportProgressDialogStyles } from './export-progress-dialog.styles.js';
 
 const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';
 
 class ExportProgressDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, exportProgressDialogStyles];
+
     static properties = {
-        stylesheetUrl: { state: true },
         statusText: { state: true },
         loadedSections: { state: true },
         totalSections: { state: true },
@@ -14,7 +17,6 @@ class ExportProgressDialog extends LitElement {
 
     constructor() {
         super();
-        this.stylesheetUrl = '';
         this.statusText = 'Preparing export...';
         this.loadedSections = 0;
         this.totalSections = 0;
@@ -96,8 +98,7 @@ class ExportProgressDialog extends LitElement {
             : nothing;
 
         return html`
-            <link rel="stylesheet" href=${this.stylesheetUrl || nothing}>
-            <div class="overlay">
+<div class="overlay">
                 <section class="card" role="dialog" aria-modal="true"
                     aria-labelledby="export-progress-title">
                     <h2 id="export-progress-title">Exporting marathon</h2>

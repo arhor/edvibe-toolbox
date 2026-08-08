@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const batchSectionImageUploadStyles = css`
 .edvibe-batch-section-file-input {
     cursor: pointer;
 }
@@ -41,3 +44,5 @@
     border-radius: 10px;
     background: #f8fafc;
 }
+
+`;

@@ -62,13 +62,6 @@ function enhanceImageBlock(block, cryptoApi = globalThis.crypto) {
     };
 }
 
-function resolveEnhancementStylesheet(stylesheetUrl) {
-    try {
-        return new URL('./batch-section-image-upload.css', stylesheetUrl).href;
-    } catch (_) {
-        return '';
-    }
-}
 
 class BatchSectionImageUploadController {
     constructor({
@@ -152,7 +145,6 @@ export {
     formatFileSize,
     createRegistry,
     enhanceImageBlock,
-    resolveEnhancementStylesheet,
     BatchSectionImageUploadController,
     registry,
     controller

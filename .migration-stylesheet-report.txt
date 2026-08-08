@@ -1,0 +1,55 @@
+src/component-tests/action-recorder-dialog-tests.js:15:        stylesheetUrl: '/src/components/action-recorder-dialog.css',
+src/component-tests/batch-lesson-access-dialog-tests.js:17:    dialog.configure({stylesheetUrl: '/src/components/batch-lesson-access-dialog.css'});
+src/component-tests/batch-section-creation-dialog-tests.js:19:    dialog.configure({stylesheetUrl: '/src/components/batch-section-creation-dialog.css'});
+src/component-tests/batch-section-deletion-dialog-tests.js:20:        stylesheetUrl: '/src/components/batch-section-deletion-dialog.css',
+src/component-tests/batch-user-management-dialog-tests.js:23:    dialog.configure({stylesheetUrl: '/src/components/batch-user-management-dialog.css'});
+src/component-tests/batch-user-onboarding-dialog-tests.js:23:        stylesheetUrl: '/src/components/batch-user-onboarding-dialog.css',
+src/component-tests/execution-history-dialog-tests.js:78:        stylesheetUrl: '/src/components/execution-history-dialog.css',
+src/component-tests/export-progress-dialog-tests.js:13:    dialog.configure({stylesheetUrl: '/src/components/export-progress-dialog.css'});
+src/component-tests/reset-lessons-dialog-tests.js:18:        stylesheetUrl: '/src/components/reset-lessons-dialog.css',
+src/components/batch-section-creation-dialog.js:68:        if (options.stylesheetUrl !== undefined) {
+src/components/batch-section-creation-dialog.js:69:            this.stylesheetUrl = String(options.stylesheetUrl || '');
+src/components/export-progress-dialog.js:28:        const stylesheetUrl = options && typeof options === 'object'
+src/components/export-progress-dialog.js:29:            ? options.stylesheetUrl
+src/components/export-progress-dialog.js:31:        this.stylesheetUrl = String(stylesheetUrl || '');
+src/components/reset-lessons-dialog.js:81:        const { stylesheetUrl = '', searchDelay = 1000, loadLessons, loadNextPupils, log = () => {} } = options;
+src/components/reset-lessons-dialog.js:82:        this.stylesheetUrl = String(stylesheetUrl || '');
+src/features/action-recorder.js:474:                stylesheetUrl,
+src/features/batch-lesson-access-history.js:19:function addHistoryButton(dialog, executionId, stylesheetUrl, openHistory) {
+src/features/batch-lesson-access-history.js:29:        openHistory(executionId, stylesheetUrl);
+src/features/batch-lesson-access-history.js:132:                            addHistoryButton(dialog, history.record.id, current.stylesheetUrl, openHistory);
+src/features/batch-lesson-access-history.js:147:            current.stylesheetUrl = String(value.stylesheetUrl || current.stylesheetUrl || '');
+src/features/batch-lesson-access-history.test.js:281:        dialog.configure({ stylesheetUrl: 'chrome-extension://id/batch.css' });
+src/features/batch-lesson-access.js:744:    async function open({ stylesheetUrl = '' } = {}) {
+src/features/batch-lesson-access.js:780:            dialog.configure({ stylesheetUrl });
+src/features/batch-lesson-access.test.js:872:        await feature.open({ stylesheetUrl: 'chrome-extension://id/batch.css' });
+src/features/batch-section-creation-history.js:12:function addHistoryButton(dialog, executionId, stylesheetUrl, openHistory) {
+src/features/batch-section-creation-history.js:22:        openHistory(executionId, stylesheetUrl);
+src/features/batch-section-creation-history.js:98:                            addHistoryButton(dialog, history.record.id, stylesheetUrl, openHistory);
+src/features/batch-section-creation-history.js:115:            stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || '');
+src/features/batch-section-creation.js:640:    async function open({ stylesheetUrl = '' } = {}) {
+src/features/batch-section-creation.js:661:            dialog.configure({ stylesheetUrl });
+src/features/batch-section-creation.test.js:447:        await feature.open({ stylesheetUrl: 'dialog.css' });
+src/features/batch-section-deletion.js:235:    async function open({ stylesheetUrl } = {}) {
+src/features/batch-section-deletion.js:256:                stylesheetUrl,
+src/features/batch-section-deletion.js:287:                    openHistory(executionId, stylesheetUrl);
+src/features/batch-user-management-history.js:233:                openHistory(executionId, stylesheetUrl);
+src/features/batch-user-management-history.js:242:            stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || '');
+src/features/batch-user-management.js:543:    async function open({ stylesheetUrl = '' } = {}) {
+src/features/batch-user-management.js:565:            dialog.configure({ stylesheetUrl });
+src/features/batch-user-management.test.js:570:        await feature.open({ stylesheetUrl: 'chrome-extension://id/user.css' });
+src/features/batch-user-management.test.js:573:            { stylesheetUrl: 'chrome-extension://id/user.css' }
+src/features/batch-user-onboarding.js:1058:    async function open({ stylesheetUrl = '' } = {}) {
+src/features/batch-user-onboarding.js:1081:                stylesheetUrl,
+src/features/batch-user-onboarding.js:1150:                    openHistory(executionId, stylesheetUrl);
+src/features/execution-history.js:5:    function open({ stylesheetUrl = '', executionId = null } = {}) {
+src/features/execution-history.js:17:                stylesheetUrl,
+src/features/marathon-export.js:285:function createExportProgressOverlay({ stylesheetUrl = '' } = {}) {
+src/features/marathon-export.js:288:    dialog.configure({ stylesheetUrl });
+src/features/marathon-export.js:305:    async function start({ stylesheetUrl = '' } = {}) {
+src/features/marathon-export.js:317:            progressOverlay = createProgressOverlay({ stylesheetUrl });
+src/features/reset-lessons.js:317:    async function open({ stylesheetUrl = '' } = {}) {
+src/features/reset-lessons.js:396:                stylesheetUrl,
+src/module-architecture.test.js:100:    assert.match(isolatedSource, /window\.postMessage\(\{ type, stylesheetUrl:/);
+src/popup-handlers.test.js:77:    assert.match(isolatedScript, /window\.postMessage\(\{ type, stylesheetUrl:/);
+src/popup-handlers.test.js:92:    assert.match(popupHtml, /<link rel="stylesheet" href="popup\.css">/);

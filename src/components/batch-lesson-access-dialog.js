@@ -1,11 +1,14 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { batchLessonAccessDialogStyles } from './batch-lesson-access-dialog.styles.js';
 
 const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
 const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
 
 class BatchLessonAccessDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, batchLessonAccessDialogStyles];
+
     static properties = {
-        stylesheetUrl: {state: true},
         lessons: {state: true},
         selectedLessonIds: {state: true},
         emailState: {state: true},
@@ -21,7 +24,6 @@ class BatchLessonAccessDialog extends LitElement {
 
     constructor() {
         super();
-        this.stylesheetUrl = '';
         this.lessons = [];
         this.selectedLessonIds = new Set();
         this.emailState = {validCount: 0, malformedCount: 0};
@@ -49,10 +51,7 @@ class BatchLessonAccessDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-        if (options.stylesheetUrl !== undefined) {
-            this.stylesheetUrl = String(options.stylesheetUrl || '');
-        }
-        if (options.lessons !== undefined || options.emailState !== undefined) {
+if (options.lessons !== undefined || options.emailState !== undefined) {
             this.showConfigure(options);
         }
         return this;
@@ -328,9 +327,7 @@ class BatchLessonAccessDialog extends LitElement {
         const statusClass = `edvibe-batch-access-status${this.statusError ? ' is-error' : ''}`;
 
         return html`
-            <link class="edvibe-batch-access-stylesheet" rel="stylesheet"
-                href=${this.stylesheetUrl || nothing}>
-            <div class="edvibe-batch-access-overlay" @click=${this.handleBackdropClick}>
+<div class="edvibe-batch-access-overlay" @click=${this.handleBackdropClick}>
                 <section class="edvibe-batch-access-card" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-access-title">
                     <header class="edvibe-batch-access-header">

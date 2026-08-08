@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const batchUserManagementDialogStyles = css`
 :host {
     all: initial;
 }
@@ -285,3 +288,5 @@
         min-width: 760px;
     }
 }
+
+`;

@@ -133,10 +133,7 @@ const batchLessonAccessFeature = batchAccessHistoryApi.createHistoryAwareFeature
     createDialog: () => document.createElement(batchAccessDialogApi.BATCH_ACCESS_DIALOG_TAG),
     copyText: (text) => navigator.clipboard.writeText(text),
     persistExecution: historyService.persistTerminal,
-    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
-        executionId
-    }),
+    openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
     getLocationHref: () => window.location.href,
     getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
         || document.title
@@ -147,10 +144,7 @@ const batchLessonAccessFeature = batchAccessHistoryApi.createHistoryAwareFeature
 const createBatchUserManagementDialog = batchUserManagementHistoryApi.createHistoryAwareDialog({
     createDialog: () => document.createElement(batchUserManagementDialogApi.USER_MANAGEMENT_DIALOG_TAG),
     persistExecution: historyService.persistTerminal,
-    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
-        executionId
-    }),
+    openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
     getLocationHref: () => window.location.href,
     getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
         || document.title
@@ -176,10 +170,7 @@ const batchUserOnboardingFeature = batchUserOnboardingApi.createBatchUserOnboard
     createDialog: () => document.createElement(batchUserOnboardingDialogApi.BATCH_USER_ONBOARDING_DIALOG_TAG),
     copyText: (text) => navigator.clipboard.writeText(text),
     persistExecution: historyService.persistTerminal,
-    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
-        executionId
-    }),
+    openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
     getLocationHref: () => window.location.href,
     getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
         || document.title
@@ -191,10 +182,7 @@ const batchUserOnboardingFeature = batchUserOnboardingApi.createBatchUserOnboard
 const createBatchSectionCreationDialog = batchSectionCreationHistoryApi.createHistoryAwareDialog({
     createDialog: () => document.createElement(batchSectionCreationDialogApi.BATCH_SECTION_DIALOG_TAG),
     persistExecution: historyService.persistTerminal,
-    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
-        executionId
-    }),
+    openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
     getLocationHref: () => window.location.href,
     getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
         || document.title
@@ -226,10 +214,7 @@ const batchSectionDeletionFeature = batchSectionDeletionApi.createBatchSectionDe
     createDialog: () => document.createElement(batchSectionDeletionDialogApi.BATCH_SECTION_DELETION_DIALOG_TAG),
     copyText: (text) => navigator.clipboard.writeText(text),
     persistExecution: historyService.persistTerminal,
-    openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-        stylesheetUrl: new URL('execution-history-dialog.css', sourceStylesheetUrl).href,
-        executionId
-    }),
+    openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
     log: createMainLog('BatchSectionDeletion')
 });
 
@@ -237,38 +222,35 @@ window.addEventListener('message', (event) => {
     if (event.source !== window) return;
     const data = event.data || {};
     if (data.type === 'EDVIBE_TOOLBOX_START_ALL') {
-        marathonExportFeature.start({ stylesheetUrl: data.stylesheetUrl });
+        marathonExportFeature.start();
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_RESET') {
-        lessonResetFeature.open({ stylesheetUrl: data.stylesheetUrl });
+        lessonResetFeature.open();
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') {
-        batchLessonAccessFeature.open({ stylesheetUrl: data.stylesheetUrl });
+        batchLessonAccessFeature.open();
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING') {
-        batchUserOnboardingFeature.open({ stylesheetUrl: data.stylesheetUrl });
+        batchUserOnboardingFeature.open();
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') {
-        batchUserManagementFeature.open({ stylesheetUrl: data.stylesheetUrl });
+        batchUserManagementFeature.open();
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION') {
-        batchSectionCreationFeature.open({ stylesheetUrl: data.stylesheetUrl });
+        batchSectionCreationFeature.open();
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION') {
-        batchSectionDeletionFeature.open({ stylesheetUrl: data.stylesheetUrl });
+        batchSectionDeletionFeature.open();
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY') {
-        executionHistoryFeature.open({
-            stylesheetUrl: data.stylesheetUrl,
-            executionId: data.executionId || null
-        });
+        executionHistoryFeature.open({ executionId: data.executionId || null });
     }
     if (data.type === 'EDVIBE_TOOLBOX_OPEN_RECORDER') {
         if (recorderOpen) {
-            actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
+            actionRecorderFeature.open();
         } else if (operationGuard.activate('recording')) {
             try {
-                actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
+                actionRecorderFeature.open();
             } catch (error) {
                 operationGuard.release('recording');
                 throw error;

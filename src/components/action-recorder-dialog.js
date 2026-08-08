@@ -1,11 +1,14 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { actionRecorderDialogStyles } from './action-recorder-dialog.styles.js';
 
 const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
 const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
 
 class ActionRecorderDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, actionRecorderDialogStyles];
+
     static properties = {
-        stylesheetUrl: {state: true},
         state: {state: true},
         minimized: {state: true},
         showToolbox: {state: true},
@@ -14,7 +17,6 @@ class ActionRecorderDialog extends LitElement {
 
     constructor() {
         super();
-        this.stylesheetUrl = '';
         this.callbacks = {};
         this.state = {status: 'idle', session: null};
         this.minimized = false;
@@ -38,10 +40,7 @@ class ActionRecorderDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-        if (options.stylesheetUrl !== undefined) {
-            this.stylesheetUrl = String(options.stylesheetUrl || '');
-        }
-        for (const name of [
+for (const name of [
             'onStart', 'onStop', 'onClear', 'onExport',
             'onCopyRequest', 'onCopyRecipe', 'onClose'
         ]) {
@@ -193,9 +192,7 @@ class ActionRecorderDialog extends LitElement {
         const copyFallback = String(this.state.copyFallback || '');
 
         return html`
-            <link class="recorder-stylesheet" rel="stylesheet"
-                href=${this.stylesheetUrl || nothing}>
-            <button class=${indicatorClass} type="button" ?hidden=${!this.minimized}
+<button class=${indicatorClass} type="button" ?hidden=${!this.minimized}
                 aria-label="Открыть запись WebSocket" @click=${() => this.restore()}>
                 <span></span><strong>REC</strong>
                 <span class="indicator-count">${visibleOperations.length}</span>

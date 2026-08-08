@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const batchUserOnboardingDialogStyles = css`
 :host {
     all: initial;
 }
@@ -389,3 +392,4 @@ input:focus-visible {
         grid-row: auto;
     }
 }
+`;

@@ -173,7 +173,6 @@ function createActionRecorderFeature({
     let pendingOperations = new Map();
     let durationTimer = null;
     let panel = null;
-    let stylesheetUrl = '';
     let copyFallback = '';
     let notice = '';
 
@@ -469,7 +468,6 @@ function createActionRecorderFeature({
     }
 
     function open(options = {}) {
-        stylesheetUrl = options.stylesheetUrl || stylesheetUrl;
         if (!panel) {
             panel = createPanel();
             panel.configure?.({
@@ -484,7 +482,7 @@ function createActionRecorderFeature({
             });
             panel.mount?.();
         } else {
-            panel.configure?.({ stylesheetUrl });
+            panel.configure?.();
             panel.restore?.();
         }
         render();

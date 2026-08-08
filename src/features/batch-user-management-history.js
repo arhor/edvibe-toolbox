@@ -205,7 +205,6 @@ function createHistoryAwareDialog({
     return function createPatchedDialog() {
         const dialog = createDialog();
         let startedAt = null;
-        let stylesheetUrl = '';
         let persistenceSequence = 0;
         const originalConfigure = dialog.configure.bind(dialog);
         const originalShowComplete = dialog.showComplete.bind(dialog);

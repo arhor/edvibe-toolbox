@@ -1,11 +1,14 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { resetLessonsDialogStyles } from './reset-lessons-dialog.styles.js';
 
 const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
 
 class ResetLessonsDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, resetLessonsDialogStyles];
+
     static properties = {
-        stylesheetUrl: {state: true},
         currentStep: {state: true},
         allPupils: {state: true},
         pupilTotal: {state: true},
@@ -29,7 +32,6 @@ class ResetLessonsDialog extends LitElement {
 
     constructor() {
         super();
-        this.stylesheetUrl = '';
         this.searchDelay = 1000;
         this.log = () => {};
         this.loadLessons = null;
@@ -296,8 +298,7 @@ class ResetLessonsDialog extends LitElement {
         const progressValue = this.progressIndeterminate ? nothing : this.progressValue;
         const selectedPupilLabel = this.selectedPupil ? `${this.selectedPupil.Name || 'Без имени'} — ${this.selectedPupil.Email || ''}` : '';
         return html`
-            <link class="edvibe-reset-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || nothing}>
-            <div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
+<div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
                 <div class="edvibe-reset-card" role="dialog" aria-modal="true" aria-labelledby="edvibe-reset-title">
                     <div class="edvibe-reset-header"><div><h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2><p class="edvibe-reset-subtitle"><span class="edvibe-reset-step-indicator">${view.showingUsers ? 'Шаг 1 из 2' : 'Шаг 2 из 2'}</span><span class="edvibe-reset-step-description">${view.showingUsers ? 'Выберите пользователя.' : 'Выберите уроки для сброса прогресса.'}</span></p></div><button class="edvibe-reset-close" type="button" aria-label="Закрыть" ?disabled=${view.closeDisabled} @click=${() => this.close()}>&times;</button></div>
                     <div class="edvibe-reset-body">

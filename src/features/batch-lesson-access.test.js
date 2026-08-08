@@ -883,7 +883,6 @@ test('batch feature initializes from the marathon URL, complete roster, and firs
         assert.equal(requests[0].value.MarathonId, 18508);
         assert.equal(requests[2].value.PupilId, roster[0].PupilId);
         assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, [{
-            stylesheetUrl: 'chrome-extension://id/batch.css'
         }]);
         assert.deepEqual(findDialogCalls(dialog, 'showConfigure')[0].args, [{
             lessons: catalogue
