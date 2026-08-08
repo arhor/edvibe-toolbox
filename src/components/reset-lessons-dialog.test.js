@@ -16,7 +16,7 @@ test('reset lessons dialog is implemented as a Lit component', () => {
     assert.doesNotMatch(source, /module\.exports/);
 });
 
-test('reset lessons dialog preserves the feature integration surface', () => {
+test('reset lessons dialog preserves the feature integration surface through ESM', () => {
     for (const method of [
         'configure',
         'showPupils',
@@ -34,7 +34,8 @@ test('reset lessons dialog preserves the feature integration surface', () => {
     }
     assert.match(source, /new CustomEvent\('edvibe-reset-request'/);
     assert.match(source, /new CustomEvent\('edvibe-dialog-close'/);
-    assert.match(source, /globalThis\.EdVibeResetDialogComponent = resetDialogApi;/);
+    assert.match(source, /export \{ RESET_DIALOG_TAG, RESET_OVERLAY_ID, ResetLessonsDialog \};/);
+    assert.doesNotMatch(source, /globalThis\.EdVibe/);
 });
 
 test('reset lessons dialog owns declarative pupil and lesson rendering', () => {
