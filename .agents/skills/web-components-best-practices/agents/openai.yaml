@@ -1,4 +1,4 @@
 interface:
-  display_name: "Web Components Best Practices"
-  short_description: "Build robust, fast, maintainable Web Components"
-  default_prompt: "Use $web-components-best-practices to design or review standards-based Web Components."
+  display_name: "Lit Web Component Best Practices"
+  short_description: "Build robust Edvibe Toolbox Web Components with Lit"
+  default_prompt: "Use $web-components-best-practices to design or review Edvibe Toolbox Web Components with Lit."
