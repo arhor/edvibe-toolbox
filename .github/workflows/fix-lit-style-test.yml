@@ -13,5 +13,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: issue-66-lit-styles
-      - name: Show configure expectations
-        run: grep -n -B 4 -A 6 "findDialogCalls(dialog, 'configure')" src/features/batch-user-management.test.js || true
+      - name: Show empty-object expectations
+        run: |
+          grep -n -B 4 -A 6 -F "{}" src/features/batch-user-management.test.js || true
