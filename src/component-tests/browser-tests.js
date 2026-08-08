@@ -40,21 +40,18 @@ async function run() {
 
     const { runPopupToolListTests } = await import('./popup-tool-list-tests.js');
     await runPopupToolListTests();
-
     const { runExportProgressDialogTests } = await import('./export-progress-dialog-tests.js');
     await runExportProgressDialogTests();
-
     const { runResetLessonsDialogTests } = await import('./reset-lessons-dialog-tests.js');
     await runResetLessonsDialogTests();
-
     const { runExecutionHistoryDialogTests } = await import('./execution-history-dialog-tests.js');
     await runExecutionHistoryDialogTests();
-
     const { runActionRecorderDialogTests } = await import('./action-recorder-dialog-tests.js');
     await runActionRecorderDialogTests();
-
     const { runBatchLessonAccessDialogTests } = await import('./batch-lesson-access-dialog-tests.js');
     await runBatchLessonAccessDialogTests();
+    const { runBatchSectionCreationDialogTests } = await import('./batch-section-creation-dialog-tests.js');
+    await runBatchSectionCreationDialogTests();
 }
 
 async function report(status, message) {
