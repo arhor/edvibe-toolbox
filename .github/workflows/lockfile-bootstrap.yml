@@ -7,14 +7,16 @@ on:
       - '.github/workflows/lockfile-bootstrap.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out pull request branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -22,8 +24,14 @@ jobs:
           cache: npm
       - name: Regenerate package lock
         run: npm install --package-lock-only --ignore-scripts
-      - name: Upload package lock
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-lock
-          path: package-lock.json
+      - name: Commit regenerated package lock
+        shell: bash
+        run: |
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: update package lock for TypeScript"
+          git push origin HEAD:${{ github.head_ref }}
