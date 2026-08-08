@@ -13,7 +13,7 @@ const {
     executeAccessPlan,
     formatBatchReport,
     createBatchLessonAccessFeature
-} = require('../src/features/batch-lesson-access.js');
+} = require('./batch-lesson-access.js');
 
 function createFeatureDialog() {
     const listeners = new Map();
