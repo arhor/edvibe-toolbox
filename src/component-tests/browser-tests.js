@@ -1,17 +1,15 @@
-import './browser-fixture-element.js';
-import {
-    assert,
-    cleanup,
-    click,
-    elementUpdated,
-    equal,
-    fixture,
-    keydown,
-    shadowQuery
-} from './component-test-harness.js';
-import { runPopupToolListTests } from './popup-tool-list-tests.js';
+async function runHarnessSmokeTest(harness) {
+    const {
+        assert,
+        cleanup,
+        click,
+        elementUpdated,
+        equal,
+        fixture,
+        keydown,
+        shadowQuery
+    } = harness;
 
-async function runHarnessSmokeTest() {
     const element = await fixture('<browser-fixture-element label="Initial"></browser-fixture-element>');
     assert(element instanceof HTMLElement, 'Fixture should mount a real custom element.');
     assert(element.shadowRoot instanceof ShadowRoot, 'Fixture should expose a real ShadowRoot.');
@@ -36,7 +34,11 @@ async function runHarnessSmokeTest() {
 }
 
 async function run() {
-    await runHarnessSmokeTest();
+    const harness = await import('./component-test-harness.js');
+    await import('./browser-fixture-element.js');
+    await runHarnessSmokeTest(harness);
+
+    const { runPopupToolListTests } = await import('./popup-tool-list-tests.js');
     await runPopupToolListTests();
 }
 
