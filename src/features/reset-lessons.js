@@ -1,7 +1,5 @@
-import {
-    RESET_DIALOG_TAG,
-    RESET_OVERLAY_ID
-} from '../components/reset-lessons-dialog.js';
+const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
+const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
 
 function parseMarathonId(url) {
     const match = String(url || '').match(/marathon\/(\d+)/);
