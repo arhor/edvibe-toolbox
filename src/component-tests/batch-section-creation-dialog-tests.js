@@ -35,7 +35,7 @@ export async function runBatchSectionCreationDialogTests() {
     const imageBlock = dialog.blocks[0];
     equal(imageBlock.type, 'image');
     equal(dialog.canPreflight(), false, 'Image blocks require a selected file.');
-    equal(shadowQuery(dialog, '.edvibe-batch-section-image-preview') === null, true);
+    equal(dialog.shadowRoot.querySelector('.edvibe-batch-section-image-preview'), null);
 
     const imageInput = shadowQuery(dialog, '.edvibe-batch-section-file-input');
     const file = new File(['image-data'], 'banner.png', {type: 'image/png'});
