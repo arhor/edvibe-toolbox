@@ -13,8 +13,5 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: issue-66-lit-styles
-      - name: Show failing test
-        run: |
-          line=$(grep -n "updates an existing dialog" src/features/batch-user-management.test.js | cut -d: -f1)
-          end=$((line + 70))
-          nl -ba src/features/batch-user-management.test.js | sed -n "${line},${end}p"
+      - name: Show configure expectations
+        run: grep -n -B 4 -A 6 "findDialogCalls(dialog, 'configure')" src/features/batch-user-management.test.js || true
