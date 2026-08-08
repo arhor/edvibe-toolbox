@@ -63,7 +63,7 @@ test('runtime entry points load dependencies in explicit source order', () => {
     );
 });
 
-test('dynamic UI and presentation stay in components and stylesheets', () => {
+test('dynamic UI and presentation stay in Lit components and stylesheets', () => {
     const coordinatorFiles = [
         'popup.js',
         'src/main.js',
@@ -83,8 +83,9 @@ test('dynamic UI and presentation stay in components and stylesheets', () => {
     }
 
     const agents = read('AGENTS.md');
-    assert.match(agents, /dynamically created user-interface HTML as Web Components/);
-    assert.match(agents, /Keep all CSS\s+in dedicated `\.css` files/);
+    assert.match(agents, /Use Lit as the standard implementation for Web Components/);
+    assert.match(agents, /Keep component presentation in dedicated `\.css` files/);
+    assert.doesNotMatch(agents, /framework-free/);
 });
 
 test('main creates and installs shared transport and operation guard', () => {
