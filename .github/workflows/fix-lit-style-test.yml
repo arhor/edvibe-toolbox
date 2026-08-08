@@ -1,37 +1,17 @@
-name: Fix Lit style test expectation
+name: Inspect Lit style test expectation
 
 on:
   push:
     branches:
       - issue-66-lit-styles
 
-permissions:
-  contents: write
-
 jobs:
-  fix:
+  inspect:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: issue-66-lit-styles
-      - name: Update stale configure expectation
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          path = Path('src/features/batch-user-management.test.js')
-          text = path.read_text()
-          pattern = r"assert\.deepEqual\(\s*(findDialogCalls\(dialog, 'configure'\)\[[^\]]+\]\.args)\s*,\s*\[\s*\{\s*\}\s*\]\s*\);"
-          text, count = re.subn(pattern, r"assert.deepEqual(\1, []);", text)
-          if count != 1:
-              raise SystemExit(f'expected one stale configure expectation, found {count}')
-          path.write_text(text)
-          PY
-          git rm .github/workflows/fix-lit-style-test.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Fix final Lit style test expectation"
-          git push origin HEAD:issue-66-lit-styles
+      - name: Show failing test region
+        run: nl -ba src/features/batch-user-management.test.js | sed -n '585,610p'
