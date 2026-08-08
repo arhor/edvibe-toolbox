@@ -35,19 +35,19 @@ jobs:
               return parts[0] + ''.join(part[:1].upper() + part[1:] for part in parts[1:])
           for css_path in sorted(components.glob('*.css')):
               stem = css_path.stem
-              js_path = components / f'{stem}.js'
-              if not js_path.exists():
-                  continue
               export_name = camel(stem) + 'Styles'
               raw_css = css_path.read_text(encoding='utf-8')
               escaped = raw_css.replace('`', '\\`').replace('${', '\\${')
               (components / f'{stem}.styles.js').write_text("import { css } from 'lit';\n\n" + f"export const {export_name} = css`\n{escaped}\n`;\n", encoding='utf-8')
+              js_path = components / f'{stem}.js'
+              if not js_path.exists():
+                  css_path.unlink()
+                  continue
               source = js_path.read_text(encoding='utf-8')
               source, count = re.subn(r"(^import\s+\{[^\n]+\}\s+from\s+'lit';\n)", rf"\1import {{ componentFoundationStyles, dialogFoundationStyles }} from './styles/foundations.js';\nimport {{ {export_name} }} from './{stem}.styles.js';\n", source, count=1, flags=re.M)
               if count != 1:
                   raise RuntimeError(f'Could not insert style imports into {js_path}')
-              foundation = 'componentFoundationStyles' if stem == 'batch-section-image-upload' else 'dialogFoundationStyles'
-              source, count = re.subn(r'(class\s+\w+\s+extends\s+LitElement\s*\{\n)', rf'\1    static styles = [componentFoundationStyles, {foundation}, {export_name}];\n\n', source, count=1)
+              source, count = re.subn(r'(class\s+\w+\s+extends\s+LitElement\s*\{\n)', rf'\1    static styles = [componentFoundationStyles, dialogFoundationStyles, {export_name}];\n\n', source, count=1)
               if count != 1:
                   raise RuntimeError(f'Could not add static styles to {js_path}')
               source = re.sub(r'^\s*stylesheetUrl:\s*\{\s*state:\s*true\s*\},?\s*\n', '', source, flags=re.M)
@@ -56,6 +56,22 @@ jobs:
               source = re.sub(r'\s*<link\b(?=[^>]*rel=["\']stylesheet["\'])(?=[^>]*stylesheetUrl)[^>]*>\s*', '\n', source, flags=re.S)
               js_path.write_text(source, encoding='utf-8')
               css_path.unlink()
+          creation = components / 'batch-section-creation-dialog.js'
+          source = creation.read_text(encoding='utf-8')
+          source = source.replace("import { batchSectionCreationDialogStyles } from './batch-section-creation-dialog.styles.js';", "import { batchSectionCreationDialogStyles } from './batch-section-creation-dialog.styles.js';\nimport { batchSectionImageUploadStyles } from './batch-section-image-upload.styles.js';")
+          source = source.replace('static styles = [componentFoundationStyles, dialogFoundationStyles, batchSectionCreationDialogStyles];', 'static styles = [componentFoundationStyles, dialogFoundationStyles, batchSectionCreationDialogStyles, batchSectionImageUploadStyles];')
+          source = source.replace('        imageStylesheetUrl: {state: true},\n', '')
+          source = source.replace("        this.imageStylesheetUrl = '';\n", '')
+          source = source.replace('            this.imageStylesheetUrl = resolveEnhancementStylesheet(this.stylesheetUrl);\n', '')
+          source = source.replace('    resolveEnhancementStylesheet\n', '')
+          source = source.replace('    resolveEnhancementStylesheet,\n', '')
+          source = re.sub(r'\s*<link\b(?=[^>]*rel=["\']stylesheet["\'])(?=[^>]*imageStylesheetUrl)[^>]*>\s*', '\n', source, flags=re.S)
+          creation.write_text(source, encoding='utf-8')
+          image_module = components / 'batch-section-image-upload.js'
+          source = image_module.read_text(encoding='utf-8')
+          source = re.sub(r'\nfunction resolveEnhancementStylesheet\(stylesheetUrl\) \{.*?\n\}\n', '\n', source, flags=re.S)
+          source = source.replace('    resolveEnhancementStylesheet,\n', '')
+          image_module.write_text(source, encoding='utf-8')
           manifest_path = root / 'manifest.json'
           manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
           groups = []
@@ -99,7 +115,7 @@ jobs:
           text = text.replace('Keep component styles in dedicated `.css` files so they can be exposed through `web_accessible_resources`.', 'Keep popup page CSS global, but keep in-page Lit component styles inside Lit CSSResult modules rather than runtime-loaded stylesheets.')
           agents.write_text(text, encoding='utf-8')
           PY
-          rg -n 'stylesheetUrl|rel="stylesheet"' src manifest.json > .migration-stylesheet-report.txt || true
+          rg -n 'stylesheetUrl|imageStylesheetUrl|resolveEnhancementStylesheet|rel="stylesheet"' src manifest.json > .migration-stylesheet-report.txt || true
           git rm .github/workflows/migrate-lit-styles.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
