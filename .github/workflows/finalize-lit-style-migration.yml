@@ -20,15 +20,14 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           path = Path('src/features/batch-user-management.test.js')
           text = path.read_text()
-          old = """        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, [
-              { stylesheetUrl: 'chrome-extension://id/user.css' }
-          ]);"""
-          new = "        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, []);"
-          if old not in text:
-              raise SystemExit('stale style expectation not found')
-          path.write_text(text.replace(old, new))
+          pattern = r"assert\.deepEqual\(findDialogCalls\(dialog, 'configure'\)\[0\]\.args, \[\s*\{ stylesheetUrl: 'chrome-extension://id/user\.css' \}\s*\]\);"
+          text, count = re.subn(pattern, "assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, []);", text)
+          if count != 1:
+              raise SystemExit(f'expected one stale style assertion, found {count}')
+          path.write_text(text)
           PY
           rm .migration-stylesheet-report.txt
       - name: Commit final cleanup
