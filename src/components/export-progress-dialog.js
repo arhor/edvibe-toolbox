@@ -118,7 +118,4 @@ if (!customElements.get(EXPORT_PROGRESS_TAG)) {
     customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
 }
 
-const exportProgressDialogApi = {EXPORT_PROGRESS_TAG, ExportProgressDialog};
-globalThis.EdVibeExportProgressDialog = exportProgressDialogApi;
-
 export { EXPORT_PROGRESS_TAG, ExportProgressDialog };
