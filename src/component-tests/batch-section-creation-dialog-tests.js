@@ -1,4 +1,5 @@
 import '../components/batch-section-creation-dialog.js';
+import {registry as imageRegistry} from '../components/batch-section-image-upload.js';
 import {
     cleanup,
     click,
@@ -9,6 +10,7 @@ import {
 } from './component-test-harness.js';
 
 export async function runBatchSectionCreationDialogTests() {
+    imageRegistry.clear();
     const lessons = [
         {lessonId: 10, number: 1, name: 'Welcome'},
         {lessonId: 11, number: 2, name: 'Practice'}
@@ -25,8 +27,32 @@ export async function runBatchSectionCreationDialogTests() {
     const name = shadowQuery(dialog, '.edvibe-batch-section-name');
     name.value = 'Summer section';
     name.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
+    click(shadowQuery(dialog, '[data-add-block="image"]'));
     click(shadowQuery(dialog, '[data-add-block="text"]'));
     await elementUpdated(dialog);
+
+    equal(dialog.blocks.length, 2);
+    const imageBlock = dialog.blocks[0];
+    equal(imageBlock.type, 'image');
+    equal(dialog.canPreflight(), false, 'Image blocks require a selected file.');
+    equal(shadowQuery(dialog, '.edvibe-batch-section-image-preview') === null, true);
+
+    const imageInput = shadowQuery(dialog, '.edvibe-batch-section-file-input');
+    const file = new File(['image-data'], 'banner.png', {type: 'image/png'});
+    Object.defineProperty(imageInput, 'files', {configurable: true, value: [file]});
+    imageInput.dispatchEvent(new Event('change', {bubbles: true, composed: true}));
+    await elementUpdated(dialog);
+
+    const selectedImage = dialog.blocks.find((block) => block.type === 'image');
+    equal(selectedImage.fileName, 'banner.png');
+    equal(selectedImage.url.includes('/local-upload/'), true);
+    equal(imageRegistry.get(selectedImage.clientId), file);
+    equal(shadowQuery(dialog, '.edvibe-batch-section-file-details').textContent.includes('banner.png'), true);
+    equal(shadowQuery(dialog, '.edvibe-batch-section-image-preview').src.startsWith('blob:'), true);
+
+    const altInput = shadowQuery(dialog, '[data-block-field="alt"]');
+    altInput.value = 'Campaign banner';
+    altInput.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
     const blockText = shadowQuery(dialog, '[data-block-field="text"]');
     blockText.value = 'Hello';
     blockText.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
@@ -34,18 +60,25 @@ export async function runBatchSectionCreationDialogTests() {
     await elementUpdated(dialog);
 
     equal(dialog.sectionName, 'Summer section');
-    equal(dialog.blocks.length, 1);
-    equal(dialog.blocks[0].text, 'Hello');
+    equal(dialog.blocks.find((block) => block.type === 'image').alt, 'Campaign banner');
+    equal(dialog.blocks.find((block) => block.type === 'text').text, 'Hello');
     equal(dialog.selectedLessonIds.size, 2);
     equal(shadowQuery(dialog, '.edvibe-batch-section-preview-name').textContent, 'Summer section');
-    equal(shadowQuery(dialog, '.edvibe-batch-section-preview-blocks').textContent.includes('Текст: Hello'), true);
+    equal(shadowQuery(dialog, '.edvibe-batch-section-preview-blocks').textContent.includes('Баннер: banner.png'), true);
     equal(shadowQuery(dialog, '.edvibe-batch-section-preflight').disabled, false);
+
+    const imageArticle = [...dialog.shadowRoot.querySelectorAll('.edvibe-batch-section-block')]
+        .find((element) => element.dataset.blockId === selectedImage.id);
+    click(imageArticle.querySelector('[data-block-action="down"]'));
+    await elementUpdated(dialog);
+    equal(dialog.blocks[1].type, 'image', 'Image block should reorder through the normal Lit block model.');
 
     let preflight = null;
     dialog.addEventListener('edvibe-batch-section-preflight', (event) => { preflight = event.detail; });
     click(shadowQuery(dialog, '.edvibe-batch-section-preflight'));
     equal(preflight.definition.name, 'Summer section');
-    equal(preflight.definition.blocks.length, 1);
+    equal(preflight.definition.blocks.length, 2);
+    equal(preflight.definition.blocks.find((block) => block.type === 'image').fileName, 'banner.png');
     equal(JSON.stringify(preflight.selectedLessonIds), JSON.stringify([10, 11]));
 
     dialog.showValidationErrors([{code: 'SECTION_NAME_COLLISION', message: 'Already exists'}]);
@@ -56,7 +89,7 @@ export async function runBatchSectionCreationDialogTests() {
         selectedLessonIds: [10, 11],
         eligible: [{number: 1, name: 'Welcome'}],
         rejected: [{number: 2, name: 'Practice', code: 'SECTION_NAME_COLLISION', message: 'Already exists'}],
-        definition: {name: 'Summer section', blocks: [{type: 'text', text: 'Hello'}]}
+        definition: {name: 'Summer section', blocks: preflight.definition.blocks}
     };
     dialog.showConfirmation(plan);
     await elementUpdated(dialog);
@@ -91,16 +124,29 @@ export async function runBatchSectionCreationDialogTests() {
     dialog.addEventListener('edvibe-batch-section-restart', () => { restarted += 1; });
     click(shadowQuery(dialog, '.edvibe-batch-section-copy'));
     click(shadowQuery(dialog, '.edvibe-batch-section-restart'));
+    await elementUpdated(dialog);
     equal(copied, 1);
     equal(restarted, 1);
     equal(dialog.sectionName, '');
     equal(dialog.blocks.length, 0);
     equal(dialog.selectedLessonIds.size, 0);
+    equal(imageRegistry.size(), 0, 'Restart should release selected image files.');
+
+    dialog.showConfigure({lessons, recipeReady: true});
+    click(shadowQuery(dialog, '[data-add-block="image"]'));
+    await elementUpdated(dialog);
+    const secondInput = shadowQuery(dialog, '.edvibe-batch-section-file-input');
+    const secondFile = new File(['second'], 'second.png', {type: 'image/png'});
+    Object.defineProperty(secondInput, 'files', {configurable: true, value: [secondFile]});
+    secondInput.dispatchEvent(new Event('change', {bubbles: true, composed: true}));
+    await elementUpdated(dialog);
+    equal(imageRegistry.size(), 1);
 
     let closed = 0;
     dialog.addEventListener('edvibe-dialog-close', () => { closed += 1; });
     dialog.close();
     equal(closed, 1);
     equal(dialog.isConnected, false);
+    equal(imageRegistry.size(), 0, 'Closing should release selected image files.');
     await cleanup();
 }
