@@ -46,6 +46,9 @@ async function run() {
 
     const { runResetLessonsDialogTests } = await import('./reset-lessons-dialog-tests.js');
     await runResetLessonsDialogTests();
+
+    const { runExecutionHistoryDialogTests } = await import('./execution-history-dialog-tests.js');
+    await runExecutionHistoryDialogTests();
 }
 
 async function report(status, message) {
