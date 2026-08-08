@@ -10,7 +10,7 @@
     "dev": "vite build --watch --mode development",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "test": "node --require ./test-path-compat.cjs --test \"src/**/*.test.js\"",
+    "test": "node --test \"src/**/*.test.js\"",
     "test:components": "node scripts/run-component-tests.mjs",
     "test:ci": "npm test && npm run test:components"
   },
