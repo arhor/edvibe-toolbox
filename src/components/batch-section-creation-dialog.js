@@ -1,4 +1,9 @@
 import { LitElement, html, nothing } from 'lit';
+import {
+    controller as defaultImageController,
+    formatFileSize,
+    resolveEnhancementStylesheet
+} from './batch-section-image-upload.js';
 
 const BATCH_SECTION_DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
@@ -6,6 +11,7 @@ const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay'
 class BatchSectionCreationDialog extends LitElement {
     static properties = {
         stylesheetUrl: {state: true},
+        imageStylesheetUrl: {state: true},
         lessons: {state: true},
         selectedLessonIds: {state: true},
         blocks: {state: true},
@@ -25,6 +31,8 @@ class BatchSectionCreationDialog extends LitElement {
     constructor() {
         super();
         this.stylesheetUrl = '';
+        this.imageStylesheetUrl = '';
+        this.imageController = defaultImageController;
         this.lessons = [];
         this.selectedLessonIds = new Set();
         this.blocks = [];
@@ -50,6 +58,7 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     disconnectedCallback() {
+        this.releaseImageFiles();
         this.ownerDocument?.removeEventListener('keydown', this.onKeydownBound);
         super.disconnectedCallback();
     }
@@ -58,6 +67,10 @@ class BatchSectionCreationDialog extends LitElement {
         options = options && typeof options === 'object' ? options : {};
         if (options.stylesheetUrl !== undefined) {
             this.stylesheetUrl = String(options.stylesheetUrl || '');
+            this.imageStylesheetUrl = resolveEnhancementStylesheet(this.stylesheetUrl);
+        }
+        if (options.imageController) {
+            this.imageController = options.imageController;
         }
         return this;
     }
@@ -156,7 +169,9 @@ class BatchSectionCreationDialog extends LitElement {
 
     createBlock(type) {
         const block = {id: `block-${this.nextBlockId++}`, type};
-        if (type === 'image') return {...block, url: '', alt: ''};
+        if (type === 'image') {
+            return this.imageController.createBlock({...block, url: '', alt: ''});
+        }
         if (type === 'text') return {...block, text: ''};
         return {...block, label: '', url: ''};
     }
@@ -176,6 +191,25 @@ class BatchSectionCreationDialog extends LitElement {
         this.blocks = this.blocks.map((block) => block.id === blockId
             ? {...block, [field]: value}
             : block);
+    }
+
+    replaceBlock(blockId, replacement) {
+        this.blocks = this.blocks.map((block) => block.id === blockId ? replacement : block);
+    }
+
+    onImageFileChange(block, event) {
+        const file = event.currentTarget.files?.[0] || null;
+        this.replaceBlock(block.id, this.imageController.selectFile(block, file));
+        event.currentTarget.value = '';
+    }
+
+    onClearImage(block) {
+        this.replaceBlock(block.id, this.imageController.clearFile(block));
+    }
+
+    releaseImageFiles() {
+        if (!this.imageController || this.blocks.length === 0) return;
+        this.blocks = this.imageController.releaseAll(this.blocks);
     }
 
     onLessonChange(event) {
@@ -203,8 +237,10 @@ class BatchSectionCreationDialog extends LitElement {
         const index = this.blocks.findIndex((block) => block.id === blockId);
         if (index < 0) return;
         const next = [...this.blocks];
-        if (action === 'remove') next.splice(index, 1);
-        else if (action === 'up' && index > 0) {
+        if (action === 'remove') {
+            const [removed] = next.splice(index, 1);
+            if (removed?.type === 'image') this.imageController.releaseBlock(removed);
+        } else if (action === 'up' && index > 0) {
             const [block] = next.splice(index, 1);
             next.splice(index - 1, 0, block);
         } else if (action === 'down' && index < next.length - 1) {
@@ -214,7 +250,16 @@ class BatchSectionCreationDialog extends LitElement {
         this.blocks = next;
     }
 
+    canPreflight() {
+        return ['configure', 'validation-error'].includes(this.mode)
+            && this.selectedLessonIds.size > 0
+            && this.sectionName.trim().length > 0
+            && this.blocks.length > 0
+            && this.imageController.canSubmit(this.blocks);
+    }
+
     onPreflight() {
+        if (!this.canPreflight()) return;
         this.dispatchEvent(new CustomEvent('edvibe-batch-section-preflight', {
             bubbles: true,
             composed: true,
@@ -240,6 +285,7 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     onRestart() {
+        this.releaseImageFiles();
         this.sectionName = '';
         this.blocks = [];
         this.selectedLessonIds = new Set();
@@ -250,6 +296,7 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     close() {
+        this.releaseImageFiles();
         this.dispatchEvent(new CustomEvent('edvibe-dialog-close', {
             bubbles: true,
             composed: true
@@ -306,6 +353,30 @@ class BatchSectionCreationDialog extends LitElement {
         `;
     }
 
+    renderImageFields(block, configurable) {
+        return html`
+            <label class="edvibe-batch-section-field">
+                <span>Файл изображения</span>
+                <input class="edvibe-batch-section-file-input" type="file" accept="image/*"
+                    ?disabled=${!configurable}
+                    @change=${(event) => this.onImageFileChange(block, event)}>
+            </label>
+            ${block.fileName ? html`
+                <div class="edvibe-batch-section-file-details">
+                    <span>${block.fileName} · ${formatFileSize(block.fileSize)}</span>
+                    <button type="button" ?disabled=${!configurable}
+                        @click=${() => this.onClearImage(block)}>Убрать файл</button>
+                </div>
+            ` : nothing}
+            ${block.fileError ? html`<p class="edvibe-batch-section-file-error">${block.fileError}</p>` : nothing}
+            ${block.previewUrl ? html`
+                <img class="edvibe-batch-section-image-preview" src=${block.previewUrl}
+                    alt=${block.alt || 'Предпросмотр изображения'}>
+            ` : nothing}
+            ${this.renderBlockField(block, 'Альтернативный текст', 'alt', false, configurable)}
+        `;
+    }
+
     renderBlock(block, index, configurable) {
         return html`
             <article class="edvibe-batch-section-block" data-block-id=${block.id}>
@@ -321,21 +392,19 @@ class BatchSectionCreationDialog extends LitElement {
                             @click=${() => this.onBlockAction(block.id, 'remove')}>Удалить</button>
                     </div>
                 </header>
-                ${block.type === 'image' ? html`
-                    ${this.renderBlockField(block, 'URL изображения', 'url', false, configurable)}
-                    ${this.renderBlockField(block, 'Альтернативный текст', 'alt', false, configurable)}
-                ` : block.type === 'text' ? html`
-                    ${this.renderBlockField(block, 'Текст или HTML', 'text', true, configurable)}
-                ` : html`
-                    ${this.renderBlockField(block, 'Подпись кнопки', 'label', false, configurable)}
-                    ${this.renderBlockField(block, 'URL', 'url', false, configurable)}
-                `}
+                ${block.type === 'image' ? this.renderImageFields(block, configurable)
+                    : block.type === 'text' ? html`
+                        ${this.renderBlockField(block, 'Текст или HTML', 'text', true, configurable)}
+                    ` : html`
+                        ${this.renderBlockField(block, 'Подпись кнопки', 'label', false, configurable)}
+                        ${this.renderBlockField(block, 'URL', 'url', false, configurable)}
+                    `}
             </article>
         `;
     }
 
     previewDetail(block) {
-        if (block.type === 'image') return block.url || 'URL не указан';
+        if (block.type === 'image') return block.fileName || 'Файл не выбран';
         if (block.type === 'text') return block.text || 'Текст не указан';
         return `${block.label || 'Без подписи'} → ${block.url || 'URL не указан'}`;
     }
@@ -420,15 +489,13 @@ class BatchSectionCreationDialog extends LitElement {
     render() {
         const configurable = ['configure', 'validation-error'].includes(this.mode);
         const busy = this.isBusy();
-        const canPreflight = configurable
-            && this.selectedLessonIds.size > 0
-            && this.sectionName.trim().length > 0
-            && this.blocks.length > 0;
-        const statusClass = 'edvibe-batch-section-status';
+        const canPreflight = this.canPreflight();
 
         return html`
             <link class="edvibe-batch-section-stylesheet" rel="stylesheet"
                 href=${this.stylesheetUrl || nothing}>
+            <link class="edvibe-batch-section-image-stylesheet" rel="stylesheet"
+                href=${this.imageStylesheetUrl || nothing}>
             <div class="edvibe-batch-section-overlay" @click=${this.onBackdrop}>
                 <section class="edvibe-batch-section-card" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-section-title">
@@ -490,7 +557,7 @@ class BatchSectionCreationDialog extends LitElement {
                     </div>
                     <div class="edvibe-batch-section-live-region">
                         <span class="edvibe-batch-section-spinner" role="img" aria-label="Выполняется операция" ?hidden=${!busy}></span>
-                        <p class=${statusClass} data-state=${this.statusState} role="status" aria-live="polite">${this.statusMessage}</p>
+                        <p class="edvibe-batch-section-status" data-state=${this.statusState} role="status" aria-live="polite">${this.statusMessage}</p>
                         <progress class="edvibe-batch-section-progress" max=${this.progress.total}
                             value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress>
                     </div>
