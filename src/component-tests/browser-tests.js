@@ -9,7 +9,7 @@ import {
     keydown,
     shadowQuery
 } from './component-test-harness.js';
-import { runPopupToolListTests } from './popup-tool-list.test.js';
+import { runPopupToolListTests } from './popup-tool-list-tests.js';
 
 async function runHarnessSmokeTest() {
     const element = await fixture('<browser-fixture-element label="Initial"></browser-fixture-element>');

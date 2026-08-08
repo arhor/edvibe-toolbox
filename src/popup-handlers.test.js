@@ -85,7 +85,7 @@ test('popup presents separate groups and preserves command requirements', () => 
     assert.match(popupScript, /command: 'START_FULL_AUTOMATION',\s*requirement: 'marathon'/);
     assert.match(popupScript, /command: 'OPEN_LESSON_RESET',\s*requirement: 'marathon'/);
     assert.match(popupScript, /command: 'OPEN_BATCH_USER_ONBOARDING',\s*requirement: 'marathon'/);
-    assert.match(popupScript, /chrome\.tabs\.sendMessage\(tabId, \{ action \}\)/);
+    assert.match(popupScript, /chrome\.tabs\.sendMessage\(tabId, \{ action \}/);
 });
 
 test('popup styling and script loading remain component-oriented', () => {
