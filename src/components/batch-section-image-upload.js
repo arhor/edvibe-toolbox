@@ -143,23 +143,6 @@ class BatchSectionImageUploadController {
 
 const registry = createRegistry();
 const controller = new BatchSectionImageUploadController({registry});
-const batchSectionImageUploadComponentApi = Object.freeze({
-    IMAGE_PLACEHOLDER_PREFIX,
-    createClientId,
-    createPlaceholderUrl,
-    parseClientId,
-    formatFileSize,
-    createRegistry,
-    enhanceImageBlock,
-    resolveEnhancementStylesheet,
-    BatchSectionImageUploadController,
-    createController: (options = {}) => new BatchSectionImageUploadController(options),
-    registry,
-    controller
-});
-
-globalThis.EdVibeBatchSectionImageRegistry = registry;
-globalThis.EdVibeBatchSectionImageUploadComponent = batchSectionImageUploadComponentApi;
 
 export {
     IMAGE_PLACEHOLDER_PREFIX,
