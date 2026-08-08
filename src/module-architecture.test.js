@@ -15,7 +15,10 @@ test('runtime entry points preserve execution worlds and compose through ESM', (
     assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
     assert.equal(isolatedWorld.run_at, 'document_start');
     assert.equal(mainWorld.run_at, 'document_start');
-    assert.equal(read('src/entrypoints/main.js').trim(), "import '../main.js';");
+    const mainEntrypoint = read('src/entrypoints/main.js');
+    assert.match(mainEntrypoint, /import ['"]\.\.\/components\/export-progress-dialog\.js['"];?/);
+    assert.match(mainEntrypoint, /import ['"]\.\.\/components\/reset-lessons-dialog\.js['"];?/);
+    assert.match(mainEntrypoint, /import ['"]\.\.\/main\.js['"];?/);
     assert.equal(fs.existsSync(path.join(root, 'src/entrypoints/runtime-dependencies.js')), false);
 
     const mainSource = read('src/main.js');
