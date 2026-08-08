@@ -11,7 +11,7 @@ const {
     runWithRetry,
     executeUserPlan,
     createBatchUserManagementFeature
-} = require('../src/features/batch-user-management');
+} = require('./batch-user-management.js');
 
 function createRow(overrides = {}) {
     return {

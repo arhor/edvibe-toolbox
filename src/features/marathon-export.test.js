@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 
 const {
     createMarathonExportFeature
-} = require('../src/features/marathon-export.js');
+} = require('./marathon-export.js');
 
 const silentLog = () => {};
 

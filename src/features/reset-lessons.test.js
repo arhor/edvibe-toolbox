@@ -12,7 +12,7 @@ const {
     executeResetWork,
     createResetLessonsFeature,
     getErrorType
-} = require('../src/features/reset-lessons.js');
+} = require('./reset-lessons.js');
 
 function createModalTestDocument() {
     class FakeClassList {

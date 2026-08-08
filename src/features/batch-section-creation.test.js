@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const api = require('../src/features/batch-section-creation.js');
+const api = require('./batch-section-creation.js');
 
 function definition() {
     return {

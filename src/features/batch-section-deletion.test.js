@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const api = require('../src/features/batch-section-deletion.js');
+const api = require('./batch-section-deletion.js');
 
 const lesson = (lessonId, name = `Lesson ${lessonId}`) => ({ lessonId, marathonLessonId: lessonId + 100, number: lessonId, name });
 const response = (sections) => ({ Value: { Sections: sections } });
