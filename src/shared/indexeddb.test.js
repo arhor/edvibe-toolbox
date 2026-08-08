@@ -5,7 +5,7 @@ const {
     IndexedDbError,
     createIndexedDb,
     requestToPromise
-} = require('../src/shared/indexeddb.js');
+} = require('./indexeddb.js');
 
 class FakeRequest {
     succeed(result) {
