@@ -23,7 +23,7 @@ jobs:
           import re
           path = Path('src/features/batch-user-management.test.js')
           text = path.read_text()
-          pattern = r"assert\.deepEqual\((findDialogCalls\(dialog, 'configure'\)\[[^\]]+\]\.args), \[\{\}\]\);"
+          pattern = r"assert\.deepEqual\(\s*(findDialogCalls\(dialog, 'configure'\)\[[^\]]+\]\.args)\s*,\s*\[\s*\{\s*\}\s*\]\s*\);"
           text, count = re.subn(pattern, r"assert.deepEqual(\1, []);", text)
           if count != 1:
               raise SystemExit(f'expected one stale configure expectation, found {count}')
