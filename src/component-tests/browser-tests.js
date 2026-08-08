@@ -42,12 +42,25 @@ async function run() {
     await runPopupToolListTests();
 }
 
+async function report(status, message) {
+    document.documentElement.dataset.testStatus = status;
+    document.querySelector('#test-result').textContent = message;
+    await fetch('/__component-test-result', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status, message})
+    });
+}
+
 try {
     await run();
-    document.documentElement.dataset.testStatus = 'passed';
-    document.querySelector('#test-result').textContent = 'PASS';
+    await report('passed', 'PASS');
 } catch (error) {
-    document.documentElement.dataset.testStatus = 'failed';
-    document.querySelector('#test-result').textContent = error?.stack || String(error);
+    const message = error?.stack || String(error);
     console.error(error);
+    try {
+        await report('failed', message);
+    } catch (reportError) {
+        console.error('Unable to report component test failure:', reportError);
+    }
 }
