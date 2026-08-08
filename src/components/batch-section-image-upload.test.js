@@ -5,14 +5,15 @@ const path = require('node:path');
 
 const source = fs.readFileSync(path.resolve(__dirname, 'batch-section-image-upload.js'), 'utf8');
 
-test('section image upload exposes an explicit integration controller', () => {
+test('section image upload exposes an explicit ESM integration controller', () => {
     assert.match(source, /class BatchSectionImageUploadController/);
     assert.match(source, /selectFile\(block, file\)/);
     assert.match(source, /clearFile\(block\)/);
     assert.match(source, /releaseBlock\(block\)/);
     assert.match(source, /releaseAll\(blocks = \[\]\)/);
     assert.match(source, /canSubmit\(blocks = \[\]\)/);
-    assert.match(source, /globalThis\.EdVibeBatchSectionImageRegistry = registry;/);
+    assert.match(source, /export \{[\s\S]*BatchSectionImageUploadController,[\s\S]*registry,[\s\S]*controller[\s\S]*\};/);
+    assert.doesNotMatch(source, /globalThis\.EdVibe/);
 });
 
 test('section image upload no longer patches dialog prototypes or DOM rendering hooks', () => {
