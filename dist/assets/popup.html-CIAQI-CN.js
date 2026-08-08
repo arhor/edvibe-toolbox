@@ -1,6 +1,3 @@
-//#region \0rolldown/runtime.js
-var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
-//#endregion
 //#region \0vite/modulepreload-polyfill.js
 (function polyfill() {
 	const relList = document.createElement("link").relList;
@@ -31,35 +28,8 @@ var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).expor
 		fetch(link.href, fetchOpts);
 	}
 })();
-(/* @__PURE__ */ __commonJSMin(((exports, module) => {
-	(function initializeLoggerModule(root, factory) {
-		if (typeof define === "function" && define.amd) define([], factory);
-		else if (typeof module === "object" && module.exports) module.exports = factory();
-		else root.EdVibeLogger = factory();
-	})(typeof globalThis !== "undefined" ? globalThis : window, function loggerModuleFactory() {
-		"use strict";
-		const SUPPORTED_WORLDS = /* @__PURE__ */ new Set([
-			"POPUP",
-			"MAIN",
-			"ISOLATED"
-		]);
-		/**
-		* Creates component-scoped loggers for one explicit execution world.
-		*
-		* @param {string} world The execution world.
-		* @returns {(module: string | null | undefined) => (...args: any[]) => void} A function that creates a logger function.
-		*/
-		function createLoggerFactory(world) {
-			if (!SUPPORTED_WORLDS.has(world)) throw new Error(`Unsupported logging world: ${world}`);
-			return function createLogger(component) {
-				if (component !== void 0 && (typeof component !== "string" || !component.trim())) throw new Error("Component must be a non-empty string.");
-				const namespace = `[Edvibe Toolbox][${world}]${component ? `[${component.trim()}]` : ""}`;
-				return (...args) => console.log(namespace, ...args);
-			};
-		}
-		return { createLoggerFactory };
-	});
-})))();
+//#endregion
+//#region node_modules/@lit/reactive-element/css-tag.js
 /**
 * @license
 * Copyright 2019 Google LLC

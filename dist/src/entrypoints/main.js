@@ -6,14 +6,6 @@
 	var __getOwnPropNames = Object.getOwnPropertyNames;
 	var __getProtoOf = Object.getPrototypeOf;
 	var __hasOwnProp = Object.prototype.hasOwnProperty;
-	var __esmMin = (fn, res, err) => () => {
-		if (err) throw err[0];
-		try {
-			return fn && (res = fn(fn = 0)), res;
-		} catch (e) {
-			throw err = [e], e;
-		}
-	};
 	var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
 	var __exportAll = (all, no_symbols) => {
 		let target = {};
@@ -38,7 +30,2606 @@
 		value: mod,
 		enumerable: true
 	}) : target, mod));
-	var __toCommonJS = (mod) => __hasOwnProp.call(mod, "module.exports") ? mod["module.exports"] : __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+	//#endregion
+	//#region node_modules/@lit/reactive-element/css-tag.js
+	/**
+	* @license
+	* Copyright 2019 Google LLC
+	* SPDX-License-Identifier: BSD-3-Clause
+	*/
+	var t$1 = globalThis;
+	var e$2 = t$1.ShadowRoot && (void 0 === t$1.ShadyCSS || t$1.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype;
+	var s$2 = Symbol();
+	var o$3 = /* @__PURE__ */ new WeakMap();
+	var n$2 = class {
+		constructor(t, e, o) {
+			if (this._$cssResult$ = !0, o !== s$2) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+			this.cssText = t, this.t = e;
+		}
+		get styleSheet() {
+			let t = this.o;
+			const s = this.t;
+			if (e$2 && void 0 === t) {
+				const e = void 0 !== s && 1 === s.length;
+				e && (t = o$3.get(s)), void 0 === t && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), e && o$3.set(s, t));
+			}
+			return t;
+		}
+		toString() {
+			return this.cssText;
+		}
+	};
+	var r$2 = (t) => new n$2("string" == typeof t ? t : t + "", void 0, s$2);
+	var S$1 = (s, o) => {
+		if (e$2) s.adoptedStyleSheets = o.map((t) => t instanceof CSSStyleSheet ? t : t.styleSheet);
+		else for (const e of o) {
+			const o = document.createElement("style"), n = t$1.litNonce;
+			void 0 !== n && o.setAttribute("nonce", n), o.textContent = e.cssText, s.appendChild(o);
+		}
+	};
+	var c$2 = e$2 ? (t) => t : (t) => t instanceof CSSStyleSheet ? ((t) => {
+		let e = "";
+		for (const s of t.cssRules) e += s.cssText;
+		return r$2(e);
+	})(t) : t;
+	//#endregion
+	//#region node_modules/@lit/reactive-element/reactive-element.js
+	/**
+	* @license
+	* Copyright 2017 Google LLC
+	* SPDX-License-Identifier: BSD-3-Clause
+	*/ var { is: i$2, defineProperty: e$1, getOwnPropertyDescriptor: h$1, getOwnPropertyNames: r$1, getOwnPropertySymbols: o$2, getPrototypeOf: n$1 } = Object, a$1 = globalThis, c$1 = a$1.trustedTypes, l$1 = c$1 ? c$1.emptyScript : "", p$1 = a$1.reactiveElementPolyfillSupport, d$1 = (t, s) => t, u$1 = {
+		toAttribute(t, s) {
+			switch (s) {
+				case Boolean:
+					t = t ? l$1 : null;
+					break;
+				case Object:
+				case Array: t = null == t ? t : JSON.stringify(t);
+			}
+			return t;
+		},
+		fromAttribute(t, s) {
+			let i = t;
+			switch (s) {
+				case Boolean:
+					i = null !== t;
+					break;
+				case Number:
+					i = null === t ? null : Number(t);
+					break;
+				case Object:
+				case Array: try {
+					i = JSON.parse(t);
+				} catch (t) {
+					i = null;
+				}
+			}
+			return i;
+		}
+	}, f$1 = (t, s) => !i$2(t, s), b$1 = {
+		attribute: !0,
+		type: String,
+		converter: u$1,
+		reflect: !1,
+		useDefault: !1,
+		hasChanged: f$1
+	};
+	Symbol.metadata ??= Symbol("metadata"), a$1.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
+	var y$1 = class extends HTMLElement {
+		static addInitializer(t) {
+			this._$Ei(), (this.l ??= []).push(t);
+		}
+		static get observedAttributes() {
+			return this.finalize(), this._$Eh && [...this._$Eh.keys()];
+		}
+		static createProperty(t, s = b$1) {
+			if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(t) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(t, s), !s.noAccessor) {
+				const i = Symbol(), h = this.getPropertyDescriptor(t, i, s);
+				void 0 !== h && e$1(this.prototype, t, h);
+			}
+		}
+		static getPropertyDescriptor(t, s, i) {
+			const { get: e, set: r } = h$1(this.prototype, t) ?? {
+				get() {
+					return this[s];
+				},
+				set(t) {
+					this[s] = t;
+				}
+			};
+			return {
+				get: e,
+				set(s) {
+					const h = e?.call(this);
+					r?.call(this, s), this.requestUpdate(t, h, i);
+				},
+				configurable: !0,
+				enumerable: !0
+			};
+		}
+		static getPropertyOptions(t) {
+			return this.elementProperties.get(t) ?? b$1;
+		}
+		static _$Ei() {
+			if (this.hasOwnProperty(d$1("elementProperties"))) return;
+			const t = n$1(this);
+			t.finalize(), void 0 !== t.l && (this.l = [...t.l]), this.elementProperties = new Map(t.elementProperties);
+		}
+		static finalize() {
+			if (this.hasOwnProperty(d$1("finalized"))) return;
+			if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(d$1("properties"))) {
+				const t = this.properties, s = [...r$1(t), ...o$2(t)];
+				for (const i of s) this.createProperty(i, t[i]);
+			}
+			const t = this[Symbol.metadata];
+			if (null !== t) {
+				const s = litPropertyMetadata.get(t);
+				if (void 0 !== s) for (const [t, i] of s) this.elementProperties.set(t, i);
+			}
+			this._$Eh = /* @__PURE__ */ new Map();
+			for (const [t, s] of this.elementProperties) {
+				const i = this._$Eu(t, s);
+				void 0 !== i && this._$Eh.set(i, t);
+			}
+			this.elementStyles = this.finalizeStyles(this.styles);
+		}
+		static finalizeStyles(s) {
+			const i = [];
+			if (Array.isArray(s)) {
+				const e = new Set(s.flat(Infinity).reverse());
+				for (const s of e) i.unshift(c$2(s));
+			} else void 0 !== s && i.push(c$2(s));
+			return i;
+		}
+		static _$Eu(t, s) {
+			const i = s.attribute;
+			return !1 === i ? void 0 : "string" == typeof i ? i : "string" == typeof t ? t.toLowerCase() : void 0;
+		}
+		constructor() {
+			super(), this._$Ep = void 0, this.isUpdatePending = !1, this.hasUpdated = !1, this._$Em = null, this._$Ev();
+		}
+		_$Ev() {
+			this._$ES = new Promise((t) => this.enableUpdating = t), this._$AL = /* @__PURE__ */ new Map(), this._$E_(), this.requestUpdate(), this.constructor.l?.forEach((t) => t(this));
+		}
+		addController(t) {
+			(this._$EO ??= /* @__PURE__ */ new Set()).add(t), void 0 !== this.renderRoot && this.isConnected && t.hostConnected?.();
+		}
+		removeController(t) {
+			this._$EO?.delete(t);
+		}
+		_$E_() {
+			const t = /* @__PURE__ */ new Map(), s = this.constructor.elementProperties;
+			for (const i of s.keys()) this.hasOwnProperty(i) && (t.set(i, this[i]), delete this[i]);
+			t.size > 0 && (this._$Ep = t);
+		}
+		createRenderRoot() {
+			const t = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
+			return S$1(t, this.constructor.elementStyles), t;
+		}
+		connectedCallback() {
+			this.renderRoot ??= this.createRenderRoot(), this.enableUpdating(!0), this._$EO?.forEach((t) => t.hostConnected?.());
+		}
+		enableUpdating(t) {}
+		disconnectedCallback() {
+			this._$EO?.forEach((t) => t.hostDisconnected?.());
+		}
+		attributeChangedCallback(t, s, i) {
+			this._$AK(t, i);
+		}
+		_$ET(t, s) {
+			const i = this.constructor.elementProperties.get(t), e = this.constructor._$Eu(t, i);
+			if (void 0 !== e && !0 === i.reflect) {
+				const h = (void 0 !== i.converter?.toAttribute ? i.converter : u$1).toAttribute(s, i.type);
+				this._$Em = t, null == h ? this.removeAttribute(e) : this.setAttribute(e, h), this._$Em = null;
+			}
+		}
+		_$AK(t, s) {
+			const i = this.constructor, e = i._$Eh.get(t);
+			if (void 0 !== e && this._$Em !== e) {
+				const t = i.getPropertyOptions(e), h = "function" == typeof t.converter ? { fromAttribute: t.converter } : void 0 !== t.converter?.fromAttribute ? t.converter : u$1;
+				this._$Em = e;
+				const r = h.fromAttribute(s, t.type);
+				this[e] = r ?? this._$Ej?.get(e) ?? r, this._$Em = null;
+			}
+		}
+		requestUpdate(t, s, i, e = !1, h) {
+			if (void 0 !== t) {
+				const r = this.constructor;
+				if (!1 === e && (h = this[t]), i ??= r.getPropertyOptions(t), !((i.hasChanged ?? f$1)(h, s) || i.useDefault && i.reflect && h === this._$Ej?.get(t) && !this.hasAttribute(r._$Eu(t, i)))) return;
+				this.C(t, s, i);
+			}
+			!1 === this.isUpdatePending && (this._$ES = this._$EP());
+		}
+		C(t, s, { useDefault: i, reflect: e, wrapped: h }, r) {
+			i && !(this._$Ej ??= /* @__PURE__ */ new Map()).has(t) && (this._$Ej.set(t, r ?? s ?? this[t]), !0 !== h || void 0 !== r) || (this._$AL.has(t) || (this.hasUpdated || i || (s = void 0), this._$AL.set(t, s)), !0 === e && this._$Em !== t && (this._$Eq ??= /* @__PURE__ */ new Set()).add(t));
+		}
+		async _$EP() {
+			this.isUpdatePending = !0;
+			try {
+				await this._$ES;
+			} catch (t) {
+				Promise.reject(t);
+			}
+			const t = this.scheduleUpdate();
+			return null != t && await t, !this.isUpdatePending;
+		}
+		scheduleUpdate() {
+			return this.performUpdate();
+		}
+		performUpdate() {
+			if (!this.isUpdatePending) return;
+			if (!this.hasUpdated) {
+				if (this.renderRoot ??= this.createRenderRoot(), this._$Ep) {
+					for (const [t, s] of this._$Ep) this[t] = s;
+					this._$Ep = void 0;
+				}
+				const t = this.constructor.elementProperties;
+				if (t.size > 0) for (const [s, i] of t) {
+					const { wrapped: t } = i, e = this[s];
+					!0 !== t || this._$AL.has(s) || void 0 === e || this.C(s, void 0, i, e);
+				}
+			}
+			let t = !1;
+			const s = this._$AL;
+			try {
+				t = this.shouldUpdate(s), t ? (this.willUpdate(s), this._$EO?.forEach((t) => t.hostUpdate?.()), this.update(s)) : this._$EM();
+			} catch (s) {
+				throw t = !1, this._$EM(), s;
+			}
+			t && this._$AE(s);
+		}
+		willUpdate(t) {}
+		_$AE(t) {
+			this._$EO?.forEach((t) => t.hostUpdated?.()), this.hasUpdated || (this.hasUpdated = !0, this.firstUpdated(t)), this.updated(t);
+		}
+		_$EM() {
+			this._$AL = /* @__PURE__ */ new Map(), this.isUpdatePending = !1;
+		}
+		get updateComplete() {
+			return this.getUpdateComplete();
+		}
+		getUpdateComplete() {
+			return this._$ES;
+		}
+		shouldUpdate(t) {
+			return !0;
+		}
+		update(t) {
+			this._$Eq &&= this._$Eq.forEach((t) => this._$ET(t, this[t])), this._$EM();
+		}
+		updated(t) {}
+		firstUpdated(t) {}
+	};
+	y$1.elementStyles = [], y$1.shadowRootOptions = { mode: "open" }, y$1[d$1("elementProperties")] = /* @__PURE__ */ new Map(), y$1[d$1("finalized")] = /* @__PURE__ */ new Map(), p$1?.({ ReactiveElement: y$1 }), (a$1.reactiveElementVersions ??= []).push("2.1.2");
+	//#endregion
+	//#region node_modules/lit-html/lit-html.js
+	/**
+	* @license
+	* Copyright 2017 Google LLC
+	* SPDX-License-Identifier: BSD-3-Clause
+	*/
+	var t = globalThis;
+	var i$1 = (t) => t;
+	var s$1 = t.trustedTypes;
+	var e = s$1 ? s$1.createPolicy("lit-html", { createHTML: (t) => t }) : void 0;
+	var h = "$lit$";
+	var o$1 = `lit$${Math.random().toFixed(9).slice(2)}$`;
+	var n = "?" + o$1;
+	var r = `<${n}>`;
+	var l = document;
+	var c = () => l.createComment("");
+	var a = (t) => null === t || "object" != typeof t && "function" != typeof t;
+	var u = Array.isArray;
+	var d = (t) => u(t) || "function" == typeof t?.[Symbol.iterator];
+	var f = "[ 	\n\f\r]";
+	var v = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
+	var _ = /-->/g;
+	var m = />/g;
+	var p = RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g");
+	var g = /'/g;
+	var $ = /"/g;
+	var y = /^(?:script|style|textarea|title)$/i;
+	var x = (t) => (i, ...s) => ({
+		_$litType$: t,
+		strings: i,
+		values: s
+	});
+	var b = x(1);
+	var E = Symbol.for("lit-noChange");
+	var A = Symbol.for("lit-nothing");
+	var C = /* @__PURE__ */ new WeakMap();
+	var P = l.createTreeWalker(l, 129);
+	function V(t, i) {
+		if (!u(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
+		return void 0 !== e ? e.createHTML(i) : i;
+	}
+	var N = (t, i) => {
+		const s = t.length - 1, e = [];
+		let n, l = 2 === i ? "<svg>" : 3 === i ? "<math>" : "", c = v;
+		for (let i = 0; i < s; i++) {
+			const s = t[i];
+			let a, u, d = -1, f = 0;
+			for (; f < s.length && (c.lastIndex = f, u = c.exec(s), null !== u);) f = c.lastIndex, c === v ? "!--" === u[1] ? c = _ : void 0 !== u[1] ? c = m : void 0 !== u[2] ? (y.test(u[2]) && (n = RegExp("</" + u[2], "g")), c = p) : void 0 !== u[3] && (c = p) : c === p ? ">" === u[0] ? (c = n ?? v, d = -1) : void 0 === u[1] ? d = -2 : (d = c.lastIndex - u[2].length, a = u[1], c = void 0 === u[3] ? p : "\"" === u[3] ? $ : g) : c === $ || c === g ? c = p : c === _ || c === m ? c = v : (c = p, n = void 0);
+			const x = c === p && t[i + 1].startsWith("/>") ? " " : "";
+			l += c === v ? s + r : d >= 0 ? (e.push(a), s.slice(0, d) + h + s.slice(d) + o$1 + x) : s + o$1 + (-2 === d ? i : x);
+		}
+		return [V(t, l + (t[s] || "<?>") + (2 === i ? "</svg>" : 3 === i ? "</math>" : "")), e];
+	};
+	var S = class S {
+		constructor({ strings: t, _$litType$: i }, e) {
+			let r;
+			this.parts = [];
+			let l = 0, a = 0;
+			const u = t.length - 1, d = this.parts, [f, v] = N(t, i);
+			if (this.el = S.createElement(f, e), P.currentNode = this.el.content, 2 === i || 3 === i) {
+				const t = this.el.content.firstChild;
+				t.replaceWith(...t.childNodes);
+			}
+			for (; null !== (r = P.nextNode()) && d.length < u;) {
+				if (1 === r.nodeType) {
+					if (r.hasAttributes()) for (const t of r.getAttributeNames()) if (t.endsWith(h)) {
+						const i = v[a++], s = r.getAttribute(t).split(o$1), e = /([.?@])?(.*)/.exec(i);
+						d.push({
+							type: 1,
+							index: l,
+							name: e[2],
+							strings: s,
+							ctor: "." === e[1] ? I : "?" === e[1] ? L : "@" === e[1] ? z : H
+						}), r.removeAttribute(t);
+					} else t.startsWith(o$1) && (d.push({
+						type: 6,
+						index: l
+					}), r.removeAttribute(t));
+					if (y.test(r.tagName)) {
+						const t = r.textContent.split(o$1), i = t.length - 1;
+						if (i > 0) {
+							r.textContent = s$1 ? s$1.emptyScript : "";
+							for (let s = 0; s < i; s++) r.append(t[s], c()), P.nextNode(), d.push({
+								type: 2,
+								index: ++l
+							});
+							r.append(t[i], c());
+						}
+					}
+				} else if (8 === r.nodeType) if (r.data === n) d.push({
+					type: 2,
+					index: l
+				});
+				else {
+					let t = -1;
+					for (; -1 !== (t = r.data.indexOf(o$1, t + 1));) d.push({
+						type: 7,
+						index: l
+					}), t += o$1.length - 1;
+				}
+				l++;
+			}
+		}
+		static createElement(t, i) {
+			const s = l.createElement("template");
+			return s.innerHTML = t, s;
+		}
+	};
+	function M(t, i, s = t, e) {
+		if (i === E) return i;
+		let h = void 0 !== e ? s._$Co?.[e] : s._$Cl;
+		const o = a(i) ? void 0 : i._$litDirective$;
+		return h?.constructor !== o && (h?._$AO?.(!1), void 0 === o ? h = void 0 : (h = new o(t), h._$AT(t, s, e)), void 0 !== e ? (s._$Co ??= [])[e] = h : s._$Cl = h), void 0 !== h && (i = M(t, h._$AS(t, i.values), h, e)), i;
+	}
+	var R = class {
+		constructor(t, i) {
+			this._$AV = [], this._$AN = void 0, this._$AD = t, this._$AM = i;
+		}
+		get parentNode() {
+			return this._$AM.parentNode;
+		}
+		get _$AU() {
+			return this._$AM._$AU;
+		}
+		u(t) {
+			const { el: { content: i }, parts: s } = this._$AD, e = (t?.creationScope ?? l).importNode(i, !0);
+			P.currentNode = e;
+			let h = P.nextNode(), o = 0, n = 0, r = s[0];
+			for (; void 0 !== r;) {
+				if (o === r.index) {
+					let i;
+					2 === r.type ? i = new k(h, h.nextSibling, this, t) : 1 === r.type ? i = new r.ctor(h, r.name, r.strings, this, t) : 6 === r.type && (i = new Z(h, this, t)), this._$AV.push(i), r = s[++n];
+				}
+				o !== r?.index && (h = P.nextNode(), o++);
+			}
+			return P.currentNode = l, e;
+		}
+		p(t) {
+			let i = 0;
+			for (const s of this._$AV) void 0 !== s && (void 0 !== s.strings ? (s._$AI(t, s, i), i += s.strings.length - 2) : s._$AI(t[i])), i++;
+		}
+	};
+	var k = class k {
+		get _$AU() {
+			return this._$AM?._$AU ?? this._$Cv;
+		}
+		constructor(t, i, s, e) {
+			this.type = 2, this._$AH = A, this._$AN = void 0, this._$AA = t, this._$AB = i, this._$AM = s, this.options = e, this._$Cv = e?.isConnected ?? !0;
+		}
+		get parentNode() {
+			let t = this._$AA.parentNode;
+			const i = this._$AM;
+			return void 0 !== i && 11 === t?.nodeType && (t = i.parentNode), t;
+		}
+		get startNode() {
+			return this._$AA;
+		}
+		get endNode() {
+			return this._$AB;
+		}
+		_$AI(t, i = this) {
+			t = M(this, t, i), a(t) ? t === A || null == t || "" === t ? (this._$AH !== A && this._$AR(), this._$AH = A) : t !== this._$AH && t !== E && this._(t) : void 0 !== t._$litType$ ? this.$(t) : void 0 !== t.nodeType ? this.T(t) : d(t) ? this.k(t) : this._(t);
+		}
+		O(t) {
+			return this._$AA.parentNode.insertBefore(t, this._$AB);
+		}
+		T(t) {
+			this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
+		}
+		_(t) {
+			this._$AH !== A && a(this._$AH) ? this._$AA.nextSibling.data = t : this.T(l.createTextNode(t)), this._$AH = t;
+		}
+		$(t) {
+			const { values: i, _$litType$: s } = t, e = "number" == typeof s ? this._$AC(t) : (void 0 === s.el && (s.el = S.createElement(V(s.h, s.h[0]), this.options)), s);
+			if (this._$AH?._$AD === e) this._$AH.p(i);
+			else {
+				const t = new R(e, this), s = t.u(this.options);
+				t.p(i), this.T(s), this._$AH = t;
+			}
+		}
+		_$AC(t) {
+			let i = C.get(t.strings);
+			return void 0 === i && C.set(t.strings, i = new S(t)), i;
+		}
+		k(t) {
+			u(this._$AH) || (this._$AH = [], this._$AR());
+			const i = this._$AH;
+			let s, e = 0;
+			for (const h of t) e === i.length ? i.push(s = new k(this.O(c()), this.O(c()), this, this.options)) : s = i[e], s._$AI(h), e++;
+			e < i.length && (this._$AR(s && s._$AB.nextSibling, e), i.length = e);
+		}
+		_$AR(t = this._$AA.nextSibling, s) {
+			for (this._$AP?.(!1, !0, s); t !== this._$AB;) {
+				const s = i$1(t).nextSibling;
+				i$1(t).remove(), t = s;
+			}
+		}
+		setConnected(t) {
+			void 0 === this._$AM && (this._$Cv = t, this._$AP?.(t));
+		}
+	};
+	var H = class {
+		get tagName() {
+			return this.element.tagName;
+		}
+		get _$AU() {
+			return this._$AM._$AU;
+		}
+		constructor(t, i, s, e, h) {
+			this.type = 1, this._$AH = A, this._$AN = void 0, this.element = t, this.name = i, this._$AM = e, this.options = h, s.length > 2 || "" !== s[0] || "" !== s[1] ? (this._$AH = Array(s.length - 1).fill(/* @__PURE__ */ new String()), this.strings = s) : this._$AH = A;
+		}
+		_$AI(t, i = this, s, e) {
+			const h = this.strings;
+			let o = !1;
+			if (void 0 === h) t = M(this, t, i, 0), o = !a(t) || t !== this._$AH && t !== E, o && (this._$AH = t);
+			else {
+				const e = t;
+				let n, r;
+				for (t = h[0], n = 0; n < h.length - 1; n++) r = M(this, e[s + n], i, n), r === E && (r = this._$AH[n]), o ||= !a(r) || r !== this._$AH[n], r === A ? t = A : t !== A && (t += (r ?? "") + h[n + 1]), this._$AH[n] = r;
+			}
+			o && !e && this.j(t);
+		}
+		j(t) {
+			t === A ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
+		}
+	};
+	var I = class extends H {
+		constructor() {
+			super(...arguments), this.type = 3;
+		}
+		j(t) {
+			this.element[this.name] = t === A ? void 0 : t;
+		}
+	};
+	var L = class extends H {
+		constructor() {
+			super(...arguments), this.type = 4;
+		}
+		j(t) {
+			this.element.toggleAttribute(this.name, !!t && t !== A);
+		}
+	};
+	var z = class extends H {
+		constructor(t, i, s, e, h) {
+			super(t, i, s, e, h), this.type = 5;
+		}
+		_$AI(t, i = this) {
+			if ((t = M(this, t, i, 0) ?? A) === E) return;
+			const s = this._$AH, e = t === A && s !== A || t.capture !== s.capture || t.once !== s.once || t.passive !== s.passive, h = t !== A && (s === A || e);
+			e && this.element.removeEventListener(this.name, this, s), h && this.element.addEventListener(this.name, this, t), this._$AH = t;
+		}
+		handleEvent(t) {
+			"function" == typeof this._$AH ? this._$AH.call(this.options?.host ?? this.element, t) : this._$AH.handleEvent(t);
+		}
+	};
+	var Z = class {
+		constructor(t, i, s) {
+			this.element = t, this.type = 6, this._$AN = void 0, this._$AM = i, this.options = s;
+		}
+		get _$AU() {
+			return this._$AM._$AU;
+		}
+		_$AI(t) {
+			M(this, t);
+		}
+	};
+	var B = t.litHtmlPolyfillSupport;
+	B?.(S, k), (t.litHtmlVersions ??= []).push("3.3.3");
+	var D = (t, i, s) => {
+		const e = s?.renderBefore ?? i;
+		let h = e._$litPart$;
+		if (void 0 === h) {
+			const t = s?.renderBefore ?? null;
+			e._$litPart$ = h = new k(i.insertBefore(c(), t), t, void 0, s ?? {});
+		}
+		return h._$AI(t), h;
+	};
+	//#endregion
+	//#region node_modules/lit-element/lit-element.js
+	/**
+	* @license
+	* Copyright 2017 Google LLC
+	* SPDX-License-Identifier: BSD-3-Clause
+	*/ var s = globalThis;
+	var i = class extends y$1 {
+		constructor() {
+			super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
+		}
+		createRenderRoot() {
+			const t = super.createRenderRoot();
+			return this.renderOptions.renderBefore ??= t.firstChild, t;
+		}
+		update(t) {
+			const r = this.render();
+			this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t), this._$Do = D(r, this.renderRoot, this.renderOptions);
+		}
+		connectedCallback() {
+			super.connectedCallback(), this._$Do?.setConnected(!0);
+		}
+		disconnectedCallback() {
+			super.disconnectedCallback(), this._$Do?.setConnected(!1);
+		}
+		render() {
+			return E;
+		}
+	};
+	i._$litElement$ = !0, i["finalized"] = !0, s.litElementHydrateSupport?.({ LitElement: i });
+	var o = s.litElementPolyfillSupport;
+	o?.({ LitElement: i });
+	(s.litElementVersions ??= []).push("4.2.2");
+	//#endregion
+	//#region src/components/export-progress-dialog.js
+	var EXPORT_PROGRESS_TAG = "edvibe-toolbox-export-progress";
+	var ExportProgressDialog = class extends i {
+		static properties = {
+			stylesheetUrl: { state: true },
+			statusText: { state: true },
+			loadedSections: { state: true },
+			totalSections: { state: true },
+			countText: { state: true },
+			progressState: { state: true }
+		};
+		constructor() {
+			super();
+			this.stylesheetUrl = "";
+			this.statusText = "Preparing export...";
+			this.loadedSections = 0;
+			this.totalSections = 0;
+			this.countText = void 0;
+			this.progressState = "loading";
+		}
+		configure(options = {}) {
+			const stylesheetUrl = options && typeof options === "object" ? options.stylesheetUrl : "";
+			this.stylesheetUrl = String(stylesheetUrl || "");
+			return this;
+		}
+		update(options = /* @__PURE__ */ new Map()) {
+			if (options instanceof Map) {
+				super.update(options);
+				return;
+			}
+			options = options && typeof options === "object" ? options : {};
+			const { statusText = "", loadedSections = 0, totalSections = 0, countText, state = "loading" } = options;
+			this.statusText = String(statusText || "");
+			this.loadedSections = Number(loadedSections) || 0;
+			this.totalSections = Number(totalSections) || 0;
+			this.countText = countText;
+			this.progressState = String(state || "loading");
+			this.syncHostState();
+			return this;
+		}
+		syncHostState() {
+			const hasTotal = this.totalSections > 0;
+			this.toggleAttribute("indeterminate", !hasTotal && this.progressState === "loading");
+			this.toggleAttribute("complete", this.progressState === "complete");
+			this.toggleAttribute("error", this.progressState === "error");
+		}
+		complete(statusText, totalSections) {
+			return this.update({
+				statusText,
+				loadedSections: totalSections,
+				totalSections,
+				state: "complete"
+			});
+		}
+		error(statusText) {
+			return this.update({
+				statusText,
+				state: "error"
+			});
+		}
+		dismissAfter(ms) {
+			const delay = Number.isFinite(Number(ms)) ? Math.max(0, Number(ms)) : 0;
+			setTimeout(() => this.remove(), delay);
+		}
+		render() {
+			const hasTotal = this.totalSections > 0;
+			const progressPercent = this.progressState === "complete" ? 100 : hasTotal ? Math.min(100, Math.round(this.loadedSections / this.totalSections * 100)) : 0;
+			const count = this.countText ?? (hasTotal ? `${this.loadedSections} / ${this.totalSections} sections loaded` : this.progressState === "complete" ? "Export complete" : "Discovering sections...");
+			const progressValue = hasTotal || this.progressState === "complete" ? progressPercent : A;
+			return b`
+            <link rel="stylesheet" href=${this.stylesheetUrl || A}>
+            <div class="overlay">
+                <section class="card" role="dialog" aria-modal="true"
+                    aria-labelledby="export-progress-title">
+                    <h2 id="export-progress-title">Exporting marathon</h2>
+                    <p class="status">${this.statusText}</p>
+                    <progress class="progress" max="100" value=${progressValue}></progress>
+                    <div class="meta">
+                        <span class="count">${count}</span>
+                        <span class="percent">${progressPercent}%</span>
+                    </div>
+                    <button class="close" type="button" @click=${() => this.remove()}>Close</button>
+                </section>
+            </div>
+        `;
+		}
+	};
+	if (!customElements.get("edvibe-toolbox-export-progress")) customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
+	//#endregion
+	//#region src/components/reset-lessons-dialog.js
+	var RESET_DIALOG_TAG$1 = "edvibe-toolbox-reset-dialog";
+	var RESET_OVERLAY_ID$1 = "edvibe-toolbox-reset-overlay";
+	var ResetLessonsDialog = class extends i {
+		static properties = {
+			stylesheetUrl: { state: true },
+			currentStep: { state: true },
+			allPupils: { state: true },
+			pupilTotal: { state: true },
+			selectedPupil: { state: true },
+			lessons: { state: true },
+			selectedLessonIds: { state: true },
+			locked: { state: true },
+			loading: { state: true },
+			finished: { state: true },
+			pupilPageLoading: { state: true },
+			appliedSearchQuery: { state: true },
+			searchDebouncing: { state: true },
+			suppressPupilPageLoading: { state: true },
+			searchValue: { state: true },
+			statusMessage: { state: true },
+			statusState: { state: true },
+			progressVisible: { state: true },
+			progressIndeterminate: { state: true },
+			progressValue: { state: true }
+		};
+		constructor() {
+			super();
+			this.stylesheetUrl = "";
+			this.searchDelay = 1e3;
+			this.log = () => {};
+			this.loadLessons = null;
+			this.loadNextPupils = null;
+			this.currentStep = "user";
+			this.allPupils = [];
+			this.pupilTotal = 0;
+			this.selectedPupil = null;
+			this.loadedPupilId = null;
+			this.lessons = [];
+			this.selectedLessonIds = /* @__PURE__ */ new Set();
+			this.locked = false;
+			this.loading = false;
+			this.finished = false;
+			this.closed = false;
+			this.pupilPagePromise = null;
+			this.pupilPageLoading = false;
+			this.searchTimer = null;
+			this.searchGeneration = 0;
+			this.appliedSearchQuery = "";
+			this.searchDebouncing = false;
+			this.suppressPupilPageLoading = false;
+			this.searchValue = "";
+			this.statusMessage = "";
+			this.statusState = "";
+			this.progressVisible = false;
+			this.progressIndeterminate = false;
+			this.progressValue = 0;
+			this.elements = null;
+			this.handleKeydownBound = (event) => this.handleKeydown(event);
+		}
+		connectedCallback() {
+			super.connectedCallback();
+			if (!this.id) this.id = RESET_OVERLAY_ID$1;
+			this.ownerDocument?.addEventListener("keydown", this.handleKeydownBound);
+		}
+		disconnectedCallback() {
+			this.cancelSearch();
+			this.ownerDocument?.removeEventListener("keydown", this.handleKeydownBound);
+			super.disconnectedCallback();
+		}
+		configure(options = {}) {
+			options = options && typeof options === "object" ? options : {};
+			const { stylesheetUrl = "", searchDelay = 1e3, loadLessons, loadNextPupils, log = () => {} } = options;
+			this.stylesheetUrl = String(stylesheetUrl || "");
+			this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1e3;
+			this.loadLessons = typeof loadLessons === "function" ? loadLessons : null;
+			this.loadNextPupils = typeof loadNextPupils === "function" ? loadNextPupils : null;
+			this.log = typeof log === "function" ? log : () => {};
+			return this;
+		}
+		updated() {
+			this.cacheElements();
+		}
+		cacheElements() {
+			if (!this.shadowRoot) {
+				this.elements = null;
+				return;
+			}
+			const find = (selector) => this.shadowRoot.querySelector(selector);
+			this.elements = {
+				stylesheet: find(".edvibe-reset-stylesheet"),
+				backdrop: find(".edvibe-reset-overlay"),
+				search: find(".edvibe-reset-search"),
+				userStep: find(".edvibe-reset-user-step"),
+				lessonStep: find(".edvibe-reset-lesson-step"),
+				pupilsShell: find(".edvibe-reset-pupils-shell"),
+				pupilsList: find(".edvibe-reset-pupils"),
+				pupilsLoading: find(".edvibe-reset-pupils-loading"),
+				lessonsList: find(".edvibe-reset-lessons"),
+				selectAll: find(".edvibe-reset-select-all-input"),
+				status: find(".edvibe-reset-status"),
+				progress: find(".edvibe-reset-progress"),
+				close: find(".edvibe-reset-close"),
+				cancel: find(".edvibe-reset-cancel"),
+				back: find(".edvibe-reset-back"),
+				next: find(".edvibe-reset-next"),
+				submit: find(".edvibe-reset-submit")
+			};
+		}
+		normalizeSearchQuery(value) {
+			return String(value || "").trim().toLowerCase();
+		}
+		filterPupils(query) {
+			const normalized = this.normalizeSearchQuery(query);
+			return normalized ? this.allPupils.filter((pupil) => String(pupil.Email || "").toLowerCase().includes(normalized)) : this.allPupils;
+		}
+		hasMorePupils() {
+			return this.allPupils.length < this.pupilTotal;
+		}
+		hasLoadedLessonsForSelectedPupil() {
+			return Boolean(this.selectedPupil) && this.selectedPupil.PupilId === this.loadedPupilId;
+		}
+		isPupilLoadingVisible() {
+			return this.loading || this.pupilPageLoading && !this.suppressPupilPageLoading;
+		}
+		getViewState() {
+			const blocked = this.loading || this.locked || this.finished;
+			return {
+				showingUsers: this.currentStep === "user",
+				nextDisabled: blocked || !this.selectedPupil,
+				backDisabled: this.loading || this.locked,
+				submitDisabled: blocked || !this.selectedPupil || this.selectedLessonIds.size === 0,
+				closeDisabled: this.loading || this.locked
+			};
+		}
+		setStatus(message, state = "") {
+			this.statusMessage = String(message || "");
+			this.statusState = state === "error" || state === "success" ? state : "";
+		}
+		renderState() {
+			this.requestUpdate();
+		}
+		renderPupilLoadingState() {
+			this.requestUpdate();
+		}
+		renderPupils() {
+			this.requestUpdate();
+		}
+		selectPupil(pupil) {
+			if (this.locked || this.finished || this.isPupilLoadingVisible() || pupil.PupilId === this.selectedPupil?.PupilId) return;
+			if (pupil.PupilId !== this.loadedPupilId) {
+				this.loadedPupilId = null;
+				this.lessons = [];
+				this.selectedLessonIds = /* @__PURE__ */ new Set();
+			}
+			this.selectedPupil = pupil;
+			this.setStatus(`Выбран пользователь: ${pupil.Email || "email отсутствует"}`);
+		}
+		renderLessons() {
+			this.requestUpdate();
+		}
+		toggleLesson(lessonId, selected) {
+			if (selected) this.selectedLessonIds.add(lessonId);
+			else this.selectedLessonIds.delete(lessonId);
+			this.requestUpdate();
+		}
+		handleSelectAll(event) {
+			const checked = event?.currentTarget?.checked ?? this.elements?.selectAll?.checked;
+			this.selectedLessonIds = checked ? new Set(this.lessons.map((lesson) => lesson.MarathonLessonId)) : /* @__PURE__ */ new Set();
+		}
+		handleSearchInput(event) {
+			this.searchValue = String(event?.currentTarget?.value ?? this.searchValue);
+			this.searchGeneration += 1;
+			this.cancelSearchTimer();
+			this.searchDebouncing = true;
+			this.suppressPupilPageLoading = true;
+			const query = this.normalizeSearchQuery(this.searchValue);
+			const generation = this.searchGeneration;
+			this.searchTimer = globalThis.setTimeout(async () => {
+				if (!this.isCurrentSearch(generation, query)) return;
+				this.searchTimer = null;
+				const needsRemotePupils = Boolean(query && this.filterPupils(query).length === 0 && this.hasMorePupils());
+				this.searchDebouncing = false;
+				if (needsRemotePupils || !this.pupilPageLoading) this.suppressPupilPageLoading = false;
+				if (needsRemotePupils && !await this.continueSearch(generation, query)) return;
+				if (!this.isCurrentSearch(generation, query)) return;
+				this.appliedSearchQuery = query;
+			}, this.searchDelay);
+		}
+		isCurrentSearch(generation, query) {
+			return !this.closed && generation === this.searchGeneration && query === this.normalizeSearchQuery(this.searchValue);
+		}
+		cancelSearchTimer() {
+			if (this.searchTimer !== null) {
+				globalThis.clearTimeout(this.searchTimer);
+				this.searchTimer = null;
+			}
+		}
+		cancelSearch() {
+			this.searchGeneration += 1;
+			this.cancelSearchTimer();
+		}
+		async continueSearch(generation, query) {
+			while (this.isCurrentSearch(generation, query) && this.filterPupils(query).length === 0 && this.hasMorePupils()) if (!await this.loadNextPupilPage()) return false;
+			return true;
+		}
+		async loadNextPupilPage() {
+			if (this.closed || !this.loadNextPupils || !this.hasMorePupils()) return false;
+			if (this.pupilPagePromise) return this.pupilPagePromise;
+			this.suppressPupilPageLoading = false;
+			this.pupilPageLoading = true;
+			this.pupilPagePromise = (async () => {
+				try {
+					const page = await this.loadNextPupils();
+					if (this.closed) return false;
+					this.allPupils = Array.isArray(page?.pupils) ? page.pupils : [];
+					this.pupilTotal = Number(page?.total) || 0;
+					if (this.currentStep === "user" && !this.loading) this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`);
+					return true;
+				} catch (error) {
+					if (!this.closed && this.currentStep === "user" && !this.loading) {
+						this.log(`Failed to load another pupil page (${this.errorType(error)}).`);
+						this.setStatus(error.message, "error");
+					}
+					return false;
+				} finally {
+					this.pupilPagePromise = null;
+					this.pupilPageLoading = false;
+					if (!this.searchDebouncing) this.suppressPupilPageLoading = false;
+				}
+			})();
+			return this.pupilPagePromise;
+		}
+		handlePupilsScroll(event) {
+			if (this.searchDebouncing) return;
+			const list = event?.currentTarget || this.elements?.pupilsList;
+			if (!list) return;
+			if (list.scrollHeight - list.scrollTop - list.clientHeight <= 24) this.loadNextPupilPage();
+		}
+		async handleNext() {
+			if (this.getViewState().nextDisabled || !this.selectedPupil) return;
+			if (this.hasLoadedLessonsForSelectedPupil()) {
+				this.currentStep = "lessons";
+				await this.updateComplete;
+				this.shadowRoot?.querySelector(".edvibe-reset-lessons")?.focus();
+				return;
+			}
+			if (!this.loadLessons) return;
+			try {
+				this.setLoading(`Загрузка уроков для ${this.selectedPupil.Email}...`);
+				const lessons = await this.loadLessons(this.selectedPupil);
+				this.showLessons(this.selectedPupil, lessons);
+			} catch (error) {
+				this.loading = false;
+				this.currentStep = "user";
+				this.log(`Failed to load lessons for PupilId ${this.selectedPupil.PupilId} (${this.errorType(error)}).`);
+				this.setStatus(error.message, "error");
+			}
+		}
+		handleBack() {
+			if (this.getViewState().backDisabled) return;
+			if (this.finished) {
+				this.resetForAnotherUser();
+				return;
+			}
+			this.currentStep = "user";
+			this.setStatus(`Выбран пользователь: ${this.selectedPupil?.Email || "email отсутствует"}`);
+			this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-search")?.focus());
+		}
+		handleSubmit() {
+			if (this.getViewState().submitDisabled) return;
+			this.dispatchEvent(new CustomEvent("edvibe-reset-request", { detail: {
+				pupil: this.selectedPupil,
+				lessons: this.lessons.filter((lesson) => this.selectedLessonIds.has(lesson.MarathonLessonId))
+			} }));
+		}
+		handleBackdropClick(event) {
+			if (event.target === event.currentTarget) this.close();
+		}
+		handleKeydown(event) {
+			if (event.key === "Escape") this.close();
+		}
+		close() {
+			if (this.locked || this.loading || this.closed) return;
+			this.closed = true;
+			this.cancelSearch();
+			this.dispatchEvent(new CustomEvent("edvibe-dialog-close"));
+			this.remove();
+		}
+		resetForAnotherUser() {
+			this.finished = false;
+			this.currentStep = "user";
+			this.selectedPupil = null;
+			this.loadedPupilId = null;
+			this.lessons = [];
+			this.selectedLessonIds = /* @__PURE__ */ new Set();
+			this.searchValue = "";
+			this.appliedSearchQuery = "";
+			this.cancelSearch();
+			this.searchDebouncing = false;
+			this.suppressPupilPageLoading = false;
+			this.progressVisible = false;
+			this.progressIndeterminate = false;
+			this.progressValue = 0;
+			this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`);
+			this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-search")?.focus());
+		}
+		showPupils(options = {}) {
+			options = options && typeof options === "object" ? options : {};
+			const pupils = Array.isArray(options.pupils) ? options.pupils : [];
+			const total = Number.isFinite(Number(options.total)) ? Number(options.total) : pupils.length;
+			this.allPupils = pupils;
+			this.pupilTotal = total;
+			this.currentStep = "user";
+			this.loading = false;
+			this.setStatus(`Загружено пользователей: ${pupils.length} из ${total}`);
+			this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-search")?.focus());
+			return this;
+		}
+		showLessons(pupil, lessons) {
+			if (!pupil || typeof pupil !== "object") return this;
+			lessons = Array.isArray(lessons) ? lessons : [];
+			const pupilChanged = this.loadedPupilId !== pupil.PupilId;
+			this.selectedPupil = pupil;
+			this.loadedPupilId = pupil.PupilId;
+			this.lessons = lessons;
+			if (pupilChanged) this.selectedLessonIds = /* @__PURE__ */ new Set();
+			this.loading = false;
+			this.currentStep = "lessons";
+			this.setStatus(`Загружено уроков: ${lessons.length}`);
+			this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-lessons")?.focus());
+			return this;
+		}
+		setLoading(message) {
+			this.loading = true;
+			this.setStatus(message);
+		}
+		lock() {
+			this.locked = true;
+			this.classList.toggle("is-running", true);
+		}
+		completeRun() {
+			this.locked = false;
+			this.finished = true;
+			this.classList.toggle("is-running", false);
+		}
+		unlockAfterRun() {
+			this.locked = false;
+			this.finished = false;
+			this.classList.toggle("is-running", false);
+		}
+		showDiscovery(message) {
+			this.setStatus(message);
+			this.progressVisible = true;
+			this.progressIndeterminate = true;
+		}
+		showProgress(options = {}) {
+			options = options && typeof options === "object" ? options : {};
+			const completed = Number(options.completed) || 0;
+			const total = Number(options.total) || 0;
+			const lesson = options.lesson && typeof options.lesson === "object" ? options.lesson : {};
+			const exerciseId = options.exerciseId;
+			const percent = total > 0 ? Math.round(completed / total * 100) : 100;
+			const detail = exerciseId ? `Упражнение ${exerciseId}` : "Удаление запроса урока";
+			this.setStatus(`${lesson.Name || ""}\n${detail} — ${completed} / ${total}`);
+			this.progressVisible = true;
+			this.progressIndeterminate = false;
+			this.progressValue = percent;
+		}
+		showComplete(message) {
+			this.setStatus(message, "success");
+			this.progressVisible = true;
+			this.progressIndeterminate = false;
+			this.progressValue = 100;
+		}
+		showError(message) {
+			if (!this.locked) this.loading = false;
+			this.setStatus(message, "error");
+			this.progressIndeterminate = false;
+		}
+		errorType(error) {
+			return typeof error?.name === "string" ? error.name : "Error";
+		}
+		renderPupilRows() {
+			const visiblePupils = this.filterPupils(this.appliedSearchQuery);
+			if (visiblePupils.length === 0) return b`<p class="edvibe-reset-empty">Пользователи не найдены.</p>`;
+			const busy = this.isPupilLoadingVisible();
+			return visiblePupils.map((pupil) => {
+				const selected = pupil.PupilId === this.selectedPupil?.PupilId;
+				return b`<button type="button" class=${`edvibe-reset-row${selected ? " is-selected" : ""}`} role="option" aria-selected=${String(selected)} ?disabled=${busy || this.locked || this.finished} @click=${() => this.selectPupil(pupil)}><span class="edvibe-reset-row-copy"><span class="edvibe-reset-row-name">${pupil.Name || "Без имени"}</span><span class="edvibe-reset-row-email">${pupil.Email || "Email отсутствует"}</span></span></button>`;
+			});
+		}
+		renderLessonRows(inputsBlocked) {
+			if (this.lessons.length === 0) return b`<p class="edvibe-reset-empty">Для пользователя нет уроков.</p>`;
+			return this.lessons.map((lesson) => b`<label class="edvibe-reset-row edvibe-reset-lesson"><input type="checkbox" .value=${String(lesson.MarathonLessonId)} .checked=${this.selectedLessonIds.has(lesson.MarathonLessonId)} ?disabled=${inputsBlocked} @change=${(event) => this.toggleLesson(lesson.MarathonLessonId, event.currentTarget.checked)}><span class="edvibe-reset-row-copy"><span class="edvibe-reset-row-name">${Number(lesson.Number) + 1}. ${lesson.Name}</span><span class="edvibe-reset-row-email">${lesson.LastRequest ? `Статус последнего запроса: ${lesson.LastRequest.Status}` : "Нет запросов на проверку"}</span></span></label>`);
+		}
+		render() {
+			const view = this.getViewState();
+			const inputsBlocked = this.locked || this.loading || this.finished;
+			const pupilBusy = this.isPupilLoadingVisible();
+			const selectAllChecked = this.lessons.length > 0 && this.selectedLessonIds.size === this.lessons.length;
+			const selectAllIndeterminate = this.selectedLessonIds.size > 0 && this.selectedLessonIds.size < this.lessons.length;
+			const statusClass = `edvibe-reset-status${this.statusState === "error" ? " is-error" : this.statusState === "success" ? " is-success" : ""}`;
+			const progressClass = `edvibe-reset-progress${this.progressVisible ? " is-visible" : ""}${this.progressIndeterminate ? " is-indeterminate" : ""}`;
+			const progressValue = this.progressIndeterminate ? A : this.progressValue;
+			const selectedPupilLabel = this.selectedPupil ? `${this.selectedPupil.Name || "Без имени"} — ${this.selectedPupil.Email || ""}` : "";
+			return b`
+            <link class="edvibe-reset-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || A}>
+            <div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
+                <div class="edvibe-reset-card" role="dialog" aria-modal="true" aria-labelledby="edvibe-reset-title">
+                    <div class="edvibe-reset-header"><div><h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2><p class="edvibe-reset-subtitle"><span class="edvibe-reset-step-indicator">${view.showingUsers ? "Шаг 1 из 2" : "Шаг 2 из 2"}</span><span class="edvibe-reset-step-description">${view.showingUsers ? "Выберите пользователя." : "Выберите уроки для сброса прогресса."}</span></p></div><button class="edvibe-reset-close" type="button" aria-label="Закрыть" ?disabled=${view.closeDisabled} @click=${() => this.close()}>&times;</button></div>
+                    <div class="edvibe-reset-body">
+                        <section class="edvibe-reset-user-step" aria-label="Выбор пользователя" ?hidden=${!view.showingUsers}><label class="edvibe-reset-label" for="edvibe-reset-search">Поиск по email</label><input id="edvibe-reset-search" class="edvibe-reset-search" type="search" placeholder="user@example.com" autocomplete="off" .value=${this.searchValue} ?disabled=${inputsBlocked} @input=${this.handleSearchInput}><div class=${`edvibe-reset-pupils-shell${pupilBusy ? " is-loading" : ""}`}><div class="edvibe-reset-list edvibe-reset-pupils" role="listbox" aria-label="Пользователи марафона" aria-busy=${String(pupilBusy)} .inert=${pupilBusy} @scroll=${this.handlePupilsScroll}>${this.renderPupilRows()}</div><div class="edvibe-reset-pupils-loading" role="status" aria-live="polite" ?hidden=${!pupilBusy}><span class="edvibe-reset-spinner" aria-hidden="true"></span><span>Загрузка пользователей...</span></div></div></section>
+                        <section class="edvibe-reset-lesson-step" aria-label="Выбор уроков" ?hidden=${view.showingUsers}><div class="edvibe-reset-label edvibe-reset-selected-pupil">${selectedPupilLabel}</div><label class="edvibe-reset-select-all"><input class="edvibe-reset-select-all-input" type="checkbox" .checked=${selectAllChecked} .indeterminate=${selectAllIndeterminate} ?disabled=${inputsBlocked || this.lessons.length === 0} @change=${this.handleSelectAll}>Выбрать все уроки</label><div class="edvibe-reset-list edvibe-reset-lessons" aria-label="Уроки пользователя" tabindex="-1">${this.renderLessonRows(inputsBlocked)}</div></section>
+                    </div>
+                    <div class="edvibe-reset-live-region"><p class=${statusClass} aria-live="polite">${this.statusMessage}</p><progress class=${progressClass} max="100" value=${progressValue}></progress></div>
+                    <div class="edvibe-reset-footer"><button class="edvibe-reset-button edvibe-reset-cancel" type="button" ?disabled=${view.closeDisabled} @click=${() => this.close()}>Закрыть</button><button class="edvibe-reset-button edvibe-reset-back" type="button" ?hidden=${view.showingUsers} ?disabled=${view.backDisabled} @click=${this.handleBack}>${this.finished ? "Сбросить для другого пользователя" : "Назад"}</button><button class="edvibe-reset-button edvibe-reset-next" type="button" ?hidden=${!view.showingUsers} ?disabled=${view.nextDisabled} @click=${this.handleNext}>Далее</button><button class="edvibe-reset-button edvibe-reset-submit" type="button" ?hidden=${view.showingUsers} ?disabled=${view.submitDisabled} @click=${this.handleSubmit}>Сбросить прогресс</button></div>
+                </div>
+            </div>`;
+		}
+	};
+	if (!customElements.get("edvibe-toolbox-reset-dialog")) customElements.define(RESET_DIALOG_TAG$1, ResetLessonsDialog);
+	//#endregion
+	//#region src/shared/logger.js
+	var SUPPORTED_WORLDS = /* @__PURE__ */ new Set([
+		"POPUP",
+		"MAIN",
+		"ISOLATED"
+	]);
+	/**
+	* Creates component-scoped loggers for one explicit execution world.
+	*
+	* @param {string} world The execution world.
+	* @returns {(module: string | null | undefined) => (...args: any[]) => void} A function that creates a logger function.
+	*/
+	function createLoggerFactory(world) {
+		if (!SUPPORTED_WORLDS.has(world)) throw new Error(`Unsupported logging world: ${world}`);
+		return function createLogger(component) {
+			if (component !== void 0 && (typeof component !== "string" || !component.trim())) throw new Error("Component must be a non-empty string.");
+			const namespace = `[Edvibe Toolbox][${world}]${component ? `[${component.trim()}]` : ""}`;
+			return (...args) => console.log(namespace, ...args);
+		};
+	}
+	//#endregion
+	//#region src/shared/websocket-transport.js
+	var REQUEST_TIMEOUT_MS = 15e3;
+	function createTransportError(code, message, details = {}) {
+		const error = new Error(message);
+		error.code = code;
+		for (const key of [
+			"controller",
+			"method",
+			"requestId",
+			"serverErrorCode",
+			"cause"
+		]) if (details[key] !== void 0) error[key] = details[key];
+		return error;
+	}
+	function createWebSocketTransport({ WebSocketClass, cryptoApi, requestTimeoutMs = REQUEST_TIMEOUT_MS, setTimeoutFn = setTimeout, clearTimeoutFn = clearTimeout, now = Date.now, log = () => {} }) {
+		let activeSocket = null;
+		let nextSocketId = 1;
+		let internalSendDepth = 0;
+		const pendingRequests = /* @__PURE__ */ new Map();
+		const frameObservers = /* @__PURE__ */ new Set();
+		function getByteLength(data) {
+			if (typeof data === "string") {
+				if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(data).byteLength;
+				return unescape(encodeURIComponent(data)).length;
+			}
+			if (typeof Blob !== "undefined" && data instanceof Blob) return data.size;
+			if (typeof ArrayBuffer !== "undefined") {
+				if (data instanceof ArrayBuffer) return data.byteLength;
+				if (ArrayBuffer.isView(data)) return data.byteLength;
+			}
+			return null;
+		}
+		function getDataType(data) {
+			if (typeof data === "string") return "text";
+			if (typeof Blob !== "undefined" && data instanceof Blob) return "blob";
+			if (typeof ArrayBuffer !== "undefined" && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))) return "array-buffer";
+			return "other";
+		}
+		function emitFrame({ direction, socketId, data, origin }) {
+			if (frameObservers.size === 0) return;
+			const dataType = getDataType(data);
+			const frame = {
+				direction,
+				socketId,
+				capturedAt: now(),
+				dataType,
+				byteLength: getByteLength(data),
+				origin
+			};
+			if (dataType === "text") frame.data = data;
+			for (const observer of [...frameObservers]) try {
+				observer(frame);
+			} catch (error) {
+				log("Frame observer failed:", error);
+			}
+		}
+		function subscribeFrames(observer) {
+			if (typeof observer !== "function") throw new TypeError("Frame observer must be a function.");
+			frameObservers.add(observer);
+			return () => frameObservers.delete(observer);
+		}
+		function createPacket(controller, method, projectName, valueObject) {
+			return {
+				Controller: controller,
+				Method: method,
+				ProjectName: projectName,
+				RequestId: cryptoApi.randomUUID(),
+				Value: JSON.stringify(valueObject)
+			};
+		}
+		function handleMessage(event, socketId) {
+			let data = null;
+			if (typeof event.data === "string") try {
+				data = JSON.parse(event.data);
+			} catch (_) {}
+			const isToolboxResponse = Boolean(data?.RequestId && pendingRequests.has(data.RequestId));
+			emitFrame({
+				direction: "inbound",
+				socketId,
+				data: event.data,
+				origin: isToolboxResponse ? "toolbox" : "page"
+			});
+			if (typeof event.data !== "string") return;
+			try {
+				if (!data) return;
+				if (!data.RequestId || !pendingRequests.has(data.RequestId)) return;
+				const pending = pendingRequests.get(data.RequestId);
+				pendingRequests.delete(data.RequestId);
+				clearTimeoutFn(pending.timeoutId);
+				const elapsedMs = now() - pending.startedAt;
+				const outcome = data.IsSuccess === true ? "success" : `failed (${data.ErrorCode})`;
+				log(`← ${pending.controller}.${pending.method} [${data.RequestId}] ${outcome} in ${elapsedMs}ms`);
+				if (data.IsSuccess !== true) {
+					pending.reject(createTransportError("SERVER_REJECTED", `${data.Class || "Edvibe"}:${data.Method || "request"} failed with ErrorCode ${data.ErrorCode}`, {
+						controller: pending.controller,
+						method: pending.method,
+						requestId: data.RequestId,
+						serverErrorCode: data.ErrorCode
+					}));
+					return;
+				}
+				pending.resolve(data);
+			} catch (error) {
+				log("Failed parsing WebSocket frame:", error);
+			}
+		}
+		function install(rootObject) {
+			function InterceptedWebSocket(url, protocols) {
+				log("Intercepting WebSocket targeting:", url);
+				const socket = protocols === void 0 ? new WebSocketClass(url) : new WebSocketClass(url, protocols);
+				const socketId = nextSocketId;
+				nextSocketId += 1;
+				activeSocket = socket;
+				const nativeSend = socket.send;
+				socket.send = function observedSend(data) {
+					emitFrame({
+						direction: "outbound",
+						socketId,
+						data,
+						origin: internalSendDepth > 0 ? "toolbox" : "page"
+					});
+					return nativeSend.call(socket, data);
+				};
+				socket.addEventListener("message", (event) => {
+					handleMessage(event, socketId);
+				});
+				return socket;
+			}
+			InterceptedWebSocket.prototype = WebSocketClass.prototype;
+			rootObject.WebSocket = InterceptedWebSocket;
+		}
+		function requireOpenSocket(controller, method) {
+			if (!activeSocket || activeSocket.readyState !== WebSocketClass.OPEN) throw createTransportError("WS_UNAVAILABLE", "Active WebSocket connection is missing. Please reload the Edvibe tab context.", {
+				controller,
+				method
+			});
+			return activeSocket;
+		}
+		function getConnectionState() {
+			return { isOpen: Boolean(activeSocket && activeSocket.readyState === WebSocketClass.OPEN) };
+		}
+		function sendRequest(controller, method, projectName, valueObject) {
+			return new Promise((resolve, reject) => {
+				let socket;
+				try {
+					socket = requireOpenSocket(controller, method);
+				} catch (error) {
+					log("No active WebSocket connection.");
+					reject(error);
+					return;
+				}
+				const packet = createPacket(controller, method, projectName, valueObject);
+				const timeoutId = setTimeoutFn(() => {
+					pendingRequests.delete(packet.RequestId);
+					log(`✕ ${controller}.${method} [${packet.RequestId}] timed out after ${requestTimeoutMs}ms`);
+					reject(createTransportError("REQUEST_TIMEOUT", `${controller}:${method} timed out after ${requestTimeoutMs}ms.`, {
+						controller,
+						method,
+						requestId: packet.RequestId
+					}));
+				}, requestTimeoutMs);
+				pendingRequests.set(packet.RequestId, {
+					resolve,
+					reject,
+					timeoutId,
+					controller,
+					method,
+					startedAt: now()
+				});
+				log(`→ ${controller}.${method} [${packet.RequestId}]`);
+				try {
+					internalSendDepth += 1;
+					try {
+						socket.send(JSON.stringify(packet));
+					} finally {
+						internalSendDepth -= 1;
+					}
+				} catch (error) {
+					clearTimeoutFn(timeoutId);
+					pendingRequests.delete(packet.RequestId);
+					log(`✕ ${controller}.${method} [${packet.RequestId}] send failed: ${error.message}`);
+					reject(createTransportError("SEND_FAILED", error.message, {
+						controller,
+						method,
+						requestId: packet.RequestId,
+						cause: error
+					}));
+				}
+			});
+		}
+		function sendWithoutResponse(controller, method, projectName, valueObject) {
+			const socket = requireOpenSocket(controller, method);
+			const packet = createPacket(controller, method, projectName, valueObject);
+			log(`→ ${controller}.${method} [${packet.RequestId}] (no response expected)`);
+			internalSendDepth += 1;
+			try {
+				socket.send(JSON.stringify(packet));
+			} finally {
+				internalSendDepth -= 1;
+			}
+		}
+		return {
+			install,
+			sendRequest,
+			sendWithoutResponse,
+			subscribeFrames,
+			getConnectionState
+		};
+	}
+	//#endregion
+	//#region src/shared/operation-guard.js
+	function createOperationGuard() {
+		let activeOperation = null;
+		return {
+			canStart() {
+				return activeOperation === null;
+			},
+			activate(operationName) {
+				if (activeOperation !== null) return false;
+				activeOperation = operationName;
+				return true;
+			},
+			release(operationName) {
+				if (activeOperation !== operationName) return false;
+				activeOperation = null;
+				return true;
+			},
+			getActiveOperation() {
+				return activeOperation;
+			}
+		};
+	}
+	//#endregion
+	//#region src/shared/indexeddb.js
+	var indexeddb_exports = /* @__PURE__ */ __exportAll({
+		IndexedDbError: () => IndexedDbError,
+		createIndexedDb: () => createIndexedDb,
+		requestToPromise: () => requestToPromise,
+		transactionToPromise: () => transactionToPromise
+	});
+	var IndexedDbError = class extends Error {
+		constructor(message, context = {}, cause) {
+			super(message, cause === void 0 ? void 0 : { cause });
+			this.name = "IndexedDbError";
+			this.context = Object.freeze({ ...context });
+			if (cause !== void 0 && this.cause === void 0) this.cause = cause;
+		}
+	};
+	function errorMessage(action, context) {
+		const details = [
+			context.database && `database=${context.database}`,
+			context.stores && `stores=${context.stores.join(",")}`,
+			context.store && `store=${context.store}`,
+			context.index && `index=${context.index}`,
+			context.mode && `mode=${context.mode}`,
+			context.operation && `operation=${context.operation}`,
+			context.version && `version=${context.version}`
+		].filter(Boolean).join(" ");
+		return details ? `${action} (${details})` : action;
+	}
+	function wrapError(action, context, cause) {
+		if (cause instanceof IndexedDbError) return cause;
+		return new IndexedDbError(errorMessage(action, context), context, cause);
+	}
+	function requestToPromise(request, context = {}) {
+		return new Promise((resolve, reject) => {
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(wrapError("IndexedDB request failed", context, request.error));
+		});
+	}
+	function transactionToPromise(transaction, context = {}) {
+		return new Promise((resolve, reject) => {
+			transaction.oncomplete = () => resolve();
+			transaction.onerror = () => reject(wrapError("IndexedDB transaction failed", context, transaction.error));
+			transaction.onabort = () => reject(wrapError("IndexedDB transaction aborted", context, transaction.error));
+		});
+	}
+	function normalizeStores(storeNames) {
+		const stores = typeof storeNames === "string" ? [storeNames] : Array.from(storeNames || []);
+		if (stores.length === 0) throw new TypeError("At least one object store is required");
+		return stores;
+	}
+	function normalizeMigrations(definition) {
+		const migrations = Array.from(definition.migrations || []).sort((left, right) => left.version - right.version);
+		const seen = /* @__PURE__ */ new Set();
+		for (const migration of migrations) {
+			if (!Number.isInteger(migration.version) || migration.version < 1 || migration.version > definition.version) throw new TypeError(`Invalid migration version: ${migration.version}`);
+			if (seen.has(migration.version)) throw new TypeError(`Duplicate migration version: ${migration.version}`);
+			if (typeof migration.migrate !== "function") throw new TypeError(`Migration ${migration.version} must define migrate()`);
+			seen.add(migration.version);
+		}
+		return migrations;
+	}
+	function cursorToPromise(source, options, context) {
+		const { range = null, direction = "next", limit = Infinity, keysOnly = false, map = null } = options || {};
+		if (!Number.isFinite(limit) && limit !== Infinity) throw new TypeError("Cursor limit must be a finite number or Infinity");
+		if (limit < 0) throw new RangeError("Cursor limit cannot be negative");
+		if (limit === 0) return Promise.resolve([]);
+		return new Promise((resolve, reject) => {
+			const results = [];
+			let request;
+			try {
+				request = keysOnly ? source.openKeyCursor(range, direction) : source.openCursor(range, direction);
+			} catch (error) {
+				reject(wrapError("Failed to open IndexedDB cursor", context, error));
+				return;
+			}
+			request.onerror = () => reject(wrapError("IndexedDB cursor failed", context, request.error));
+			request.onsuccess = () => {
+				const cursor = request.result;
+				if (!cursor || results.length >= limit) {
+					resolve(results);
+					return;
+				}
+				const raw = keysOnly ? cursor.primaryKey : cursor.value;
+				results.push(typeof map === "function" ? map(raw, cursor) : raw);
+				cursor.continue();
+			};
+		});
+	}
+	function createSourceHelpers(source, context) {
+		return {
+			raw: source,
+			get(key) {
+				return requestToPromise(source.get(key), {
+					...context,
+					operation: "get"
+				});
+			},
+			getKey(query) {
+				return requestToPromise(source.getKey(query), {
+					...context,
+					operation: "getKey"
+				});
+			},
+			getAll(query = null, count) {
+				return requestToPromise(source.getAll(query, count), {
+					...context,
+					operation: "getAll"
+				});
+			},
+			getAllKeys(query = null, count) {
+				return requestToPromise(source.getAllKeys(query, count), {
+					...context,
+					operation: "getAllKeys"
+				});
+			},
+			count(query = null) {
+				return requestToPromise(source.count(query), {
+					...context,
+					operation: "count"
+				});
+			},
+			iterate(options = {}) {
+				return cursorToPromise(source, options, {
+					...context,
+					operation: "iterate"
+				});
+			}
+		};
+	}
+	function createStoreHelpers(store, context) {
+		return {
+			...createSourceHelpers(store, context),
+			put(value, key) {
+				return requestToPromise(store.put(value, key), {
+					...context,
+					operation: "put"
+				});
+			},
+			add(value, key) {
+				return requestToPromise(store.add(value, key), {
+					...context,
+					operation: "add"
+				});
+			},
+			delete(key) {
+				return requestToPromise(store.delete(key), {
+					...context,
+					operation: "delete"
+				});
+			},
+			clear() {
+				return requestToPromise(store.clear(), {
+					...context,
+					operation: "clear"
+				});
+			},
+			index(indexName) {
+				return createSourceHelpers(store.index(indexName), {
+					...context,
+					index: indexName
+				});
+			}
+		};
+	}
+	function createIndexedDb(definition, options = {}) {
+		if (!definition || typeof definition.name !== "string" || definition.name.length === 0) throw new TypeError("Database definition requires a non-empty name");
+		if (!Number.isInteger(definition.version) || definition.version < 1) throw new TypeError("Database definition requires a positive integer version");
+		const indexedDbFactory = options.indexedDB || globalThis.indexedDB;
+		if (!indexedDbFactory || typeof indexedDbFactory.open !== "function") throw new TypeError("An IndexedDB factory is required");
+		const migrations = normalizeMigrations(definition);
+		let connection = null;
+		let opening = null;
+		function invalidate(db) {
+			if (connection === db) connection = null;
+			opening = null;
+		}
+		function open() {
+			if (connection) return Promise.resolve(connection);
+			if (opening) return opening;
+			opening = new Promise((resolve, reject) => {
+				let request;
+				let settled = false;
+				let blockedTimer = null;
+				try {
+					request = indexedDbFactory.open(definition.name, definition.version);
+				} catch (error) {
+					reject(wrapError("Failed to open IndexedDB database", {
+						database: definition.name,
+						version: definition.version
+					}, error));
+					return;
+				}
+				const fail = (error) => {
+					if (settled) return;
+					settled = true;
+					if (blockedTimer !== null) clearTimeout(blockedTimer);
+					opening = null;
+					reject(error);
+				};
+				request.onblocked = () => {
+					const context = {
+						database: definition.name,
+						version: definition.version,
+						operation: "open"
+					};
+					const error = wrapError("IndexedDB upgrade is blocked by another open connection", context, request.error);
+					if (typeof options.onBlocked === "function") options.onBlocked(error, context);
+					if (options.blockedTimeoutMs > 0 && blockedTimer === null) blockedTimer = setTimeout(() => fail(error), options.blockedTimeoutMs);
+				};
+				request.onupgradeneeded = (event) => {
+					const db = request.result;
+					const transaction = request.transaction;
+					try {
+						for (const migration of migrations) if (migration.version > event.oldVersion && migration.version <= event.newVersion) migration.migrate({
+							db,
+							transaction,
+							oldVersion: event.oldVersion,
+							newVersion: event.newVersion,
+							version: migration.version
+						});
+					} catch (error) {
+						try {
+							transaction.abort();
+						} catch (_) {}
+						fail(wrapError("IndexedDB migration failed", {
+							database: definition.name,
+							version: event.newVersion,
+							operation: "migrate"
+						}, error));
+					}
+				};
+				request.onerror = () => fail(wrapError("Failed to open IndexedDB database", {
+					database: definition.name,
+					version: definition.version,
+					operation: "open"
+				}, request.error));
+				request.onsuccess = () => {
+					const db = request.result;
+					if (settled) {
+						db.close();
+						return;
+					}
+					settled = true;
+					if (blockedTimer !== null) clearTimeout(blockedTimer);
+					connection = db;
+					opening = null;
+					db.onversionchange = () => {
+						db.close();
+						invalidate(db);
+						if (typeof options.onVersionChange === "function") options.onVersionChange({
+							database: definition.name,
+							version: db.version
+						});
+					};
+					resolve(db);
+				};
+			});
+			return opening;
+		}
+		async function runTransaction(storeNames, mode, callback, operation = "transaction") {
+			const stores = normalizeStores(storeNames);
+			if (mode !== "readonly" && mode !== "readwrite") throw new TypeError(`Unsupported transaction mode: ${mode}`);
+			if (typeof callback !== "function") throw new TypeError("Transaction callback must be a function");
+			const db = await open();
+			const context = {
+				database: definition.name,
+				stores,
+				mode,
+				operation
+			};
+			let transaction;
+			try {
+				transaction = db.transaction(stores, mode);
+			} catch (error) {
+				throw wrapError("Failed to create IndexedDB transaction", context, error);
+			}
+			const completion = transactionToPromise(transaction, context);
+			const helpers = Object.create(null);
+			for (const storeName of stores) helpers[storeName] = createStoreHelpers(transaction.objectStore(storeName), {
+				...context,
+				store: storeName
+			});
+			let result;
+			try {
+				result = callback({
+					transaction,
+					stores: helpers,
+					store(name) {
+						if (!helpers[name]) throw new IndexedDbError(errorMessage("Store is not part of this transaction", {
+							...context,
+							store: name
+						}), {
+							...context,
+							store: name
+						});
+						return helpers[name];
+					},
+					abort(reason) {
+						if (reason !== void 0 && transaction.error === null) try {
+							Object.defineProperty(transaction, "__edvibeAbortReason", { value: reason });
+						} catch (_) {}
+						transaction.abort();
+					}
+				});
+			} catch (error) {
+				try {
+					transaction.abort();
+				} catch (_) {}
+				try {
+					await completion;
+				} catch (_) {}
+				throw wrapError("IndexedDB transaction callback failed", context, error);
+			}
+			try {
+				const [value] = await Promise.all([Promise.resolve(result), completion]);
+				return value;
+			} catch (error) {
+				throw wrapError("IndexedDB transaction did not commit", context, transaction.__edvibeAbortReason || error);
+			}
+		}
+		function repository(storeName) {
+			return {
+				get(key) {
+					return runTransaction(storeName, "readonly", ({ store }) => store(storeName).get(key), `get:${storeName}`);
+				},
+				put(value, key) {
+					return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).put(value, key), `put:${storeName}`);
+				},
+				add(value, key) {
+					return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).add(value, key), `add:${storeName}`);
+				},
+				delete(key) {
+					return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).delete(key), `delete:${storeName}`);
+				},
+				clear() {
+					return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).clear(), `clear:${storeName}`);
+				},
+				count(query = null) {
+					return runTransaction(storeName, "readonly", ({ store }) => store(storeName).count(query), `count:${storeName}`);
+				},
+				iterate(options = {}) {
+					return runTransaction(storeName, "readonly", ({ store }) => store(storeName).iterate(options), `iterate:${storeName}`);
+				},
+				queryIndex(indexName, options = {}) {
+					return runTransaction(storeName, "readonly", ({ store }) => {
+						return store(storeName).index(indexName).iterate(options);
+					}, `query-index:${storeName}.${indexName}`);
+				},
+				newest(indexName, options = {}) {
+					return this.queryIndex(indexName, {
+						...options,
+						direction: "prev"
+					});
+				}
+			};
+		}
+		function close() {
+			if (connection) {
+				const db = connection;
+				connection = null;
+				db.close();
+			}
+			opening = null;
+		}
+		return Object.freeze({
+			name: definition.name,
+			version: definition.version,
+			open,
+			close,
+			reset: close,
+			transaction: runTransaction,
+			readonly(storeNames, callback, operation) {
+				return runTransaction(storeNames, "readonly", callback, operation);
+			},
+			readwrite(storeNames, callback, operation) {
+				return runTransaction(storeNames, "readwrite", callback, operation);
+			},
+			repository
+		});
+	}
+	var TERMINAL_STATUSES$3 = Object.freeze([
+		"completed",
+		"completed_with_failures",
+		"cancelled",
+		"interrupted"
+	]);
+	var COUNT_KEYS = Object.freeze([
+		"requested",
+		"eligible",
+		"attempted",
+		"successful",
+		"noOp",
+		"skipped",
+		"failed",
+		"notAttempted"
+	]);
+	var UNSAFE_FIELD_WORDS = /* @__PURE__ */ new Set([
+		"auth",
+		"authorization",
+		"binary",
+		"bytes",
+		"cookie",
+		"credential",
+		"credentials",
+		"frame",
+		"frames",
+		"image",
+		"password",
+		"recording",
+		"response",
+		"session",
+		"token",
+		"transport",
+		"websocket"
+	]);
+	function validationError(message, path = "") {
+		const error = new TypeError(path ? `${message} (${path})` : message);
+		error.code = "INVALID_EXECUTION_RECORD";
+		error.path = path;
+		return error;
+	}
+	function assertPlainObject(value, path) {
+		if (!value || typeof value !== "object" || Array.isArray(value)) throw validationError("Expected an object", path);
+		const prototype = Object.getPrototypeOf(value);
+		if (prototype !== Object.prototype && prototype !== null) throw validationError("Expected a plain object", path);
+	}
+	function normalizeIsoTimestamp(value, path) {
+		const date = value instanceof Date ? value : new Date(value);
+		if (Number.isNaN(date.getTime())) throw validationError("Expected a valid timestamp", path);
+		return date.toISOString();
+	}
+	function normalizeNonEmptyString(value, path, maxLength = 160) {
+		const normalized = String(value ?? "").trim();
+		if (!normalized) throw validationError("Expected a non-empty string", path);
+		if (normalized.length > maxLength) throw validationError(`String exceeds ${maxLength} characters`, path);
+		return normalized;
+	}
+	function normalizeOptionalString(value, path, maxLength = 500) {
+		if (value === void 0 || value === null || value === "") return null;
+		const normalized = String(value).trim();
+		if (normalized.length > maxLength) throw validationError(`String exceeds ${maxLength} characters`, path);
+		return normalized || null;
+	}
+	function normalizeCount(value, path) {
+		const count = Number(value ?? 0);
+		if (!Number.isSafeInteger(count) || count < 0) throw validationError("Expected a non-negative safe integer", path);
+		return count;
+	}
+	function isUnsafeFieldName(key) {
+		const words = String(key).replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+		return words.includes("raw") || words.some((word) => UNSAFE_FIELD_WORDS.has(word));
+	}
+	function sanitizeJsonValue(value, path = "value", seen = /* @__PURE__ */ new WeakSet()) {
+		if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+		if (typeof value === "number") {
+			if (!Number.isFinite(value)) throw validationError("Expected a finite number", path);
+			return value;
+		}
+		if (value === void 0) return null;
+		if (typeof value === "bigint" || typeof value === "function" || typeof value === "symbol") throw validationError("Unsupported JSON value", path);
+		if (typeof value !== "object") throw validationError("Unsupported value", path);
+		if (seen.has(value)) throw validationError("Circular values are not supported", path);
+		seen.add(value);
+		try {
+			if (Array.isArray(value)) return value.map((entry, index) => sanitizeJsonValue(entry, `${path}[${index}]`, seen));
+			assertPlainObject(value, path);
+			const output = {};
+			for (const [key, entry] of Object.entries(value)) {
+				if (isUnsafeFieldName(key)) throw validationError("Unsafe field is not allowed", `${path}.${key}`);
+				output[key] = sanitizeJsonValue(entry, `${path}.${key}`, seen);
+			}
+			return output;
+		} finally {
+			seen.delete(value);
+		}
+	}
+	function normalizePageContext(value = {}) {
+		assertPlainObject(value, "pageContext");
+		const marathonId = value.marathonId === void 0 || value.marathonId === null || value.marathonId === "" ? null : String(value.marathonId).trim();
+		return Object.freeze({
+			marathonId: marathonId || null,
+			marathonName: normalizeOptionalString(value.marathonName, "pageContext.marathonName", 240)
+		});
+	}
+	function normalizeCounts(value = {}) {
+		assertPlainObject(value, "counts");
+		const counts = {};
+		for (const key of COUNT_KEYS) counts[key] = normalizeCount(value[key], `counts.${key}`);
+		if (counts.successful + counts.failed > counts.attempted) throw validationError("Successful and failed counts cannot exceed attempted count", "counts");
+		if (counts.attempted + counts.notAttempted > counts.eligible) throw validationError("Attempted and not-attempted counts cannot exceed eligible count", "counts");
+		return Object.freeze(counts);
+	}
+	function normalizeResult(value, index) {
+		assertPlainObject(value, `results[${index}]`);
+		const attempts = value.attempts === void 0 ? 1 : normalizeCount(value.attempts, `results[${index}].attempts`);
+		const data = value.data === void 0 ? {} : sanitizeJsonValue(value.data, `results[${index}].data`);
+		return Object.freeze({
+			order: index,
+			itemId: normalizeOptionalString(value.itemId, `results[${index}].itemId`, 160),
+			label: normalizeNonEmptyString(value.label ?? value.itemId ?? `Item ${index + 1}`, `results[${index}].label`, 500),
+			status: normalizeNonEmptyString(value.status, `results[${index}].status`, 80),
+			code: normalizeNonEmptyString(value.code, `results[${index}].code`, 120),
+			message: normalizeNonEmptyString(value.message, `results[${index}].message`, 1e3),
+			attempts,
+			data: Object.freeze(data)
+		});
+	}
+	function fallbackExecutionId(now, operationType) {
+		const random = Math.random().toString(36).slice(2, 10);
+		return `${operationType}-${now.getTime().toString(36)}-${random}`;
+	}
+	function buildExecutionRecord(input, options = {}) {
+		assertPlainObject(input, "record");
+		const now = options.now instanceof Date ? options.now : new Date(options.now || Date.now());
+		const operationType = normalizeNonEmptyString(input.operationType, "operationType", 120);
+		const cryptoApi = options.cryptoApi;
+		const generatedId = typeof cryptoApi?.randomUUID === "function" ? cryptoApi.randomUUID() : fallbackExecutionId(now, operationType);
+		const id = normalizeNonEmptyString(input.id || generatedId, "id", 200);
+		const status = normalizeNonEmptyString(input.status, "status", 80);
+		if (!TERMINAL_STATUSES$3.includes(status)) throw validationError("Unsupported terminal status", "status");
+		const startedAt = normalizeIsoTimestamp(input.startedAt, "startedAt");
+		const completedAt = normalizeIsoTimestamp(input.completedAt ?? now, "completedAt");
+		if (new Date(completedAt).getTime() < new Date(startedAt).getTime()) throw validationError("Completion timestamp cannot precede start timestamp", "completedAt");
+		const results = Array.isArray(input.results) ? input.results.map(normalizeResult) : (() => {
+			throw validationError("Expected an array", "results");
+		})();
+		const record = {
+			schemaVersion: 1,
+			id,
+			operationType,
+			startedAt,
+			completedAt,
+			status,
+			pageContext: normalizePageContext(input.pageContext || {}),
+			counts: normalizeCounts(input.counts || {}),
+			results: Object.freeze(results),
+			message: normalizeOptionalString(input.message, "message", 1e3)
+		};
+		validateExecutionRecord(record);
+		return Object.freeze(record);
+	}
+	function validateExecutionRecord(record) {
+		assertPlainObject(record, "record");
+		if (record.schemaVersion !== 1) throw validationError("Unsupported execution record schema version", "schemaVersion");
+		normalizeNonEmptyString(record.id, "id", 200);
+		normalizeNonEmptyString(record.operationType, "operationType", 120);
+		normalizeIsoTimestamp(record.startedAt, "startedAt");
+		normalizeIsoTimestamp(record.completedAt, "completedAt");
+		if (!TERMINAL_STATUSES$3.includes(record.status)) throw validationError("Unsupported terminal status", "status");
+		normalizePageContext(record.pageContext || {});
+		normalizeCounts(record.counts || {});
+		if (!Array.isArray(record.results)) throw validationError("Expected an array", "results");
+		record.results.forEach((result, index) => normalizeResult(result, index));
+		sanitizeJsonValue(record, "record");
+		return true;
+	}
+	function cloneExecutionRecord(record) {
+		validateExecutionRecord(record);
+		return JSON.parse(JSON.stringify(record));
+	}
+	//#endregion
+	//#region src/shared/execution-history-repository.js
+	var HISTORY_DATABASE_NAME = "edvibe-toolbox";
+	var HISTORY_STORE_NAME = "executionHistory";
+	var HISTORY_DB_DEFINITION = Object.freeze({
+		name: HISTORY_DATABASE_NAME,
+		version: 1,
+		migrations: Object.freeze([Object.freeze({
+			version: 1,
+			migrate({ db }) {
+				if (db.objectStoreNames.contains("executionHistory")) return;
+				const store = db.createObjectStore(HISTORY_STORE_NAME, { keyPath: "id" });
+				store.createIndex("completedAt", "completedAt", { unique: false });
+				store.createIndex("operationType", "operationType", { unique: false });
+				store.createIndex("status", "status", { unique: false });
+				store.createIndex("marathonId", "pageContext.marathonId", { unique: false });
+			}
+		})])
+	});
+	function normalizeDateBoundary(value, path, endOfDay = false) {
+		if (!value) return null;
+		const serialized = String(value);
+		const date = /^\d{4}-\d{2}-\d{2}$/.test(serialized) ? /* @__PURE__ */ new Date(`${serialized}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}`) : new Date(value);
+		if (Number.isNaN(date.getTime())) throw new TypeError(`Invalid ${path}`);
+		return date.getTime();
+	}
+	function matchesFilters(record, filters = {}) {
+		if (filters.operationType && record.operationType !== filters.operationType) return false;
+		if (filters.status && record.status !== filters.status) return false;
+		if (filters.marathonId && String(record.pageContext?.marathonId || "") !== String(filters.marathonId)) return false;
+		const completed = new Date(record.completedAt).getTime();
+		const from = normalizeDateBoundary(filters.from, "from");
+		const to = normalizeDateBoundary(filters.to, "to", true);
+		if (from !== null && completed < from) return false;
+		if (to !== null && completed > to) return false;
+		return true;
+	}
+	function createExecutionHistoryRepository(options = {}) {
+		const api = options.indexedDbApi || indexeddb_exports;
+		if (!api?.createIndexedDb) throw new TypeError("IndexedDB API is required");
+		const db = api.createIndexedDb(HISTORY_DB_DEFINITION, { indexedDB: options.indexedDB });
+		const repository = db.repository(HISTORY_STORE_NAME);
+		return Object.freeze({
+			async persist(record) {
+				validateExecutionRecord(record);
+				await repository.put(record);
+				return cloneExecutionRecord(record);
+			},
+			async get(executionId) {
+				const record = await repository.get(String(executionId));
+				return record ? cloneExecutionRecord(record) : null;
+			},
+			async list(filters = {}) {
+				return (await repository.newest("completedAt")).filter((record) => matchesFilters(record, filters)).map(cloneExecutionRecord);
+			},
+			async delete(executionId) {
+				await repository.delete(String(executionId));
+			},
+			async clear() {
+				await repository.clear();
+			},
+			count() {
+				return repository.count();
+			},
+			close() {
+				db.close();
+			}
+		});
+	}
+	//#endregion
+	//#region src/shared/execution-history-retention.js
+	var RETENTION_STORAGE_KEY = "executionHistoryPreferences";
+	var DEFAULT_RETENTION_PREFERENCES = Object.freeze({
+		mode: "limits",
+		maxCount: 100,
+		maxAgeDays: 90,
+		autoExport: false
+	});
+	function normalizePositiveInteger(value, fallback, path) {
+		const number = Number(value);
+		if (!Number.isSafeInteger(number) || number <= 0) {
+			if (value === void 0 || value === null || value === "") return fallback;
+			throw new TypeError(`${path} must be a positive integer`);
+		}
+		return number;
+	}
+	function normalizeRetentionPreferences(value = {}) {
+		const mode = value.mode === "indefinite" ? "indefinite" : "limits";
+		return Object.freeze({
+			mode,
+			maxCount: normalizePositiveInteger(value.maxCount, DEFAULT_RETENTION_PREFERENCES.maxCount, "maxCount"),
+			maxAgeDays: normalizePositiveInteger(value.maxAgeDays, DEFAULT_RETENTION_PREFERENCES.maxAgeDays, "maxAgeDays"),
+			autoExport: Boolean(value.autoExport)
+		});
+	}
+	function createRetentionPreferenceStore(storage) {
+		if (!storage || typeof storage.get !== "function" || typeof storage.set !== "function") throw new TypeError("A storage adapter with get() and set() is required");
+		return Object.freeze({
+			async get() {
+				return normalizeRetentionPreferences(await storage.get("executionHistoryPreferences") || {});
+			},
+			async set(preferences) {
+				const normalized = normalizeRetentionPreferences(preferences);
+				await storage.set(RETENTION_STORAGE_KEY, normalized);
+				return normalized;
+			}
+		});
+	}
+	async function applyRetention({ repository, preferences, now = /* @__PURE__ */ new Date(), protectedExecutionId = null }) {
+		const normalized = normalizeRetentionPreferences(preferences);
+		if (normalized.mode === "indefinite") return Object.freeze({ deletedIds: Object.freeze([]) });
+		const records = await repository.list();
+		const cutoff = now.getTime() - normalized.maxAgeDays * 24 * 60 * 60 * 1e3;
+		const deleteIds = /* @__PURE__ */ new Set();
+		records.forEach((record, index) => {
+			if (record.id === protectedExecutionId) return;
+			if (index >= normalized.maxCount || new Date(record.completedAt).getTime() < cutoff) deleteIds.add(record.id);
+		});
+		for (const executionId of deleteIds) await repository.delete(executionId);
+		return Object.freeze({ deletedIds: Object.freeze([...deleteIds]) });
+	}
+	//#endregion
+	//#region src/shared/execution-history-export.js
+	function serializeExecutionRecord(record) {
+		validateExecutionRecord(record);
+		return `${JSON.stringify(record, null, 2)}\n`;
+	}
+	function serializeExecutionRecords(records) {
+		if (!Array.isArray(records)) throw new TypeError("Records must be an array");
+		records.forEach(validateExecutionRecord);
+		return `${JSON.stringify(records, null, 2)}\n`;
+	}
+	function slug(value) {
+		return String(value || "operation").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "operation";
+	}
+	function compactTimestamp(value) {
+		return new Date(value).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+	}
+	function createExecutionFilename(record) {
+		validateExecutionRecord(record);
+		return `edvibe-${slug(record.operationType)}-${compactTimestamp(record.completedAt)}-${slug(record.id).slice(-36)}.json`;
+	}
+	function createHistoryFilename(now = /* @__PURE__ */ new Date()) {
+		return `edvibe-execution-history-${compactTimestamp(now)}.json`;
+	}
+	function createJsonDownloader(options = {}) {
+		const documentApi = options.document || globalThis.document;
+		const URLApi = options.URL || globalThis.URL;
+		const BlobClass = options.Blob || globalThis.Blob;
+		if (!documentApi?.createElement || !URLApi?.createObjectURL || !BlobClass) return Object.freeze({ download() {
+			throw new Error("Browser download APIs are unavailable");
+		} });
+		return Object.freeze({ download({ filename, json }) {
+			const blob = new BlobClass([json], { type: "application/json;charset=utf-8" });
+			const url = URLApi.createObjectURL(blob);
+			const anchor = documentApi.createElement("a");
+			anchor.href = url;
+			anchor.download = filename;
+			anchor.hidden = true;
+			(documentApi.body || documentApi.documentElement).append(anchor);
+			try {
+				anchor.click();
+			} finally {
+				anchor.remove();
+				URLApi.revokeObjectURL(url);
+			}
+		} });
+	}
+	//#endregion
+	//#region src/shared/chrome-storage-bridge.js
+	var REQUEST_TYPE = "EDVIBE_TOOLBOX_STORAGE_REQUEST";
+	function createStorageBridge(options = {}) {
+		const windowApi = options.window || globalThis.window;
+		const cryptoApi = options.cryptoApi || globalThis.crypto;
+		const timeoutMs = options.timeoutMs || 5e3;
+		if (!windowApi?.postMessage || !windowApi?.addEventListener) throw new TypeError("Window messaging APIs are required");
+		const pending = /* @__PURE__ */ new Map();
+		const onMessage = (event) => {
+			if (event.source !== windowApi || event.data?.type !== "EDVIBE_TOOLBOX_STORAGE_RESPONSE") return;
+			const request = pending.get(event.data.requestId);
+			if (!request) return;
+			pending.delete(event.data.requestId);
+			clearTimeout(request.timer);
+			if (event.data.ok) request.resolve(event.data.value);
+			else request.reject(new Error(event.data.error || "Storage request failed"));
+		};
+		windowApi.addEventListener("message", onMessage);
+		function request(action, key, value) {
+			const requestId = typeof cryptoApi?.randomUUID === "function" ? cryptoApi.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+			return new Promise((resolve, reject) => {
+				const timer = setTimeout(() => {
+					pending.delete(requestId);
+					reject(/* @__PURE__ */ new Error("Storage request timed out"));
+				}, timeoutMs);
+				pending.set(requestId, {
+					resolve,
+					reject,
+					timer
+				});
+				windowApi.postMessage({
+					type: REQUEST_TYPE,
+					requestId,
+					action,
+					key,
+					value
+				}, "*");
+			});
+		}
+		return Object.freeze({
+			get(key) {
+				return request("get", key);
+			},
+			set(key, value) {
+				return request("set", key, value);
+			},
+			dispose() {
+				windowApi.removeEventListener("message", onMessage);
+				for (const value of pending.values()) {
+					clearTimeout(value.timer);
+					value.reject(/* @__PURE__ */ new Error("Storage bridge disposed"));
+				}
+				pending.clear();
+			}
+		});
+	}
+	//#endregion
+	//#region src/shared/execution-history-service.js
+	function createExecutionHistoryService(options) {
+		const { repository, preferenceStore, downloader } = options || {};
+		if (!repository || !preferenceStore || !downloader) throw new TypeError("Repository, preference store, and downloader are required");
+		const cryptoApi = options.cryptoApi;
+		const now = typeof options.now === "function" ? options.now : () => /* @__PURE__ */ new Date();
+		async function persistTerminal(input) {
+			const record = buildExecutionRecord(input, {
+				cryptoApi,
+				now: now()
+			});
+			try {
+				await repository.persist(record);
+			} catch (persistenceError) {
+				return Object.freeze({
+					stored: false,
+					record,
+					persistenceError,
+					retentionError: null,
+					exportError: null
+				});
+			}
+			let preferences;
+			let retentionError = null;
+			let exportError = null;
+			try {
+				preferences = await preferenceStore.get();
+				await applyRetention({
+					repository,
+					preferences,
+					now: now(),
+					protectedExecutionId: record.id
+				});
+			} catch (error) {
+				retentionError = error;
+				preferences = preferences || DEFAULT_RETENTION_PREFERENCES;
+			}
+			if (preferences.autoExport) try {
+				downloadRecord(record);
+			} catch (error) {
+				exportError = error;
+			}
+			return Object.freeze({
+				stored: true,
+				record,
+				persistenceError: null,
+				retentionError,
+				exportError
+			});
+		}
+		function downloadRecord(record) {
+			downloader.download({
+				filename: createExecutionFilename(record),
+				json: serializeExecutionRecord(record)
+			});
+		}
+		return Object.freeze({
+			persistTerminal,
+			get: (executionId) => repository.get(executionId),
+			list: (filters) => repository.list(filters),
+			delete: (executionId) => repository.delete(executionId),
+			clear: () => repository.clear(),
+			getPreferences: () => preferenceStore.get(),
+			setPreferences: (preferences) => preferenceStore.set(preferences),
+			exportRecord: async (executionId) => {
+				const record = await repository.get(executionId);
+				if (!record) throw new Error("Execution record was not found");
+				downloadRecord(record);
+				return record;
+			},
+			exportFiltered: async (filters = {}) => {
+				const records = await repository.list(filters);
+				downloader.download({
+					filename: createHistoryFilename(now()),
+					json: serializeExecutionRecords(records)
+				});
+				return records;
+			}
+		});
+	}
+	//#endregion
+	//#region src/components/execution-history-dialog.js
+	var EXECUTION_HISTORY_DIALOG_TAG = "edvibe-toolbox-execution-history-dialog";
+	var STATUS_LABELS = Object.freeze({
+		completed: "Completed",
+		completed_with_failures: "Completed with failures",
+		cancelled: "Cancelled",
+		interrupted: "Interrupted"
+	});
+	function formatExecutionStatus(status) {
+		return STATUS_LABELS[status] || String(status || "Unknown");
+	}
+	function formatExecutionDate(value, locale) {
+		const date = new Date(value);
+		return Number.isNaN(date.getTime()) ? String(value || "") : new Intl.DateTimeFormat(locale || void 0, {
+			dateStyle: "medium",
+			timeStyle: "short"
+		}).format(date);
+	}
+	function createSummary(record) {
+		return Object.freeze({
+			title: record.operationType,
+			subtitle: record.pageContext?.marathonName || (record.pageContext?.marathonId ? `Marathon #${record.pageContext.marathonId}` : "No marathon context"),
+			outcome: `${record.counts.successful} successful · ${record.counts.failed} failed · ${record.counts.skipped} skipped`
+		});
+	}
+	var ExecutionHistoryDialog = class extends i {
+		static properties = {
+			options: { state: true },
+			records: { state: true },
+			selectedRecord: { state: true },
+			operationTypes: { state: true },
+			filterOperationType: { state: true },
+			filterStatus: { state: true },
+			filterMarathonId: { state: true },
+			filterFrom: { state: true },
+			filterTo: { state: true },
+			listState: { state: true },
+			listMessage: { state: true },
+			preferences: { state: true },
+			toastMessage: { state: true },
+			toastError: { state: true }
+		};
+		constructor() {
+			super();
+			this.options = null;
+			this.records = [];
+			this.selectedRecord = null;
+			this.operationTypes = [];
+			this.filterOperationType = "";
+			this.filterStatus = "";
+			this.filterMarathonId = "";
+			this.filterFrom = "";
+			this.filterTo = "";
+			this.listState = "loading";
+			this.listMessage = "Loading history…";
+			this.preferences = {
+				mode: "limits",
+				maxCount: "",
+				maxAgeDays: "",
+				autoExport: false
+			};
+			this.toastMessage = "";
+			this.toastError = false;
+			this.initializationPromise = null;
+			this.handleKeydownBound = (event) => {
+				if (event.key === "Escape") this.options?.onClose?.();
+			};
+		}
+		configure(options = {}) {
+			this.options = options && typeof options === "object" ? options : {};
+			if (this.isConnected) this.initialize();
+			return this;
+		}
+		connectedCallback() {
+			super.connectedCallback();
+			this.addEventListener("keydown", this.handleKeydownBound);
+			this.initialize();
+		}
+		disconnectedCallback() {
+			this.removeEventListener("keydown", this.handleKeydownBound);
+			super.disconnectedCallback();
+		}
+		initialize() {
+			if (!this.options) return Promise.resolve();
+			if (this.initializationPromise) return this.initializationPromise;
+			this.initializationPromise = (async () => {
+				await this.updateComplete;
+				this.shadowRoot?.querySelector("[data-action=\"close\"]")?.focus();
+				await this.loadPreferences();
+				await this.loadRecords();
+				if (this.options.initialExecutionId) await this.openRecord(this.options.initialExecutionId);
+			})();
+			return this.initializationPromise;
+		}
+		get filters() {
+			const entries = {
+				operationType: this.filterOperationType,
+				status: this.filterStatus,
+				marathonId: this.filterMarathonId,
+				from: this.filterFrom,
+				to: this.filterTo
+			};
+			return Object.fromEntries(Object.entries(entries).filter(([, value]) => value !== ""));
+		}
+		setFilter(name, value) {
+			const normalized = String(value || "");
+			if (name === "operationType") this.filterOperationType = normalized;
+			if (name === "status") this.filterStatus = normalized;
+			if (name === "marathonId") this.filterMarathonId = normalized;
+			if (name === "from") this.filterFrom = normalized;
+			if (name === "to") this.filterTo = normalized;
+		}
+		async loadRecords() {
+			this.listState = "loading";
+			this.listMessage = "Loading history…";
+			try {
+				this.records = await this.options.service.list(this.filters);
+				this.operationTypes = [.../* @__PURE__ */ new Set([...this.operationTypes, ...this.records.map((record) => record.operationType)])].sort();
+				this.listState = this.records.length === 0 ? "empty" : "ready";
+				this.listMessage = this.records.length === 0 ? "No executions match these filters." : "";
+			} catch (error) {
+				this.records = [];
+				this.listState = "error";
+				this.listMessage = error.message || "Could not load execution history.";
+			}
+		}
+		renderEmptyDetail() {
+			this.selectedRecord = null;
+		}
+		async openRecord(executionId) {
+			try {
+				const record = await this.options.service.get(executionId);
+				if (!record) throw new Error("Execution record was not found.");
+				this.selectedRecord = record;
+			} catch (error) {
+				this.showToast(error.message || "Could not open the execution.", true);
+			}
+		}
+		async loadPreferences() {
+			try {
+				const preferences = await this.options.service.getPreferences();
+				this.preferences = {
+					mode: preferences.mode,
+					maxCount: preferences.maxCount,
+					maxAgeDays: preferences.maxAgeDays,
+					autoExport: Boolean(preferences.autoExport)
+				};
+			} catch (error) {
+				this.showToast(error.message || "Could not load retention settings.", true);
+			}
+		}
+		updatePreference(name, value) {
+			this.preferences = {
+				...this.preferences,
+				[name]: value
+			};
+		}
+		async savePreferences() {
+			const preferences = {
+				mode: this.preferences.mode,
+				maxCount: Number(this.preferences.maxCount),
+				maxAgeDays: Number(this.preferences.maxAgeDays),
+				autoExport: Boolean(this.preferences.autoExport)
+			};
+			try {
+				await this.options.service.setPreferences(preferences);
+				this.showToast("Retention settings saved.");
+			} catch (error) {
+				this.showToast(error.message || "Could not save retention settings.", true);
+			}
+		}
+		async resetFilters() {
+			this.filterOperationType = "";
+			this.filterStatus = "";
+			this.filterMarathonId = "";
+			this.filterFrom = "";
+			this.filterTo = "";
+			await this.loadRecords();
+		}
+		confirm(message) {
+			return this.ownerDocument.defaultView.confirm(message);
+		}
+		async runAction(action, successMessage, failureMessage) {
+			try {
+				await action();
+				this.showToast(successMessage);
+			} catch (error) {
+				this.showToast(error.message || failureMessage, true);
+			}
+		}
+		async runMutation(action, successMessage, failureMessage) {
+			try {
+				await action();
+				this.renderEmptyDetail();
+				await this.loadRecords();
+				this.showToast(successMessage);
+			} catch (error) {
+				this.showToast(error.message || failureMessage, true);
+			}
+		}
+		async handleAction(action) {
+			if (action === "close") this.options.onClose?.();
+			if (action === "reset-filters") await this.resetFilters();
+			if (action === "export-filtered") await this.runAction(() => this.options.service.exportFiltered(this.filters), "Filtered history exported.", "Could not export history.");
+			if (action === "download-one" && this.selectedRecord) await this.runAction(() => this.options.service.exportRecord(this.selectedRecord.id), "Execution exported.", "Could not export execution.");
+			if (action === "delete-one" && this.selectedRecord && this.confirm(`Delete execution ${this.selectedRecord.id}?`)) await this.runMutation(() => this.options.service.delete(this.selectedRecord.id), "Execution deleted.", "Could not delete the execution.");
+			if (action === "clear-all" && this.confirm("Clear all execution history? This cannot be undone.")) await this.runMutation(() => this.options.service.clear(), "Execution history cleared.", "Could not clear execution history.");
+			if (action === "save-preferences") await this.savePreferences();
+		}
+		showToast(message, isError = false) {
+			this.toastMessage = String(message || "");
+			this.toastError = Boolean(isError);
+		}
+		renderRecord(record) {
+			const summary = createSummary(record);
+			return b`
+            <button type="button" class="record-card" data-execution-id=${record.id}
+                data-status=${record.status}
+                aria-pressed=${String(this.selectedRecord?.id === record.id)}
+                @click=${() => this.openRecord(record.id)}>
+                <span class="record-heading">
+                    <strong>${summary.title}</strong>
+                    <span class="status-chip">${formatExecutionStatus(record.status)}</span>
+                </span>
+                <span class="record-context">${summary.subtitle}</span>
+                <span class="record-outcome">${summary.outcome}</span>
+                <time>${formatExecutionDate(record.completedAt)}</time>
+            </button>
+        `;
+		}
+		renderOutcome(result) {
+			const hasData = result.data && Object.keys(result.data).length > 0;
+			return b`
+            <article class="outcome-card" data-status=${result.status}>
+                <div><strong>${result.label}</strong><span class="status-chip">${result.status}</span></div>
+                <p>${result.message}</p>
+                <small>${result.code} · ${result.attempts} attempt${result.attempts === 1 ? "" : "s"}</small>
+                ${hasData ? b`
+                    <details><summary>Item details</summary><pre>${JSON.stringify(result.data, null, 2)}</pre></details>
+                ` : ""}
+            </article>
+        `;
+		}
+		renderDetail() {
+			const record = this.selectedRecord;
+			if (!record) return b`
+                <div class="detail-placeholder">
+                    <span aria-hidden="true">↗</span>
+                    <h3>Select an execution</h3>
+                    <p>Its summary and ordered item outcomes will appear here.</p>
+                </div>
+            `;
+			const context = [
+				["Execution ID", record.id],
+				["Marathon", record.pageContext?.marathonName || record.pageContext?.marathonId || "Not recorded"],
+				["Started", formatExecutionDate(record.startedAt)],
+				["Completed", formatExecutionDate(record.completedAt)]
+			];
+			return b`
+            <section class="detail-header">
+                <div>
+                    <h3>${record.operationType}</h3>
+                    <p>${formatExecutionStatus(record.status)} · ${formatExecutionDate(record.completedAt)}</p>
+                </div>
+                <div class="detail-actions">
+                    <button type="button" class="secondary" @click=${() => this.handleAction("download-one")}>Download JSON</button>
+                    <button type="button" class="danger secondary" @click=${() => this.handleAction("delete-one")}>Delete</button>
+                </div>
+            </section>
+            <dl class="summary-grid">
+                ${context.map(([label, value]) => b`<div><dt>${label}</dt><dd>${value}</dd></div>`)}
+            </dl>
+            <section class="counts">
+                ${Object.entries(record.counts).map(([key, value]) => b`
+                    <div><strong>${value}</strong><span>${key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)}</span></div>
+                `)}
+            </section>
+            <section class="outcomes">
+                <h4>Item outcomes (${record.results.length})</h4>
+                ${record.results.length === 0 ? b`<p class="muted">No per-item outcomes were recorded.</p>` : record.results.map((result) => this.renderOutcome(result))}
+            </section>
+        `;
+		}
+		render() {
+			const listVisible = this.listState === "ready";
+			const stateVisible = !listVisible;
+			const stateClass = `state-card${this.listState === "error" ? " is-error" : ""}`;
+			const indefinite = this.preferences.mode === "indefinite";
+			const toastClass = `toast${this.toastError ? " is-error" : ""}`;
+			return b`
+            <link rel="stylesheet" href=${String(this.options?.stylesheetUrl || "")}>
+            <div class="overlay">
+                <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
+                    <header class="dialog-header">
+                        <div><p class="eyebrow">Edvibe Toolbox</p><h2 id="history-title">Execution history</h2><p class="header-copy">Browse terminal operation reports stored in this browser.</p></div>
+                        <button class="icon-button" type="button" data-action="close" aria-label="Close" @click=${() => this.handleAction("close")}>×</button>
+                    </header>
+                    <div class="workspace">
+                        <aside class="browser-panel">
+                            <form class="filters" data-role="filters" @submit=${(event) => {
+				event.preventDefault();
+				this.loadRecords();
+			}}>
+                                <label>Operation<select name="operationType" .value=${this.filterOperationType} @change=${(event) => this.setFilter("operationType", event.currentTarget.value)}>
+                                    <option value="">All operations</option>
+                                    ${this.operationTypes.map((operationType) => b`<option value=${operationType}>${operationType}</option>`)}
+                                </select></label>
+                                <label>Status<select name="status" .value=${this.filterStatus} @change=${(event) => this.setFilter("status", event.currentTarget.value)}>
+                                    <option value="">All statuses</option><option value="completed">Completed</option><option value="completed_with_failures">Completed with failures</option><option value="cancelled">Cancelled</option><option value="interrupted">Interrupted</option>
+                                </select></label>
+                                <label>Marathon<input name="marathonId" type="search" inputmode="numeric" placeholder="Any marathon" .value=${this.filterMarathonId} @input=${(event) => this.setFilter("marathonId", event.currentTarget.value)}></label>
+                                <div class="date-fields">
+                                    <label>From<input name="from" type="date" .value=${this.filterFrom} @input=${(event) => this.setFilter("from", event.currentTarget.value)}></label>
+                                    <label>To<input name="to" type="date" .value=${this.filterTo} @input=${(event) => this.setFilter("to", event.currentTarget.value)}></label>
+                                </div>
+                                <div class="filter-actions"><button type="submit">Apply</button><button type="button" class="secondary" @click=${() => this.handleAction("reset-filters")}>Reset</button></div>
+                            </form>
+                            <div class="list-toolbar"><strong data-role="record-count">${this.records.length} execution${this.records.length === 1 ? "" : "s"}</strong><button type="button" class="secondary compact" @click=${() => this.handleAction("export-filtered")}>Export filtered</button></div>
+                            <div class=${stateClass} data-role="state" ?hidden=${!stateVisible}>${this.listMessage}</div>
+                            <div class="record-list" data-role="record-list" ?hidden=${!listVisible}>${this.records.map((record) => this.renderRecord(record))}</div>
+                        </aside>
+                        <main class="detail-panel" data-role="detail">${this.renderDetail()}</main>
+                    </div>
+                    <footer class="dialog-footer">
+                        <details class="retention-settings"><summary>Retention & automatic export</summary><div class="settings-grid">
+                            <label class="checkbox"><input type="checkbox" name="keepIndefinitely" .checked=${indefinite} @change=${(event) => this.updatePreference("mode", event.currentTarget.checked ? "indefinite" : "limits")}>Keep indefinitely</label>
+                            <label>Newest executions<input type="number" name="maxCount" min="1" step="1" .value=${String(this.preferences.maxCount)} ?disabled=${indefinite} @input=${(event) => this.updatePreference("maxCount", event.currentTarget.value)}></label>
+                            <label>Maximum age, days<input type="number" name="maxAgeDays" min="1" step="1" .value=${String(this.preferences.maxAgeDays)} ?disabled=${indefinite} @input=${(event) => this.updatePreference("maxAgeDays", event.currentTarget.value)}></label>
+                            <label class="checkbox"><input type="checkbox" name="autoExport" .checked=${this.preferences.autoExport} @change=${(event) => this.updatePreference("autoExport", event.currentTarget.checked)}>Download JSON after persistence</label>
+                            <button type="button" @click=${() => this.handleAction("save-preferences")}>Save settings</button>
+                        </div></details>
+                        <div class="footer-actions"><button type="button" class="danger secondary" @click=${() => this.handleAction("clear-all")}>Clear all history</button><button type="button" @click=${() => this.handleAction("close")}>Close</button></div>
+                        <p class=${toastClass} data-role="toast" role="status" ?hidden=${!this.toastMessage}>${this.toastMessage}</p>
+                    </footer>
+                </section>
+            </div>
+        `;
+		}
+	};
+	if (!customElements.get("edvibe-toolbox-execution-history-dialog")) customElements.define(EXECUTION_HISTORY_DIALOG_TAG, ExecutionHistoryDialog);
+	var executionHistoryDialogApi = Object.freeze({
+		EXECUTION_HISTORY_DIALOG_TAG,
+		ExecutionHistoryDialog,
+		formatExecutionStatus,
+		formatExecutionDate,
+		createSummary
+	});
+	globalThis.EdVibeExecutionHistoryDialog = executionHistoryDialogApi;
+	//#endregion
+	//#region src/features/execution-history.js
+	var HISTORY_OVERLAY_ID = "edvibe-toolbox-execution-history";
+	function createExecutionHistoryFeature({ service, canStart, onActiveChange, createDialog, log = () => {} }) {
+		let active = false;
+		function open({ stylesheetUrl = "", executionId = null } = {}) {
+			if (active || document.getElementById("edvibe-toolbox-execution-history")) return;
+			if (!canStart()) {
+				window.alert("Another Edvibe Toolbox operation is already running.");
+				return;
+			}
+			active = true;
+			onActiveChange(true);
+			try {
+				const dialog = createDialog();
+				dialog.id = HISTORY_OVERLAY_ID;
+				dialog.configure({
+					stylesheetUrl,
+					service,
+					initialExecutionId: executionId,
+					onClose() {
+						dialog.remove();
+						active = false;
+						onActiveChange(false);
+					}
+				});
+				(document.body || document.documentElement).append(dialog);
+			} catch (error) {
+				active = false;
+				onActiveChange(false);
+				log("Failed to open execution history:", error);
+				window.alert(error.message || "Could not open execution history.");
+			}
+		}
+		return Object.freeze({ open });
+	}
 	/*!
 	
 	JSZip v3.10.1 - A JavaScript class for generating and reading zip files
@@ -3614,9 +6205,9 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		if (prev && prev.parentNode === current || isPre(current)) return current.nextSibling || current.parentNode;
 		return current.firstChild || current.nextSibling || current.parentNode;
 	}
-	var root$1 = typeof window !== "undefined" ? window : {};
+	var root = typeof window !== "undefined" ? window : {};
 	function canParseHTMLNatively() {
-		var Parser = root$1.DOMParser;
+		var Parser = root.DOMParser;
 		var canParse = false;
 		try {
 			if (new Parser().parseFromString("", "text/html")) canParse = true;
@@ -3647,11 +6238,11 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		try {
 			document.implementation.createHTMLDocument("").open();
 		} catch (e) {
-			if (root$1.ActiveXObject) useActiveX = true;
+			if (root.ActiveXObject) useActiveX = true;
 		}
 		return useActiveX;
 	}
-	var HTMLParser = canParseHTMLNatively() ? root$1.DOMParser : createHTMLParser();
+	var HTMLParser = canParseHTMLNatively() ? root.DOMParser : createHTMLParser();
 	function RootNode(input, options) {
 		var root;
 		if (typeof input === "string") root = htmlParser().parseFromString("<x-turndown id=\"turndown-root\">" + input + "</x-turndown>", "text/html").getElementById("turndown-root");
@@ -3912,2422 +6503,1032 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		return input != null && (typeof input === "string" || input.nodeType && (input.nodeType === 1 || input.nodeType === 9 || input.nodeType === 11));
 	}
 	//#endregion
-	//#region src/entrypoints/runtime-dependencies.js
-	window.JSZip = import_jszip_min.default;
-	window.TurndownService = TurndownService;
-	//#endregion
-	//#region src/shared/logger.js
-	var require_logger = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeLoggerModule(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeLogger = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function loggerModuleFactory() {
-			"use strict";
-			const SUPPORTED_WORLDS = /* @__PURE__ */ new Set([
-				"POPUP",
-				"MAIN",
-				"ISOLATED"
-			]);
-			/**
-			* Creates component-scoped loggers for one explicit execution world.
-			*
-			* @param {string} world The execution world.
-			* @returns {(module: string | null | undefined) => (...args: any[]) => void} A function that creates a logger function.
-			*/
-			function createLoggerFactory(world) {
-				if (!SUPPORTED_WORLDS.has(world)) throw new Error(`Unsupported logging world: ${world}`);
-				return function createLogger(component) {
-					if (component !== void 0 && (typeof component !== "string" || !component.trim())) throw new Error("Component must be a non-empty string.");
-					const namespace = `[Edvibe Toolbox][${world}]${component ? `[${component.trim()}]` : ""}`;
-					return (...args) => console.log(namespace, ...args);
-				};
-			}
-			return { createLoggerFactory };
+	//#region src/features/marathon-export.js
+	var FORBIDDEN_PATH_CHARS = /[\\/:*?"<>|]/g;
+	function sanitizePathName(name, fallback = "untitled") {
+		return String(name || "").replace(FORBIDDEN_PATH_CHARS, "").replace(/\s+/g, " ").trim().replace(/\.+$/, "") || fallback;
+	}
+	function uniquePathName(baseName, usedNames, fallback = "untitled") {
+		let candidate = sanitizePathName(baseName, fallback);
+		if (!usedNames.has(candidate)) {
+			usedNames.add(candidate);
+			return candidate;
+		}
+		let counter = 2;
+		while (usedNames.has(`${candidate} (${counter})`)) counter += 1;
+		candidate = `${candidate} (${counter})`;
+		usedNames.add(candidate);
+		return candidate;
+	}
+	function createMarkdownTurndownService() {
+		const service = new TurndownService({
+			headingStyle: "atx",
+			bulletListMarker: "-",
+			codeBlockStyle: "fenced",
+			emDelimiter: "*",
+			strongDelimiter: "**",
+			br: "\n"
 		});
-	}));
-	//#endregion
-	//#region src/shared/websocket-transport.js
-	var require_websocket_transport = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeWebSocketTransport(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeWebSocketTransport = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createWebSocketTransportModule() {
-			"use strict";
-			const REQUEST_TIMEOUT_MS = 15e3;
-			function createTransportError(code, message, details = {}) {
-				const error = new Error(message);
-				error.code = code;
-				for (const key of [
-					"controller",
-					"method",
-					"requestId",
-					"serverErrorCode",
-					"cause"
-				]) if (details[key] !== void 0) error[key] = details[key];
-				return error;
-			}
-			function createWebSocketTransport({ WebSocketClass, cryptoApi, requestTimeoutMs = REQUEST_TIMEOUT_MS, setTimeoutFn = setTimeout, clearTimeoutFn = clearTimeout, now = Date.now, log = () => {} }) {
-				let activeSocket = null;
-				let nextSocketId = 1;
-				let internalSendDepth = 0;
-				const pendingRequests = /* @__PURE__ */ new Map();
-				const frameObservers = /* @__PURE__ */ new Set();
-				function getByteLength(data) {
-					if (typeof data === "string") {
-						if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(data).byteLength;
-						return unescape(encodeURIComponent(data)).length;
-					}
-					if (typeof Blob !== "undefined" && data instanceof Blob) return data.size;
-					if (typeof ArrayBuffer !== "undefined") {
-						if (data instanceof ArrayBuffer) return data.byteLength;
-						if (ArrayBuffer.isView(data)) return data.byteLength;
-					}
-					return null;
-				}
-				function getDataType(data) {
-					if (typeof data === "string") return "text";
-					if (typeof Blob !== "undefined" && data instanceof Blob) return "blob";
-					if (typeof ArrayBuffer !== "undefined" && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))) return "array-buffer";
-					return "other";
-				}
-				function emitFrame({ direction, socketId, data, origin }) {
-					if (frameObservers.size === 0) return;
-					const dataType = getDataType(data);
-					const frame = {
-						direction,
-						socketId,
-						capturedAt: now(),
-						dataType,
-						byteLength: getByteLength(data),
-						origin
-					};
-					if (dataType === "text") frame.data = data;
-					for (const observer of [...frameObservers]) try {
-						observer(frame);
-					} catch (error) {
-						log("Frame observer failed:", error);
-					}
-				}
-				function subscribeFrames(observer) {
-					if (typeof observer !== "function") throw new TypeError("Frame observer must be a function.");
-					frameObservers.add(observer);
-					return () => frameObservers.delete(observer);
-				}
-				function createPacket(controller, method, projectName, valueObject) {
-					return {
-						Controller: controller,
-						Method: method,
-						ProjectName: projectName,
-						RequestId: cryptoApi.randomUUID(),
-						Value: JSON.stringify(valueObject)
-					};
-				}
-				function handleMessage(event, socketId) {
-					let data = null;
-					if (typeof event.data === "string") try {
-						data = JSON.parse(event.data);
-					} catch (_) {}
-					const isToolboxResponse = Boolean(data?.RequestId && pendingRequests.has(data.RequestId));
-					emitFrame({
-						direction: "inbound",
-						socketId,
-						data: event.data,
-						origin: isToolboxResponse ? "toolbox" : "page"
-					});
-					if (typeof event.data !== "string") return;
-					try {
-						if (!data) return;
-						if (!data.RequestId || !pendingRequests.has(data.RequestId)) return;
-						const pending = pendingRequests.get(data.RequestId);
-						pendingRequests.delete(data.RequestId);
-						clearTimeoutFn(pending.timeoutId);
-						const elapsedMs = now() - pending.startedAt;
-						const outcome = data.IsSuccess === true ? "success" : `failed (${data.ErrorCode})`;
-						log(`← ${pending.controller}.${pending.method} [${data.RequestId}] ${outcome} in ${elapsedMs}ms`);
-						if (data.IsSuccess !== true) {
-							pending.reject(createTransportError("SERVER_REJECTED", `${data.Class || "Edvibe"}:${data.Method || "request"} failed with ErrorCode ${data.ErrorCode}`, {
-								controller: pending.controller,
-								method: pending.method,
-								requestId: data.RequestId,
-								serverErrorCode: data.ErrorCode
-							}));
-							return;
-						}
-						pending.resolve(data);
-					} catch (error) {
-						log("Failed parsing WebSocket frame:", error);
-					}
-				}
-				function install(rootObject) {
-					function InterceptedWebSocket(url, protocols) {
-						log("Intercepting WebSocket targeting:", url);
-						const socket = protocols === void 0 ? new WebSocketClass(url) : new WebSocketClass(url, protocols);
-						const socketId = nextSocketId;
-						nextSocketId += 1;
-						activeSocket = socket;
-						const nativeSend = socket.send;
-						socket.send = function observedSend(data) {
-							emitFrame({
-								direction: "outbound",
-								socketId,
-								data,
-								origin: internalSendDepth > 0 ? "toolbox" : "page"
-							});
-							return nativeSend.call(socket, data);
-						};
-						socket.addEventListener("message", (event) => {
-							handleMessage(event, socketId);
-						});
-						return socket;
-					}
-					InterceptedWebSocket.prototype = WebSocketClass.prototype;
-					rootObject.WebSocket = InterceptedWebSocket;
-				}
-				function requireOpenSocket(controller, method) {
-					if (!activeSocket || activeSocket.readyState !== WebSocketClass.OPEN) throw createTransportError("WS_UNAVAILABLE", "Active WebSocket connection is missing. Please reload the Edvibe tab context.", {
-						controller,
-						method
-					});
-					return activeSocket;
-				}
-				function getConnectionState() {
-					return { isOpen: Boolean(activeSocket && activeSocket.readyState === WebSocketClass.OPEN) };
-				}
-				function sendRequest(controller, method, projectName, valueObject) {
-					return new Promise((resolve, reject) => {
-						let socket;
-						try {
-							socket = requireOpenSocket(controller, method);
-						} catch (error) {
-							log("No active WebSocket connection.");
-							reject(error);
-							return;
-						}
-						const packet = createPacket(controller, method, projectName, valueObject);
-						const timeoutId = setTimeoutFn(() => {
-							pendingRequests.delete(packet.RequestId);
-							log(`✕ ${controller}.${method} [${packet.RequestId}] timed out after ${requestTimeoutMs}ms`);
-							reject(createTransportError("REQUEST_TIMEOUT", `${controller}:${method} timed out after ${requestTimeoutMs}ms.`, {
-								controller,
-								method,
-								requestId: packet.RequestId
-							}));
-						}, requestTimeoutMs);
-						pendingRequests.set(packet.RequestId, {
-							resolve,
-							reject,
-							timeoutId,
-							controller,
-							method,
-							startedAt: now()
-						});
-						log(`→ ${controller}.${method} [${packet.RequestId}]`);
-						try {
-							internalSendDepth += 1;
-							try {
-								socket.send(JSON.stringify(packet));
-							} finally {
-								internalSendDepth -= 1;
-							}
-						} catch (error) {
-							clearTimeoutFn(timeoutId);
-							pendingRequests.delete(packet.RequestId);
-							log(`✕ ${controller}.${method} [${packet.RequestId}] send failed: ${error.message}`);
-							reject(createTransportError("SEND_FAILED", error.message, {
-								controller,
-								method,
-								requestId: packet.RequestId,
-								cause: error
-							}));
-						}
-					});
-				}
-				function sendWithoutResponse(controller, method, projectName, valueObject) {
-					const socket = requireOpenSocket(controller, method);
-					const packet = createPacket(controller, method, projectName, valueObject);
-					log(`→ ${controller}.${method} [${packet.RequestId}] (no response expected)`);
-					internalSendDepth += 1;
-					try {
-						socket.send(JSON.stringify(packet));
-					} finally {
-						internalSendDepth -= 1;
-					}
-				}
-				return {
-					install,
-					sendRequest,
-					sendWithoutResponse,
-					subscribeFrames,
-					getConnectionState
-				};
-			}
-			return { createWebSocketTransport };
+		service.addRule("stripInlineStyles", {
+			filter: ["span", "font"],
+			replacement: (content) => content
 		});
-	}));
-	//#endregion
-	//#region src/shared/operation-guard.js
-	var require_operation_guard = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeOperationGuardModule(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeOperationGuard = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function operationGuardModuleFactory() {
-			"use strict";
-			function createOperationGuard() {
-				let activeOperation = null;
-				return {
-					canStart() {
-						return activeOperation === null;
-					},
-					activate(operationName) {
-						if (activeOperation !== null) return false;
-						activeOperation = operationName;
-						return true;
-					},
-					release(operationName) {
-						if (activeOperation !== operationName) return false;
-						activeOperation = null;
-						return true;
-					},
-					getActiveOperation() {
-						return activeOperation;
-					}
-				};
-			}
-			return { createOperationGuard };
+		service.addRule("hideExerciseIds", {
+			filter: (node) => node.nodeName === "EM" && node.classList?.contains("hide-id-exercise-item"),
+			replacement: () => ""
 		});
-	}));
-	//#endregion
-	//#region src/shared/indexeddb.js
-	var require_indexeddb = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeIndexedDbModule(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeIndexedDb = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function indexedDbModuleFactory() {
-			"use strict";
-			class IndexedDbError extends Error {
-				constructor(message, context = {}, cause) {
-					super(message, cause === void 0 ? void 0 : { cause });
-					this.name = "IndexedDbError";
-					this.context = Object.freeze({ ...context });
-					if (cause !== void 0 && this.cause === void 0) this.cause = cause;
+		return service;
+	}
+	function preprocessHtml(html) {
+		if (!html) return "";
+		return String(html).replace(/<br\s+style="[^"]*"\s*\/?>/gi, "<br>").replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ").replace(/(<br\s*\/?>\s*){3,}/gi, "<br><br>");
+	}
+	function postprocessMarkdown(markdown) {
+		return markdown.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+	}
+	function htmlToMarkdown(html, turndown, log) {
+		const preprocessed = preprocessHtml(html);
+		if (!preprocessed.trim()) return "";
+		try {
+			return postprocessMarkdown(turndown.turndown(preprocessed));
+		} catch (error) {
+			log("HTML conversion failed, falling back to plain text:", error);
+			return preprocessed.replace(/<[^>]+>/g, "").trim();
+		}
+	}
+	function extensionFromUrl(url) {
+		try {
+			const ext = new URL(url).pathname.split(".").pop()?.toLowerCase();
+			if (ext && /^[a-z0-9]{2,5}$/.test(ext)) return ext;
+		} catch (_) {}
+		return "jpg";
+	}
+	async function localizeImage(url, imageId, imagesFolder, urlMap, log) {
+		if (!url) return null;
+		if (urlMap.has(url)) return urlMap.get(url);
+		const filename = `${imageId || "img"}_${crypto.randomUUID().slice(0, 8)}.${extensionFromUrl(url)}`;
+		const relativePath = `./images/${filename}`;
+		try {
+			const response = await fetch(url);
+			if (!response.ok) throw new Error(`HTTP ${response.status}`);
+			const blob = await response.blob();
+			imagesFolder.file(filename, blob);
+			urlMap.set(url, relativePath);
+			return relativePath;
+		} catch (error) {
+			log(`Image fetch failed for ${url}:`, error.message);
+			urlMap.set(url, url);
+			return url;
+		}
+	}
+	async function renderImageMarkdown(imageEntry, imagesFolder, urlMap, log) {
+		const url = imageEntry.UrlFull || imageEntry.Url;
+		if (!url) return "";
+		return `![Illustration](${await localizeImage(url, imageEntry.ImageId || imageEntry.ImageFullId, imagesFolder, urlMap, log)})`;
+	}
+	async function processDescriptionsAndImages(item, ctx) {
+		const parts = [];
+		const descriptions = item.Descriptions || [];
+		const images = item.Images || [];
+		const slotCount = Math.max(descriptions.length, images.length);
+		for (let index = 0; index < slotCount; index += 1) {
+			const description = descriptions[index];
+			if (description && description.trim()) parts.push(ctx.htmlToMarkdown(description));
+			if (images[index]) parts.push(await renderImageMarkdown(images[index], ctx.imagesFolder, ctx.urlMap, ctx.log));
+		}
+		return parts.filter(Boolean).join("\n\n");
+	}
+	function appendRichTextBlocks(blocks, item, htmlToMarkdownFn) {
+		for (const block of blocks || []) {
+			if (block.Question) item.push(htmlToMarkdownFn(block.Question));
+			if (block.Text) item.push(htmlToMarkdownFn(block.Text));
+		}
+	}
+	async function processItemToMarkdown(item, ctx) {
+		const sections = [];
+		if (item.Name && String(item.Name).trim()) sections.push(`### ${ctx.htmlToMarkdown(item.Name)}`);
+		switch (item.Type) {
+			case 27:
+			case 2:
+				sections.push(await processDescriptionsAndImages(item, ctx));
+				break;
+			case 29:
+				if (item.Button?.Link) {
+					const linkText = (item.Button.Text ? ctx.htmlToMarkdown(item.Button.Text) : item.Button.Link).replace(/\n+/g, " ").trim() || "Open link";
+					sections.push(`[${linkText}](${item.Button.Link})`);
 				}
-			}
-			function errorMessage(action, context) {
-				const details = [
-					context.database && `database=${context.database}`,
-					context.stores && `stores=${context.stores.join(",")}`,
-					context.store && `store=${context.store}`,
-					context.index && `index=${context.index}`,
-					context.mode && `mode=${context.mode}`,
-					context.operation && `operation=${context.operation}`,
-					context.version && `version=${context.version}`
-				].filter(Boolean).join(" ");
-				return details ? `${action} (${details})` : action;
-			}
-			function wrapError(action, context, cause) {
-				if (cause instanceof IndexedDbError) return cause;
-				return new IndexedDbError(errorMessage(action, context), context, cause);
-			}
-			function requestToPromise(request, context = {}) {
-				return new Promise((resolve, reject) => {
-					request.onsuccess = () => resolve(request.result);
-					request.onerror = () => reject(wrapError("IndexedDB request failed", context, request.error));
-				});
-			}
-			function transactionToPromise(transaction, context = {}) {
-				return new Promise((resolve, reject) => {
-					transaction.oncomplete = () => resolve();
-					transaction.onerror = () => reject(wrapError("IndexedDB transaction failed", context, transaction.error));
-					transaction.onabort = () => reject(wrapError("IndexedDB transaction aborted", context, transaction.error));
-				});
-			}
-			function normalizeStores(storeNames) {
-				const stores = typeof storeNames === "string" ? [storeNames] : Array.from(storeNames || []);
-				if (stores.length === 0) throw new TypeError("At least one object store is required");
-				return stores;
-			}
-			function normalizeMigrations(definition) {
-				const migrations = Array.from(definition.migrations || []).sort((left, right) => left.version - right.version);
-				const seen = /* @__PURE__ */ new Set();
-				for (const migration of migrations) {
-					if (!Number.isInteger(migration.version) || migration.version < 1 || migration.version > definition.version) throw new TypeError(`Invalid migration version: ${migration.version}`);
-					if (seen.has(migration.version)) throw new TypeError(`Duplicate migration version: ${migration.version}`);
-					if (typeof migration.migrate !== "function") throw new TypeError(`Migration ${migration.version} must define migrate()`);
-					seen.add(migration.version);
+				break;
+			case 10:
+			case 13:
+				appendRichTextBlocks(item.QuestionWithCodingTexts, sections, ctx.htmlToMarkdown);
+				break;
+			case 3:
+				for (const video of item.Videos || []) {
+					if (!video.Link) continue;
+					const linkText = (video.Text ? ctx.htmlToMarkdown(video.Text) : "Watch video").replace(/\n+/g, " ").trim() || "Watch video";
+					sections.push(`[${linkText}](${video.Link})`);
 				}
-				return migrations;
-			}
-			function cursorToPromise(source, options, context) {
-				const { range = null, direction = "next", limit = Infinity, keysOnly = false, map = null } = options || {};
-				if (!Number.isFinite(limit) && limit !== Infinity) throw new TypeError("Cursor limit must be a finite number or Infinity");
-				if (limit < 0) throw new RangeError("Cursor limit cannot be negative");
-				if (limit === 0) return Promise.resolve([]);
-				return new Promise((resolve, reject) => {
-					const results = [];
-					let request;
-					try {
-						request = keysOnly ? source.openKeyCursor(range, direction) : source.openCursor(range, direction);
-					} catch (error) {
-						reject(wrapError("Failed to open IndexedDB cursor", context, error));
-						return;
-					}
-					request.onerror = () => reject(wrapError("IndexedDB cursor failed", context, request.error));
-					request.onsuccess = () => {
-						const cursor = request.result;
-						if (!cursor || results.length >= limit) {
-							resolve(results);
-							return;
-						}
-						const raw = keysOnly ? cursor.primaryKey : cursor.value;
-						results.push(typeof map === "function" ? map(raw, cursor) : raw);
-						cursor.continue();
-					};
-				});
-			}
-			function createSourceHelpers(source, context) {
-				return {
-					raw: source,
-					get(key) {
-						return requestToPromise(source.get(key), {
-							...context,
-							operation: "get"
-						});
-					},
-					getKey(query) {
-						return requestToPromise(source.getKey(query), {
-							...context,
-							operation: "getKey"
-						});
-					},
-					getAll(query = null, count) {
-						return requestToPromise(source.getAll(query, count), {
-							...context,
-							operation: "getAll"
-						});
-					},
-					getAllKeys(query = null, count) {
-						return requestToPromise(source.getAllKeys(query, count), {
-							...context,
-							operation: "getAllKeys"
-						});
-					},
-					count(query = null) {
-						return requestToPromise(source.count(query), {
-							...context,
-							operation: "count"
-						});
-					},
-					iterate(options = {}) {
-						return cursorToPromise(source, options, {
-							...context,
-							operation: "iterate"
-						});
-					}
-				};
-			}
-			function createStoreHelpers(store, context) {
-				return {
-					...createSourceHelpers(store, context),
-					put(value, key) {
-						return requestToPromise(store.put(value, key), {
-							...context,
-							operation: "put"
-						});
-					},
-					add(value, key) {
-						return requestToPromise(store.add(value, key), {
-							...context,
-							operation: "add"
-						});
-					},
-					delete(key) {
-						return requestToPromise(store.delete(key), {
-							...context,
-							operation: "delete"
-						});
-					},
-					clear() {
-						return requestToPromise(store.clear(), {
-							...context,
-							operation: "clear"
-						});
-					},
-					index(indexName) {
-						return createSourceHelpers(store.index(indexName), {
-							...context,
-							index: indexName
-						});
-					}
-				};
-			}
-			function createIndexedDb(definition, options = {}) {
-				if (!definition || typeof definition.name !== "string" || definition.name.length === 0) throw new TypeError("Database definition requires a non-empty name");
-				if (!Number.isInteger(definition.version) || definition.version < 1) throw new TypeError("Database definition requires a positive integer version");
-				const indexedDbFactory = options.indexedDB || root.indexedDB;
-				if (!indexedDbFactory || typeof indexedDbFactory.open !== "function") throw new TypeError("An IndexedDB factory is required");
-				const migrations = normalizeMigrations(definition);
-				let connection = null;
-				let opening = null;
-				function invalidate(db) {
-					if (connection === db) connection = null;
-					opening = null;
+				break;
+			default:
+				appendRichTextBlocks(item.QuestionWithCodingTexts, sections, ctx.htmlToMarkdown);
+				for (const description of item.Descriptions || []) if (description && description.trim()) sections.push(ctx.htmlToMarkdown(description));
+				if (item.Button?.Link) {
+					const linkText = (item.Button.Text ? ctx.htmlToMarkdown(item.Button.Text) : item.Button.Link).replace(/\n+/g, " ").trim() || "Open link";
+					sections.push(`[${linkText}](${item.Button.Link})`);
 				}
-				function open() {
-					if (connection) return Promise.resolve(connection);
-					if (opening) return opening;
-					opening = new Promise((resolve, reject) => {
-						let request;
-						let settled = false;
-						let blockedTimer = null;
-						try {
-							request = indexedDbFactory.open(definition.name, definition.version);
-						} catch (error) {
-							reject(wrapError("Failed to open IndexedDB database", {
-								database: definition.name,
-								version: definition.version
-							}, error));
-							return;
-						}
-						const fail = (error) => {
-							if (settled) return;
-							settled = true;
-							if (blockedTimer !== null) clearTimeout(blockedTimer);
-							opening = null;
-							reject(error);
-						};
-						request.onblocked = () => {
-							const context = {
-								database: definition.name,
-								version: definition.version,
-								operation: "open"
-							};
-							const error = wrapError("IndexedDB upgrade is blocked by another open connection", context, request.error);
-							if (typeof options.onBlocked === "function") options.onBlocked(error, context);
-							if (options.blockedTimeoutMs > 0 && blockedTimer === null) blockedTimer = setTimeout(() => fail(error), options.blockedTimeoutMs);
-						};
-						request.onupgradeneeded = (event) => {
-							const db = request.result;
-							const transaction = request.transaction;
-							try {
-								for (const migration of migrations) if (migration.version > event.oldVersion && migration.version <= event.newVersion) migration.migrate({
-									db,
-									transaction,
-									oldVersion: event.oldVersion,
-									newVersion: event.newVersion,
-									version: migration.version
-								});
-							} catch (error) {
-								try {
-									transaction.abort();
-								} catch (_) {}
-								fail(wrapError("IndexedDB migration failed", {
-									database: definition.name,
-									version: event.newVersion,
-									operation: "migrate"
-								}, error));
-							}
-						};
-						request.onerror = () => fail(wrapError("Failed to open IndexedDB database", {
-							database: definition.name,
-							version: definition.version,
-							operation: "open"
-						}, request.error));
-						request.onsuccess = () => {
-							const db = request.result;
-							if (settled) {
-								db.close();
-								return;
-							}
-							settled = true;
-							if (blockedTimer !== null) clearTimeout(blockedTimer);
-							connection = db;
-							opening = null;
-							db.onversionchange = () => {
-								db.close();
-								invalidate(db);
-								if (typeof options.onVersionChange === "function") options.onVersionChange({
-									database: definition.name,
-									version: db.version
-								});
-							};
-							resolve(db);
-						};
-					});
-					return opening;
-				}
-				async function runTransaction(storeNames, mode, callback, operation = "transaction") {
-					const stores = normalizeStores(storeNames);
-					if (mode !== "readonly" && mode !== "readwrite") throw new TypeError(`Unsupported transaction mode: ${mode}`);
-					if (typeof callback !== "function") throw new TypeError("Transaction callback must be a function");
-					const db = await open();
-					const context = {
-						database: definition.name,
-						stores,
-						mode,
-						operation
-					};
-					let transaction;
-					try {
-						transaction = db.transaction(stores, mode);
-					} catch (error) {
-						throw wrapError("Failed to create IndexedDB transaction", context, error);
-					}
-					const completion = transactionToPromise(transaction, context);
-					const helpers = Object.create(null);
-					for (const storeName of stores) helpers[storeName] = createStoreHelpers(transaction.objectStore(storeName), {
-						...context,
-						store: storeName
-					});
-					let result;
-					try {
-						result = callback({
-							transaction,
-							stores: helpers,
-							store(name) {
-								if (!helpers[name]) throw new IndexedDbError(errorMessage("Store is not part of this transaction", {
-									...context,
-									store: name
-								}), {
-									...context,
-									store: name
-								});
-								return helpers[name];
-							},
-							abort(reason) {
-								if (reason !== void 0 && transaction.error === null) try {
-									Object.defineProperty(transaction, "__edvibeAbortReason", { value: reason });
-								} catch (_) {}
-								transaction.abort();
-							}
-						});
-					} catch (error) {
-						try {
-							transaction.abort();
-						} catch (_) {}
-						try {
-							await completion;
-						} catch (_) {}
-						throw wrapError("IndexedDB transaction callback failed", context, error);
-					}
-					try {
-						const [value] = await Promise.all([Promise.resolve(result), completion]);
-						return value;
-					} catch (error) {
-						throw wrapError("IndexedDB transaction did not commit", context, transaction.__edvibeAbortReason || error);
-					}
-				}
-				function repository(storeName) {
-					return {
-						get(key) {
-							return runTransaction(storeName, "readonly", ({ store }) => store(storeName).get(key), `get:${storeName}`);
-						},
-						put(value, key) {
-							return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).put(value, key), `put:${storeName}`);
-						},
-						add(value, key) {
-							return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).add(value, key), `add:${storeName}`);
-						},
-						delete(key) {
-							return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).delete(key), `delete:${storeName}`);
-						},
-						clear() {
-							return runTransaction(storeName, "readwrite", ({ store }) => store(storeName).clear(), `clear:${storeName}`);
-						},
-						count(query = null) {
-							return runTransaction(storeName, "readonly", ({ store }) => store(storeName).count(query), `count:${storeName}`);
-						},
-						iterate(options = {}) {
-							return runTransaction(storeName, "readonly", ({ store }) => store(storeName).iterate(options), `iterate:${storeName}`);
-						},
-						queryIndex(indexName, options = {}) {
-							return runTransaction(storeName, "readonly", ({ store }) => {
-								return store(storeName).index(indexName).iterate(options);
-							}, `query-index:${storeName}.${indexName}`);
-						},
-						newest(indexName, options = {}) {
-							return this.queryIndex(indexName, {
-								...options,
-								direction: "prev"
-							});
-						}
-					};
-				}
-				function close() {
-					if (connection) {
-						const db = connection;
-						connection = null;
-						db.close();
-					}
-					opening = null;
-				}
-				return Object.freeze({
-					name: definition.name,
-					version: definition.version,
-					open,
-					close,
-					reset: close,
-					transaction: runTransaction,
-					readonly(storeNames, callback, operation) {
-						return runTransaction(storeNames, "readonly", callback, operation);
-					},
-					readwrite(storeNames, callback, operation) {
-						return runTransaction(storeNames, "readwrite", callback, operation);
-					},
-					repository
-				});
-			}
-			return {
-				IndexedDbError,
-				createIndexedDb,
-				requestToPromise,
-				transactionToPromise
+				for (const video of item.Videos || []) if (video.Link) sections.push(`[${video.Text || "Watch video"}](${video.Link})`);
+				for (const image of item.Images || []) sections.push(await renderImageMarkdown(image, ctx.imagesFolder, ctx.urlMap, ctx.log));
+				if (item.Text) sections.push(ctx.htmlToMarkdown(item.Text));
+				if (sections.length === 0) ctx.log(`Unhandled item Type ${item.Type} (Id: ${item.Id})`);
+				break;
+		}
+		for (const pdf of item.Pdfs || []) {
+			const pdfUrl = pdf.Url || pdf.Link;
+			if (pdfUrl) sections.push(`[${pdf.Name || pdf.Text || "PDF document"}](${pdfUrl})`);
+		}
+		return sections.filter(Boolean).join("\n\n");
+	}
+	function triggerBlobDownload(blob, filename) {
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = filename;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	}
+	async function compileMarathonToZip(backupData, options = {}) {
+		const log = options.log || (() => {});
+		if (!backupData || !Array.isArray(backupData.lessons)) throw new Error("Invalid backup data: expected an object with a lessons array.");
+		log("Starting marathon workspace compilation...");
+		const zip = new import_jszip_min.default();
+		const turndown = createMarkdownTurndownService();
+		const archiveRootName = `marathon_${backupData.marathonId || "export"}`;
+		const rootFolder = zip.folder(archiveRootName);
+		const backupJsonName = `edvibe_marathon_${backupData.marathonId || "export"}_backup.json`;
+		rootFolder.file(backupJsonName, JSON.stringify(backupData, null, 2));
+		const usedLessonNames = /* @__PURE__ */ new Set();
+		const totalLessons = backupData.lessons.length;
+		for (const [lessonIndex, lesson] of backupData.lessons.entries()) {
+			options.onProgress?.({
+				message: `Processing lesson ${lessonIndex + 1} of ${totalLessons}: ${lesson.name}`,
+				current: lessonIndex + 1,
+				total: totalLessons
+			});
+			const lessonFolderName = uniquePathName(lesson.name, usedLessonNames, `lesson_${lesson.lessonId}`);
+			const lessonFolder = rootFolder.folder(lessonFolderName);
+			const imagesFolder = lessonFolder.folder("images");
+			const usedSectionNames = /* @__PURE__ */ new Set();
+			const ctx = {
+				turndown,
+				imagesFolder,
+				urlMap: /* @__PURE__ */ new Map(),
+				log,
+				htmlToMarkdown: (html) => htmlToMarkdown(html, turndown, log)
 			};
+			if (lesson.imageUrl) await localizeImage(lesson.imageUrl, `lesson_${lesson.lessonId}`, imagesFolder, ctx.urlMap, log);
+			for (const [sectionIndex, section] of (lesson.sections || []).entries()) {
+				const sectionFileName = `${uniquePathName(`${sectionIndex + 1} - ${section.name}`, usedSectionNames, `section_${section.sectionId}`)}.md`;
+				const markdownParts = [`# ${section.name}`];
+				if (section.isHomework) markdownParts.push("> Homework section");
+				markdownParts.push("");
+				for (const item of section.items || []) {
+					if (item.IsHideExercise) continue;
+					const block = await processItemToMarkdown(item, ctx);
+					if (!block) continue;
+					markdownParts.push(block);
+					markdownParts.push("---");
+				}
+				while (markdownParts.length && markdownParts[markdownParts.length - 1] === "---") markdownParts.pop();
+				if (markdownParts.length <= 2) markdownParts.push("_No content in this section._");
+				lessonFolder.file(sectionFileName, `${markdownParts.join("\n\n").trim()}\n`);
+			}
+		}
+		rootFolder.file("_export_meta.json", JSON.stringify({
+			exportedAt: backupData.exportedAt,
+			marathonId: backupData.marathonId,
+			totalLessons: backupData.totalLessons,
+			compiledAt: (/* @__PURE__ */ new Date()).toISOString()
+		}, null, 2));
+		options.onProgress?.({ message: "Compressing archive..." });
+		const zipBlob = await zip.generateAsync({
+			type: "blob",
+			compression: "DEFLATE",
+			compressionOptions: { level: 6 }
 		});
-	}));
-	//#endregion
-	//#region src/shared/execution-history-record.js
-	var require_execution_history_record = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeExecutionHistoryRecord(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeExecutionHistoryRecord = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const EXECUTION_RECORD_SCHEMA_VERSION = 1;
-			const TERMINAL_STATUSES = Object.freeze([
-				"completed",
-				"completed_with_failures",
-				"cancelled",
-				"interrupted"
-			]);
-			const COUNT_KEYS = Object.freeze([
-				"requested",
-				"eligible",
-				"attempted",
-				"successful",
-				"noOp",
-				"skipped",
-				"failed",
-				"notAttempted"
-			]);
-			const UNSAFE_FIELD_WORDS = /* @__PURE__ */ new Set([
-				"auth",
-				"authorization",
-				"binary",
-				"bytes",
-				"cookie",
-				"credential",
-				"credentials",
-				"frame",
-				"frames",
-				"image",
-				"password",
-				"recording",
-				"response",
-				"session",
-				"token",
-				"transport",
-				"websocket"
-			]);
-			function validationError(message, path = "") {
-				const error = new TypeError(path ? `${message} (${path})` : message);
-				error.code = "INVALID_EXECUTION_RECORD";
-				error.path = path;
-				return error;
+		const downloadName = `edvibe_marathon_${backupData.marathonId || "export"}_workspace.zip`;
+		triggerBlobDownload(zipBlob, downloadName);
+		log("Marathon workspace archive downloaded:", downloadName);
+		return zipBlob;
+	}
+	function parseMarathonId$8(url) {
+		const match = String(url || "").match(/marathon\/(\d+)/);
+		return match ? Number(match[1]) : null;
+	}
+	function createExportProgressOverlay({ stylesheetUrl = "" } = {}) {
+		document.querySelector(EXPORT_PROGRESS_TAG)?.remove();
+		const dialog = document.createElement(EXPORT_PROGRESS_TAG);
+		dialog.configure({ stylesheetUrl });
+		(document.body || document.documentElement).appendChild(dialog);
+		return dialog;
+	}
+	function createMarathonExportFeature({ sendRequest, wait, canStart, onActiveChange, compileToZip = compileMarathonToZip, notifyStatus, createProgressOverlay = createExportProgressOverlay, getCurrentUrl = () => window.location.href, now = () => (/* @__PURE__ */ new Date()).toISOString(), log = () => {} }) {
+		async function start({ stylesheetUrl = "" } = {}) {
+			if (!canStart()) {
+				const message = "Cannot start export while another operation is active.";
+				log(message);
+				notifyStatus("error", message);
+				return;
 			}
-			function assertPlainObject(value, path) {
-				if (!value || typeof value !== "object" || Array.isArray(value)) throw validationError("Expected an object", path);
-				const prototype = Object.getPrototypeOf(value);
-				if (prototype !== Object.prototype && prototype !== null) throw validationError("Expected a plain object", path);
-			}
-			function normalizeIsoTimestamp(value, path) {
-				const date = value instanceof Date ? value : new Date(value);
-				if (Number.isNaN(date.getTime())) throw validationError("Expected a valid timestamp", path);
-				return date.toISOString();
-			}
-			function normalizeNonEmptyString(value, path, maxLength = 160) {
-				const normalized = String(value ?? "").trim();
-				if (!normalized) throw validationError("Expected a non-empty string", path);
-				if (normalized.length > maxLength) throw validationError(`String exceeds ${maxLength} characters`, path);
-				return normalized;
-			}
-			function normalizeOptionalString(value, path, maxLength = 500) {
-				if (value === void 0 || value === null || value === "") return null;
-				const normalized = String(value).trim();
-				if (normalized.length > maxLength) throw validationError(`String exceeds ${maxLength} characters`, path);
-				return normalized || null;
-			}
-			function normalizeCount(value, path) {
-				const count = Number(value ?? 0);
-				if (!Number.isSafeInteger(count) || count < 0) throw validationError("Expected a non-negative safe integer", path);
-				return count;
-			}
-			function isUnsafeFieldName(key) {
-				const words = String(key).replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-				return words.includes("raw") || words.some((word) => UNSAFE_FIELD_WORDS.has(word));
-			}
-			function sanitizeJsonValue(value, path = "value", seen = /* @__PURE__ */ new WeakSet()) {
-				if (value === null || typeof value === "string" || typeof value === "boolean") return value;
-				if (typeof value === "number") {
-					if (!Number.isFinite(value)) throw validationError("Expected a finite number", path);
-					return value;
-				}
-				if (value === void 0) return null;
-				if (typeof value === "bigint" || typeof value === "function" || typeof value === "symbol") throw validationError("Unsupported JSON value", path);
-				if (typeof value !== "object") throw validationError("Unsupported value", path);
-				if (seen.has(value)) throw validationError("Circular values are not supported", path);
-				seen.add(value);
-				try {
-					if (Array.isArray(value)) return value.map((entry, index) => sanitizeJsonValue(entry, `${path}[${index}]`, seen));
-					assertPlainObject(value, path);
-					const output = {};
-					for (const [key, entry] of Object.entries(value)) {
-						if (isUnsafeFieldName(key)) throw validationError("Unsafe field is not allowed", `${path}.${key}`);
-						output[key] = sanitizeJsonValue(entry, `${path}.${key}`, seen);
-					}
-					return output;
-				} finally {
-					seen.delete(value);
-				}
-			}
-			function normalizePageContext(value = {}) {
-				assertPlainObject(value, "pageContext");
-				const marathonId = value.marathonId === void 0 || value.marathonId === null || value.marathonId === "" ? null : String(value.marathonId).trim();
-				return Object.freeze({
-					marathonId: marathonId || null,
-					marathonName: normalizeOptionalString(value.marathonName, "pageContext.marathonName", 240)
+			onActiveChange(true);
+			let progressOverlay = null;
+			try {
+				notifyStatus("started");
+				log("Starting marathon export...");
+				progressOverlay = createProgressOverlay({ stylesheetUrl });
+				progressOverlay.update({
+					statusText: "Finding marathon lessons...",
+					loadedSections: 0,
+					totalSections: 0
 				});
-			}
-			function normalizeCounts(value = {}) {
-				assertPlainObject(value, "counts");
-				const counts = {};
-				for (const key of COUNT_KEYS) counts[key] = normalizeCount(value[key], `counts.${key}`);
-				if (counts.successful + counts.failed > counts.attempted) throw validationError("Successful and failed counts cannot exceed attempted count", "counts");
-				if (counts.attempted + counts.notAttempted > counts.eligible) throw validationError("Attempted and not-attempted counts cannot exceed eligible count", "counts");
-				return Object.freeze(counts);
-			}
-			function normalizeResult(value, index) {
-				assertPlainObject(value, `results[${index}]`);
-				const attempts = value.attempts === void 0 ? 1 : normalizeCount(value.attempts, `results[${index}].attempts`);
-				const data = value.data === void 0 ? {} : sanitizeJsonValue(value.data, `results[${index}].data`);
-				return Object.freeze({
-					order: index,
-					itemId: normalizeOptionalString(value.itemId, `results[${index}].itemId`, 160),
-					label: normalizeNonEmptyString(value.label ?? value.itemId ?? `Item ${index + 1}`, `results[${index}].label`, 500),
-					status: normalizeNonEmptyString(value.status, `results[${index}].status`, 80),
-					code: normalizeNonEmptyString(value.code, `results[${index}].code`, 120),
-					message: normalizeNonEmptyString(value.message, `results[${index}].message`, 1e3),
-					attempts,
-					data: Object.freeze(data)
-				});
-			}
-			function fallbackExecutionId(now, operationType) {
-				const random = Math.random().toString(36).slice(2, 10);
-				return `${operationType}-${now.getTime().toString(36)}-${random}`;
-			}
-			function buildExecutionRecord(input, options = {}) {
-				assertPlainObject(input, "record");
-				const now = options.now instanceof Date ? options.now : new Date(options.now || Date.now());
-				const operationType = normalizeNonEmptyString(input.operationType, "operationType", 120);
-				const cryptoApi = options.cryptoApi;
-				const generatedId = typeof cryptoApi?.randomUUID === "function" ? cryptoApi.randomUUID() : fallbackExecutionId(now, operationType);
-				const id = normalizeNonEmptyString(input.id || generatedId, "id", 200);
-				const status = normalizeNonEmptyString(input.status, "status", 80);
-				if (!TERMINAL_STATUSES.includes(status)) throw validationError("Unsupported terminal status", "status");
-				const startedAt = normalizeIsoTimestamp(input.startedAt, "startedAt");
-				const completedAt = normalizeIsoTimestamp(input.completedAt ?? now, "completedAt");
-				if (new Date(completedAt).getTime() < new Date(startedAt).getTime()) throw validationError("Completion timestamp cannot precede start timestamp", "completedAt");
-				const results = Array.isArray(input.results) ? input.results.map(normalizeResult) : (() => {
-					throw validationError("Expected an array", "results");
-				})();
-				const record = {
-					schemaVersion: EXECUTION_RECORD_SCHEMA_VERSION,
-					id,
-					operationType,
-					startedAt,
-					completedAt,
-					status,
-					pageContext: normalizePageContext(input.pageContext || {}),
-					counts: normalizeCounts(input.counts || {}),
-					results: Object.freeze(results),
-					message: normalizeOptionalString(input.message, "message", 1e3)
+				const marathonId = parseMarathonId$8(getCurrentUrl());
+				if (!marathonId) {
+					progressOverlay.error("Failed to find a valid MarathonId in the current page URL.");
+					notifyStatus("error", "Invalid marathon URL.");
+					return;
+				}
+				const backupBundle = {
+					exportedAt: now(),
+					marathonId,
+					totalLessons: 0,
+					lessons: []
 				};
-				validateExecutionRecord(record);
-				return Object.freeze(record);
-			}
-			function validateExecutionRecord(record) {
-				assertPlainObject(record, "record");
-				if (record.schemaVersion !== EXECUTION_RECORD_SCHEMA_VERSION) throw validationError("Unsupported execution record schema version", "schemaVersion");
-				normalizeNonEmptyString(record.id, "id", 200);
-				normalizeNonEmptyString(record.operationType, "operationType", 120);
-				normalizeIsoTimestamp(record.startedAt, "startedAt");
-				normalizeIsoTimestamp(record.completedAt, "completedAt");
-				if (!TERMINAL_STATUSES.includes(record.status)) throw validationError("Unsupported terminal status", "status");
-				normalizePageContext(record.pageContext || {});
-				normalizeCounts(record.counts || {});
-				if (!Array.isArray(record.results)) throw validationError("Expected an array", "results");
-				record.results.forEach((result, index) => normalizeResult(result, index));
-				sanitizeJsonValue(record, "record");
-				return true;
-			}
-			function cloneExecutionRecord(record) {
-				validateExecutionRecord(record);
-				return JSON.parse(JSON.stringify(record));
-			}
-			return Object.freeze({
-				EXECUTION_RECORD_SCHEMA_VERSION,
-				TERMINAL_STATUSES,
-				COUNT_KEYS,
-				buildExecutionRecord,
-				validateExecutionRecord,
-				cloneExecutionRecord,
-				sanitizeJsonValue
-			});
-		});
-	}));
-	//#endregion
-	//#region src/shared/execution-history-repository.js
-	var require_execution_history_repository = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeExecutionHistoryRepository(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_indexeddb(), require_execution_history_record());
-			else root.EdVibeExecutionHistoryRepository = factory(root.EdVibeIndexedDb, root.EdVibeExecutionHistoryRecord);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(indexedDbApi, recordApi) {
-			"use strict";
-			const HISTORY_DATABASE_NAME = "edvibe-toolbox";
-			const HISTORY_DATABASE_VERSION = 1;
-			const HISTORY_STORE_NAME = "executionHistory";
-			const HISTORY_DB_DEFINITION = Object.freeze({
-				name: HISTORY_DATABASE_NAME,
-				version: HISTORY_DATABASE_VERSION,
-				migrations: Object.freeze([Object.freeze({
-					version: 1,
-					migrate({ db }) {
-						if (db.objectStoreNames.contains(HISTORY_STORE_NAME)) return;
-						const store = db.createObjectStore(HISTORY_STORE_NAME, { keyPath: "id" });
-						store.createIndex("completedAt", "completedAt", { unique: false });
-						store.createIndex("operationType", "operationType", { unique: false });
-						store.createIndex("status", "status", { unique: false });
-						store.createIndex("marathonId", "pageContext.marathonId", { unique: false });
+				const marathonLessons = (await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
+					MarathonId: marathonId,
+					SearchTerm: "",
+					Page: {
+						Skip: 0,
+						Take: 100
 					}
-				})])
-			});
-			function normalizeDateBoundary(value, path, endOfDay = false) {
-				if (!value) return null;
-				const serialized = String(value);
-				const date = /^\d{4}-\d{2}-\d{2}$/.test(serialized) ? /* @__PURE__ */ new Date(`${serialized}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}`) : new Date(value);
-				if (Number.isNaN(date.getTime())) throw new TypeError(`Invalid ${path}`);
-				return date.getTime();
-			}
-			function matchesFilters(record, filters = {}) {
-				if (filters.operationType && record.operationType !== filters.operationType) return false;
-				if (filters.status && record.status !== filters.status) return false;
-				if (filters.marathonId && String(record.pageContext?.marathonId || "") !== String(filters.marathonId)) return false;
-				const completed = new Date(record.completedAt).getTime();
-				const from = normalizeDateBoundary(filters.from, "from");
-				const to = normalizeDateBoundary(filters.to, "to", true);
-				if (from !== null && completed < from) return false;
-				if (to !== null && completed > to) return false;
-				return true;
-			}
-			function createExecutionHistoryRepository(options = {}) {
-				const api = options.indexedDbApi || indexedDbApi;
-				if (!api?.createIndexedDb) throw new TypeError("IndexedDB API is required");
-				const db = api.createIndexedDb(HISTORY_DB_DEFINITION, { indexedDB: options.indexedDB });
-				const repository = db.repository(HISTORY_STORE_NAME);
-				return Object.freeze({
-					async persist(record) {
-						recordApi.validateExecutionRecord(record);
-						await repository.put(record);
-						return recordApi.cloneExecutionRecord(record);
-					},
-					async get(executionId) {
-						const record = await repository.get(String(executionId));
-						return record ? recordApi.cloneExecutionRecord(record) : null;
-					},
-					async list(filters = {}) {
-						return (await repository.newest("completedAt")).filter((record) => matchesFilters(record, filters)).map(recordApi.cloneExecutionRecord);
-					},
-					async delete(executionId) {
-						await repository.delete(String(executionId));
-					},
-					async clear() {
-						await repository.clear();
-					},
-					count() {
-						return repository.count();
-					},
-					close() {
-						db.close();
-					}
+				})).Value?.Items || [];
+				backupBundle.totalLessons = marathonLessons.length;
+				progressOverlay.update({
+					statusText: `Found ${marathonLessons.length} lessons. Loading lesson sections...`,
+					loadedSections: 0,
+					totalSections: 0
 				});
-			}
-			return Object.freeze({
-				HISTORY_DATABASE_NAME,
-				HISTORY_DATABASE_VERSION,
-				HISTORY_STORE_NAME,
-				HISTORY_DB_DEFINITION,
-				matchesFilters,
-				createExecutionHistoryRepository
-			});
-		});
-	}));
-	//#endregion
-	//#region src/shared/execution-history-retention.js
-	var require_execution_history_retention = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeExecutionHistoryRetention(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeExecutionHistoryRetention = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const RETENTION_STORAGE_KEY = "executionHistoryPreferences";
-			const DEFAULT_RETENTION_PREFERENCES = Object.freeze({
-				mode: "limits",
-				maxCount: 100,
-				maxAgeDays: 90,
-				autoExport: false
-			});
-			function normalizePositiveInteger(value, fallback, path) {
-				const number = Number(value);
-				if (!Number.isSafeInteger(number) || number <= 0) {
-					if (value === void 0 || value === null || value === "") return fallback;
-					throw new TypeError(`${path} must be a positive integer`);
+				const lessonQueue = [];
+				let totalSections = 0;
+				for (const [lessonIndex, lessonNode] of marathonLessons.entries()) {
+					progressOverlay.update({
+						statusText: `Loading sections for lesson ${lessonIndex + 1} of ${marathonLessons.length}: ${lessonNode.Name}`,
+						loadedSections: 0,
+						totalSections: 0
+					});
+					const lessonStructure = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lessonNode.LessonId });
+					const sections = [...lessonStructure.Value?.Sections || []];
+					if (lessonStructure.Value?.HomeworkSection) sections.push(lessonStructure.Value.HomeworkSection);
+					totalSections += sections.length;
+					lessonQueue.push({
+						lessonNode,
+						lessonStructure,
+						sections
+					});
 				}
-				return number;
-			}
-			function normalizeRetentionPreferences(value = {}) {
-				const mode = value.mode === "indefinite" ? "indefinite" : "limits";
-				return Object.freeze({
-					mode,
-					maxCount: normalizePositiveInteger(value.maxCount, DEFAULT_RETENTION_PREFERENCES.maxCount, "maxCount"),
-					maxAgeDays: normalizePositiveInteger(value.maxAgeDays, DEFAULT_RETENTION_PREFERENCES.maxAgeDays, "maxAgeDays"),
-					autoExport: Boolean(value.autoExport)
+				progressOverlay.update({
+					statusText: `Found ${totalSections} sections. Loading exercise assets...`,
+					loadedSections: 0,
+					totalSections
 				});
-			}
-			function createRetentionPreferenceStore(storage) {
-				if (!storage || typeof storage.get !== "function" || typeof storage.set !== "function") throw new TypeError("A storage adapter with get() and set() is required");
-				return Object.freeze({
-					async get() {
-						return normalizeRetentionPreferences(await storage.get(RETENTION_STORAGE_KEY) || {});
-					},
-					async set(preferences) {
-						const normalized = normalizeRetentionPreferences(preferences);
-						await storage.set(RETENTION_STORAGE_KEY, normalized);
-						return normalized;
+				let loadedSections = 0;
+				for (const { lessonNode, lessonStructure, sections } of lessonQueue) {
+					const lessonEntry = {
+						lessonId: lessonNode.LessonId,
+						marathonLessonId: lessonNode.MarathonLessonId,
+						name: lessonNode.Name,
+						imageUrl: lessonStructure.Value?.ImageUrl || lessonNode.Image,
+						sections: []
+					};
+					for (const section of sections) {
+						progressOverlay.update({
+							statusText: `Lesson: ${lessonNode.Name}\nSection: ${section.Name}`,
+							loadedSections,
+							totalSections
+						});
+						await wait(300);
+						const exerciseResponse = await sendRequest("GetExerciseWsController", "LoadExercises", "Exercises", {
+							IsTeacher: true,
+							SectionId: section.Id,
+							LessonId: lessonNode.LessonId,
+							LessonSection: 0
+						});
+						const parsedValue = typeof exerciseResponse.Value === "string" ? JSON.parse(exerciseResponse.Value) : exerciseResponse.Value;
+						lessonEntry.sections.push({
+							sectionId: section.Id,
+							name: section.Name,
+							isHomework: section.IsHomework || false,
+							items: parsedValue?.Items || []
+						});
+						loadedSections += 1;
+						progressOverlay.update({
+							statusText: `Loaded "${section.Name}" from "${lessonNode.Name}".`,
+							loadedSections,
+							totalSections
+						});
 					}
+					backupBundle.lessons.push(lessonEntry);
+				}
+				progressOverlay.update({
+					statusText: "All sections loaded.\nProcessing lesson content and archiving workspace...\nDownloading images — this may take a few minutes.",
+					loadedSections: 0,
+					totalSections: 0
 				});
-			}
-			async function applyRetention({ repository, preferences, now = /* @__PURE__ */ new Date(), protectedExecutionId = null }) {
-				const normalized = normalizeRetentionPreferences(preferences);
-				if (normalized.mode === "indefinite") return Object.freeze({ deletedIds: Object.freeze([]) });
-				const records = await repository.list();
-				const cutoff = now.getTime() - normalized.maxAgeDays * 24 * 60 * 60 * 1e3;
-				const deleteIds = /* @__PURE__ */ new Set();
-				records.forEach((record, index) => {
-					if (record.id === protectedExecutionId) return;
-					if (index >= normalized.maxCount || new Date(record.completedAt).getTime() < cutoff) deleteIds.add(record.id);
-				});
-				for (const executionId of deleteIds) await repository.delete(executionId);
-				return Object.freeze({ deletedIds: Object.freeze([...deleteIds]) });
-			}
-			return Object.freeze({
-				RETENTION_STORAGE_KEY,
-				DEFAULT_RETENTION_PREFERENCES,
-				normalizeRetentionPreferences,
-				createRetentionPreferenceStore,
-				applyRetention
-			});
-		});
-	}));
-	//#endregion
-	//#region src/shared/execution-history-export.js
-	var require_execution_history_export = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeExecutionHistoryExport(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_execution_history_record());
-			else root.EdVibeExecutionHistoryExport = factory(root.EdVibeExecutionHistoryRecord);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(recordApi) {
-			"use strict";
-			function serializeExecutionRecord(record) {
-				recordApi.validateExecutionRecord(record);
-				return `${JSON.stringify(record, null, 2)}\n`;
-			}
-			function serializeExecutionRecords(records) {
-				if (!Array.isArray(records)) throw new TypeError("Records must be an array");
-				records.forEach(recordApi.validateExecutionRecord);
-				return `${JSON.stringify(records, null, 2)}\n`;
-			}
-			function slug(value) {
-				return String(value || "operation").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "operation";
-			}
-			function compactTimestamp(value) {
-				return new Date(value).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-			}
-			function createExecutionFilename(record) {
-				recordApi.validateExecutionRecord(record);
-				return `edvibe-${slug(record.operationType)}-${compactTimestamp(record.completedAt)}-${slug(record.id).slice(-36)}.json`;
-			}
-			function createHistoryFilename(now = /* @__PURE__ */ new Date()) {
-				return `edvibe-execution-history-${compactTimestamp(now)}.json`;
-			}
-			function createJsonDownloader(options = {}) {
-				const documentApi = options.document || root.document;
-				const URLApi = options.URL || root.URL;
-				const BlobClass = options.Blob || root.Blob;
-				if (!documentApi?.createElement || !URLApi?.createObjectURL || !BlobClass) return Object.freeze({ download() {
-					throw new Error("Browser download APIs are unavailable");
+				await compileToZip(backupBundle, { onProgress({ message, current, total }) {
+					const isCompressing = message === "Compressing archive...";
+					progressOverlay.update({
+						statusText: isCompressing ? "Processing lesson content and archiving workspace...\nCompressing archive..." : `Processing lesson content and archiving workspace...\n${message}`,
+						loadedSections: isCompressing ? 0 : current || 0,
+						totalSections: isCompressing ? 0 : total || 0,
+						countText: isCompressing ? "Compressing archive..." : total ? `${current} / ${total} lessons processed` : "Preparing archive..."
+					});
 				} });
-				return Object.freeze({ download({ filename, json }) {
-					const blob = new BlobClass([json], { type: "application/json;charset=utf-8" });
-					const url = URLApi.createObjectURL(blob);
-					const anchor = documentApi.createElement("a");
-					anchor.href = url;
-					anchor.download = filename;
-					anchor.hidden = true;
-					(documentApi.body || documentApi.documentElement).append(anchor);
-					try {
-						anchor.click();
-					} finally {
-						anchor.remove();
-						URLApi.revokeObjectURL(url);
-					}
-				} });
+				progressOverlay.complete("ZIP workspace archive downloaded successfully.", totalSections);
+				progressOverlay.dismissAfter(3e3);
+				notifyStatus("complete");
+			} catch (error) {
+				log("Export workflow failed:", error);
+				progressOverlay?.error(`Export failed: ${error.message}`);
+				notifyStatus("error", error.message);
+			} finally {
+				onActiveChange(false);
 			}
-			return Object.freeze({
-				serializeExecutionRecord,
-				serializeExecutionRecords,
-				createExecutionFilename,
-				createHistoryFilename,
-				createJsonDownloader
-			});
-		});
-	}));
+		}
+		return { start };
+	}
 	//#endregion
-	//#region src/shared/chrome-storage-bridge.js
-	var require_chrome_storage_bridge = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeChromeStorageBridge(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeChromeStorageBridge = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const REQUEST_TYPE = "EDVIBE_TOOLBOX_STORAGE_REQUEST";
-			const RESPONSE_TYPE = "EDVIBE_TOOLBOX_STORAGE_RESPONSE";
-			function createStorageBridge(options = {}) {
-				const windowApi = options.window || globalThis.window;
-				const cryptoApi = options.cryptoApi || globalThis.crypto;
-				const timeoutMs = options.timeoutMs || 5e3;
-				if (!windowApi?.postMessage || !windowApi?.addEventListener) throw new TypeError("Window messaging APIs are required");
-				const pending = /* @__PURE__ */ new Map();
-				const onMessage = (event) => {
-					if (event.source !== windowApi || event.data?.type !== RESPONSE_TYPE) return;
-					const request = pending.get(event.data.requestId);
-					if (!request) return;
-					pending.delete(event.data.requestId);
-					clearTimeout(request.timer);
-					if (event.data.ok) request.resolve(event.data.value);
-					else request.reject(new Error(event.data.error || "Storage request failed"));
-				};
-				windowApi.addEventListener("message", onMessage);
-				function request(action, key, value) {
-					const requestId = typeof cryptoApi?.randomUUID === "function" ? cryptoApi.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-					return new Promise((resolve, reject) => {
-						const timer = setTimeout(() => {
-							pending.delete(requestId);
-							reject(/* @__PURE__ */ new Error("Storage request timed out"));
-						}, timeoutMs);
-						pending.set(requestId, {
-							resolve,
-							reject,
-							timer
-						});
-						windowApi.postMessage({
-							type: REQUEST_TYPE,
-							requestId,
-							action,
-							key,
-							value
-						}, "*");
-					});
-				}
-				return Object.freeze({
-					get(key) {
-						return request("get", key);
-					},
-					set(key, value) {
-						return request("set", key, value);
-					},
-					dispose() {
-						windowApi.removeEventListener("message", onMessage);
-						for (const value of pending.values()) {
-							clearTimeout(value.timer);
-							value.reject(/* @__PURE__ */ new Error("Storage bridge disposed"));
-						}
-						pending.clear();
-					}
-				});
-			}
-			return Object.freeze({
-				REQUEST_TYPE,
-				RESPONSE_TYPE,
-				createStorageBridge
-			});
-		});
-	}));
-	//#endregion
-	//#region src/shared/execution-history-service.js
-	var require_execution_history_service = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeExecutionHistoryService(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_execution_history_record(), require_execution_history_retention(), require_execution_history_export());
-			else root.EdVibeExecutionHistoryService = factory(root.EdVibeExecutionHistoryRecord, root.EdVibeExecutionHistoryRetention, root.EdVibeExecutionHistoryExport);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(recordApi, retentionApi, exportApi) {
-			"use strict";
-			function createExecutionHistoryService(options) {
-				const { repository, preferenceStore, downloader } = options || {};
-				if (!repository || !preferenceStore || !downloader) throw new TypeError("Repository, preference store, and downloader are required");
-				const cryptoApi = options.cryptoApi;
-				const now = typeof options.now === "function" ? options.now : () => /* @__PURE__ */ new Date();
-				async function persistTerminal(input) {
-					const record = recordApi.buildExecutionRecord(input, {
-						cryptoApi,
-						now: now()
-					});
-					try {
-						await repository.persist(record);
-					} catch (persistenceError) {
-						return Object.freeze({
-							stored: false,
-							record,
-							persistenceError,
-							retentionError: null,
-							exportError: null
-						});
-					}
-					let preferences;
-					let retentionError = null;
-					let exportError = null;
-					try {
-						preferences = await preferenceStore.get();
-						await retentionApi.applyRetention({
-							repository,
-							preferences,
-							now: now(),
-							protectedExecutionId: record.id
-						});
-					} catch (error) {
-						retentionError = error;
-						preferences = preferences || retentionApi.DEFAULT_RETENTION_PREFERENCES;
-					}
-					if (preferences.autoExport) try {
-						downloadRecord(record);
-					} catch (error) {
-						exportError = error;
-					}
-					return Object.freeze({
-						stored: true,
-						record,
-						persistenceError: null,
-						retentionError,
-						exportError
-					});
-				}
-				function downloadRecord(record) {
-					downloader.download({
-						filename: exportApi.createExecutionFilename(record),
-						json: exportApi.serializeExecutionRecord(record)
-					});
-				}
-				return Object.freeze({
-					persistTerminal,
-					get: (executionId) => repository.get(executionId),
-					list: (filters) => repository.list(filters),
-					delete: (executionId) => repository.delete(executionId),
-					clear: () => repository.clear(),
-					getPreferences: () => preferenceStore.get(),
-					setPreferences: (preferences) => preferenceStore.set(preferences),
-					exportRecord: async (executionId) => {
-						const record = await repository.get(executionId);
-						if (!record) throw new Error("Execution record was not found");
-						downloadRecord(record);
-						return record;
-					},
-					exportFiltered: async (filters = {}) => {
-						const records = await repository.list(filters);
-						downloader.download({
-							filename: exportApi.createHistoryFilename(now()),
-							json: exportApi.serializeExecutionRecords(records)
-						});
-						return records;
-					}
-				});
-			}
-			return Object.freeze({ createExecutionHistoryService });
-		});
-	}));
-	//#endregion
-	//#region node_modules/@lit/reactive-element/css-tag.js
-	var t$1, e$2, s$2, o$3, n$2, r$2, S$1, c$2;
-	var init_css_tag = __esmMin((() => {
-		t$1 = globalThis;
-		e$2 = t$1.ShadowRoot && (void 0 === t$1.ShadyCSS || t$1.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype;
-		s$2 = Symbol();
-		o$3 = /* @__PURE__ */ new WeakMap();
-		n$2 = class {
-			constructor(t, e, o) {
-				/**
-				* @license
-				* Copyright 2019 Google LLC
-				* SPDX-License-Identifier: BSD-3-Clause
-				*/
-				if (this._$cssResult$ = !0, o !== s$2) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
-				this.cssText = t, this.t = e;
-			}
-			get styleSheet() {
-				let t = this.o;
-				const s = this.t;
-				if (e$2 && void 0 === t) {
-					const e = void 0 !== s && 1 === s.length;
-					e && (t = o$3.get(s)), void 0 === t && ((this.o = t = new CSSStyleSheet()).replaceSync(this.cssText), e && o$3.set(s, t));
-				}
-				return t;
-			}
-			toString() {
-				return this.cssText;
-			}
+	//#region src/features/reset-lessons.js
+	var RESET_DIALOG_TAG = "edvibe-toolbox-reset-dialog";
+	var RESET_OVERLAY_ID = "edvibe-toolbox-reset-overlay";
+	function parseMarathonId$7(url) {
+		const match = String(url || "").match(/marathon\/(\d+)/);
+		return match ? Number(match[1]) : null;
+	}
+	function collectLessonSections(lessonValue) {
+		const sections = Array.isArray(lessonValue?.Sections) ? lessonValue.Sections.filter(Boolean) : [];
+		if (lessonValue?.HomeworkSection) sections.push(lessonValue.HomeworkSection);
+		return sections;
+	}
+	function shouldDeleteLastRequest(lesson) {
+		const status = lesson?.LastRequest?.Status;
+		return Boolean(lesson?.LastRequest?.Id && Number.isFinite(status) && status !== 0);
+	}
+	function buildLoadExercisesPayload({ marathonId, pupilId, marathonLessonId, sectionId }) {
+		return {
+			MarathonId: marathonId,
+			LessonId: marathonLessonId,
+			SectionId: sectionId,
+			PupilId: pupilId,
+			IsTeacher: true,
+			LessonSection: 0,
+			Domain: "edvibe.com"
 		};
-		r$2 = (t) => new n$2("string" == typeof t ? t : t + "", void 0, s$2);
-		S$1 = (s, o) => {
-			if (e$2) s.adoptedStyleSheets = o.map((t) => t instanceof CSSStyleSheet ? t : t.styleSheet);
-			else for (const e of o) {
-				const o = document.createElement("style"), n = t$1.litNonce;
-				void 0 !== n && o.setAttribute("nonce", n), o.textContent = e.cssText, s.appendChild(o);
-			}
-		};
-		c$2 = e$2 ? (t) => t : (t) => t instanceof CSSStyleSheet ? ((t) => {
-			let e = "";
-			for (const s of t.cssRules) e += s.cssText;
-			return r$2(e);
-		})(t) : t;
-	}));
-	//#endregion
-	//#region node_modules/@lit/reactive-element/reactive-element.js
-	var i$2, e$1, h$1, r$1, o$2, n$1, a$1, c$1, l$1, p$1, d$1, u$1, f$1, b$1, y$1;
-	var init_reactive_element = __esmMin((() => {
-		init_css_tag();
-		({is: i$2, defineProperty: e$1, getOwnPropertyDescriptor: h$1, getOwnPropertyNames: r$1, getOwnPropertySymbols: o$2, getPrototypeOf: n$1} = Object), a$1 = globalThis, c$1 = a$1.trustedTypes, l$1 = c$1 ? c$1.emptyScript : "", p$1 = a$1.reactiveElementPolyfillSupport, d$1 = (t, s) => t, u$1 = {
-			toAttribute(t, s) {
-				/**
-				* @license
-				* Copyright 2017 Google LLC
-				* SPDX-License-Identifier: BSD-3-Clause
-				*/
-				switch (s) {
-					case Boolean:
-						t = t ? l$1 : null;
-						break;
-					case Object:
-					case Array: t = null == t ? t : JSON.stringify(t);
-				}
-				return t;
+	}
+	function buildResetAnswerPayload({ marathonId, pupilId, lessonId, exercise }) {
+		return {
+			SelfSync: false,
+			IsReset: true,
+			ExerciseId: exercise.id,
+			ExerciseType: exercise.type,
+			SectionId: exercise.sectionId,
+			PupilId: pupilId,
+			MarathonId: marathonId,
+			SingleAnswer: {},
+			ManyAnswers: [],
+			RepeatingManyAnswers: [],
+			AnswerErrorsCount: [[]],
+			StatisticsInfo: {
+				CountAnswersTrue: 0,
+				CountAnswersFalse: 0,
+				CountAnswersPending: 0
 			},
-			fromAttribute(t, s) {
-				let i = t;
-				switch (s) {
-					case Boolean:
-						i = null !== t;
-						break;
-					case Number:
-						i = null === t ? null : Number(t);
-						break;
-					case Object:
-					case Array: try {
-						i = JSON.parse(t);
-					} catch (t) {
-						i = null;
-					}
-				}
-				return i;
-			}
-		}, f$1 = (t, s) => !i$2(t, s), b$1 = {
-			attribute: !0,
-			type: String,
-			converter: u$1,
-			reflect: !1,
-			useDefault: !1,
-			hasChanged: f$1
+			LessonId: lessonId
 		};
-		Symbol.metadata ??= Symbol("metadata"), a$1.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
-		y$1 = class extends HTMLElement {
-			static addInitializer(t) {
-				this._$Ei(), (this.l ??= []).push(t);
-			}
-			static get observedAttributes() {
-				return this.finalize(), this._$Eh && [...this._$Eh.keys()];
-			}
-			static createProperty(t, s = b$1) {
-				if (s.state && (s.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(t) && ((s = Object.create(s)).wrapped = !0), this.elementProperties.set(t, s), !s.noAccessor) {
-					const i = Symbol(), h = this.getPropertyDescriptor(t, i, s);
-					void 0 !== h && e$1(this.prototype, t, h);
-				}
-			}
-			static getPropertyDescriptor(t, s, i) {
-				const { get: e, set: r } = h$1(this.prototype, t) ?? {
-					get() {
-						return this[s];
-					},
-					set(t) {
-						this[s] = t;
-					}
-				};
-				return {
-					get: e,
-					set(s) {
-						const h = e?.call(this);
-						r?.call(this, s), this.requestUpdate(t, h, i);
-					},
-					configurable: !0,
-					enumerable: !0
-				};
-			}
-			static getPropertyOptions(t) {
-				return this.elementProperties.get(t) ?? b$1;
-			}
-			static _$Ei() {
-				if (this.hasOwnProperty(d$1("elementProperties"))) return;
-				const t = n$1(this);
-				t.finalize(), void 0 !== t.l && (this.l = [...t.l]), this.elementProperties = new Map(t.elementProperties);
-			}
-			static finalize() {
-				if (this.hasOwnProperty(d$1("finalized"))) return;
-				if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(d$1("properties"))) {
-					const t = this.properties, s = [...r$1(t), ...o$2(t)];
-					for (const i of s) this.createProperty(i, t[i]);
-				}
-				const t = this[Symbol.metadata];
-				if (null !== t) {
-					const s = litPropertyMetadata.get(t);
-					if (void 0 !== s) for (const [t, i] of s) this.elementProperties.set(t, i);
-				}
-				this._$Eh = /* @__PURE__ */ new Map();
-				for (const [t, s] of this.elementProperties) {
-					const i = this._$Eu(t, s);
-					void 0 !== i && this._$Eh.set(i, t);
-				}
-				this.elementStyles = this.finalizeStyles(this.styles);
-			}
-			static finalizeStyles(s) {
-				const i = [];
-				if (Array.isArray(s)) {
-					const e = new Set(s.flat(Infinity).reverse());
-					for (const s of e) i.unshift(c$2(s));
-				} else void 0 !== s && i.push(c$2(s));
-				return i;
-			}
-			static _$Eu(t, s) {
-				const i = s.attribute;
-				return !1 === i ? void 0 : "string" == typeof i ? i : "string" == typeof t ? t.toLowerCase() : void 0;
-			}
-			constructor() {
-				super(), this._$Ep = void 0, this.isUpdatePending = !1, this.hasUpdated = !1, this._$Em = null, this._$Ev();
-			}
-			_$Ev() {
-				this._$ES = new Promise((t) => this.enableUpdating = t), this._$AL = /* @__PURE__ */ new Map(), this._$E_(), this.requestUpdate(), this.constructor.l?.forEach((t) => t(this));
-			}
-			addController(t) {
-				(this._$EO ??= /* @__PURE__ */ new Set()).add(t), void 0 !== this.renderRoot && this.isConnected && t.hostConnected?.();
-			}
-			removeController(t) {
-				this._$EO?.delete(t);
-			}
-			_$E_() {
-				const t = /* @__PURE__ */ new Map(), s = this.constructor.elementProperties;
-				for (const i of s.keys()) this.hasOwnProperty(i) && (t.set(i, this[i]), delete this[i]);
-				t.size > 0 && (this._$Ep = t);
-			}
-			createRenderRoot() {
-				const t = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-				return S$1(t, this.constructor.elementStyles), t;
-			}
-			connectedCallback() {
-				this.renderRoot ??= this.createRenderRoot(), this.enableUpdating(!0), this._$EO?.forEach((t) => t.hostConnected?.());
-			}
-			enableUpdating(t) {}
-			disconnectedCallback() {
-				this._$EO?.forEach((t) => t.hostDisconnected?.());
-			}
-			attributeChangedCallback(t, s, i) {
-				this._$AK(t, i);
-			}
-			_$ET(t, s) {
-				const i = this.constructor.elementProperties.get(t), e = this.constructor._$Eu(t, i);
-				if (void 0 !== e && !0 === i.reflect) {
-					const h = (void 0 !== i.converter?.toAttribute ? i.converter : u$1).toAttribute(s, i.type);
-					this._$Em = t, null == h ? this.removeAttribute(e) : this.setAttribute(e, h), this._$Em = null;
-				}
-			}
-			_$AK(t, s) {
-				const i = this.constructor, e = i._$Eh.get(t);
-				if (void 0 !== e && this._$Em !== e) {
-					const t = i.getPropertyOptions(e), h = "function" == typeof t.converter ? { fromAttribute: t.converter } : void 0 !== t.converter?.fromAttribute ? t.converter : u$1;
-					this._$Em = e;
-					const r = h.fromAttribute(s, t.type);
-					this[e] = r ?? this._$Ej?.get(e) ?? r, this._$Em = null;
-				}
-			}
-			requestUpdate(t, s, i, e = !1, h) {
-				if (void 0 !== t) {
-					const r = this.constructor;
-					if (!1 === e && (h = this[t]), i ??= r.getPropertyOptions(t), !((i.hasChanged ?? f$1)(h, s) || i.useDefault && i.reflect && h === this._$Ej?.get(t) && !this.hasAttribute(r._$Eu(t, i)))) return;
-					this.C(t, s, i);
-				}
-				!1 === this.isUpdatePending && (this._$ES = this._$EP());
-			}
-			C(t, s, { useDefault: i, reflect: e, wrapped: h }, r) {
-				i && !(this._$Ej ??= /* @__PURE__ */ new Map()).has(t) && (this._$Ej.set(t, r ?? s ?? this[t]), !0 !== h || void 0 !== r) || (this._$AL.has(t) || (this.hasUpdated || i || (s = void 0), this._$AL.set(t, s)), !0 === e && this._$Em !== t && (this._$Eq ??= /* @__PURE__ */ new Set()).add(t));
-			}
-			async _$EP() {
-				this.isUpdatePending = !0;
-				try {
-					await this._$ES;
-				} catch (t) {
-					Promise.reject(t);
-				}
-				const t = this.scheduleUpdate();
-				return null != t && await t, !this.isUpdatePending;
-			}
-			scheduleUpdate() {
-				return this.performUpdate();
-			}
-			performUpdate() {
-				if (!this.isUpdatePending) return;
-				if (!this.hasUpdated) {
-					if (this.renderRoot ??= this.createRenderRoot(), this._$Ep) {
-						for (const [t, s] of this._$Ep) this[t] = s;
-						this._$Ep = void 0;
-					}
-					const t = this.constructor.elementProperties;
-					if (t.size > 0) for (const [s, i] of t) {
-						const { wrapped: t } = i, e = this[s];
-						!0 !== t || this._$AL.has(s) || void 0 === e || this.C(s, void 0, i, e);
-					}
-				}
-				let t = !1;
-				const s = this._$AL;
-				try {
-					t = this.shouldUpdate(s), t ? (this.willUpdate(s), this._$EO?.forEach((t) => t.hostUpdate?.()), this.update(s)) : this._$EM();
-				} catch (s) {
-					throw t = !1, this._$EM(), s;
-				}
-				t && this._$AE(s);
-			}
-			willUpdate(t) {}
-			_$AE(t) {
-				this._$EO?.forEach((t) => t.hostUpdated?.()), this.hasUpdated || (this.hasUpdated = !0, this.firstUpdated(t)), this.updated(t);
-			}
-			_$EM() {
-				this._$AL = /* @__PURE__ */ new Map(), this.isUpdatePending = !1;
-			}
-			get updateComplete() {
-				return this.getUpdateComplete();
-			}
-			getUpdateComplete() {
-				return this._$ES;
-			}
-			shouldUpdate(t) {
-				return !0;
-			}
-			update(t) {
-				this._$Eq &&= this._$Eq.forEach((t) => this._$ET(t, this[t])), this._$EM();
-			}
-			updated(t) {}
-			firstUpdated(t) {}
-		};
-		y$1.elementStyles = [], y$1.shadowRootOptions = { mode: "open" }, y$1[d$1("elementProperties")] = /* @__PURE__ */ new Map(), y$1[d$1("finalized")] = /* @__PURE__ */ new Map(), p$1?.({ ReactiveElement: y$1 }), (a$1.reactiveElementVersions ??= []).push("2.1.2");
-	}));
-	//#endregion
-	//#region node_modules/lit-html/lit-html.js
-	/**
-	* @license
-	* Copyright 2017 Google LLC
-	* SPDX-License-Identifier: BSD-3-Clause
-	*/
-	function V(t, i) {
-		if (!u(t) || !t.hasOwnProperty("raw")) throw Error("invalid template strings array");
-		return void 0 !== e ? e.createHTML(i) : i;
 	}
-	function M(t, i, s = t, e) {
-		if (i === E) return i;
-		let h = void 0 !== e ? s._$Co?.[e] : s._$Cl;
-		const o = a(i) ? void 0 : i._$litDirective$;
-		return h?.constructor !== o && (h?._$AO?.(!1), void 0 === o ? h = void 0 : (h = new o(t), h._$AT(t, s, e)), void 0 !== e ? (s._$Co ??= [])[e] = h : s._$Cl = h), void 0 !== h && (i = M(t, h._$AS(t, i.values), h, e)), i;
-	}
-	var t, i$1, s$1, e, h, o$1, n, r, l, c, a, u, d, f, v, _, m, p, g, $, y, x, b, E, A, C, P, N, S, R, k, H, I, L, z, Z, B, D;
-	var init_lit_html = __esmMin((() => {
-		t = globalThis;
-		i$1 = (t) => t;
-		s$1 = t.trustedTypes;
-		e = s$1 ? s$1.createPolicy("lit-html", { createHTML: (t) => t }) : void 0;
-		h = "$lit$";
-		o$1 = `lit$${Math.random().toFixed(9).slice(2)}$`;
-		n = "?" + o$1;
-		r = `<${n}>`;
-		l = document;
-		c = () => l.createComment("");
-		a = (t) => null === t || "object" != typeof t && "function" != typeof t;
-		u = Array.isArray;
-		d = (t) => u(t) || "function" == typeof t?.[Symbol.iterator];
-		f = "[ 	\n\f\r]";
-		v = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
-		_ = /-->/g;
-		m = />/g;
-		p = RegExp(`>|${f}(?:([^\\s"'>=/]+)(${f}*=${f}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g");
-		g = /'/g;
-		$ = /"/g;
-		y = /^(?:script|style|textarea|title)$/i;
-		x = (t) => (i, ...s) => ({
-			_$litType$: t,
-			strings: i,
-			values: s
-		});
-		b = x(1);
-		x(2);
-		x(3);
-		E = Symbol.for("lit-noChange");
-		A = Symbol.for("lit-nothing");
-		C = /* @__PURE__ */ new WeakMap();
-		P = l.createTreeWalker(l, 129);
-		N = (t, i) => {
-			const s = t.length - 1, e = [];
-			let n, l = 2 === i ? "<svg>" : 3 === i ? "<math>" : "", c = v;
-			for (let i = 0; i < s; i++) {
-				const s = t[i];
-				let a, u, d = -1, f = 0;
-				for (; f < s.length && (c.lastIndex = f, u = c.exec(s), null !== u);) f = c.lastIndex, c === v ? "!--" === u[1] ? c = _ : void 0 !== u[1] ? c = m : void 0 !== u[2] ? (y.test(u[2]) && (n = RegExp("</" + u[2], "g")), c = p) : void 0 !== u[3] && (c = p) : c === p ? ">" === u[0] ? (c = n ?? v, d = -1) : void 0 === u[1] ? d = -2 : (d = c.lastIndex - u[2].length, a = u[1], c = void 0 === u[3] ? p : "\"" === u[3] ? $ : g) : c === $ || c === g ? c = p : c === _ || c === m ? c = v : (c = p, n = void 0);
-				const x = c === p && t[i + 1].startsWith("/>") ? " " : "";
-				l += c === v ? s + r : d >= 0 ? (e.push(a), s.slice(0, d) + h + s.slice(d) + o$1 + x) : s + o$1 + (-2 === d ? i : x);
-			}
-			return [V(t, l + (t[s] || "<?>") + (2 === i ? "</svg>" : 3 === i ? "</math>" : "")), e];
-		};
-		S = class S {
-			constructor({ strings: t, _$litType$: i }, e) {
-				let r;
-				this.parts = [];
-				let l = 0, a = 0;
-				const u = t.length - 1, d = this.parts, [f, v] = N(t, i);
-				if (this.el = S.createElement(f, e), P.currentNode = this.el.content, 2 === i || 3 === i) {
-					const t = this.el.content.firstChild;
-					t.replaceWith(...t.childNodes);
-				}
-				for (; null !== (r = P.nextNode()) && d.length < u;) {
-					if (1 === r.nodeType) {
-						if (r.hasAttributes()) for (const t of r.getAttributeNames()) if (t.endsWith(h)) {
-							const i = v[a++], s = r.getAttribute(t).split(o$1), e = /([.?@])?(.*)/.exec(i);
-							d.push({
-								type: 1,
-								index: l,
-								name: e[2],
-								strings: s,
-								ctor: "." === e[1] ? I : "?" === e[1] ? L : "@" === e[1] ? z : H
-							}), r.removeAttribute(t);
-						} else t.startsWith(o$1) && (d.push({
-							type: 6,
-							index: l
-						}), r.removeAttribute(t));
-						if (y.test(r.tagName)) {
-							const t = r.textContent.split(o$1), i = t.length - 1;
-							if (i > 0) {
-								r.textContent = s$1 ? s$1.emptyScript : "";
-								for (let s = 0; s < i; s++) r.append(t[s], c()), P.nextNode(), d.push({
-									type: 2,
-									index: ++l
-								});
-								r.append(t[i], c());
-							}
-						}
-					} else if (8 === r.nodeType) if (r.data === n) d.push({
-						type: 2,
-						index: l
-					});
-					else {
-						let t = -1;
-						for (; -1 !== (t = r.data.indexOf(o$1, t + 1));) d.push({
-							type: 7,
-							index: l
-						}), t += o$1.length - 1;
-					}
-					l++;
-				}
-			}
-			static createElement(t, i) {
-				const s = l.createElement("template");
-				return s.innerHTML = t, s;
-			}
-		};
-		R = class {
-			constructor(t, i) {
-				this._$AV = [], this._$AN = void 0, this._$AD = t, this._$AM = i;
-			}
-			get parentNode() {
-				return this._$AM.parentNode;
-			}
-			get _$AU() {
-				return this._$AM._$AU;
-			}
-			u(t) {
-				const { el: { content: i }, parts: s } = this._$AD, e = (t?.creationScope ?? l).importNode(i, !0);
-				P.currentNode = e;
-				let h = P.nextNode(), o = 0, n = 0, r = s[0];
-				for (; void 0 !== r;) {
-					if (o === r.index) {
-						let i;
-						2 === r.type ? i = new k(h, h.nextSibling, this, t) : 1 === r.type ? i = new r.ctor(h, r.name, r.strings, this, t) : 6 === r.type && (i = new Z(h, this, t)), this._$AV.push(i), r = s[++n];
-					}
-					o !== r?.index && (h = P.nextNode(), o++);
-				}
-				return P.currentNode = l, e;
-			}
-			p(t) {
-				let i = 0;
-				for (const s of this._$AV) void 0 !== s && (void 0 !== s.strings ? (s._$AI(t, s, i), i += s.strings.length - 2) : s._$AI(t[i])), i++;
-			}
-		};
-		k = class k {
-			get _$AU() {
-				return this._$AM?._$AU ?? this._$Cv;
-			}
-			constructor(t, i, s, e) {
-				this.type = 2, this._$AH = A, this._$AN = void 0, this._$AA = t, this._$AB = i, this._$AM = s, this.options = e, this._$Cv = e?.isConnected ?? !0;
-			}
-			get parentNode() {
-				let t = this._$AA.parentNode;
-				const i = this._$AM;
-				return void 0 !== i && 11 === t?.nodeType && (t = i.parentNode), t;
-			}
-			get startNode() {
-				return this._$AA;
-			}
-			get endNode() {
-				return this._$AB;
-			}
-			_$AI(t, i = this) {
-				t = M(this, t, i), a(t) ? t === A || null == t || "" === t ? (this._$AH !== A && this._$AR(), this._$AH = A) : t !== this._$AH && t !== E && this._(t) : void 0 !== t._$litType$ ? this.$(t) : void 0 !== t.nodeType ? this.T(t) : d(t) ? this.k(t) : this._(t);
-			}
-			O(t) {
-				return this._$AA.parentNode.insertBefore(t, this._$AB);
-			}
-			T(t) {
-				this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
-			}
-			_(t) {
-				this._$AH !== A && a(this._$AH) ? this._$AA.nextSibling.data = t : this.T(l.createTextNode(t)), this._$AH = t;
-			}
-			$(t) {
-				const { values: i, _$litType$: s } = t, e = "number" == typeof s ? this._$AC(t) : (void 0 === s.el && (s.el = S.createElement(V(s.h, s.h[0]), this.options)), s);
-				if (this._$AH?._$AD === e) this._$AH.p(i);
-				else {
-					const t = new R(e, this), s = t.u(this.options);
-					t.p(i), this.T(s), this._$AH = t;
-				}
-			}
-			_$AC(t) {
-				let i = C.get(t.strings);
-				return void 0 === i && C.set(t.strings, i = new S(t)), i;
-			}
-			k(t) {
-				u(this._$AH) || (this._$AH = [], this._$AR());
-				const i = this._$AH;
-				let s, e = 0;
-				for (const h of t) e === i.length ? i.push(s = new k(this.O(c()), this.O(c()), this, this.options)) : s = i[e], s._$AI(h), e++;
-				e < i.length && (this._$AR(s && s._$AB.nextSibling, e), i.length = e);
-			}
-			_$AR(t = this._$AA.nextSibling, s) {
-				for (this._$AP?.(!1, !0, s); t !== this._$AB;) {
-					const s = i$1(t).nextSibling;
-					i$1(t).remove(), t = s;
-				}
-			}
-			setConnected(t) {
-				void 0 === this._$AM && (this._$Cv = t, this._$AP?.(t));
-			}
-		};
-		H = class {
-			get tagName() {
-				return this.element.tagName;
-			}
-			get _$AU() {
-				return this._$AM._$AU;
-			}
-			constructor(t, i, s, e, h) {
-				this.type = 1, this._$AH = A, this._$AN = void 0, this.element = t, this.name = i, this._$AM = e, this.options = h, s.length > 2 || "" !== s[0] || "" !== s[1] ? (this._$AH = Array(s.length - 1).fill(/* @__PURE__ */ new String()), this.strings = s) : this._$AH = A;
-			}
-			_$AI(t, i = this, s, e) {
-				const h = this.strings;
-				let o = !1;
-				if (void 0 === h) t = M(this, t, i, 0), o = !a(t) || t !== this._$AH && t !== E, o && (this._$AH = t);
-				else {
-					const e = t;
-					let n, r;
-					for (t = h[0], n = 0; n < h.length - 1; n++) r = M(this, e[s + n], i, n), r === E && (r = this._$AH[n]), o ||= !a(r) || r !== this._$AH[n], r === A ? t = A : t !== A && (t += (r ?? "") + h[n + 1]), this._$AH[n] = r;
-				}
-				o && !e && this.j(t);
-			}
-			j(t) {
-				t === A ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
-			}
-		};
-		I = class extends H {
-			constructor() {
-				super(...arguments), this.type = 3;
-			}
-			j(t) {
-				this.element[this.name] = t === A ? void 0 : t;
-			}
-		};
-		L = class extends H {
-			constructor() {
-				super(...arguments), this.type = 4;
-			}
-			j(t) {
-				this.element.toggleAttribute(this.name, !!t && t !== A);
-			}
-		};
-		z = class extends H {
-			constructor(t, i, s, e, h) {
-				super(t, i, s, e, h), this.type = 5;
-			}
-			_$AI(t, i = this) {
-				if ((t = M(this, t, i, 0) ?? A) === E) return;
-				const s = this._$AH, e = t === A && s !== A || t.capture !== s.capture || t.once !== s.once || t.passive !== s.passive, h = t !== A && (s === A || e);
-				e && this.element.removeEventListener(this.name, this, s), h && this.element.addEventListener(this.name, this, t), this._$AH = t;
-			}
-			handleEvent(t) {
-				"function" == typeof this._$AH ? this._$AH.call(this.options?.host ?? this.element, t) : this._$AH.handleEvent(t);
-			}
-		};
-		Z = class {
-			constructor(t, i, s) {
-				this.element = t, this.type = 6, this._$AN = void 0, this._$AM = i, this.options = s;
-			}
-			get _$AU() {
-				return this._$AM._$AU;
-			}
-			_$AI(t) {
-				M(this, t);
-			}
-		};
-		B = t.litHtmlPolyfillSupport;
-		B?.(S, k), (t.litHtmlVersions ??= []).push("3.3.3");
-		D = (t, i, s) => {
-			const e = s?.renderBefore ?? i;
-			let h = e._$litPart$;
-			if (void 0 === h) {
-				const t = s?.renderBefore ?? null;
-				e._$litPart$ = h = new k(i.insertBefore(c(), t), t, void 0, s ?? {});
-			}
-			return h._$AI(t), h;
-		};
-	}));
-	//#endregion
-	//#region node_modules/lit-element/lit-element.js
-	var s, i, o;
-	var init_lit_element = __esmMin((() => {
-		init_reactive_element();
-		init_reactive_element();
-		init_lit_html();
-		init_lit_html();
-		s = globalThis;
-		i = class extends y$1 {
-			constructor() {
-				/**
-				* @license
-				* Copyright 2017 Google LLC
-				* SPDX-License-Identifier: BSD-3-Clause
-				*/
-				super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
-			}
-			createRenderRoot() {
-				const t = super.createRenderRoot();
-				return this.renderOptions.renderBefore ??= t.firstChild, t;
-			}
-			update(t) {
-				const r = this.render();
-				this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(t), this._$Do = D(r, this.renderRoot, this.renderOptions);
-			}
-			connectedCallback() {
-				super.connectedCallback(), this._$Do?.setConnected(!0);
-			}
-			disconnectedCallback() {
-				super.disconnectedCallback(), this._$Do?.setConnected(!1);
-			}
-			render() {
-				return E;
-			}
-		};
-		i._$litElement$ = !0, i["finalized"] = !0, s.litElementHydrateSupport?.({ LitElement: i });
-		o = s.litElementPolyfillSupport;
-		o?.({ LitElement: i });
-		(s.litElementVersions ??= []).push("4.2.2");
-	}));
-	//#endregion
-	//#region node_modules/lit-html/is-server.js
-	var init_is_server = __esmMin((() => {}));
-	/**
-	* @license
-	* Copyright 2022 Google LLC
-	* SPDX-License-Identifier: BSD-3-Clause
-	*/
-	//#endregion
-	//#region node_modules/lit/index.js
-	var init_lit = __esmMin((() => {
-		init_reactive_element();
-		init_lit_html();
-		init_lit_element();
-		init_is_server();
-	}));
-	//#endregion
-	//#region src/components/reset-lessons-dialog.js
-	var reset_lessons_dialog_exports = /* @__PURE__ */ __exportAll({
-		RESET_DIALOG_TAG: () => RESET_DIALOG_TAG,
-		RESET_OVERLAY_ID: () => RESET_OVERLAY_ID,
-		ResetLessonsDialog: () => ResetLessonsDialog
-	});
-	var RESET_DIALOG_TAG, RESET_OVERLAY_ID, ResetLessonsDialog;
-	var init_reset_lessons_dialog = __esmMin((() => {
-		init_lit();
-		RESET_DIALOG_TAG = "edvibe-toolbox-reset-dialog";
-		RESET_OVERLAY_ID = "edvibe-toolbox-reset-overlay";
-		ResetLessonsDialog = class extends i {
-			static properties = {
-				stylesheetUrl: { state: true },
-				currentStep: { state: true },
-				allPupils: { state: true },
-				pupilTotal: { state: true },
-				selectedPupil: { state: true },
-				lessons: { state: true },
-				selectedLessonIds: { state: true },
-				locked: { state: true },
-				loading: { state: true },
-				finished: { state: true },
-				pupilPageLoading: { state: true },
-				appliedSearchQuery: { state: true },
-				searchDebouncing: { state: true },
-				suppressPupilPageLoading: { state: true },
-				searchValue: { state: true },
-				statusMessage: { state: true },
-				statusState: { state: true },
-				progressVisible: { state: true },
-				progressIndeterminate: { state: true },
-				progressValue: { state: true }
+	function createPupilPager(sendRequest, marathonId, pageSize = 50) {
+		let pupils = [];
+		let total = null;
+		let inFlight = null;
+		function snapshot() {
+			return {
+				pupils: [...pupils],
+				total,
+				hasMore: total === null || pupils.length < total
 			};
-			constructor() {
-				super();
-				this.stylesheetUrl = "";
-				this.searchDelay = 1e3;
-				this.log = () => {};
-				this.loadLessons = null;
-				this.loadNextPupils = null;
-				this.currentStep = "user";
-				this.allPupils = [];
-				this.pupilTotal = 0;
-				this.selectedPupil = null;
-				this.loadedPupilId = null;
-				this.lessons = [];
-				this.selectedLessonIds = /* @__PURE__ */ new Set();
-				this.locked = false;
-				this.loading = false;
-				this.finished = false;
-				this.closed = false;
-				this.pupilPagePromise = null;
-				this.pupilPageLoading = false;
-				this.searchTimer = null;
-				this.searchGeneration = 0;
-				this.appliedSearchQuery = "";
-				this.searchDebouncing = false;
-				this.suppressPupilPageLoading = false;
-				this.searchValue = "";
-				this.statusMessage = "";
-				this.statusState = "";
-				this.progressVisible = false;
-				this.progressIndeterminate = false;
-				this.progressValue = 0;
-				this.elements = null;
-				this.handleKeydownBound = (event) => this.handleKeydown(event);
+		}
+		async function requestNextPage() {
+			if (total !== null && pupils.length >= total) return snapshot();
+			const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
+				MarathonId: marathonId,
+				Skip: pupils.length,
+				Take: pageSize
+			});
+			const items = response.Value?.Items;
+			const nextTotal = response.Value?.Page?.Count;
+			if (!Array.isArray(items) || typeof nextTotal !== "number" || !Number.isInteger(nextTotal) || nextTotal < 0) throw new Error("GetMarathonPupils returned an invalid response.");
+			if (items.length === 0 && pupils.length < nextTotal) throw new Error("GetMarathonPupils pagination stopped before all pupils were loaded.");
+			pupils = pupils.concat(items);
+			total = nextTotal;
+			return snapshot();
+		}
+		return {
+			loadNext() {
+				if (inFlight) return inFlight;
+				inFlight = requestNextPage().finally(() => {
+					inFlight = null;
+				});
+				return inFlight;
+			},
+			getSnapshot: snapshot
+		};
+	}
+	async function discoverResetWork({ sendRequest, wait, marathonId, pupilId, lessons, onDiscovery = () => {}, log = () => {} }) {
+		const work = [];
+		for (const lesson of lessons) {
+			log(`Discovering lesson ${lesson.MarathonLessonId} (LessonId: ${lesson.LessonId}).`);
+			onDiscovery(`Loading sections for "${lesson.Name}"...`);
+			const sections = collectLessonSections((await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.LessonId })).Value);
+			const exercises = [];
+			log(`Lesson ${lesson.MarathonLessonId}: ${sections.length} section(s) found.`);
+			for (const section of sections) {
+				await wait(300);
+				const items = (await sendRequest("GetExerciseWsController", "LoadExercises", "Exercises", buildLoadExercisesPayload({
+					marathonId,
+					pupilId,
+					marathonLessonId: lesson.MarathonLessonId,
+					sectionId: section.Id
+				}))).Value?.Items;
+				if (!Array.isArray(items)) throw new Error(`LoadExercises returned invalid data for "${lesson.Name}".`);
+				const resettableItems = items.filter((item) => Number.isFinite(item.Id) && Array.isArray(item.AnswerVersion1) && item.AnswerVersion1.length > 0);
+				exercises.push(...resettableItems.map((item) => ({
+					id: item.Id,
+					type: item.Type,
+					sectionId: section.Id
+				})));
+				log(`Lesson ${lesson.MarathonLessonId}, section ${section.Id}: ${resettableItems.length} of ${items.length} exercise(s) have saved answers.`);
 			}
-			connectedCallback() {
-				super.connectedCallback();
-				if (!this.id) this.id = RESET_OVERLAY_ID;
-				this.ownerDocument?.addEventListener("keydown", this.handleKeydownBound);
-			}
-			disconnectedCallback() {
-				this.cancelSearch();
-				this.ownerDocument?.removeEventListener("keydown", this.handleKeydownBound);
-				super.disconnectedCallback();
-			}
-			configure(options = {}) {
-				options = options && typeof options === "object" ? options : {};
-				const { stylesheetUrl = "", searchDelay = 1e3, loadLessons, loadNextPupils, log = () => {} } = options;
-				this.stylesheetUrl = String(stylesheetUrl || "");
-				this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1e3;
-				this.loadLessons = typeof loadLessons === "function" ? loadLessons : null;
-				this.loadNextPupils = typeof loadNextPupils === "function" ? loadNextPupils : null;
-				this.log = typeof log === "function" ? log : () => {};
-				return this;
-			}
-			updated() {
-				this.cacheElements();
-			}
-			cacheElements() {
-				if (!this.shadowRoot) {
-					this.elements = null;
-					return;
-				}
-				const find = (selector) => this.shadowRoot.querySelector(selector);
-				this.elements = {
-					stylesheet: find(".edvibe-reset-stylesheet"),
-					backdrop: find(".edvibe-reset-overlay"),
-					search: find(".edvibe-reset-search"),
-					userStep: find(".edvibe-reset-user-step"),
-					lessonStep: find(".edvibe-reset-lesson-step"),
-					pupilsShell: find(".edvibe-reset-pupils-shell"),
-					pupilsList: find(".edvibe-reset-pupils"),
-					pupilsLoading: find(".edvibe-reset-pupils-loading"),
-					lessonsList: find(".edvibe-reset-lessons"),
-					selectAll: find(".edvibe-reset-select-all-input"),
-					status: find(".edvibe-reset-status"),
-					progress: find(".edvibe-reset-progress"),
-					close: find(".edvibe-reset-close"),
-					cancel: find(".edvibe-reset-cancel"),
-					back: find(".edvibe-reset-back"),
-					next: find(".edvibe-reset-next"),
-					submit: find(".edvibe-reset-submit")
-				};
-			}
-			normalizeSearchQuery(value) {
-				return String(value || "").trim().toLowerCase();
-			}
-			filterPupils(query) {
-				const normalized = this.normalizeSearchQuery(query);
-				if (!normalized) return this.allPupils;
-				return this.allPupils.filter((pupil) => String(pupil.Email || "").toLowerCase().includes(normalized));
-			}
-			hasMorePupils() {
-				return this.allPupils.length < this.pupilTotal;
-			}
-			hasLoadedLessonsForSelectedPupil() {
-				return Boolean(this.selectedPupil) && this.selectedPupil.PupilId === this.loadedPupilId;
-			}
-			isPupilLoadingVisible() {
-				return this.loading || this.pupilPageLoading && !this.suppressPupilPageLoading;
-			}
-			getViewState() {
-				const blocked = this.loading || this.locked || this.finished;
-				return {
-					showingUsers: this.currentStep === "user",
-					nextDisabled: blocked || !this.selectedPupil,
-					backDisabled: this.loading || this.locked,
-					submitDisabled: blocked || !this.selectedPupil || this.selectedLessonIds.size === 0,
-					closeDisabled: this.loading || this.locked
-				};
-			}
-			setStatus(message, state = "") {
-				this.statusMessage = String(message || "");
-				this.statusState = state === "error" || state === "success" ? state : "";
-			}
-			renderState() {
-				this.requestUpdate();
-			}
-			renderPupilLoadingState() {
-				this.requestUpdate();
-			}
-			renderPupils() {
-				this.requestUpdate();
-			}
-			selectPupil(pupil) {
-				if (this.locked || this.finished || this.isPupilLoadingVisible() || pupil.PupilId === this.selectedPupil?.PupilId) return;
-				if (pupil.PupilId !== this.loadedPupilId) {
-					this.loadedPupilId = null;
-					this.lessons = [];
-					this.selectedLessonIds = /* @__PURE__ */ new Set();
-				}
-				this.selectedPupil = pupil;
-				this.setStatus(`Выбран пользователь: ${pupil.Email || "email отсутствует"}`);
-			}
-			renderLessons() {
-				this.requestUpdate();
-			}
-			toggleLesson(lessonId, selected) {
-				if (selected) this.selectedLessonIds.add(lessonId);
-				else this.selectedLessonIds.delete(lessonId);
-				this.requestUpdate();
-			}
-			handleSelectAll(event) {
-				const checked = event?.currentTarget?.checked ?? this.elements?.selectAll?.checked;
-				this.selectedLessonIds = checked ? new Set(this.lessons.map((lesson) => lesson.MarathonLessonId)) : /* @__PURE__ */ new Set();
-			}
-			handleSearchInput(event) {
-				this.searchValue = String(event?.currentTarget?.value ?? this.searchValue);
-				this.searchGeneration += 1;
-				this.cancelSearchTimer();
-				this.searchDebouncing = true;
-				this.suppressPupilPageLoading = true;
-				const query = this.normalizeSearchQuery(this.searchValue);
-				const generation = this.searchGeneration;
-				this.searchTimer = globalThis.setTimeout(async () => {
-					if (!this.isCurrentSearch(generation, query)) return;
-					this.searchTimer = null;
-					const needsRemotePupils = Boolean(query && this.filterPupils(query).length === 0 && this.hasMorePupils());
-					this.searchDebouncing = false;
-					if (needsRemotePupils || !this.pupilPageLoading) this.suppressPupilPageLoading = false;
-					if (needsRemotePupils && !await this.continueSearch(generation, query)) return;
-					if (!this.isCurrentSearch(generation, query)) return;
-					this.appliedSearchQuery = query;
-				}, this.searchDelay);
-			}
-			isCurrentSearch(generation, query) {
-				return !this.closed && generation === this.searchGeneration && query === this.normalizeSearchQuery(this.searchValue);
-			}
-			cancelSearchTimer() {
-				if (this.searchTimer === null) return;
-				globalThis.clearTimeout(this.searchTimer);
-				this.searchTimer = null;
-			}
-			cancelSearch() {
-				this.searchGeneration += 1;
-				this.cancelSearchTimer();
-			}
-			async continueSearch(generation, query) {
-				while (this.isCurrentSearch(generation, query) && this.filterPupils(query).length === 0 && this.hasMorePupils()) if (!await this.loadNextPupilPage()) return false;
-				return true;
-			}
-			async loadNextPupilPage() {
-				if (this.closed || !this.loadNextPupils || !this.hasMorePupils()) return false;
-				if (this.pupilPagePromise) return this.pupilPagePromise;
-				this.suppressPupilPageLoading = false;
-				this.pupilPageLoading = true;
-				this.pupilPagePromise = (async () => {
-					try {
-						const page = await this.loadNextPupils();
-						if (this.closed) return false;
-						this.allPupils = Array.isArray(page?.pupils) ? page.pupils : [];
-						this.pupilTotal = Number(page?.total) || 0;
-						if (this.currentStep === "user" && !this.loading) this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`);
-						return true;
-					} catch (error) {
-						if (!this.closed && this.currentStep === "user" && !this.loading) {
-							this.log(`Failed to load another pupil page (${this.errorType(error)}).`);
-							this.setStatus(error.message, "error");
-						}
-						return false;
-					} finally {
-						this.pupilPagePromise = null;
-						this.pupilPageLoading = false;
-						if (!this.searchDebouncing) this.suppressPupilPageLoading = false;
-					}
-				})();
-				return this.pupilPagePromise;
-			}
-			handlePupilsScroll(event) {
-				if (this.searchDebouncing) return;
-				const list = event?.currentTarget || this.elements?.pupilsList;
-				if (!list) return;
-				if (list.scrollHeight - list.scrollTop - list.clientHeight <= 24) this.loadNextPupilPage();
-			}
-			async handleNext() {
-				if (this.getViewState().nextDisabled || !this.selectedPupil) return;
-				if (this.hasLoadedLessonsForSelectedPupil()) {
-					this.currentStep = "lessons";
-					await this.updateComplete;
-					this.shadowRoot?.querySelector(".edvibe-reset-lessons")?.focus();
-					return;
-				}
-				if (!this.loadLessons) return;
+			work.push({
+				lesson,
+				exercises,
+				deleteRequestId: shouldDeleteLastRequest(lesson) ? lesson.LastRequest.Id : null
+			});
+			log(`Lesson ${lesson.MarathonLessonId}: ${exercises.length} exercise reset(s), ${shouldDeleteLastRequest(lesson) ? "request deletion required" : "no request deletion"}.`);
+		}
+		return work;
+	}
+	async function executeResetWork({ sendRequest, sendWithoutResponse, wait, marathonId, pupilId, work, onProgress, log = () => {} }) {
+		const total = work.reduce((sum, item) => sum + item.exercises.length, 0);
+		let completed = 0;
+		log(`Starting ${total} operation(s) for PupilId ${pupilId} across ${work.length} lesson(s).`);
+		for (const item of work) {
+			for (const exercise of item.exercises) {
 				try {
-					this.setLoading(`Загрузка уроков для ${this.selectedPupil.Email}...`);
-					const lessons = await this.loadLessons(this.selectedPupil);
-					this.showLessons(this.selectedPupil, lessons);
+					log(`Resetting exercise ${exercise.id} for lesson ${item.lesson.MarathonLessonId} (${completed + 1}/${total}).`);
+					await wait(300);
+					await sendRequest("ExerciseAnswerSaveVersion1WsController", "SaveAnswer", "ExerciseAnswer", buildResetAnswerPayload({
+						marathonId,
+						pupilId,
+						lessonId: item.lesson.LessonId,
+						exercise
+					}));
+					if ((await sendRequest("MarathonStatisticService", "DropMarathonExerciseStatistic", "Statistic", {
+						MarathondId: marathonId,
+						PupilId: pupilId,
+						ExerciseId: exercise.id
+					})).Value !== true) throw new Error("server did not confirm the reset");
 				} catch (error) {
-					this.loading = false;
-					this.currentStep = "user";
-					this.log(`Failed to load lessons for PupilId ${this.selectedPupil.PupilId} (${this.errorType(error)}).`);
-					this.setStatus(error.message, "error");
+					throw new Error(`Failed in "${item.lesson.Name}", exercise ${exercise.id}: ${error.message}`);
 				}
-			}
-			handleBack() {
-				if (this.getViewState().backDisabled) return;
-				if (this.finished) {
-					this.resetForAnotherUser();
-					return;
-				}
-				this.currentStep = "user";
-				this.setStatus(`Выбран пользователь: ${this.selectedPupil?.Email || "email отсутствует"}`);
-				this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-search")?.focus());
-			}
-			handleSubmit() {
-				if (this.getViewState().submitDisabled) return;
-				this.dispatchEvent(new CustomEvent("edvibe-reset-request", { detail: {
-					pupil: this.selectedPupil,
-					lessons: this.lessons.filter((lesson) => this.selectedLessonIds.has(lesson.MarathonLessonId))
-				} }));
-			}
-			handleBackdropClick(event) {
-				if (event.target === event.currentTarget) this.close();
-			}
-			handleKeydown(event) {
-				if (event.key === "Escape") this.close();
-			}
-			close() {
-				if (this.locked || this.loading || this.closed) return;
-				this.closed = true;
-				this.cancelSearch();
-				this.dispatchEvent(new CustomEvent("edvibe-dialog-close"));
-				this.remove();
-			}
-			resetForAnotherUser() {
-				this.finished = false;
-				this.currentStep = "user";
-				this.selectedPupil = null;
-				this.loadedPupilId = null;
-				this.lessons = [];
-				this.selectedLessonIds = /* @__PURE__ */ new Set();
-				this.searchValue = "";
-				this.appliedSearchQuery = "";
-				this.cancelSearch();
-				this.searchDebouncing = false;
-				this.suppressPupilPageLoading = false;
-				this.progressVisible = false;
-				this.progressIndeterminate = false;
-				this.progressValue = 0;
-				this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`);
-				this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-search")?.focus());
-			}
-			showPupils(options = {}) {
-				options = options && typeof options === "object" ? options : {};
-				const pupils = Array.isArray(options.pupils) ? options.pupils : [];
-				const total = Number.isFinite(Number(options.total)) ? Number(options.total) : pupils.length;
-				this.allPupils = pupils;
-				this.pupilTotal = total;
-				this.currentStep = "user";
-				this.loading = false;
-				this.setStatus(`Загружено пользователей: ${pupils.length} из ${total}`);
-				this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-search")?.focus());
-				return this;
-			}
-			showLessons(pupil, lessons) {
-				if (!pupil || typeof pupil !== "object") return this;
-				lessons = Array.isArray(lessons) ? lessons : [];
-				const pupilChanged = this.loadedPupilId !== pupil.PupilId;
-				this.selectedPupil = pupil;
-				this.loadedPupilId = pupil.PupilId;
-				this.lessons = lessons;
-				if (pupilChanged) this.selectedLessonIds = /* @__PURE__ */ new Set();
-				this.loading = false;
-				this.currentStep = "lessons";
-				this.setStatus(`Загружено уроков: ${lessons.length}`);
-				this.updateComplete.then(() => this.shadowRoot?.querySelector(".edvibe-reset-lessons")?.focus());
-				return this;
-			}
-			setLoading(message) {
-				this.loading = true;
-				this.setStatus(message);
-			}
-			lock() {
-				this.locked = true;
-				this.classList.toggle("is-running", true);
-			}
-			completeRun() {
-				this.locked = false;
-				this.finished = true;
-				this.classList.toggle("is-running", false);
-			}
-			unlockAfterRun() {
-				this.locked = false;
-				this.finished = false;
-				this.classList.toggle("is-running", false);
-			}
-			showDiscovery(message) {
-				this.setStatus(message);
-				this.progressVisible = true;
-				this.progressIndeterminate = true;
-			}
-			showProgress(options = {}) {
-				options = options && typeof options === "object" ? options : {};
-				const completed = Number(options.completed) || 0;
-				const total = Number(options.total) || 0;
-				const lesson = options.lesson && typeof options.lesson === "object" ? options.lesson : {};
-				const exerciseId = options.exerciseId;
-				const percent = total > 0 ? Math.round(completed / total * 100) : 100;
-				const detail = exerciseId ? `Упражнение ${exerciseId}` : "Удаление запроса урока";
-				this.setStatus(`${lesson.Name || ""}\n${detail} — ${completed} / ${total}`);
-				this.progressVisible = true;
-				this.progressIndeterminate = false;
-				this.progressValue = percent;
-			}
-			showComplete(message) {
-				this.setStatus(message, "success");
-				this.progressVisible = true;
-				this.progressIndeterminate = false;
-				this.progressValue = 100;
-			}
-			showError(message) {
-				if (!this.locked) this.loading = false;
-				this.setStatus(message, "error");
-				this.progressIndeterminate = false;
-			}
-			errorType(error) {
-				return typeof error?.name === "string" ? error.name : "Error";
-			}
-			renderPupilRows() {
-				const visiblePupils = this.filterPupils(this.appliedSearchQuery);
-				if (visiblePupils.length === 0) return b`<p class="edvibe-reset-empty">Пользователи не найдены.</p>`;
-				const busy = this.isPupilLoadingVisible();
-				return visiblePupils.map((pupil) => {
-					const selected = pupil.PupilId === this.selectedPupil?.PupilId;
-					return b`
-                <button type="button" class=${`edvibe-reset-row${selected ? " is-selected" : ""}`} role="option"
-                    aria-selected=${String(selected)}
-                    ?disabled=${busy || this.locked || this.finished}
-                    @click=${() => this.selectPupil(pupil)}>
-                    <span class="edvibe-reset-row-copy">
-                        <span class="edvibe-reset-row-name">${pupil.Name || "Без имени"}</span>
-                        <span class="edvibe-reset-row-email">${pupil.Email || "Email отсутствует"}</span>
-                    </span>
-                </button>
-            `;
+				completed += 1;
+				onProgress({
+					completed,
+					total,
+					lesson: item.lesson,
+					exerciseId: exercise.id
 				});
 			}
-			renderLessonRows(inputsBlocked) {
-				if (this.lessons.length === 0) return b`<p class="edvibe-reset-empty">Для пользователя нет уроков.</p>`;
-				return this.lessons.map((lesson) => b`
-            <label class="edvibe-reset-row edvibe-reset-lesson">
-                <input type="checkbox" .value=${String(lesson.MarathonLessonId)}
-                    .checked=${this.selectedLessonIds.has(lesson.MarathonLessonId)}
-                    ?disabled=${inputsBlocked}
-                    @change=${(event) => this.toggleLesson(lesson.MarathonLessonId, event.currentTarget.checked)}>
-                <span class="edvibe-reset-row-copy">
-                    <span class="edvibe-reset-row-name">
-                        ${Number(lesson.Number) + 1}. ${lesson.Name}
-                    </span>
-                    <span class="edvibe-reset-row-email">
-                        ${lesson.LastRequest ? `Статус последнего запроса: ${lesson.LastRequest.Status}` : "Нет запросов на проверку"}
-                    </span>
-                </span>
-            </label>
-        `);
+			if (item.deleteRequestId) sendWithoutResponse("MarathonLessonWsController", "DeleteMarathonLessonRequestPupil", "Marathons", { RequestId: item.deleteRequestId });
+		}
+		log(`Completed all ${total} operation(s) for PupilId ${pupilId}.`);
+	}
+	function getErrorType(error) {
+		return typeof error?.name === "string" ? error.name : "Error";
+	}
+	function createResetLessonsFeature({ sendRequest, sendWithoutResponse, wait, canStart, onActiveChange, createDialog = () => document.createElement(RESET_DIALOG_TAG), log = () => {} }) {
+		let running = false;
+		let active = false;
+		function releaseOperation() {
+			if (!active) return;
+			active = false;
+			onActiveChange(false);
+		}
+		async function open({ stylesheetUrl = "" } = {}) {
+			if (document.getElementById(RESET_OVERLAY_ID)) return;
+			if (!canStart()) {
+				window.alert("Another Edvibe Toolbox operation is already running.");
+				return;
 			}
-			render() {
-				const view = this.getViewState();
-				const inputsBlocked = this.locked || this.loading || this.finished;
-				const pupilBusy = this.isPupilLoadingVisible();
-				const selectAllChecked = this.lessons.length > 0 && this.selectedLessonIds.size === this.lessons.length;
-				const selectAllIndeterminate = this.selectedLessonIds.size > 0 && this.selectedLessonIds.size < this.lessons.length;
-				const statusClass = `edvibe-reset-status${this.statusState === "error" ? " is-error" : this.statusState === "success" ? " is-success" : ""}`;
-				const progressClass = `edvibe-reset-progress${this.progressVisible ? " is-visible" : ""}${this.progressIndeterminate ? " is-indeterminate" : ""}`;
-				const progressValue = this.progressIndeterminate ? A : this.progressValue;
-				const selectedPupilLabel = this.selectedPupil ? `${this.selectedPupil.Name || "Без имени"} — ${this.selectedPupil.Email || ""}` : "";
-				return b`
-            <link class="edvibe-reset-stylesheet" rel="stylesheet"
-                href=${this.stylesheetUrl || A}>
-            <div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
-                <div class="edvibe-reset-card" role="dialog" aria-modal="true"
-                    aria-labelledby="edvibe-reset-title">
-                    <div class="edvibe-reset-header">
-                        <div>
-                            <h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2>
-                            <p class="edvibe-reset-subtitle">
-                                <span class="edvibe-reset-step-indicator">
-                                    ${view.showingUsers ? "Шаг 1 из 2" : "Шаг 2 из 2"}
-                                </span>
-                                <span class="edvibe-reset-step-description">
-                                    ${view.showingUsers ? "Выберите пользователя." : "Выберите уроки для сброса прогресса."}
-                                </span>
-                            </p>
-                        </div>
-                        <button class="edvibe-reset-close" type="button" aria-label="Закрыть"
-                            ?disabled=${view.closeDisabled} @click=${() => this.close()}>&times;</button>
-                    </div>
-                    <div class="edvibe-reset-body">
-                        <section class="edvibe-reset-user-step" aria-label="Выбор пользователя"
-                            ?hidden=${!view.showingUsers}>
-                            <label class="edvibe-reset-label" for="edvibe-reset-search">Поиск по email</label>
-                            <input id="edvibe-reset-search" class="edvibe-reset-search" type="search"
-                                placeholder="user@example.com" autocomplete="off"
-                                .value=${this.searchValue} ?disabled=${inputsBlocked}
-                                @input=${this.handleSearchInput}>
-                            <div class=${`edvibe-reset-pupils-shell${pupilBusy ? " is-loading" : ""}`}>
-                                <div class="edvibe-reset-list edvibe-reset-pupils" role="listbox"
-                                    aria-label="Пользователи марафона" aria-busy=${String(pupilBusy)}
-                                    .inert=${pupilBusy} @scroll=${this.handlePupilsScroll}>
-                                    ${this.renderPupilRows()}
-                                </div>
-                                <div class="edvibe-reset-pupils-loading" role="status" aria-live="polite"
-                                    ?hidden=${!pupilBusy}>
-                                    <span class="edvibe-reset-spinner" aria-hidden="true"></span>
-                                    <span>Загрузка пользователей...</span>
-                                </div>
-                            </div>
-                        </section>
-                        <section class="edvibe-reset-lesson-step" aria-label="Выбор уроков"
-                            ?hidden=${view.showingUsers}>
-                            <div class="edvibe-reset-label edvibe-reset-selected-pupil">
-                                ${selectedPupilLabel}
-                            </div>
-                            <label class="edvibe-reset-select-all">
-                                <input class="edvibe-reset-select-all-input" type="checkbox"
-                                    .checked=${selectAllChecked}
-                                    .indeterminate=${selectAllIndeterminate}
-                                    ?disabled=${inputsBlocked || this.lessons.length === 0}
-                                    @change=${this.handleSelectAll}>
-                                Выбрать все уроки
-                            </label>
-                            <div class="edvibe-reset-list edvibe-reset-lessons"
-                                aria-label="Уроки пользователя" tabindex="-1">
-                                ${this.renderLessonRows(inputsBlocked)}
-                            </div>
-                        </section>
-                    </div>
-                    <div class="edvibe-reset-live-region">
-                        <p class=${statusClass} aria-live="polite">${this.statusMessage}</p>
-                        <progress class=${progressClass} max="100" value=${progressValue}></progress>
-                    </div>
-                    <div class="edvibe-reset-footer">
-                        <button class="edvibe-reset-button edvibe-reset-cancel" type="button"
-                            ?disabled=${view.closeDisabled} @click=${() => this.close()}>Закрыть</button>
-                        <button class="edvibe-reset-button edvibe-reset-back" type="button"
-                            ?hidden=${view.showingUsers} ?disabled=${view.backDisabled}
-                            @click=${this.handleBack}>
-                            ${this.finished ? "Сбросить для другого пользователя" : "Назад"}
-                        </button>
-                        <button class="edvibe-reset-button edvibe-reset-next" type="button"
-                            ?hidden=${!view.showingUsers} ?disabled=${view.nextDisabled}
-                            @click=${this.handleNext}>Далее</button>
-                        <button class="edvibe-reset-button edvibe-reset-submit" type="button"
-                            ?hidden=${view.showingUsers} ?disabled=${view.submitDisabled}
-                            @click=${this.handleSubmit}>Сбросить прогресс</button>
-                    </div>
-                </div>
-            </div>
-        `;
+			const marathonId = parseMarathonId$7(window.location.href);
+			if (!marathonId) {
+				window.alert("Open an Edvibe marathon page before resetting lessons.");
+				return;
 			}
+			active = true;
+			onActiveChange(true);
+			const dialog = createDialog();
+			dialog.addEventListener("edvibe-dialog-close", releaseOperation);
+			dialog.addEventListener("edvibe-reset-request", async (event) => {
+				const { pupil, lessons } = event.detail;
+				if (!window.confirm(`Reset ${lessons.length} lesson(s) for ${pupil.Email}?`)) return;
+				running = true;
+				dialog.lock();
+				let completed = false;
+				try {
+					dialog.showDiscovery("Discovering exercises...");
+					const work = await discoverResetWork({
+						sendRequest,
+						wait,
+						marathonId,
+						pupilId: pupil.PupilId,
+						lessons,
+						onDiscovery: (message) => dialog.showDiscovery(message),
+						log
+					});
+					await executeResetWork({
+						sendRequest,
+						sendWithoutResponse,
+						wait,
+						marathonId,
+						pupilId: pupil.PupilId,
+						work,
+						onProgress: (progress) => dialog.showProgress(progress),
+						log
+					});
+					dialog.showComplete("Selected lesson progress was reset successfully.");
+					completed = true;
+				} catch (error) {
+					const lessonIds = lessons.map((lesson) => lesson.MarathonLessonId).join(", ");
+					log(`Reset stopped for PupilId ${pupil.PupilId}; MarathonLessonIds: ${lessonIds} (${getErrorType(error)}).`);
+					dialog.showError(error.message);
+				} finally {
+					running = false;
+					if (completed) dialog.completeRun();
+					else dialog.unlockAfterRun();
+				}
+			});
+			try {
+				const pupilPager = createPupilPager(sendRequest, marathonId);
+				dialog.configure({
+					stylesheetUrl,
+					loadNextPupils: () => pupilPager.loadNext(),
+					loadLessons: async (pupil) => {
+						log(`Loading lessons for PupilId ${pupil.PupilId}.`);
+						const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsForPupil", "Marathons", {
+							PupilId: pupil.PupilId,
+							MarathonId: marathonId,
+							SearchTerm: "",
+							Domain: "edvibe.com"
+						});
+						if (!Array.isArray(response.Value)) throw new Error("GetMarathonLessonsForPupil returned invalid data.");
+						log(`Loaded ${response.Value.length} lesson(s) for PupilId ${pupil.PupilId}.`);
+						return response.Value;
+					},
+					log
+				});
+				(document.body || document.documentElement).appendChild(dialog);
+				dialog.setLoading("Loading marathon pupils...");
+				const initialPage = await pupilPager.loadNext();
+				log(`Loaded ${initialPage.pupils.length} of ${initialPage.total} pupil(s) for MarathonId ${marathonId}.`);
+				dialog.showPupils({
+					pupils: initialPage.pupils,
+					total: initialPage.total
+				});
+			} catch (error) {
+				log(`Failed to initialize reset workflow for MarathonId ${marathonId} (${getErrorType(error)}).`);
+				if (typeof dialog.showError === "function") dialog.showError(error.message);
+				else {
+					releaseOperation();
+					throw error;
+				}
+			}
+		}
+		return {
+			open,
+			isRunning: () => running
 		};
-		if (!customElements.get("edvibe-toolbox-reset-dialog")) customElements.define(RESET_DIALOG_TAG, ResetLessonsDialog);
-		globalThis.EdVibeResetDialogComponent = {
-			RESET_DIALOG_TAG,
-			RESET_OVERLAY_ID,
-			ResetLessonsDialog
+	}
+	//#endregion
+	//#region src/features/action-recorder.js
+	var DEFAULT_LIMITS = Object.freeze({
+		maxFrames: 1e3,
+		maxStoredBytes: 5 * 1024 * 1024,
+		maxDurationMs: 600 * 1e3
+	});
+	var REDACTED_VALUE = "[REDACTED_BY_TOOLBOX]";
+	var SENSITIVE_KEYS = /* @__PURE__ */ new Set([
+		"authorization",
+		"accesstoken",
+		"refreshtoken",
+		"token",
+		"cookie",
+		"password",
+		"secret"
+	]);
+	function parseJson(value) {
+		if (typeof value !== "string") return {
+			parsed: false,
+			value
 		};
-	}));
-	require_logger();
-	require_websocket_transport();
-	require_operation_guard();
-	require_indexeddb();
-	require_execution_history_record();
-	require_execution_history_repository();
-	require_execution_history_retention();
-	require_execution_history_export();
-	require_chrome_storage_bridge();
-	require_execution_history_service();
-	init_reset_lessons_dialog();
-	init_lit();
+		try {
+			return {
+				parsed: true,
+				value: JSON.parse(value)
+			};
+		} catch (_) {
+			return {
+				parsed: false,
+				value
+			};
+		}
+	}
+	function redactValue(value, path = "", redactions = []) {
+		if (Array.isArray(value)) return value.map((item, index) => redactValue(item, `${path}[${index}]`, redactions));
+		if (!value || typeof value !== "object") return value;
+		const redacted = {};
+		for (const [key, entry] of Object.entries(value)) {
+			const entryPath = path ? `${path}.${key}` : key;
+			if (SENSITIVE_KEYS.has(key.toLowerCase())) {
+				redacted[key] = REDACTED_VALUE;
+				redactions.push(entryPath);
+			} else redacted[key] = redactValue(entry, entryPath, redactions);
+		}
+		return redacted;
+	}
+	function parseEnvelope(rawText, redactions) {
+		const outer = parseJson(rawText);
+		if (!outer.parsed || !outer.value || typeof outer.value !== "object") return {
+			parsed: false,
+			value: rawText
+		};
+		const envelope = { ...outer.value };
+		const nested = parseJson(envelope.Value);
+		if (nested.parsed) envelope.Value = nested.value;
+		return {
+			parsed: true,
+			value: redactValue(envelope, "", redactions)
+		};
+	}
+	function pickExtra(envelope, knownKeys) {
+		const extra = {};
+		for (const [key, value] of Object.entries(envelope)) if (!knownKeys.has(key)) extra[key] = value;
+		return Object.keys(extra).length > 0 ? extra : void 0;
+	}
+	function operationKey(socketId, requestId) {
+		return `${socketId}:${String(requestId)}`;
+	}
+	function safePageContext(locationObject) {
+		const pathname = String(locationObject?.pathname || "");
+		const marathonMatch = pathname.match(/\/marathon\/(\d+)(?:\/|$)/);
+		return {
+			origin: String(locationObject?.origin || ""),
+			pathname,
+			marathonId: marathonMatch ? Number(marathonMatch[1]) : null
+		};
+	}
+	function sanitizeIsoForFilename(isoDate) {
+		return isoDate.replace(/[:.]/g, "-");
+	}
+	function makeRequestSnippet(operation) {
+		const serializedValue = JSON.stringify(operation.requestValue === void 0 ? null : operation.requestValue, null, 4);
+		return [
+			"await sendRequest(",
+			`    ${JSON.stringify(operation.controller || "")},`,
+			`    ${JSON.stringify(operation.method || "")},`,
+			`    ${JSON.stringify(operation.projectName || "")},`,
+			serializedValue.split("\n").map((line) => `    ${line}`).join("\n"),
+			");"
+		].join("\n");
+	}
+	function makeRecipe(operations) {
+		const pageOperations = operations.filter((operation) => operation.origin === "page");
+		const lines = [
+			"// Recorded from Edvibe UI. Review IDs, ordering, and mutation effects before use.",
+			"// This code is intentionally not executable by the recorder.",
+			""
+		];
+		pageOperations.forEach((operation, index) => {
+			if (index > 0) {
+				const previous = pageOperations[index - 1];
+				const gap = operation.startedAfterMs - previous.startedAfterMs;
+				if (gap >= 250) lines.push(`await wait(${Math.round(gap)});`, "");
+			}
+			lines.push(makeRequestSnippet(operation), "");
+		});
+		return lines.join("\n").trimEnd();
+	}
+	function createBrowserDownload(filename, text) {
+		const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = filename;
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+		URL.revokeObjectURL(url);
+	}
+	function createActionRecorderFeature({ subscribeFrames, createPanel, getPageContext = () => safePageContext(window.location), downloadText = createBrowserDownload, copyText = (text) => navigator.clipboard.writeText(text), createId = () => crypto.randomUUID(), now = Date.now, setTimeoutFn = setTimeout, clearTimeoutFn = clearTimeout, limits = DEFAULT_LIMITS, log = () => {} }) {
+		if (typeof subscribeFrames !== "function") throw new Error("Action recorder requires a frame subscription.");
+		if (typeof createPanel !== "function") throw new Error("Action recorder requires a panel factory.");
+		const configuredLimits = {
+			...DEFAULT_LIMITS,
+			...limits
+		};
+		let status = "idle";
+		let session = null;
+		let pendingOperations = /* @__PURE__ */ new Map();
+		let durationTimer = null;
+		let panel = null;
+		let stylesheetUrl = "";
+		let copyFallback = "";
+		let notice = "";
+		function getState() {
+			return {
+				status,
+				session,
+				copyFallback,
+				notice,
+				limits: configuredLimits
+			};
+		}
+		function render() {
+			panel?.setState?.(getState());
+		}
+		function finish(nextStatus, reason = "") {
+			if (status !== "recording") return;
+			clearTimeoutFn(durationTimer);
+			durationTimer = null;
+			status = nextStatus;
+			session.stoppedAt = new Date(now()).toISOString();
+			if (reason) {
+				session.limits.limitReached = true;
+				session.limits.reason = reason;
+				notice = `Recording stopped: ${reason}.`;
+			}
+			render();
+		}
+		function start() {
+			if (status === "recording") return;
+			const startedAtMs = now();
+			status = "recording";
+			copyFallback = "";
+			notice = "";
+			pendingOperations = /* @__PURE__ */ new Map();
+			session = {
+				schemaVersion: 1,
+				sessionId: createId(),
+				startedAt: new Date(startedAtMs).toISOString(),
+				stoppedAt: null,
+				page: getPageContext(),
+				limits: {
+					maxFrames: configuredLimits.maxFrames,
+					maxStoredBytes: configuredLimits.maxStoredBytes,
+					maxDurationMs: configuredLimits.maxDurationMs,
+					limitReached: false
+				},
+				frameCount: 0,
+				storedBytes: 0,
+				operations: [],
+				otherFrames: [],
+				anomalies: [],
+				redactions: [],
+				_startedAtMs: startedAtMs
+			};
+			durationTimer = setTimeoutFn(() => {
+				finish("limit-reached", "duration limit reached");
+			}, configuredLimits.maxDurationMs);
+			render();
+		}
+		function stop() {
+			finish("stopped");
+		}
+		function clear() {
+			if (status === "recording") {
+				clearTimeoutFn(durationTimer);
+				durationTimer = null;
+			}
+			status = "idle";
+			session = null;
+			pendingOperations = /* @__PURE__ */ new Map();
+			copyFallback = "";
+			notice = "";
+			render();
+		}
+		function limitReason(frame) {
+			if (session.frameCount + 1 > configuredLimits.maxFrames) return "frame limit reached";
+			if (session.storedBytes + (frame.dataType === "text" ? Number(frame.byteLength || 0) : 0) > configuredLimits.maxStoredBytes) return "size limit reached";
+			return "";
+		}
+		function storeOtherFrame(frame, envelope, rawText) {
+			const otherFrame = {
+				sequence: session.frameCount,
+				direction: frame.direction,
+				socketId: frame.socketId,
+				origin: frame.origin,
+				capturedAfterMs: frame.capturedAt - session._startedAtMs,
+				dataType: frame.dataType,
+				byteLength: frame.byteLength
+			};
+			if (envelope !== void 0) otherFrame.envelope = envelope;
+			if (rawText !== void 0) otherFrame.rawText = rawText;
+			session.otherFrames.push(otherFrame);
+		}
+		function storeOutbound(frame, envelope) {
+			const requestId = envelope.RequestId;
+			if (!(requestId !== void 0 && (envelope.Controller !== void 0 || envelope.Method !== void 0 || envelope.ProjectName !== void 0))) {
+				storeOtherFrame(frame, envelope);
+				return;
+			}
+			const key = operationKey(frame.socketId, requestId);
+			if (pendingOperations.has(key)) {
+				session.anomalies.push({
+					type: "duplicate-outbound-request",
+					socketId: frame.socketId,
+					requestId
+				});
+				storeOtherFrame(frame, envelope);
+				return;
+			}
+			const operation = {
+				sequence: session.operations.length + 1,
+				socketId: frame.socketId,
+				origin: frame.origin,
+				requestId,
+				startedAfterMs: frame.capturedAt - session._startedAtMs,
+				durationMs: null,
+				controller: envelope.Controller || "",
+				method: envelope.Method || "",
+				projectName: envelope.ProjectName || "",
+				requestValue: envelope.Value,
+				response: null,
+				extra: pickExtra(envelope, /* @__PURE__ */ new Set([
+					"Controller",
+					"Method",
+					"ProjectName",
+					"RequestId",
+					"Value"
+				])),
+				_capturedAt: frame.capturedAt
+			};
+			session.operations.push(operation);
+			pendingOperations.set(key, operation);
+		}
+		function storeInbound(frame, envelope) {
+			const requestId = envelope.RequestId;
+			const key = requestId === void 0 ? "" : operationKey(frame.socketId, requestId);
+			const operation = pendingOperations.get(key);
+			if (!operation) {
+				storeOtherFrame(frame, envelope);
+				return;
+			}
+			operation.durationMs = Math.max(0, frame.capturedAt - operation._capturedAt);
+			operation.response = {
+				isSuccess: typeof envelope.IsSuccess === "boolean" ? envelope.IsSuccess : null,
+				errorCode: envelope.ErrorCode ?? null,
+				value: envelope.Value,
+				extra: pickExtra(envelope, /* @__PURE__ */ new Set([
+					"RequestId",
+					"IsSuccess",
+					"ErrorCode",
+					"Value"
+				]))
+			};
+			pendingOperations.delete(key);
+		}
+		function handleFrame(frame) {
+			if (status !== "recording" || !session) return;
+			const reason = limitReason(frame);
+			if (reason) {
+				finish("limit-reached", reason);
+				return;
+			}
+			session.frameCount += 1;
+			if (frame.dataType === "text") session.storedBytes += Number(frame.byteLength || 0);
+			if (frame.dataType !== "text") {
+				storeOtherFrame(frame);
+				render();
+				return;
+			}
+			const frameRedactions = [];
+			const parsed = parseEnvelope(frame.data, frameRedactions);
+			session.redactions.push(...frameRedactions.map((path) => ({
+				frame: session.frameCount,
+				path
+			})));
+			if (!parsed.parsed) storeOtherFrame(frame, void 0, parsed.value);
+			else if (frame.direction === "outbound") storeOutbound(frame, parsed.value);
+			else storeInbound(frame, parsed.value);
+			render();
+		}
+		function buildExport() {
+			if (!session) return null;
+			return {
+				schemaVersion: session.schemaVersion,
+				sessionId: session.sessionId,
+				startedAt: session.startedAt,
+				stoppedAt: session.stoppedAt,
+				page: session.page,
+				limits: session.limits,
+				frameCount: session.frameCount,
+				storedBytes: session.storedBytes,
+				operations: session.operations.map((operation) => {
+					const { _capturedAt, ...exported } = operation;
+					return exported;
+				}),
+				otherFrames: session.otherFrames,
+				anomalies: session.anomalies,
+				redactions: session.redactions
+			};
+		}
+		function exportJson() {
+			const exported = buildExport();
+			if (!exported) return;
+			const filename = `edvibe-ws-recording-${sanitizeIsoForFilename(exported.startedAt)}.json`;
+			downloadText(filename, JSON.stringify(exported, null, 2));
+			notice = `Saved ${filename}.`;
+			render();
+		}
+		async function copy(content) {
+			copyFallback = "";
+			try {
+				await copyText(content);
+				notice = "Copied to clipboard.";
+			} catch (error) {
+				log("Clipboard copy failed:", error);
+				copyFallback = content;
+				notice = "Clipboard unavailable. Copy the text below.";
+			}
+			render();
+		}
+		function copyRequest(sequence) {
+			const operation = session?.operations.find((entry) => entry.sequence === sequence);
+			if (operation) return copy(makeRequestSnippet(operation));
+			return Promise.resolve();
+		}
+		function copyRecipe() {
+			if (!session) return Promise.resolve();
+			return copy(makeRecipe(session.operations));
+		}
+		function closePanel() {
+			panel?.remove?.();
+			panel = null;
+		}
+		function open(options = {}) {
+			stylesheetUrl = options.stylesheetUrl || stylesheetUrl;
+			if (!panel) {
+				panel = createPanel();
+				panel.configure?.({
+					stylesheetUrl,
+					onStart: start,
+					onStop: stop,
+					onClear: clear,
+					onExport: exportJson,
+					onCopyRequest: copyRequest,
+					onCopyRecipe: copyRecipe,
+					onClose: closePanel
+				});
+				panel.mount?.();
+			} else {
+				panel.configure?.({ stylesheetUrl });
+				panel.restore?.();
+			}
+			render();
+		}
+		subscribeFrames(handleFrame);
+		return {
+			open,
+			start,
+			stop,
+			clear,
+			exportJson,
+			copyRequest,
+			copyRecipe,
+			buildExport,
+			getState
+		};
+	}
+	//#endregion
+	//#region src/components/action-recorder-dialog.js
 	var RECORDER_DIALOG_TAG = "edvibe-toolbox-action-recorder";
 	var RECORDER_DIALOG_ID = "edvibe-toolbox-action-recorder";
 	var ActionRecorderDialog = class extends i {
@@ -6573,102 +7774,1189 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		ActionRecorderDialog
 	};
 	//#endregion
-	//#region src/components/export-progress-dialog.js
-	init_lit();
-	var EXPORT_PROGRESS_TAG = "edvibe-toolbox-export-progress";
-	var ExportProgressDialog = class extends i {
-		static properties = {
-			stylesheetUrl: { state: true },
-			statusText: { state: true },
-			loadedSections: { state: true },
-			totalSections: { state: true },
-			countText: { state: true },
-			progressState: { state: true }
+	//#region src/features/batch-lesson-access.js
+	var EMAIL_PATTERN$1 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	var TRANSIENT_CODES$1 = /* @__PURE__ */ new Set([
+		"WS_UNAVAILABLE",
+		"REQUEST_TIMEOUT",
+		"SEND_FAILED"
+	]);
+	var OPERATIONAL_WRITE_CODES = /* @__PURE__ */ new Set([
+		...TRANSIENT_CODES$1,
+		"SERVER_REJECTED",
+		"INVALID_RESPONSE"
+	]);
+	var BATCH_ACCESS_DIALOG_TAG$1 = "edvibe-toolbox-batch-access-dialog";
+	var BATCH_ACCESS_OVERLAY_ID$1 = "edvibe-toolbox-batch-access-overlay";
+	function createFeatureError$2(code, message, details = {}) {
+		const error = new Error(message);
+		error.code = code;
+		Object.assign(error, details);
+		return error;
+	}
+	function getPupilId$1(pupil) {
+		return pupil.PupilId === void 0 ? pupil.Id : pupil.PupilId;
+	}
+	function getMarathonPupilId$1(pupil) {
+		return pupil.MarathonPupilId === void 0 ? pupil.Id : pupil.MarathonPupilId;
+	}
+	function isTransientError$1(error, getConnectionState) {
+		if (!TRANSIENT_CODES$1.has(error?.code)) return false;
+		if (error.code !== "SEND_FAILED") return true;
+		return Boolean(error.cause) && !getConnectionState().isOpen;
+	}
+	async function runWithRetry$1(operation, { wait, getConnectionState, retryDelays = [1e3, 3e3] }) {
+		let attempts = 0;
+		while (attempts <= retryDelays.length) {
+			attempts += 1;
+			try {
+				if (attempts > 1 && !getConnectionState().isOpen) throw createFeatureError$2("WS_UNAVAILABLE", "The Edvibe connection is unavailable.");
+				return {
+					value: await operation(),
+					attempts
+				};
+			} catch (error) {
+				if (!isTransientError$1(error, getConnectionState) || attempts > retryDelays.length) {
+					error.attempts = attempts;
+					throw error;
+				}
+				await wait(retryDelays[attempts - 1]);
+			}
+		}
+	}
+	function parseMarathonId$6(url) {
+		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
+		return match ? Number(match[1]) : null;
+	}
+	function parseEmailInput$1(value) {
+		const entries = [];
+		const malformed = [];
+		const seen = /* @__PURE__ */ new Set();
+		for (const token of String(value || "").split(/[,;\r\n]+/)) {
+			const input = token.trim();
+			if (!input) continue;
+			const normalized = input.toLowerCase();
+			if (seen.has(normalized)) continue;
+			seen.add(normalized);
+			if (!EMAIL_PATTERN$1.test(input)) {
+				malformed.push(input);
+				continue;
+			}
+			entries.push({
+				input,
+				normalized
+			});
+		}
+		return {
+			entries,
+			malformed
 		};
-		constructor() {
-			super();
-			this.stylesheetUrl = "";
-			this.statusText = "Preparing export...";
-			this.loadedSections = 0;
-			this.totalSections = 0;
-			this.countText = void 0;
-			this.progressState = "loading";
+	}
+	function appendPage$1(items, total, nextItems, nextTotal, label) {
+		if (!Array.isArray(nextItems) || !Number.isInteger(nextTotal) || nextTotal < 0 || total !== null && nextTotal !== total || nextItems.length === 0 && items.length < nextTotal || items.length + nextItems.length > nextTotal) {
+			const error = /* @__PURE__ */ new Error(`${label} returned invalid pagination data.`);
+			error.code = "INVALID_RESPONSE";
+			throw error;
 		}
-		configure(options = {}) {
-			const stylesheetUrl = options && typeof options === "object" ? options.stylesheetUrl : "";
-			this.stylesheetUrl = String(stylesheetUrl || "");
-			return this;
+		return {
+			items: items.concat(nextItems),
+			total: nextTotal
+		};
+	}
+	async function loadAllPupils$1({ sendRequest, marathonId, pageSize = 50 }) {
+		let items = [];
+		let total = null;
+		while (total === null || items.length < total) {
+			const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
+				MarathonId: marathonId,
+				Skip: items.length,
+				Take: pageSize
+			});
+			const page = appendPage$1(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonPupils");
+			items = page.items;
+			total = page.total;
 		}
-		update(options = /* @__PURE__ */ new Map()) {
-			if (options instanceof Map) {
-				super.update(options);
+		return items;
+	}
+	async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize = 20 }) {
+		let items = [];
+		let total = null;
+		while (total === null || items.length < total) {
+			const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsForPupilPagination", "Marathons", {
+				PupilId: pupilId,
+				MarathonId: marathonId,
+				SearchTerm: "",
+				Page: {
+					Skip: items.length,
+					Take: pageSize
+				}
+			});
+			const page = appendPage$1(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonLessonsForPupilPagination");
+			items = page.items;
+			total = page.total;
+		}
+		return items;
+	}
+	function resolvePupilsByEmail(entries, pupils) {
+		const pupilsByEmail = /* @__PURE__ */ new Map();
+		for (const pupil of pupils) {
+			const email = String(pupil.Email || "").trim().toLowerCase();
+			const candidates = pupilsByEmail.get(email) || [];
+			candidates.push(pupil);
+			pupilsByEmail.set(email, candidates);
+		}
+		const matches = [];
+		const errors = [];
+		for (const entry of entries) {
+			const candidates = pupilsByEmail.get(entry.normalized) || [];
+			if (candidates.length === 1) matches.push(candidates[0]);
+			else if (candidates.length === 0) errors.push({
+				type: "missing",
+				input: entry.input,
+				message: `No marathon pupil found for ${entry.input}.`
+			});
+			else errors.push({
+				type: "ambiguous",
+				input: entry.input,
+				count: candidates.length,
+				message: `Multiple marathon pupils found for ${entry.input}.`
+			});
+		}
+		return {
+			matches,
+			errors
+		};
+	}
+	function buildAccessPlan({ pupils, selectedLessonIds, lessonsByPupilId }) {
+		const alreadyOpen = [];
+		const needsOpening = [];
+		const errors = [];
+		for (const pupil of pupils) {
+			const pupilId = getPupilId$1(pupil);
+			const lessons = lessonsByPupilId.get(pupilId) || [];
+			const selectedLessons = /* @__PURE__ */ new Map();
+			const duplicateLessonIds = /* @__PURE__ */ new Set();
+			for (const lesson of lessons) {
+				if (!selectedLessonIds.includes(lesson.MarathonLessonId)) continue;
+				if (selectedLessons.get(lesson.MarathonLessonId)) {
+					duplicateLessonIds.add(lesson.MarathonLessonId);
+					errors.push(createFeatureError$2("INVALID_RESPONSE", `Multiple lesson states were returned for lesson ${lesson.MarathonLessonId}.`, {
+						email: pupil.Email,
+						pupilId,
+						marathonLessonId: lesson.MarathonLessonId
+					}));
+					continue;
+				}
+				selectedLessons.set(lesson.MarathonLessonId, lesson);
+			}
+			for (const marathonLessonId of selectedLessonIds) {
+				const lesson = selectedLessons.get(marathonLessonId);
+				if (duplicateLessonIds.has(marathonLessonId)) continue;
+				if (!lesson) {
+					errors.push(createFeatureError$2("INVALID_RESPONSE", `Lesson ${marathonLessonId} was not returned for ${pupil.Email}.`, {
+						email: pupil.Email,
+						pupilId,
+						marathonLessonId
+					}));
+					continue;
+				}
+				if (typeof lesson.IsOpen !== "boolean") {
+					errors.push(createFeatureError$2("INVALID_RESPONSE", `Lesson ${marathonLessonId} returned an invalid access state.`, {
+						email: pupil.Email,
+						pupilId,
+						marathonLessonId
+					}));
+					continue;
+				}
+				const item = {
+					email: pupil.Email,
+					pupilId,
+					marathonPupilId: getMarathonPupilId$1(pupil),
+					marathonLessonId,
+					lessonNumber: lesson.Number + 1,
+					lessonName: lesson.Name
+				};
+				if (lesson.IsOpen === true) alreadyOpen.push(item);
+				else needsOpening.push(item);
+			}
+		}
+		return {
+			alreadyOpen,
+			needsOpening,
+			errors
+		};
+	}
+	function createProgressSnapshot({ completed, total, opened, failures, alreadyOpen, item }) {
+		return Object.freeze({
+			completed,
+			total,
+			opened,
+			failures,
+			alreadyOpen,
+			current: Object.freeze({
+				email: item.email,
+				lessonName: item.lessonName
+			})
+		});
+	}
+	function createExecutionFailure(item, error, { code = error?.code || "UNKNOWN_ERROR", message = error?.message || "The lesson access change failed.", attempts = error?.attempts || 1 } = {}) {
+		return {
+			email: item.email,
+			lessonNumber: item.lessonNumber,
+			lessonName: item.lessonName,
+			marathonLessonId: item.marathonLessonId,
+			attempts,
+			code,
+			message
+		};
+	}
+	function createExecutionResult({ requestedEmails, matchedUsers, selectedLessons, opened, alreadyOpen, failures, attempts }) {
+		return {
+			requestedEmails,
+			matchedUsers,
+			selectedLessons,
+			opened,
+			alreadyOpen: alreadyOpen.length,
+			failures,
+			attempts
+		};
+	}
+	async function executeAccessPlan({ marathonId, requestedEmails, matchedUsers, selectedLessons, alreadyOpen = [], needsOpening = [], sendRequest, wait, getConnectionState, onProgress = () => {} }) {
+		const opened = [];
+		const failures = [];
+		let attempts = 0;
+		for (let index = 0; index < needsOpening.length; index += 1) {
+			const item = needsOpening[index];
+			let itemAttempts = 0;
+			try {
+				onProgress(createProgressSnapshot({
+					completed: index,
+					total: needsOpening.length,
+					opened: opened.length,
+					failures: failures.length,
+					alreadyOpen: alreadyOpen.length,
+					item
+				}));
+				await wait(300);
+				try {
+					itemAttempts = (await runWithRetry$1(async () => {
+						const response = await sendRequest("MarathonLessonWsController", "ChangeIsOpenLessonForPupil", "Marathons", {
+							IsOpen: true,
+							MarathonLessonId: item.marathonLessonId,
+							MarathonPupilId: item.marathonPupilId,
+							MarathonId: marathonId
+						});
+						if (response?.Value !== true) throw createFeatureError$2("INVALID_RESPONSE", "The lesson access change was not confirmed.");
+						return response;
+					}, {
+						wait,
+						getConnectionState
+					})).attempts;
+					attempts += itemAttempts;
+					opened.push(item);
+				} catch (error) {
+					itemAttempts = error.attempts || 1;
+					attempts += itemAttempts;
+					if (!OPERATIONAL_WRITE_CODES.has(error?.code)) throw error;
+					failures.push(createExecutionFailure(item, error, { attempts: itemAttempts }));
+				}
+				onProgress(createProgressSnapshot({
+					completed: index + 1,
+					total: needsOpening.length,
+					opened: opened.length,
+					failures: failures.length,
+					alreadyOpen: alreadyOpen.length,
+					item
+				}));
+			} catch (error) {
+				failures.push(createExecutionFailure(item, error, {
+					code: "INTERNAL_ERROR",
+					message: "An internal error stopped the batch operation.",
+					attempts: itemAttempts
+				}));
+				throw createFeatureError$2("INTERNAL_ERROR", "An internal error stopped the batch operation.", {
+					cause: error,
+					partialResult: createExecutionResult({
+						requestedEmails,
+						matchedUsers,
+						selectedLessons,
+						opened,
+						alreadyOpen,
+						failures,
+						attempts
+					})
+				});
+			}
+		}
+		return createExecutionResult({
+			requestedEmails,
+			matchedUsers,
+			selectedLessons,
+			opened,
+			alreadyOpen,
+			failures,
+			attempts
+		});
+	}
+	function formatBatchReport(result) {
+		const lines = [
+			`Requested emails: ${result.requestedEmails.length}`,
+			`Matched users: ${result.matchedUsers}`,
+			`Selected lessons: ${result.selectedLessons}`,
+			`Opened: ${result.opened.length}`,
+			`Already open: ${result.alreadyOpen}`,
+			`Failed: ${result.failures.length}`,
+			`Attempts: ${result.attempts}`
+		];
+		for (const failure of result.failures) lines.push(`FAILED ${failure.email} — ${failure.lessonNumber}. ${failure.lessonName} — ${failure.attempts} attempts — ${failure.code}: ${failure.message}`);
+		return lines.join("\n");
+	}
+	function freezeItems$1(items) {
+		return Object.freeze(items.map((item) => Object.freeze({ ...item })));
+	}
+	function freezePlan({ requestedEmails, matchedUsers, selectedLessonIds, alreadyOpen, needsOpening }) {
+		return Object.freeze({
+			requestedEmails: Object.freeze([...requestedEmails]),
+			matchedUsers,
+			selectedLessonIds: Object.freeze([...selectedLessonIds]),
+			alreadyOpen: freezeItems$1(alreadyOpen),
+			needsOpening: freezeItems$1(needsOpening)
+		});
+	}
+	function createBatchLessonAccessFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG$1), copyText = async () => {}, log = () => {} }) {
+		let active = false;
+		let running = false;
+		let pupils = [];
+		let lessonCatalogue = [];
+		let pendingPlan = null;
+		let completedResult = null;
+		let marathonId = null;
+		let dialog = null;
+		function releaseOperation() {
+			if (!active) return;
+			active = false;
+			onActiveChange(false);
+		}
+		function handleClose() {
+			running = false;
+			pupils = [];
+			lessonCatalogue = [];
+			pendingPlan = null;
+			completedResult = null;
+			marathonId = null;
+			dialog = null;
+			releaseOperation();
+		}
+		function getErrorCode(error) {
+			return typeof error?.code === "string" ? error.code : "UNKNOWN_ERROR";
+		}
+		function createReadError(error, pupil, pupilId) {
+			const code = getErrorCode(error);
+			const email = String(pupil?.Email || "").trim();
+			return createFeatureError$2(code, `Could not load lesson access for ${email || "the selected pupil"} (${code}).`, {
+				email,
+				pupilId,
+				attempts: error?.attempts || 1
+			});
+		}
+		function createInputErrors(parsed, selectedLessonIds) {
+			const errors = parsed.malformed.map((input) => createFeatureError$2("INVALID_EMAIL", `Invalid email address: ${input}.`));
+			if (parsed.entries.length === 0 && parsed.malformed.length === 0) errors.push(createFeatureError$2("EMAILS_REQUIRED", "Enter at least one email address."));
+			if (selectedLessonIds.length === 0) errors.push(createFeatureError$2("LESSONS_REQUIRED", "Select at least one lesson."));
+			return errors;
+		}
+		function showCompletedPlan(plan) {
+			completedResult = {
+				requestedEmails: [...plan.requestedEmails],
+				matchedUsers: plan.matchedUsers,
+				selectedLessons: plan.selectedLessonIds.length,
+				opened: [],
+				alreadyOpen: plan.alreadyOpen.length,
+				failures: [],
+				attempts: 0
+			};
+			pendingPlan = null;
+			dialog.showComplete(completedResult);
+		}
+		async function handleSubmit(event) {
+			if (running) return;
+			running = true;
+			pendingPlan = null;
+			completedResult = null;
+			const submittedEmailInput = String(event?.detail?.emailInput || "");
+			const selectedLessonIds = Object.freeze(Array.isArray(event?.detail?.selectedLessonIds) ? [...event.detail.selectedLessonIds] : []);
+			try {
+				dialog.showValidation();
+				const parsed = parseEmailInput$1(submittedEmailInput);
+				const inputErrors = createInputErrors(parsed, selectedLessonIds);
+				const resolution = resolvePupilsByEmail(parsed.entries, pupils);
+				const validationErrors = inputErrors.concat(resolution.errors);
+				if (validationErrors.length > 0) {
+					log(`Batch access validation blocked for MarathonId ${marathonId}; ${validationErrors.length} error(s).`);
+					dialog.showValidationErrors(validationErrors);
+					return;
+				}
+				const lessonsByPupilId = /* @__PURE__ */ new Map();
+				const pupilsWithLessons = [];
+				const readErrors = [];
+				for (const pupil of resolution.matches) {
+					const pupilId = getPupilId$1(pupil);
+					try {
+						log(`Loading batch access state for PupilId ${pupilId} in MarathonId ${marathonId}.`);
+						const result = await runWithRetry$1(() => loadAllPupilLessons({
+							sendRequest,
+							marathonId,
+							pupilId
+						}), {
+							wait,
+							getConnectionState
+						});
+						lessonsByPupilId.set(pupilId, result.value);
+						pupilsWithLessons.push(pupil);
+						log(`Loaded ${result.value.length} lesson state(s) for PupilId ${pupilId} after ${result.attempts} attempt(s).`);
+					} catch (error) {
+						readErrors.push(createReadError(error, pupil, pupilId));
+						log(`Batch access state read failed for PupilId ${pupilId} in MarathonId ${marathonId} (${getErrorCode(error)}).`);
+					}
+				}
+				const plan = buildAccessPlan({
+					pupils: pupilsWithLessons,
+					selectedLessonIds,
+					lessonsByPupilId
+				});
+				const preflightErrors = readErrors.concat(plan.errors);
+				if (preflightErrors.length > 0) {
+					log(`Batch access preflight blocked for MarathonId ${marathonId}; ${preflightErrors.length} error(s), zero writes issued.`);
+					dialog.showValidationErrors(preflightErrors);
+					return;
+				}
+				pendingPlan = freezePlan({
+					requestedEmails: parsed.entries.map((entry) => entry.input),
+					matchedUsers: resolution.matches.length,
+					selectedLessonIds,
+					alreadyOpen: plan.alreadyOpen,
+					needsOpening: plan.needsOpening
+				});
+				log(`Batch access preflight complete for MarathonId ${marathonId}; ${pendingPlan.needsOpening.length} pending, ${pendingPlan.alreadyOpen.length} already open.`);
+				if (pendingPlan.needsOpening.length === 0) {
+					showCompletedPlan(pendingPlan);
+					return;
+				}
+				dialog.showConfirmation(Object.freeze({
+					matchedUsers: pendingPlan.matchedUsers,
+					selectedLessons: pendingPlan.selectedLessonIds.length,
+					needsOpening: pendingPlan.needsOpening,
+					alreadyOpen: pendingPlan.alreadyOpen
+				}));
+			} catch (error) {
+				log(`Batch access preflight failed for MarathonId ${marathonId} (${getErrorCode(error)}).`);
+				dialog.showValidationErrors([error]);
+			} finally {
+				running = false;
+			}
+		}
+		async function handleConfirm() {
+			if (running || !pendingPlan) return;
+			running = true;
+			const executionPlan = pendingPlan;
+			pendingPlan = null;
+			try {
+				try {
+					completedResult = await executeAccessPlan({
+						marathonId,
+						requestedEmails: executionPlan.requestedEmails,
+						matchedUsers: executionPlan.matchedUsers,
+						selectedLessons: executionPlan.selectedLessonIds.length,
+						alreadyOpen: executionPlan.alreadyOpen,
+						needsOpening: executionPlan.needsOpening,
+						sendRequest,
+						wait,
+						getConnectionState,
+						onProgress: (progress) => dialog.showExecution(progress)
+					});
+				} catch (error) {
+					if (error?.code !== "INTERNAL_ERROR" || !error.partialResult) throw error;
+					completedResult = error.partialResult;
+					log(`Batch access execution stopped for MarathonId ${marathonId}; ${completedResult.opened.length} opened, ${completedResult.failures.length} failed (INTERNAL_ERROR).`);
+				}
+				log(`Batch access execution complete for MarathonId ${marathonId}; ${completedResult.opened.length} opened, ${completedResult.alreadyOpen} already open, ${completedResult.failures.length} failed.`);
+				for (const failure of completedResult.failures) log(`Batch access write failed for MarathonLessonId ${failure.marathonLessonId} (${failure.code}).`);
+				dialog.showComplete(completedResult);
+			} finally {
+				running = false;
+			}
+		}
+		async function handleCopyReport() {
+			if (!completedResult) return;
+			await copyText(formatBatchReport(completedResult));
+		}
+		function handleRestart() {
+			pendingPlan = null;
+			completedResult = null;
+			running = false;
+		}
+		async function open({ stylesheetUrl = "" } = {}) {
+			if (active || document.getElementById(BATCH_ACCESS_OVERLAY_ID$1)) return;
+			if (!canStart()) {
+				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
 			}
-			options = options && typeof options === "object" ? options : {};
-			const { statusText = "", loadedSections = 0, totalSections = 0, countText, state = "loading" } = options;
-			this.statusText = String(statusText || "");
-			this.loadedSections = Number(loadedSections) || 0;
-			this.totalSections = Number(totalSections) || 0;
-			this.countText = countText;
-			this.progressState = String(state || "loading");
-			this.syncHostState();
-			return this;
+			marathonId = parseMarathonId$6(window.location.href);
+			if (!marathonId) {
+				window.alert("Open an Edvibe marathon page before opening batch lesson access.");
+				return;
+			}
+			active = true;
+			onActiveChange(true);
+			try {
+				dialog = createDialog();
+				dialog.addEventListener("edvibe-dialog-close", handleClose);
+				dialog.addEventListener("edvibe-batch-access-input-change", (event) => {
+					const parsed = parseEmailInput$1(event?.detail?.emailInput);
+					dialog.setEmailState({
+						validCount: parsed.entries.length,
+						malformedCount: parsed.malformed.length
+					});
+				});
+				dialog.addEventListener("edvibe-batch-access-submit", handleSubmit);
+				dialog.addEventListener("edvibe-batch-access-confirm", handleConfirm);
+				dialog.addEventListener("edvibe-batch-access-copy-report", handleCopyReport);
+				dialog.addEventListener("edvibe-batch-access-restart", handleRestart);
+				dialog.configure({ stylesheetUrl });
+				(document.body || document.documentElement).appendChild(dialog);
+				dialog.showLoading();
+				log(`Initializing batch access for MarathonId ${marathonId}.`);
+				pupils = await loadAllPupils$1({
+					sendRequest,
+					marathonId
+				});
+				if (pupils.length === 0) throw createFeatureError$2("EMPTY_ROSTER", "No pupils were found in this marathon.");
+				const firstPupilId = getPupilId$1(pupils[0]);
+				lessonCatalogue = await loadAllPupilLessons({
+					sendRequest,
+					marathonId,
+					pupilId: firstPupilId
+				});
+				log(`Initialized batch access for MarathonId ${marathonId}; ${pupils.length} pupil(s), ${lessonCatalogue.length} lesson(s), catalogue PupilId ${firstPupilId}.`);
+				dialog.showConfigure({ lessons: lessonCatalogue });
+			} catch (error) {
+				log(`Batch access initialization failed for MarathonId ${marathonId} (${getErrorCode(error)}).`);
+				try {
+					if (typeof dialog?.showFatalError === "function") dialog.showFatalError(error);
+					else throw error;
+				} finally {
+					releaseOperation();
+				}
+			}
 		}
-		syncHostState() {
-			const hasTotal = this.totalSections > 0;
-			this.toggleAttribute("indeterminate", !hasTotal && this.progressState === "loading");
-			this.toggleAttribute("complete", this.progressState === "complete");
-			this.toggleAttribute("error", this.progressState === "error");
+		return {
+			open,
+			isRunning: () => running
+		};
+	}
+	//#endregion
+	//#region src/features/batch-lesson-access-history-model.js
+	var batch_lesson_access_history_model_exports = /* @__PURE__ */ __exportAll({
+		OPERATION_TYPE: () => OPERATION_TYPE$4,
+		attemptKey: () => attemptKey,
+		buildObservedPlan: () => buildObservedPlan$1,
+		createCapture: () => createCapture$1,
+		freezeObject: () => freezeObject,
+		lessonKey: () => lessonKey$2,
+		normalizeEmail: () => normalizeEmail,
+		observeRequest: () => observeRequest$1,
+		recordWriteAttempt: () => recordWriteAttempt$1,
+		sanitizeLesson: () => sanitizeLesson$1,
+		sanitizePupil: () => sanitizePupil,
+		splitSubmittedInputs: () => splitSubmittedInputs
+	});
+	var OPERATION_TYPE$4 = "batch_lesson_access";
+	function freezeObject(value) {
+		return Object.freeze({ ...value });
+	}
+	function freezeItems(items) {
+		return Object.freeze(items.map((item) => freezeObject(item)));
+	}
+	function normalizeEmail(value) {
+		return String(value || "").trim().toLowerCase();
+	}
+	function getPupilId(pupil) {
+		return pupil?.PupilId ?? pupil?.Id ?? null;
+	}
+	function getMarathonPupilId(pupil) {
+		return pupil?.MarathonPupilId ?? pupil?.Id ?? null;
+	}
+	function sanitizePupil(pupil) {
+		return freezeObject({
+			email: String(pupil?.Email || "").trim() || null,
+			pupilId: getPupilId(pupil),
+			marathonPupilId: getMarathonPupilId(pupil)
+		});
+	}
+	function sanitizeLesson$1(lesson) {
+		const number = Number(lesson?.Number);
+		return freezeObject({
+			marathonLessonId: lesson?.MarathonLessonId ?? null,
+			lessonNumber: Number.isFinite(number) ? number + 1 : null,
+			lessonName: String(lesson?.Name || "").trim() || null,
+			isOpen: typeof lesson?.IsOpen === "boolean" ? lesson.IsOpen : null
+		});
+	}
+	function splitSubmittedInputs(value) {
+		const entries = [];
+		const seen = /* @__PURE__ */ new Set();
+		for (const token of String(value || "").split(/[,;\r\n]+/)) {
+			const submittedInput = token.trim();
+			if (!submittedInput) continue;
+			const normalizedEmail = normalizeEmail(submittedInput);
+			if (seen.has(normalizedEmail)) continue;
+			seen.add(normalizedEmail);
+			entries.push(freezeObject({
+				submittedInput,
+				normalizedEmail
+			}));
 		}
-		complete(statusText, totalSections) {
-			return this.update({
-				statusText,
-				loadedSections: totalSections,
-				totalSections,
-				state: "complete"
+		return Object.freeze(entries);
+	}
+	function lessonKey$2(email, marathonLessonId) {
+		return `${normalizeEmail(email)}:${String(marathonLessonId)}`;
+	}
+	function attemptKey(marathonPupilId, marathonLessonId) {
+		return `${String(marathonPupilId)}:${String(marathonLessonId)}`;
+	}
+	function serializeError(error, fallbackCode, fallbackMessage) {
+		return freezeObject({
+			code: typeof error?.code === "string" ? error.code : fallbackCode,
+			message: String(error?.message || fallbackMessage),
+			email: String(error?.email || "").trim() || null,
+			pupilId: error?.pupilId ?? null,
+			marathonLessonId: error?.marathonLessonId ?? null,
+			attempts: Number.isInteger(error?.attempts) ? error.attempts : 0,
+			type: typeof error?.type === "string" ? error.type : null,
+			count: Number.isInteger(error?.count) ? error.count : null
+		});
+	}
+	function createCapture$1() {
+		return {
+			pupils: [],
+			lessonsByPupilId: /* @__PURE__ */ new Map(),
+			lessonCatalogue: [],
+			writeAttempts: /* @__PURE__ */ new Map(),
+			stylesheetUrl: "",
+			attempt: null,
+			sequence: 0
+		};
+	}
+	function replacePage(target, offset, values) {
+		if (offset === 0) target.length = 0;
+		for (let index = 0; index < values.length; index += 1) target[offset + index] = values[index];
+		while (target.length > 0 && target[target.length - 1] === void 0) target.pop();
+	}
+	function observeRequest$1(capture, method, value, result) {
+		if (method === "GetMarathonPupils") {
+			const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(sanitizePupil) : [];
+			replacePage(capture.pupils, Number(value?.Skip) || 0, items);
+			return;
+		}
+		if (method === "GetMarathonLessonsForPupilPagination") {
+			const pupilId = value?.PupilId ?? null;
+			const lessons = capture.lessonsByPupilId.get(pupilId) || [];
+			const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(sanitizeLesson$1) : [];
+			replacePage(lessons, Number(value?.Page?.Skip) || 0, items);
+			capture.lessonsByPupilId.set(pupilId, lessons);
+		}
+	}
+	function recordWriteAttempt$1(capture, method, value) {
+		if (method !== "ChangeIsOpenLessonForPupil") return;
+		const key = attemptKey(value?.MarathonPupilId, value?.MarathonLessonId);
+		capture.writeAttempts.set(key, (capture.writeAttempts.get(key) || 0) + 1);
+	}
+	function buildIdentityResolution({ submittedEmailInput, pupils }) {
+		const submitted = splitSubmittedInputs(submittedEmailInput);
+		const valid = parseEmailInput$1(submittedEmailInput);
+		const malformed = new Set(valid.malformed.map(normalizeEmail));
+		const pupilsByEmail = /* @__PURE__ */ new Map();
+		for (const pupil of pupils) {
+			const key = normalizeEmail(pupil.email);
+			const candidates = pupilsByEmail.get(key) || [];
+			candidates.push(pupil);
+			pupilsByEmail.set(key, candidates);
+		}
+		return submitted.map((entry) => {
+			if (malformed.has(entry.normalizedEmail)) return freezeObject({
+				...entry,
+				resolution: "malformed",
+				resolvedEmail: null,
+				pupilId: null,
+				marathonPupilId: null,
+				code: "USER_INPUT_MALFORMED",
+				message: `Invalid email address: ${entry.submittedInput}.`
 			});
-		}
-		error(statusText) {
-			return this.update({
-				statusText,
-				state: "error"
+			const candidates = pupilsByEmail.get(entry.normalizedEmail) || [];
+			if (candidates.length === 0) return freezeObject({
+				...entry,
+				resolution: "missing",
+				resolvedEmail: null,
+				pupilId: null,
+				marathonPupilId: null,
+				code: "USER_NOT_FOUND",
+				message: `No marathon pupil found for ${entry.submittedInput}.`
 			});
+			if (candidates.length > 1) return freezeObject({
+				...entry,
+				resolution: "ambiguous",
+				resolvedEmail: null,
+				pupilId: null,
+				marathonPupilId: null,
+				code: "USER_AMBIGUOUS",
+				message: `Multiple marathon pupils found for ${entry.submittedInput}.`
+			});
+			const pupil = candidates[0];
+			return freezeObject({
+				...entry,
+				resolution: "matched",
+				resolvedEmail: pupil.email,
+				pupilId: pupil.pupilId,
+				marathonPupilId: pupil.marathonPupilId,
+				code: null,
+				message: null
+			});
+		});
+	}
+	function selectedLessonMetadata(selectedLessonIds, lessonCatalogue) {
+		const byId = new Map(lessonCatalogue.map((lesson) => [lesson.marathonLessonId, lesson]));
+		return freezeItems(selectedLessonIds.map((marathonLessonId) => {
+			const lesson = byId.get(marathonLessonId);
+			return {
+				marathonLessonId,
+				lessonNumber: lesson?.lessonNumber ?? null,
+				lessonName: lesson?.lessonName || `Lesson ${marathonLessonId}`
+			};
+		}));
+	}
+	function findDiscoveryError(errors, identity) {
+		return errors.find((error) => identity.pupilId !== null && error.pupilId === identity.pupilId || identity.resolvedEmail && normalizeEmail(error.email) === normalizeEmail(identity.resolvedEmail));
+	}
+	function buildObservedPlan$1({ submittedEmailInput, selectedLessonIds, pupils, lessonsByPupilId, lessonCatalogue, errors = [] }) {
+		const identities = buildIdentityResolution({
+			submittedEmailInput,
+			pupils
+		});
+		const selectedLessons = selectedLessonMetadata(selectedLessonIds, lessonCatalogue);
+		const serializedErrors = freezeItems(errors.map((error) => serializeError(error, "LESSON_ACCESS_PREFLIGHT_FAILED", "The lesson-access preflight failed.")));
+		const matrix = [];
+		const discoveryFailures = [];
+		const representedErrorCodes = /* @__PURE__ */ new Set([
+			"INVALID_EMAIL",
+			"USER_INPUT_MALFORMED",
+			"USER_NOT_FOUND",
+			"USER_AMBIGUOUS"
+		]);
+		const operationFailures = serializedErrors.filter((error) => !error.email && error.pupilId === null && error.marathonLessonId === null && !error.type && !representedErrorCodes.has(error.code)).map((error) => freezeObject({
+			code: error.code,
+			message: error.message,
+			attempts: error.attempts,
+			kind: ["EMAILS_REQUIRED", "LESSONS_REQUIRED"].includes(error.code) ? "input" : "preflight"
+		}));
+		for (const identity of identities) {
+			if (identity.resolution !== "matched") continue;
+			const lessons = lessonsByPupilId.get(identity.pupilId);
+			if (!Array.isArray(lessons)) {
+				const source = findDiscoveryError(serializedErrors, identity);
+				if (source) discoveryFailures.push(freezeObject({
+					submittedEmail: identity.submittedInput,
+					resolvedEmail: identity.resolvedEmail,
+					pupilId: identity.pupilId,
+					marathonPupilId: identity.marathonPupilId,
+					code: source.code || "LESSON_STATE_DISCOVERY_FAILED",
+					message: source.message || `Could not load lesson access for ${identity.resolvedEmail}.`,
+					attempts: source.attempts || 0
+				}));
+				for (const selected of selectedLessons) matrix.push(freezeObject({
+					...identity,
+					...selected,
+					preflightAccessState: "unknown",
+					plannedOutcome: "not_attempted",
+					code: source ? "LESSON_STATE_UNAVAILABLE" : "PREFLIGHT_BLOCKED",
+					message: source ? "The lesson state could not be loaded, so this combination was not attempted." : "Validation stopped before this confirmed user and lesson combination could be prepared."
+				}));
+				continue;
+			}
+			const matchingByLessonId = /* @__PURE__ */ new Map();
+			for (const lesson of lessons) {
+				const values = matchingByLessonId.get(lesson.marathonLessonId) || [];
+				values.push(lesson);
+				matchingByLessonId.set(lesson.marathonLessonId, values);
+			}
+			for (const selected of selectedLessons) {
+				const states = matchingByLessonId.get(selected.marathonLessonId) || [];
+				if (states.length === 0) {
+					matrix.push(freezeObject({
+						...identity,
+						...selected,
+						preflightAccessState: "unknown",
+						plannedOutcome: "rejected",
+						code: "LESSON_NOT_RETURNED",
+						message: `Lesson ${selected.marathonLessonId} was not returned for ${identity.resolvedEmail}.`
+					}));
+					continue;
+				}
+				if (states.length > 1) {
+					matrix.push(freezeObject({
+						...identity,
+						...selected,
+						preflightAccessState: "unknown",
+						plannedOutcome: "rejected",
+						code: "LESSON_STATE_AMBIGUOUS",
+						message: `Multiple lesson states were returned for lesson ${selected.marathonLessonId}.`
+					}));
+					continue;
+				}
+				const state = states[0];
+				if (typeof state.isOpen !== "boolean") {
+					matrix.push(freezeObject({
+						...identity,
+						...selected,
+						lessonNumber: state.lessonNumber ?? selected.lessonNumber,
+						lessonName: state.lessonName || selected.lessonName,
+						preflightAccessState: "unknown",
+						plannedOutcome: "rejected",
+						code: "INVALID_ACCESS_STATE",
+						message: `Lesson ${selected.marathonLessonId} returned an invalid access state.`
+					}));
+					continue;
+				}
+				matrix.push(freezeObject({
+					...identity,
+					...selected,
+					lessonNumber: state.lessonNumber ?? selected.lessonNumber,
+					lessonName: state.lessonName || selected.lessonName,
+					preflightAccessState: state.isOpen ? "open" : "closed",
+					plannedOutcome: state.isOpen ? "already_open" : "pending",
+					code: null,
+					message: null
+				}));
+			}
 		}
-		dismissAfter(ms) {
-			const delay = Number.isFinite(Number(ms)) ? Math.max(0, Number(ms)) : 0;
-			setTimeout(() => this.remove(), delay);
+		return Object.freeze({
+			identities: freezeItems(identities),
+			selectedLessons,
+			matrix: freezeItems(matrix),
+			discoveryFailures: freezeItems(discoveryFailures),
+			operationFailures: freezeItems(operationFailures),
+			errors: serializedErrors
+		});
+	}
+	//#endregion
+	//#region src/features/batch-lesson-access-history-record.js
+	var batch_lesson_access_history_record_exports = /* @__PURE__ */ __exportAll({ buildExecutionHistoryInput: () => buildExecutionHistoryInput$6 });
+	var REJECTED_WRITE_CODES = /* @__PURE__ */ new Set(["SERVER_REJECTED", "INVALID_RESPONSE"]);
+	function resultFromMatrix(item, outcome, attempts, code, message) {
+		const status = {
+			opened: "success",
+			already_open: "noop",
+			rejected: "rejected",
+			failed: "failed",
+			not_attempted: "not_attempted"
+		}[outcome];
+		return freezeObject({
+			itemId: lessonKey$2(item.resolvedEmail || item.submittedInput, item.marathonLessonId),
+			label: `${item.resolvedEmail || item.submittedInput} — ${item.lessonNumber || "?"}. ${item.lessonName}`,
+			status,
+			code,
+			message,
+			attempts,
+			data: freezeObject({
+				submittedEmail: item.submittedInput,
+				resolvedEmail: item.resolvedEmail,
+				pupilId: item.pupilId,
+				marathonPupilId: item.marathonPupilId,
+				marathonLessonId: item.marathonLessonId,
+				lessonNumber: item.lessonNumber,
+				lessonName: item.lessonName,
+				preflightAccessState: item.preflightAccessState,
+				outcome
+			})
+		});
+	}
+	function buildMatrixResults(plan, summary = {}, writeAttempts = /* @__PURE__ */ new Map()) {
+		const openedKeys = new Set((Array.isArray(summary.opened) ? summary.opened : []).map((item) => lessonKey$2(item.email, item.marathonLessonId)));
+		const failuresByKey = /* @__PURE__ */ new Map();
+		for (const failure of Array.isArray(summary.failures) ? summary.failures : []) failuresByKey.set(lessonKey$2(failure.email, failure.marathonLessonId), failure);
+		return plan.matrix.map((item) => {
+			if (item.plannedOutcome === "already_open") return resultFromMatrix(item, "already_open", 0, "LESSON_ALREADY_OPEN", "Lesson access was already open.");
+			if (item.plannedOutcome === "rejected") return resultFromMatrix(item, "rejected", 0, item.code, item.message);
+			if (item.plannedOutcome === "not_attempted") return resultFromMatrix(item, "not_attempted", 0, item.code, item.message);
+			const key = lessonKey$2(item.resolvedEmail, item.marathonLessonId);
+			if (openedKeys.has(key)) return resultFromMatrix(item, "opened", writeAttempts.get(attemptKey(item.marathonPupilId, item.marathonLessonId)) || 1, "LESSON_ACCESS_OPENED", "Lesson access was opened.");
+			const failure = failuresByKey.get(key);
+			if (failure) return resultFromMatrix(item, REJECTED_WRITE_CODES.has(failure.code) ? "rejected" : "failed", Number.isInteger(failure.attempts) ? failure.attempts : 1, failure.code || "LESSON_ACCESS_WRITE_FAILED", failure.message || "The lesson access change failed.");
+			return resultFromMatrix(item, "not_attempted", 0, "LESSON_ACCESS_NOT_ATTEMPTED", "The confirmed combination was not attempted.");
+		});
+	}
+	function inputFailureResults(identities) {
+		return identities.filter((identity) => identity.resolution !== "matched").map((identity) => freezeObject({
+			itemId: `input:${identity.normalizedEmail || identity.submittedInput}`,
+			label: identity.submittedInput,
+			status: "rejected",
+			code: identity.code,
+			message: identity.message,
+			attempts: 0,
+			data: freezeObject({
+				submittedInput: identity.submittedInput,
+				normalizedEmail: identity.normalizedEmail,
+				resolution: identity.resolution
+			})
+		}));
+	}
+	function operationFailureResults(failures) {
+		return failures.map((failure, index) => freezeObject({
+			itemId: `operation:${index + 1}:${failure.code}`,
+			label: failure.kind === "input" ? "Submitted request" : "Lesson-access preflight",
+			status: failure.kind === "input" ? "rejected" : "failed",
+			code: failure.code,
+			message: failure.message,
+			attempts: failure.attempts,
+			data: freezeObject({ stage: failure.kind === "input" ? "input_validation" : "preflight" })
+		}));
+	}
+	function discoveryFailureResults(failures) {
+		return failures.map((failure) => freezeObject({
+			itemId: `discovery:${normalizeEmail(failure.resolvedEmail || failure.submittedEmail)}`,
+			label: failure.resolvedEmail || failure.submittedEmail,
+			status: "failed",
+			code: failure.code,
+			message: failure.message,
+			attempts: failure.attempts,
+			data: freezeObject({
+				submittedEmail: failure.submittedEmail,
+				resolvedEmail: failure.resolvedEmail,
+				pupilId: failure.pupilId,
+				marathonPupilId: failure.marathonPupilId,
+				stage: "lesson_state_discovery"
+			})
+		}));
+	}
+	function buildSummary(plan, matrixResults) {
+		const matchedUsers = plan.identities.filter((identity) => identity.resolution === "matched").length;
+		const countOutcome = (outcome) => matrixResults.filter((result) => result.data.outcome === outcome).length;
+		return Object.freeze({
+			requestedInputs: plan.identities.length,
+			matchedUsers,
+			selectedLessons: plan.selectedLessons.length,
+			totalCombinations: plan.matrix.length,
+			newlyOpened: countOutcome("opened"),
+			alreadyOpen: countOutcome("already_open"),
+			rejected: countOutcome("rejected"),
+			failedWrites: countOutcome("failed"),
+			notAttempted: countOutcome("not_attempted"),
+			inputFailures: plan.identities.filter((identity) => identity.resolution !== "matched").length,
+			discoveryFailures: plan.discoveryFailures.length,
+			operationFailures: plan.operationFailures.length
+		});
+	}
+	function inferTerminalStatus$3(explicitStatus, operationSummary) {
+		if (explicitStatus === "cancelled" || explicitStatus === "interrupted") return explicitStatus;
+		return operationSummary.rejected > 0 || operationSummary.failedWrites > 0 || operationSummary.notAttempted > 0 || operationSummary.inputFailures > 0 || operationSummary.discoveryFailures > 0 || operationSummary.operationFailures > 0 ? "completed_with_failures" : "completed";
+	}
+	function buildExecutionHistoryInput$6({ plan, summary = {}, writeAttempts = /* @__PURE__ */ new Map(), startedAt, completedAt, marathonId, marathonName = null, terminalStatus = null }) {
+		const matrixResults = buildMatrixResults(plan, summary, writeAttempts);
+		const inputResults = inputFailureResults(plan.identities);
+		const discoveryResults = discoveryFailureResults(plan.discoveryFailures);
+		const operationResults = operationFailureResults(plan.operationFailures);
+		const operationSummary = buildSummary(plan, matrixResults);
+		const attempted = operationSummary.newlyOpened + operationSummary.rejected + operationSummary.failedWrites;
+		const failed = operationSummary.rejected + operationSummary.failedWrites;
+		return Object.freeze({
+			operationType: OPERATION_TYPE$4,
+			startedAt,
+			completedAt,
+			status: inferTerminalStatus$3(terminalStatus, operationSummary),
+			pageContext: Object.freeze({
+				marathonId,
+				marathonName
+			}),
+			counts: Object.freeze({
+				requested: operationSummary.requestedInputs,
+				eligible: operationSummary.totalCombinations,
+				attempted,
+				successful: operationSummary.newlyOpened,
+				noOp: operationSummary.alreadyOpen,
+				skipped: operationSummary.inputFailures + operationSummary.discoveryFailures + operationSummary.operationFailures,
+				failed,
+				notAttempted: operationSummary.notAttempted
+			}),
+			results: Object.freeze([
+				...inputResults,
+				...operationResults,
+				...discoveryResults,
+				...matrixResults
+			]),
+			message: JSON.stringify(operationSummary)
+		});
+	}
+	//#endregion
+	//#region src/features/batch-lesson-access-history.js
+	var { createCapture, recordWriteAttempt, observeRequest, sanitizeLesson, buildObservedPlan } = batch_lesson_access_history_model_exports;
+	var { buildExecutionHistoryInput: buildExecutionHistoryInput$5 } = batch_lesson_access_history_record_exports;
+	function appendStatus$2(dialog, message, isError = false) {
+		const current = dialog.elements?.status?.textContent || "";
+		dialog.setStatus?.(`${current}${current ? " " : ""}${message}`, isError ? "error" : "");
+	}
+	function addHistoryButton$2(dialog, executionId, stylesheetUrl, openHistory) {
+		dialog.shadowRoot?.querySelector?.(".edvibe-batch-access-history")?.remove?.();
+		const button = (dialog.ownerDocument || globalThis.document)?.createElement?.("button");
+		if (!button) return;
+		button.type = "button";
+		button.className = "edvibe-batch-access-history";
+		button.textContent = "Открыть в истории";
+		button.addEventListener("click", () => {
+			dialog.close?.();
+			openHistory(executionId, stylesheetUrl);
+		});
+		dialog.elements?.footer?.appendChild?.(button);
+	}
+	function createHistoryAwareFeature$1(options = {}) {
+		const { createFeature = createBatchLessonAccessFeature, sendRequest, createDialog, persistExecution, openHistory = () => {}, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {}, ...featureOptions } = options;
+		if (typeof createFeature !== "function") throw new TypeError("createFeature is required");
+		if (typeof sendRequest !== "function") throw new TypeError("sendRequest is required");
+		if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
+		if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
+		let capture = null;
+		async function trackedSendRequest(controller, method, projectName, value) {
+			const current = capture;
+			if (current) recordWriteAttempt(current, method, value);
+			const result = await sendRequest(controller, method, projectName, value);
+			if (current) observeRequest(current, method, value, result);
+			return result;
 		}
-		render() {
-			const hasTotal = this.totalSections > 0;
-			const progressPercent = this.progressState === "complete" ? 100 : hasTotal ? Math.min(100, Math.round(this.loadedSections / this.totalSections * 100)) : 0;
-			const count = this.countText ?? (hasTotal ? `${this.loadedSections} / ${this.totalSections} sections loaded` : this.progressState === "complete" ? "Export complete" : "Discovering sections...");
-			const progressValue = hasTotal || this.progressState === "complete" ? progressPercent : A;
-			return b`
-            <link rel="stylesheet" href=${this.stylesheetUrl || A}>
-            <div class="overlay">
-                <section class="card" role="dialog" aria-modal="true"
-                    aria-labelledby="export-progress-title">
-                    <h2 id="export-progress-title">Exporting marathon</h2>
-                    <p class="status">${this.statusText}</p>
-                    <progress class="progress" max="100" value=${progressValue}></progress>
-                    <div class="meta">
-                        <span class="count">${count}</span>
-                        <span class="percent">${progressPercent}%</span>
-                    </div>
-                    <button class="close" type="button" @click=${() => this.remove()}>Close</button>
-                </section>
-            </div>
-        `;
+		function createTrackedDialog() {
+			const dialog = createDialog();
+			const current = createCapture();
+			capture = current;
+			const originalConfigure = dialog.configure.bind(dialog);
+			const originalShowConfigure = dialog.showConfigure.bind(dialog);
+			const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
+			const originalShowValidationErrors = dialog.showValidationErrors.bind(dialog);
+			const originalShowComplete = dialog.showComplete.bind(dialog);
+			const originalShowFatalError = dialog.showFatalError.bind(dialog);
+			function startAttempt(detail = {}) {
+				current.sequence += 1;
+				current.writeAttempts.clear();
+				current.attempt = {
+					sequence: current.sequence,
+					startedAt: now().toISOString(),
+					submittedEmailInput: String(detail.emailInput || ""),
+					selectedLessonIds: Array.isArray(detail.selectedLessonIds) ? [...detail.selectedLessonIds] : [],
+					plan: null,
+					terminal: false
+				};
+				dialog.shadowRoot?.querySelector?.(".edvibe-batch-access-history")?.remove?.();
+			}
+			function buildPlan(errors = []) {
+				const attempt = current.attempt;
+				if (!attempt) return null;
+				return buildObservedPlan({
+					submittedEmailInput: attempt.submittedEmailInput,
+					selectedLessonIds: attempt.selectedLessonIds,
+					pupils: current.pupils,
+					lessonsByPupilId: current.lessonsByPupilId,
+					lessonCatalogue: current.lessonCatalogue,
+					errors
+				});
+			}
+			function persist(summary, terminalStatus, errors = []) {
+				const attempt = current.attempt;
+				if (!attempt || attempt.terminal) return;
+				attempt.terminal = true;
+				const sequence = attempt.sequence;
+				let input;
+				try {
+					const completedAt = now().toISOString();
+					const plan = attempt.plan || buildPlan(errors);
+					if (!plan) return;
+					input = buildExecutionHistoryInput$5({
+						plan,
+						summary,
+						writeAttempts: current.writeAttempts,
+						startedAt: attempt.startedAt,
+						completedAt,
+						marathonId: parseMarathonId$6(getLocationHref()),
+						marathonName: getMarathonName(),
+						terminalStatus
+					});
+				} catch (error) {
+					appendStatus$2(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
+					log("Batch lesson access history record creation failed:", error);
+					return;
+				}
+				Promise.resolve().then(() => persistExecution(input)).then((history) => {
+					if (sequence !== current.sequence) return;
+					if (history?.stored) {
+						appendStatus$2(dialog, "Результат сохранён в истории.");
+						if (history.record?.id) addHistoryButton$2(dialog, history.record.id, current.stylesheetUrl, openHistory);
+					} else {
+						appendStatus$2(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
+						if (history?.persistenceError) log("Batch lesson access history persistence failed:", history.persistenceError);
+					}
+				}).catch((error) => {
+					if (sequence !== current.sequence) return;
+					appendStatus$2(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
+					log("Batch lesson access history persistence failed:", error);
+				});
+			}
+			dialog.configure = (value = {}) => {
+				current.stylesheetUrl = String(value.stylesheetUrl || current.stylesheetUrl || "");
+				return originalConfigure(value);
+			};
+			dialog.showConfigure = (value = {}) => {
+				current.lessonCatalogue = Array.isArray(value.lessons) ? value.lessons.map(sanitizeLesson) : [];
+				current.attempt = null;
+				current.sequence += 1;
+				return originalShowConfigure(value);
+			};
+			dialog.showConfirmation = (value = {}) => {
+				if (current.attempt) current.attempt.plan = buildPlan();
+				return originalShowConfirmation(value);
+			};
+			dialog.showValidationErrors = (errors = []) => {
+				const output = originalShowValidationErrors(errors);
+				if (current.attempt) persist({}, null, Array.isArray(errors) ? errors : [errors]);
+				return output;
+			};
+			dialog.showComplete = (summary = {}) => {
+				const output = originalShowComplete(summary);
+				if (current.attempt) {
+					if (!current.attempt.plan) current.attempt.plan = buildPlan();
+					persist(summary, (summary.failures || []).some((failure) => failure?.code === "INTERNAL_ERROR") ? "interrupted" : null);
+				}
+				return output;
+			};
+			dialog.showFatalError = (error) => {
+				const output = originalShowFatalError(error);
+				if (current.attempt) persist({}, "interrupted", [error]);
+				return output;
+			};
+			dialog.addEventListener("edvibe-batch-access-submit", (event) => startAttempt(event?.detail));
+			dialog.addEventListener("edvibe-batch-access-restart", () => {
+				current.sequence += 1;
+				current.attempt = null;
+				dialog.shadowRoot?.querySelector?.(".edvibe-batch-access-history")?.remove?.();
+			});
+			dialog.addEventListener("edvibe-dialog-close", () => {
+				if (current.attempt?.plan && !current.attempt.terminal) persist({}, "cancelled");
+			});
+			return dialog;
 		}
-	};
-	if (!customElements.get("edvibe-toolbox-export-progress")) customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
-	globalThis.EdVibeExportProgressDialog = {
-		EXPORT_PROGRESS_TAG,
-		ExportProgressDialog
-	};
+		return createFeature({
+			...featureOptions,
+			sendRequest: trackedSendRequest,
+			createDialog: createTrackedDialog,
+			log
+		});
+	}
 	//#endregion
 	//#region src/components/batch-lesson-access-dialog.js
-	init_lit();
 	var BATCH_ACCESS_DIALOG_TAG = "edvibe-toolbox-batch-access-dialog";
 	var BATCH_ACCESS_OVERLAY_ID = "edvibe-toolbox-batch-access-overlay";
 	var BatchLessonAccessDialog = class extends i {
@@ -7066,8 +9354,1885 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		BatchLessonAccessDialog
 	};
 	//#endregion
+	//#region src/features/batch-user-management.js
+	var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	var TRANSIENT_CODES = /* @__PURE__ */ new Set([
+		"WS_UNAVAILABLE",
+		"REQUEST_TIMEOUT",
+		"SEND_FAILED"
+	]);
+	var USER_MANAGEMENT_DIALOG_TAG$1 = "edvibe-toolbox-batch-user-management-dialog";
+	function createFeatureError$1(code, message, details = {}) {
+		const error = new Error(message);
+		error.code = code;
+		Object.assign(error, details);
+		return error;
+	}
+	function parseMarathonId$5(url) {
+		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
+		return match ? Number(match[1]) : null;
+	}
+	function parseEmailInput(value) {
+		const entries = [];
+		const malformed = [];
+		const items = [];
+		const seen = /* @__PURE__ */ new Set();
+		for (const token of String(value || "").split(/[,;\r\n]+/)) {
+			const input = token.trim();
+			if (!input) continue;
+			const normalized = input.toLowerCase();
+			if (seen.has(normalized)) continue;
+			seen.add(normalized);
+			if (!EMAIL_PATTERN.test(input)) {
+				malformed.push(input);
+				items.push({
+					input,
+					normalized,
+					isValid: false
+				});
+				continue;
+			}
+			entries.push({
+				input,
+				normalized
+			});
+			items.push({
+				input,
+				normalized,
+				isValid: true
+			});
+		}
+		return {
+			entries,
+			malformed,
+			items
+		};
+	}
+	function appendPage(items, total, nextItems, nextTotal, label) {
+		if (!Array.isArray(nextItems) || !Number.isInteger(nextTotal) || nextTotal < 0 || total !== null && nextTotal !== total || nextItems.length === 0 && items.length < nextTotal || items.length + nextItems.length > nextTotal) throw createFeatureError$1("INVALID_RESPONSE", `${label} returned invalid pagination data.`);
+		return {
+			items: items.concat(nextItems),
+			total: nextTotal
+		};
+	}
+	async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
+		let items = [];
+		let total = null;
+		while (total === null || items.length < total) {
+			const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
+				MarathonId: marathonId,
+				Skip: items.length,
+				Take: pageSize
+			});
+			const page = appendPage(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonPupils");
+			items = page.items;
+			total = page.total;
+		}
+		return items;
+	}
+	function resolveUsersByEmail(entries, pupils) {
+		const pupilsByEmail = /* @__PURE__ */ new Map();
+		for (const pupil of Array.isArray(pupils) ? pupils : []) {
+			const email = String(pupil?.Email || "").trim().toLowerCase();
+			const candidates = pupilsByEmail.get(email) || [];
+			candidates.push(pupil);
+			pupilsByEmail.set(email, candidates);
+		}
+		const rows = [];
+		const errors = [];
+		for (const entry of Array.isArray(entries) ? entries : []) {
+			const candidates = pupilsByEmail.get(entry.normalized) || [];
+			if (candidates.length === 1) {
+				rows.push({
+					email: entry.input,
+					normalizedEmail: entry.normalized,
+					pupil: candidates[0],
+					status: "matched",
+					message: ""
+				});
+				continue;
+			}
+			const type = candidates.length === 0 ? "missing" : "ambiguous";
+			const message = candidates.length === 0 ? `No marathon pupil found for ${entry.input}.` : `Multiple marathon pupils found for ${entry.input}.`;
+			rows.push({
+				email: entry.input,
+				normalizedEmail: entry.normalized,
+				pupil: null,
+				status: type,
+				message
+			});
+			errors.push({
+				type,
+				input: entry.input,
+				count: candidates.length,
+				message
+			});
+		}
+		return {
+			rows,
+			errors
+		};
+	}
+	function buildUserPlan({ rows }) {
+		return (Array.isArray(rows) ? rows : []).map((row) => {
+			const matched = row.status === "matched" && row.pupil;
+			const hasCurator = Boolean(matched && Array.isArray(row.pupil.Moderators) && row.pupil.Moderators.length > 0);
+			return {
+				email: row.email,
+				normalizedEmail: row.normalizedEmail,
+				pupil: matched ? row.pupil : null,
+				marathonPupilId: matched ? row.pupil.MarathonPupilId : null,
+				hasCurator,
+				actionable: Boolean(matched),
+				status: row.status,
+				message: row.message,
+				unassignSelected: false,
+				deleteSelected: false,
+				unassign: null,
+				delete: null,
+				result: {
+					status: "pending",
+					message: matched ? "Not started" : row.message
+				}
+			};
+		});
+	}
+	function isTransientError(error, getConnectionState) {
+		if (!TRANSIENT_CODES.has(error?.code)) return false;
+		if (error.code !== "SEND_FAILED") return true;
+		return Boolean(error.cause) && !getConnectionState().isOpen;
+	}
+	async function runWithRetry(operation, { wait, getConnectionState, retryDelays = [1e3, 3e3] }) {
+		let attempts = 0;
+		while (attempts <= retryDelays.length) {
+			attempts += 1;
+			try {
+				if (attempts > 1 && !getConnectionState().isOpen) throw createFeatureError$1("WS_UNAVAILABLE", "The Edvibe connection is unavailable.");
+				return {
+					value: await operation(),
+					attempts
+				};
+			} catch (error) {
+				if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
+					error.attempts = attempts;
+					throw error;
+				}
+				await wait(retryDelays[attempts - 1]);
+			}
+		}
+		throw createFeatureError$1("INTERNAL_ERROR", "Retry loop ended unexpectedly.");
+	}
+	function cloneUserRow(row) {
+		return {
+			...row,
+			unassign: null,
+			delete: null,
+			result: { ...row.result }
+		};
+	}
+	function createOperationFailure(error) {
+		return {
+			status: "failed",
+			attempts: error?.attempts || 1,
+			code: error?.code || "UNKNOWN_ERROR",
+			message: error?.message || "The operation failed."
+		};
+	}
+	function createSuccessOperation(attempts) {
+		return {
+			status: "success",
+			attempts
+		};
+	}
+	function createNoopOperation() {
+		return {
+			status: "noop",
+			attempts: 0,
+			message: "No curator was assigned."
+		};
+	}
+	function createSkippedOperation(message) {
+		return {
+			status: "skipped",
+			attempts: 0,
+			message
+		};
+	}
+	function getSelectedOperations(row) {
+		const operations = [];
+		if (row.unassignSelected) operations.push("unassign");
+		if (row.deleteSelected) operations.push("delete");
+		return operations;
+	}
+	function describeOperation(operation, result) {
+		if (!result) return "";
+		if (operation === "unassign") {
+			if (result.status === "noop") return "Curator already absent";
+			if (result.status === "success") return "Curator removed";
+			return `Curator removal failed (${result.code || "UNKNOWN_ERROR"}): ${result.message || "The operation failed."}`;
+		}
+		if (result.status === "success") return "User deleted";
+		if (result.status === "skipped") return `Deletion skipped: ${result.message || "The operation was skipped."}`;
+		return `Deletion failed (${result.code || "UNKNOWN_ERROR"}): ${result.message || "The operation failed."}`;
+	}
+	function setRowResult(row) {
+		const operations = getSelectedOperations(row);
+		row.result = {
+			status: operations.some((operation) => row[operation]?.status === "failed") ? "failed" : "success",
+			message: operations.map((operation) => describeOperation(operation, row[operation])).filter(Boolean).join("; ")
+		};
+	}
+	async function executeUserPlan({ marathonId, rows, sendRequest, wait, getConnectionState, onProgress = () => {} }) {
+		const executionRows = (Array.isArray(rows) ? rows : []).filter((row) => row.actionable !== false && getSelectedOperations(row).length > 0).map(cloneUserRow);
+		const total = executionRows.length;
+		let completed = 0;
+		let successes = 0;
+		let failures = 0;
+		let attempts = 0;
+		function report(row, operation) {
+			try {
+				onProgress(Object.freeze({
+					completed,
+					total,
+					successes,
+					failures,
+					current: Object.freeze({
+						email: row.email,
+						operation
+					})
+				}));
+			} catch (_) {}
+		}
+		for (const row of executionRows) {
+			const selectedOperations = getSelectedOperations(row);
+			try {
+				if (row.unassignSelected) {
+					report(row, "unassign");
+					if (!row.hasCurator) row.unassign = createNoopOperation();
+					else try {
+						const result = await runWithRetry(async () => {
+							const response = await sendRequest("MarathonPupilsWsController", "AddModeratorsToPupil", "Marathons", {
+								MarathonId: marathonId,
+								MarathonPupilId: row.marathonPupilId,
+								SelectedModeratorsIds: []
+							});
+							if (response?.Value?.IsSuccess !== true) throw createFeatureError$1("INVALID_RESPONSE", "The curator removal was not confirmed.");
+							return response;
+						}, {
+							wait,
+							getConnectionState
+						});
+						row.unassign = createSuccessOperation(result.attempts);
+						attempts += result.attempts;
+					} catch (error) {
+						row.unassign = createOperationFailure(error);
+						attempts += row.unassign.attempts;
+					}
+				}
+				if (row.deleteSelected) if (row.unassign?.status === "failed") row.delete = createSkippedOperation("Skipped because curator removal failed.");
+				else {
+					report(row, "delete");
+					try {
+						const result = await runWithRetry(async () => {
+							const response = await sendRequest("MarathonPupilsWsController", "DeleteMarathonPupil", "Marathons", { MarathonPupilId: row.marathonPupilId });
+							if (response?.Value !== row.marathonPupilId) throw createFeatureError$1("INVALID_RESPONSE", "The user deletion was not confirmed.");
+							return response;
+						}, {
+							wait,
+							getConnectionState
+						});
+						row.delete = createSuccessOperation(result.attempts);
+						attempts += result.attempts;
+					} catch (error) {
+						row.delete = createOperationFailure(error);
+						attempts += row.delete.attempts;
+					}
+				}
+			} catch (error) {
+				const operation = row.unassign?.status !== "success" && row.unassign?.status !== "noop" ? "unassign" : "delete";
+				row[operation] ||= createOperationFailure(error);
+			}
+			setRowResult(row);
+			if (row.result.status === "failed") failures += 1;
+			else successes += 1;
+			completed += 1;
+			report(row, row.delete?.status === "skipped" ? "unassign" : selectedOperations[selectedOperations.length - 1]);
+		}
+		return {
+			rows: executionRows,
+			completed,
+			total,
+			successes,
+			failures,
+			attempts
+		};
+	}
+	function createInputErrors(parsed) {
+		if (parsed.entries.length === 0 && parsed.malformed.length === 0) return [createFeatureError$1("EMAILS_REQUIRED", "Enter at least one email address.")];
+		return [];
+	}
+	function orderResolvedRows(parsed, resolution) {
+		const resolvedRows = new Map(resolution.rows.map((row) => [row.normalizedEmail, row]));
+		return parsed.items.map((item) => item.isValid ? resolvedRows.get(item.normalized) : {
+			email: item.input,
+			normalizedEmail: item.normalized,
+			pupil: null,
+			status: "malformed",
+			message: `Invalid email address: ${item.input}.`
+		});
+	}
+	function createBatchUserManagementFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog = () => document.createElement(USER_MANAGEMENT_DIALOG_TAG$1), log = () => {} }) {
+		let active = false;
+		let running = false;
+		let pupils = [];
+		let currentRows = [];
+		let marathonId = null;
+		let dialog = null;
+		function releaseOperation() {
+			if (!active) return;
+			active = false;
+			onActiveChange(false);
+		}
+		function handleClose() {
+			running = false;
+			pupils = [];
+			currentRows = [];
+			marathonId = null;
+			dialog = null;
+			releaseOperation();
+		}
+		function getErrorCode(error) {
+			return typeof error?.code === "string" ? error.code : "UNKNOWN_ERROR";
+		}
+		function handleInput(event) {
+			const parsed = parseEmailInput(event?.detail?.emailInput);
+			dialog.setEmailState({
+				validCount: parsed.entries.length,
+				malformedCount: parsed.malformed.length
+			});
+		}
+		function applySelections(rows) {
+			const selectionsByEmail = new Map((Array.isArray(rows) ? rows : []).map((row) => [row.normalizedEmail, {
+				unassignSelected: Boolean(row.unassignSelected),
+				deleteSelected: Boolean(row.deleteSelected)
+			}]));
+			return currentRows.map((row) => ({
+				...row,
+				...selectionsByEmail.get(row.normalizedEmail) || {
+					unassignSelected: false,
+					deleteSelected: false
+				},
+				result: { ...row.result }
+			}));
+		}
+		function updateCachedPupils(executedRows) {
+			const deletedIds = new Set(executedRows.filter((row) => row.delete?.status === "success").map((row) => row.marathonPupilId));
+			const unassignedIds = new Set(executedRows.filter((row) => row.unassign?.status === "success" || row.unassign?.status === "noop").map((row) => row.marathonPupilId));
+			pupils = pupils.filter((pupil) => !deletedIds.has(pupil.MarathonPupilId)).map((pupil) => unassignedIds.has(pupil.MarathonPupilId) ? {
+				...pupil,
+				Moderators: []
+			} : pupil);
+		}
+		async function handleCheck(event) {
+			if (running) return;
+			running = true;
+			try {
+				const parsed = parseEmailInput(event?.detail?.emailInput);
+				const inputErrors = createInputErrors(parsed);
+				if (inputErrors.length > 0) {
+					dialog.showValidationErrors(inputErrors);
+					return;
+				}
+				dialog.showChecking("Проверяем пользователей…");
+				currentRows = buildUserPlan({ rows: orderResolvedRows(parsed, resolveUsersByEmail(parsed.entries, pupils)) });
+				dialog.showReview({ rows: currentRows });
+				log(`Batch user management checked ${currentRows.length} row(s) for MarathonId ${marathonId}.`);
+			} catch (error) {
+				dialog.showValidationErrors([error]);
+			} finally {
+				running = false;
+			}
+		}
+		function handleSelectionChange(event) {
+			if (Array.isArray(event?.detail?.rows)) currentRows = applySelections(event.detail.rows);
+		}
+		async function handleStart(event) {
+			if (running) return;
+			const selectedRows = applySelections(event?.detail?.rows || currentRows);
+			if (!selectedRows.some((row) => row.actionable !== false && (row.unassignSelected || row.deleteSelected))) return;
+			running = true;
+			try {
+				const result = await executeUserPlan({
+					marathonId,
+					rows: selectedRows,
+					sendRequest,
+					wait,
+					getConnectionState,
+					onProgress: (progress) => dialog.showExecution(progress)
+				});
+				const completedByEmail = new Map(result.rows.map((row) => [row.normalizedEmail, row]));
+				updateCachedPupils(result.rows);
+				currentRows = selectedRows.map((row) => completedByEmail.get(row.normalizedEmail) || row);
+				dialog.showComplete({
+					...result,
+					rows: currentRows
+				});
+			} catch (error) {
+				dialog.showComplete({
+					rows: currentRows,
+					completed: 0,
+					total: 0,
+					successes: 0,
+					failures: 1,
+					attempts: error?.attempts || 1,
+					error
+				});
+			} finally {
+				running = false;
+			}
+		}
+		function handleRestart() {
+			currentRows = [];
+			running = false;
+		}
+		async function open({ stylesheetUrl = "" } = {}) {
+			if (active || document.getElementById("edvibe-toolbox-batch-user-management-overlay")) return;
+			if (!canStart()) {
+				window.alert("Another Edvibe Toolbox operation is already running.");
+				return;
+			}
+			marathonId = parseMarathonId$5(window.location.href);
+			if (!marathonId) {
+				window.alert("Open an Edvibe marathon page before managing users.");
+				return;
+			}
+			active = true;
+			onActiveChange(true);
+			try {
+				dialog = createDialog();
+				dialog.addEventListener("edvibe-dialog-close", handleClose);
+				dialog.addEventListener("edvibe-batch-user-management-input-change", handleInput);
+				dialog.addEventListener("edvibe-batch-user-management-check", handleCheck);
+				dialog.addEventListener("edvibe-batch-user-management-selection-change", handleSelectionChange);
+				dialog.addEventListener("edvibe-batch-user-management-start", handleStart);
+				dialog.addEventListener("edvibe-batch-user-management-restart", handleRestart);
+				dialog.configure({ stylesheetUrl });
+				(document.body || document.documentElement).appendChild(dialog);
+				dialog.showChecking("Загружаем пользователей…");
+				log(`Initializing batch user management for MarathonId ${marathonId}.`);
+				pupils = await loadAllPupils({
+					sendRequest,
+					marathonId
+				});
+				if (pupils.length === 0) throw createFeatureError$1("EMPTY_ROSTER", "No pupils were found in this marathon.");
+				dialog.showConfigure();
+			} catch (error) {
+				log(`Batch user management initialization failed for MarathonId ${marathonId} (${getErrorCode(error)}).`);
+				try {
+					dialog?.showFatalError?.(error);
+				} catch (renderError) {
+					log(`Batch user management error rendering failed (${getErrorCode(renderError)}).`);
+				} finally {
+					releaseOperation();
+				}
+			}
+		}
+		return {
+			open,
+			isRunning: () => running
+		};
+	}
+	//#endregion
+	//#region src/features/batch-user-management-history.js
+	var OPERATION_TYPE$3 = "batch_user_management";
+	var OPERATION_NAMES = Object.freeze({
+		unassign: "unassign_curator",
+		delete: "delete_user"
+	});
+	function parseMarathonId$4(url) {
+		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
+		return match ? String(match[1]) : null;
+	}
+	function selectedOperations(row) {
+		const operations = [];
+		if (row?.unassignSelected) operations.push(OPERATION_NAMES.unassign);
+		if (row?.deleteSelected) operations.push(OPERATION_NAMES.delete);
+		return operations;
+	}
+	function serializeIdentity(row) {
+		const pupil = row?.pupil || {};
+		return Object.freeze({
+			email: pupil.Email || row?.normalizedEmail || row?.email || null,
+			displayName: pupil.DisplayName || pupil.FullName || pupil.Name || null,
+			firstName: pupil.FirstName || null,
+			lastName: pupil.LastName || null,
+			pupilId: pupil.PupilId ?? pupil.Id ?? null,
+			marathonPupilId: row?.marathonPupilId ?? pupil.MarathonPupilId ?? null
+		});
+	}
+	function serializeOperation(name, result) {
+		if (!result) return Object.freeze({
+			name,
+			status: "not_attempted",
+			attemptCount: 0,
+			code: "NOT_ATTEMPTED",
+			message: "The operation was not attempted.",
+			dependency: null
+		});
+		const dependencyBlocked = result.status === "skipped" && /curator removal failed/i.test(result.message || "");
+		return Object.freeze({
+			name,
+			status: result.status,
+			attemptCount: Number.isInteger(result.attempts) ? result.attempts : 0,
+			code: result.code || (dependencyBlocked ? "DEPENDENCY_FAILED" : null),
+			message: result.message || null,
+			dependency: dependencyBlocked ? Object.freeze({ blockedBy: OPERATION_NAMES.unassign }) : null
+		});
+	}
+	function inferItemStatus(row, operations) {
+		if (row?.status !== "matched") return "rejected";
+		if (operations.length === 0) return "skipped";
+		const values = operations.map((operation) => operation.status);
+		if (values.includes("failed")) return "failed";
+		if (values.includes("not_attempted")) return "not_attempted";
+		if (values.includes("skipped")) return "skipped";
+		if (values.every((status) => status === "noop")) return "noop";
+		return "success";
+	}
+	function resultCode$2(row, status) {
+		if (status === "rejected") return {
+			malformed: "USER_INPUT_MALFORMED",
+			missing: "USER_NOT_FOUND",
+			ambiguous: "USER_AMBIGUOUS"
+		}[row?.status] || "USER_REJECTED";
+		return {
+			success: "USER_OPERATIONS_COMPLETED",
+			noop: "USER_OPERATIONS_NOOP",
+			skipped: "USER_OPERATIONS_SKIPPED",
+			failed: "USER_OPERATIONS_FAILED",
+			not_attempted: "USER_OPERATIONS_NOT_ATTEMPTED"
+		}[status];
+	}
+	function resultMessage$2(row, status, operations) {
+		if (status === "rejected") return row?.message || "The submitted user could not be resolved safely.";
+		if (operations.length === 0) return "No user-management operation was selected.";
+		const messages = operations.map((operation) => operation.message).filter(Boolean);
+		if (messages.length > 0) return messages.join("; ");
+		return {
+			success: "All selected operations completed successfully.",
+			noop: "All selected operations were already satisfied.",
+			skipped: "One or more selected operations were skipped.",
+			failed: "One or more selected operations failed.",
+			not_attempted: "One or more selected operations were not attempted."
+		}[status];
+	}
+	function serializeRow(row, index) {
+		const names = selectedOperations(row);
+		const operations = names.map((name) => name === OPERATION_NAMES.unassign ? serializeOperation(name, row?.unassign) : serializeOperation(name, row?.delete));
+		const status = inferItemStatus(row, operations);
+		return Object.freeze({
+			itemId: row?.normalizedEmail || row?.email || `input-${index + 1}`,
+			label: row?.email || row?.normalizedEmail || `Input ${index + 1}`,
+			status,
+			code: resultCode$2(row, status),
+			message: resultMessage$2(row, status, operations),
+			attempts: operations.reduce((sum, operation) => sum + operation.attemptCount, 0),
+			data: Object.freeze({
+				submittedInput: row?.email || null,
+				normalizedEmail: row?.normalizedEmail || null,
+				resolution: row?.status || "malformed",
+				resolutionMessage: row?.message || null,
+				user: row?.status === "matched" ? serializeIdentity(row) : null,
+				curatorPresent: row?.status === "matched" ? Boolean(row?.hasCurator) : null,
+				selectedOperations: Object.freeze(names),
+				operations: Object.freeze(operations)
+			})
+		});
+	}
+	function buildCounts$2(results) {
+		const eligible = results.filter((result) => result.data.resolution === "matched" && result.data.selectedOperations.length > 0).length;
+		const notAttempted = results.filter((result) => result.status === "not_attempted").length;
+		const attempted = results.filter((result) => result.data.resolution === "matched" && result.data.selectedOperations.length > 0 && result.status !== "not_attempted").length;
+		return Object.freeze({
+			requested: results.length,
+			eligible,
+			attempted,
+			successful: results.filter((result) => result.status === "success").length,
+			noOp: results.filter((result) => result.status === "noop").length,
+			skipped: results.filter((result) => result.status === "skipped" || result.status === "rejected").length,
+			failed: results.filter((result) => result.status === "failed").length,
+			notAttempted
+		});
+	}
+	function inferTerminalStatus$2(summary, results) {
+		if (summary?.error) return "interrupted";
+		return results.some((result) => result.status === "failed" || result.status === "skipped" || result.status === "rejected") ? "completed_with_failures" : "completed";
+	}
+	function buildExecutionHistoryInput$4({ rows, summary = {}, startedAt, completedAt, marathonId, marathonName = null }) {
+		const results = (Array.isArray(rows) ? rows : []).map(serializeRow);
+		const operationCounts = {
+			selected: 0,
+			attempted: 0,
+			successful: 0,
+			noOp: 0,
+			skipped: 0,
+			failed: 0,
+			notAttempted: 0
+		};
+		for (const result of results) for (const operation of result.data.operations) {
+			operationCounts.selected += 1;
+			if (operation.status !== "not_attempted") operationCounts.attempted += 1;
+			if (operation.status === "success") operationCounts.successful += 1;
+			if (operation.status === "noop") operationCounts.noOp += 1;
+			if (operation.status === "skipped") operationCounts.skipped += 1;
+			if (operation.status === "failed") operationCounts.failed += 1;
+			if (operation.status === "not_attempted") operationCounts.notAttempted += 1;
+		}
+		const counts = buildCounts$2(results);
+		return Object.freeze({
+			operationType: OPERATION_TYPE$3,
+			startedAt,
+			completedAt,
+			status: inferTerminalStatus$2(summary, results),
+			pageContext: Object.freeze({
+				marathonId,
+				marathonName
+			}),
+			counts,
+			results: Object.freeze(results),
+			message: JSON.stringify({
+				userCounts: counts,
+				operationCounts
+			})
+		});
+	}
+	function createHistoryAwareDialog$1({ createDialog, persistExecution, openHistory = () => {}, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {} }) {
+		if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
+		if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
+		return function createPatchedDialog() {
+			const dialog = createDialog();
+			let startedAt = null;
+			let stylesheetUrl = "";
+			let persistenceSequence = 0;
+			const originalConfigure = dialog.configure.bind(dialog);
+			const originalShowComplete = dialog.showComplete.bind(dialog);
+			const originalShowReview = dialog.showReview.bind(dialog);
+			const originalShowConfigure = dialog.showConfigure.bind(dialog);
+			function clearHistoryButton() {
+				dialog.shadowRoot?.querySelector?.(".edvibe-batch-user-management-history")?.remove?.();
+			}
+			function appendStatus(message) {
+				const current = dialog.elements?.status?.textContent || "";
+				dialog.setStatus?.(`${current}${current ? " " : ""}${message}`);
+			}
+			function addHistoryButton(executionId) {
+				clearHistoryButton();
+				const button = (dialog.ownerDocument || globalThis.document)?.createElement?.("button");
+				if (!button) return;
+				button.type = "button";
+				button.className = "edvibe-batch-user-management-history";
+				button.textContent = "Открыть в истории";
+				button.addEventListener("click", () => {
+					dialog.close?.();
+					openHistory(executionId, stylesheetUrl);
+				});
+				dialog.elements?.footer?.appendChild?.(button);
+				if (!dialog.elements?.footer) dialog.shadowRoot?.querySelector?.(".edvibe-batch-user-management-footer")?.appendChild?.(button);
+			}
+			dialog.configure = (options = {}) => {
+				stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || "");
+				return originalConfigure(options);
+			};
+			dialog.showReview = (value) => {
+				startedAt = null;
+				persistenceSequence += 1;
+				clearHistoryButton();
+				return originalShowReview(value);
+			};
+			dialog.showConfigure = (...args) => {
+				startedAt = null;
+				persistenceSequence += 1;
+				clearHistoryButton();
+				return originalShowConfigure(...args);
+			};
+			dialog.addEventListener("edvibe-batch-user-management-start", () => {
+				startedAt = now().toISOString();
+				persistenceSequence += 1;
+				clearHistoryButton();
+			});
+			dialog.showComplete = (summary = {}) => {
+				const output = originalShowComplete(summary);
+				const sequence = persistenceSequence;
+				const completedAt = now().toISOString();
+				const input = buildExecutionHistoryInput$4({
+					rows: summary.rows || dialog.rows,
+					summary,
+					startedAt: startedAt || completedAt,
+					completedAt,
+					marathonId: parseMarathonId$4(getLocationHref()),
+					marathonName: getMarathonName()
+				});
+				Promise.resolve().then(() => persistExecution(input)).then((history) => {
+					if (sequence !== persistenceSequence) return;
+					if (history?.stored) {
+						appendStatus("Результат сохранён в истории.");
+						if (history.record?.id) addHistoryButton(history.record.id);
+					} else {
+						appendStatus("Экранный результат сохранён, но записать историю не удалось.");
+						if (history?.persistenceError) log("Batch user management history persistence failed:", history.persistenceError);
+					}
+				}).catch((error) => {
+					if (sequence !== persistenceSequence) return;
+					appendStatus("Экранный результат сохранён, но записать историю не удалось.");
+					log("Batch user management history persistence failed:", error);
+				});
+				return output;
+			};
+			return dialog;
+		};
+	}
+	//#endregion
+	//#region src/components/batch-user-management-dialog.js
+	var USER_MANAGEMENT_DIALOG_TAG = "edvibe-toolbox-batch-user-management-dialog";
+	var USER_MANAGEMENT_OVERLAY_ID = "edvibe-toolbox-batch-user-management-overlay";
+	var BatchUserManagementDialog = class extends i {
+		static properties = {
+			stylesheetUrl: { state: true },
+			rows: { state: true },
+			emailState: { state: true },
+			emailInput: { state: true },
+			mode: { state: true },
+			errors: { state: true },
+			statusMessage: { state: true },
+			statusError: { state: true },
+			progress: { state: true }
+		};
+		constructor() {
+			super();
+			this.stylesheetUrl = "";
+			this.rows = [];
+			this.emailState = {
+				validCount: 0,
+				malformedCount: 0
+			};
+			this.emailInput = "";
+			this.mode = "configure";
+			this.errors = [];
+			this.statusMessage = "";
+			this.statusError = false;
+			this.progress = {
+				visible: false,
+				completed: 0,
+				total: 0
+			};
+			this.handleKeydownBound = (event) => this.handleKeydown(event);
+		}
+		connectedCallback() {
+			super.connectedCallback();
+			if (!this.id) this.id = USER_MANAGEMENT_OVERLAY_ID;
+			this.ownerDocument?.addEventListener("keydown", this.handleKeydownBound);
+		}
+		disconnectedCallback() {
+			this.ownerDocument?.removeEventListener("keydown", this.handleKeydownBound);
+			super.disconnectedCallback();
+		}
+		configure(options = {}) {
+			options = options && typeof options === "object" ? options : {};
+			if (options.stylesheetUrl !== void 0) this.stylesheetUrl = String(options.stylesheetUrl || "");
+			return this;
+		}
+		setEmailState(state = {}) {
+			this.emailState = {
+				validCount: Math.max(0, Number(state?.validCount) || 0),
+				malformedCount: Math.max(0, Number(state?.malformedCount) || 0)
+			};
+			return this;
+		}
+		showConfigure() {
+			this.mode = "configure";
+			this.clearMessages();
+			return this;
+		}
+		showChecking(message = "Проверяем пользователей…") {
+			this.mode = "checking";
+			this.clearMessages();
+			this.setStatus(message);
+			return this;
+		}
+		showValidationErrors(errors = []) {
+			this.mode = "validation-error";
+			this.errors = this.normalizeErrors(errors);
+			this.progress = {
+				visible: false,
+				completed: 0,
+				total: 0
+			};
+			this.setStatus("Исправьте ошибки и повторите проверку.", "error");
+			return this;
+		}
+		showReview({ rows = [] } = {}) {
+			this.mode = "review";
+			this.rows = this.normalizeRows(rows);
+			this.clearMessages();
+			this.setStatus("Выберите операции для пользователей.");
+			return this;
+		}
+		showExecution(progress = {}) {
+			this.mode = "executing";
+			const completed = Math.max(0, Number(progress.completed) || 0);
+			const total = Math.max(0, Number(progress.total) || 0);
+			const successes = Math.max(0, Number(progress.successes) || 0);
+			const failures = Math.max(0, Number(progress.failures) || 0);
+			this.progress = {
+				visible: true,
+				completed,
+				total
+			};
+			const current = progress.current?.email && progress.current?.operation ? ` Сейчас: ${progress.current.email} — ${{
+				unassign: "снятие куратора",
+				delete: "удаление пользователя"
+			}[progress.current.operation] || progress.current.operation}.` : "";
+			this.setStatus(`Выполнено: ${completed} из ${total}. Успешно: ${successes}. Ошибок: ${failures}.${current}`);
+			return this;
+		}
+		showComplete(summary = {}) {
+			this.rows = this.normalizeRows(Array.isArray(summary.rows) ? summary.rows : this.rows);
+			const failures = Math.max(0, Number(summary.failures) || 0);
+			this.mode = failures > 0 ? "partial-complete" : "complete";
+			this.clearMessages();
+			this.setStatus(failures > 0 ? `Завершено с ошибками. Успешно: ${Math.max(0, Number(summary.successes) || 0)}.` : "Готово.");
+			return this;
+		}
+		showFatalError(error) {
+			this.mode = "fatal-error";
+			this.clearMessages();
+			this.errors = this.normalizeErrors([error]);
+			this.setStatus("Не удалось загрузить пользователей.", "error");
+			return this;
+		}
+		normalizeRows(rows) {
+			return rows.map((row) => ({
+				...row,
+				result: { ...row.result || {
+					status: "pending",
+					message: "Not started"
+				} }
+			}));
+		}
+		normalizeErrors(errors) {
+			return (Array.isArray(errors) ? errors : [errors]).map((error) => typeof error === "string" ? error : String(error?.message || "Неизвестная ошибка."));
+		}
+		selectOperation(row, operation, selected) {
+			if (this.isLocked() || row.actionable === false) return;
+			this.rows = this.rows.map((item) => item === row ? {
+				...item,
+				[`${operation}Selected`]: Boolean(selected),
+				result: { ...item.result || {} }
+			} : item);
+			this.dispatchSelectionChange();
+		}
+		selectAll(operation, selected) {
+			if (this.isLocked()) return;
+			this.rows = this.rows.map((row) => row.actionable === false ? row : {
+				...row,
+				[`${operation}Selected`]: Boolean(selected),
+				result: { ...row.result || {} }
+			});
+			this.dispatchSelectionChange();
+		}
+		allSelected(operation) {
+			const actionable = this.rows.filter((row) => row.actionable !== false);
+			return actionable.length > 0 && actionable.every((row) => row[`${operation}Selected`]);
+		}
+		dispatchSelectionChange() {
+			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-selection-change", { detail: { rows: this.copyRows() } }));
+		}
+		handleInput(event) {
+			this.emailInput = String(event.currentTarget.value || "");
+			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-input-change", { detail: { emailInput: this.emailInput } }));
+		}
+		handleCheck() {
+			if (!this.canCheck()) return;
+			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-check", { detail: { emailInput: this.emailInput } }));
+		}
+		handleStart() {
+			if (!this.canStart()) return;
+			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-start", { detail: { rows: this.copyRows() } }));
+		}
+		handleRestart() {
+			if (!["complete", "partial-complete"].includes(this.mode)) return;
+			this.rows = [];
+			this.mode = "configure";
+			this.emailInput = "";
+			this.setEmailState({
+				validCount: 0,
+				malformedCount: 0
+			});
+			this.clearMessages();
+			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-restart"));
+		}
+		handleBackdropClick(event) {
+			if (event.target === event.currentTarget) this.close();
+		}
+		handleKeydown(event) {
+			if (event.key === "Escape") this.close();
+		}
+		close() {
+			if (!this.canClose()) return;
+			this.dispatchEvent(new CustomEvent("edvibe-dialog-close"));
+			this.remove();
+		}
+		copyRows() {
+			return this.rows.map((row) => ({
+				...row,
+				result: { ...row.result || {} }
+			}));
+		}
+		clearMessages() {
+			this.errors = [];
+			this.progress = {
+				visible: false,
+				completed: 0,
+				total: 0
+			};
+			this.setStatus("");
+		}
+		setStatus(message, state = "") {
+			this.statusMessage = String(message || "");
+			this.statusError = state === "error";
+		}
+		isLocked() {
+			return [
+				"checking",
+				"executing",
+				"complete",
+				"partial-complete"
+			].includes(this.mode);
+		}
+		canCheck() {
+			return ["configure", "validation-error"].includes(this.mode) && this.emailInput.trim().length > 0;
+		}
+		canStart() {
+			return this.mode === "review" && this.rows.some((row) => row.actionable !== false && (row.unassignSelected || row.deleteSelected));
+		}
+		canClose() {
+			return [
+				"configure",
+				"validation-error",
+				"review",
+				"complete",
+				"partial-complete",
+				"fatal-error"
+			].includes(this.mode);
+		}
+		renderRow(row) {
+			const locked = this.isLocked();
+			return b`
+            <tr>
+                <td class="edvibe-batch-user-management-user">${row.pupil?.Name ? `${row.pupil.Name} — ` : ""}${row.email}</td>
+                <td><input class="operation-unassign" type="checkbox"
+                    .checked=${Boolean(row.unassignSelected)} ?disabled=${row.actionable === false || locked}
+                    @change=${(event) => this.selectOperation(row, "unassign", event.currentTarget.checked)}></td>
+                <td><input class="operation-delete" type="checkbox"
+                    .checked=${Boolean(row.deleteSelected)} ?disabled=${row.actionable === false || locked}
+                    @change=${(event) => this.selectOperation(row, "delete", event.currentTarget.checked)}></td>
+                <td class="edvibe-batch-user-management-result">${String(row.result?.message || row.message || "")}</td>
+            </tr>
+        `;
+		}
+		render() {
+			const completed = ["complete", "partial-complete"].includes(this.mode);
+			const locked = this.isLocked();
+			const statusClass = `edvibe-batch-user-management-status${this.statusError ? " is-error" : ""}`;
+			return b`
+            <link class="edvibe-batch-user-management-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || A}>
+            <div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>
+                <section class="edvibe-batch-user-management-card" role="dialog" aria-modal="true"
+                    aria-labelledby="edvibe-batch-user-management-title">
+                    <header class="edvibe-batch-user-management-header">
+                        <div><h2 id="edvibe-batch-user-management-title">Управление пользователями</h2>
+                            <p class="edvibe-batch-user-management-description">Снимите кураторов и удалите пользователей по списку email.</p></div>
+                        <button class="edvibe-batch-user-management-close" type="button" aria-label="Закрыть"
+                            ?disabled=${!this.canClose()} @click=${() => this.close()}>&times;</button>
+                    </header>
+                    <div class="edvibe-batch-user-management-body">
+                        <section class="edvibe-batch-user-management-configure">
+                            <label for="edvibe-batch-user-management-emails">Email пользователей</label>
+                            <textarea id="edvibe-batch-user-management-emails" class="edvibe-batch-user-management-emails"
+                                rows="5" placeholder="user@example.com" .value=${this.emailInput}
+                                ?disabled=${locked || completed || this.mode === "fatal-error"} @input=${this.handleInput}></textarea>
+                            <div class="edvibe-batch-user-management-email-state" aria-live="polite">
+                                <span class="edvibe-batch-user-management-email-count">Уникальных email: ${this.emailState.validCount}</span>
+                                <span class="edvibe-batch-user-management-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
+                            </div>
+                        </section>
+                        <section class="edvibe-batch-user-management-errors" aria-live="polite" ?hidden=${this.errors.length === 0}>
+                            ${this.errors.map((error) => b`<p class="edvibe-batch-user-management-error">${error}</p>`)}
+                        </section>
+                        <section class="edvibe-batch-user-management-table-wrap" ?hidden=${this.rows.length === 0}>
+                            <table class="edvibe-batch-user-management-table">
+                                <thead><tr><th scope="col">Пользователь</th>
+                                    <th scope="col">Снять куратора <button class="edvibe-batch-user-management-select-all-unassign" type="button"
+                                        ?disabled=${locked || this.rows.length === 0} @click=${() => this.selectAll("unassign", !this.allSelected("unassign"))}>Выбрать все</button></th>
+                                    <th scope="col">Удалить пользователя <button class="edvibe-batch-user-management-select-all-delete" type="button"
+                                        ?disabled=${locked || this.rows.length === 0} @click=${() => this.selectAll("delete", !this.allSelected("delete"))}>Выбрать все</button></th>
+                                    <th scope="col">Результат</th></tr></thead>
+                                <tbody class="edvibe-batch-user-management-table-body">${this.rows.map((row) => this.renderRow(row))}</tbody>
+                            </table>
+                        </section>
+                    </div>
+                    <div class="edvibe-batch-user-management-live-region">
+                        <p class=${statusClass} role="status" aria-live="polite">${this.statusMessage}</p>
+                        <progress class="edvibe-batch-user-management-progress" max=${this.progress.total}
+                            value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress>
+                    </div>
+                    <footer class="edvibe-batch-user-management-footer">
+                        <button class="edvibe-batch-user-management-restart" type="button" ?hidden=${!completed}
+                            ?disabled=${!completed} @click=${this.handleRestart}>Запустить другую группу</button>
+                        <button class="edvibe-batch-user-management-start" type="button" ?hidden=${this.mode !== "review"}
+                            ?disabled=${!this.canStart()} @click=${this.handleStart}>Начать обработку</button>
+                        <button class="edvibe-batch-user-management-check" type="button"
+                            ?hidden=${!["configure", "validation-error"].includes(this.mode)} ?disabled=${!this.canCheck()}
+                            @click=${this.handleCheck}>Проверить пользователей</button>
+                    </footer>
+                </section>
+            </div>
+        `;
+		}
+	};
+	if (!customElements.get("edvibe-toolbox-batch-user-management-dialog")) customElements.define(USER_MANAGEMENT_DIALOG_TAG, BatchUserManagementDialog);
+	globalThis.EdVibeBatchUserManagementDialog = {
+		USER_MANAGEMENT_DIALOG_TAG,
+		USER_MANAGEMENT_OVERLAY_ID,
+		BatchUserManagementDialog
+	};
+	//#endregion
+	//#region src/features/batch-user-onboarding.js
+	var DIALOG_TAG$2 = "edvibe-toolbox-batch-user-onboarding-dialog";
+	var OPERATION_TYPE$2 = "batch_user_onboarding";
+	var EXPECTED_WRITE_CODES$2 = /* @__PURE__ */ new Set([
+		"SERVER_REJECTED",
+		"INVALID_RESPONSE",
+		"REQUEST_TIMEOUT",
+		"SEND_FAILED"
+	]);
+	function featureError$1(code, message, details = {}) {
+		return createFeatureError$1(code, message, details);
+	}
+	function deepFreeze(value) {
+		if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+		Object.freeze(value);
+		for (const nested of Object.values(value)) deepFreeze(nested);
+		return value;
+	}
+	function normalizeModerator(item) {
+		const id = Number(item?.Id);
+		const teacherId = Number(item?.TeacherId);
+		if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(teacherId) || teacherId <= 0) throw featureError$1("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained an invalid identifier.");
+		return Object.freeze({
+			id,
+			teacherId,
+			name: String(item?.Name || "").trim() || null,
+			email: String(item?.Email || "").trim() || null
+		});
+	}
+	function normalizeModeratorCatalogue(items) {
+		if (!Array.isArray(items)) throw featureError$1("INVALID_MODERATOR_RESPONSE", "The moderator catalogue was not an array.");
+		const moderators = items.map(normalizeModerator);
+		const ids = /* @__PURE__ */ new Set();
+		const teacherIds = /* @__PURE__ */ new Set();
+		for (const moderator of moderators) {
+			if (ids.has(moderator.id) || teacherIds.has(moderator.teacherId)) throw featureError$1("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained ambiguous identifiers.");
+			ids.add(moderator.id);
+			teacherIds.add(moderator.teacherId);
+		}
+		return Object.freeze(moderators);
+	}
+	async function loadModerators({ sendRequest, marathonId }) {
+		return normalizeModeratorCatalogue((await sendRequest("MarathonModeratorWsController", "GetMarathonModerators", "Marathons", { MarathonId: marathonId }))?.Value?.Items);
+	}
+	function buildModeratorIndex(moderators) {
+		return new Map((moderators || []).map((moderator) => [moderator.teacherId, moderator]));
+	}
+	function resolvePupilModerators(pupilModerators, moderators) {
+		if (!Array.isArray(pupilModerators)) return Object.freeze({
+			safe: false,
+			moderators: Object.freeze([]),
+			code: "UNSAFE_MODERATOR_REPLACEMENT",
+			message: "Current curator assignments could not be interpreted safely."
+		});
+		const byTeacherId = buildModeratorIndex(moderators);
+		const resolved = [];
+		const seen = /* @__PURE__ */ new Set();
+		for (const current of pupilModerators) {
+			const teacherId = Number(current?.TeacherId);
+			const moderator = byTeacherId.get(teacherId);
+			if (!Number.isSafeInteger(teacherId) || !moderator || seen.has(moderator.id)) return Object.freeze({
+				safe: false,
+				moderators: Object.freeze([]),
+				code: "UNSAFE_MODERATOR_REPLACEMENT",
+				message: "Existing curator assignments cannot be preserved without guessing."
+			});
+			seen.add(moderator.id);
+			resolved.push(moderator);
+		}
+		return Object.freeze({
+			safe: true,
+			moderators: Object.freeze(resolved),
+			code: null,
+			message: null
+		});
+	}
+	function serializePupil(pupil) {
+		if (!pupil) return null;
+		return Object.freeze({
+			email: String(pupil.Email || "").trim() || null,
+			name: String(pupil.Name || pupil.DisplayName || pupil.FullName || "").trim() || null,
+			pupilId: Number.isSafeInteger(Number(pupil.PupilId)) ? Number(pupil.PupilId) : null,
+			marathonPupilId: Number.isSafeInteger(Number(pupil.MarathonPupilId)) ? Number(pupil.MarathonPupilId) : null
+		});
+	}
+	function buildPupilEmailIndex(pupils) {
+		const index = /* @__PURE__ */ new Map();
+		for (const pupil of Array.isArray(pupils) ? pupils : []) {
+			const email = String(pupil?.Email || "").trim().toLowerCase();
+			if (!email) continue;
+			const values = index.get(email) || [];
+			values.push(pupil);
+			index.set(email, values);
+		}
+		return index;
+	}
+	function resolveOnboardingRows(parsed, pupils, moderators) {
+		const pupilIndex = buildPupilEmailIndex(pupils);
+		const rows = [];
+		for (const item of parsed?.items || []) {
+			if (!item.isValid) {
+				rows.push(Object.freeze({
+					email: item.input,
+					normalizedEmail: item.normalized,
+					resolution: "invalid",
+					membership: "unknown",
+					user: null,
+					currentModerators: Object.freeze([]),
+					moderatorStateSafe: false,
+					actionable: false,
+					message: `Invalid email address: ${item.input}.`,
+					addSelected: false,
+					assignSelected: false
+				}));
+				continue;
+			}
+			const candidates = pupilIndex.get(item.normalized) || [];
+			if (candidates.length > 1) {
+				rows.push(Object.freeze({
+					email: item.input,
+					normalizedEmail: item.normalized,
+					resolution: "ambiguous",
+					membership: "ambiguous",
+					user: null,
+					currentModerators: Object.freeze([]),
+					moderatorStateSafe: false,
+					actionable: false,
+					message: `Multiple marathon users matched ${item.input}.`,
+					addSelected: false,
+					assignSelected: false
+				}));
+				continue;
+			}
+			if (candidates.length === 0) {
+				rows.push(Object.freeze({
+					email: item.input,
+					normalizedEmail: item.normalized,
+					resolution: "resolvable_not_in_marathon",
+					membership: "not_in_marathon",
+					user: null,
+					currentModerators: Object.freeze([]),
+					moderatorStateSafe: true,
+					actionable: true,
+					message: "Not currently in the marathon; the recorded add-by-email workflow is available.",
+					addSelected: false,
+					assignSelected: false
+				}));
+				continue;
+			}
+			const current = resolvePupilModerators(candidates[0].Moderators, moderators);
+			rows.push(Object.freeze({
+				email: item.input,
+				normalizedEmail: item.normalized,
+				resolution: "in_marathon",
+				membership: "in_marathon",
+				user: serializePupil(candidates[0]),
+				currentModerators: current.moderators,
+				moderatorStateSafe: current.safe,
+				actionable: true,
+				message: current.safe ? "Already in the marathon." : current.message,
+				addSelected: false,
+				assignSelected: false
+			}));
+		}
+		return Object.freeze(rows);
+	}
+	function operationPreview(status, code, message, dependency = null) {
+		return Object.freeze({
+			status,
+			code,
+			message,
+			dependency
+		});
+	}
+	function findTargetModerator(moderators, targetModeratorId) {
+		const targetId = Number(targetModeratorId);
+		return (moderators || []).find((moderator) => moderator.id === targetId) || null;
+	}
+	function buildExecutionPlan$1({ rows, moderators, targetModeratorId }) {
+		const values = Array.isArray(rows) ? rows : [];
+		const assignmentSelected = values.some((row) => Boolean(row.assignSelected));
+		const target = assignmentSelected ? findTargetModerator(moderators, targetModeratorId) : null;
+		if (assignmentSelected && !target) throw featureError$1("CURATOR_REQUIRED", "Select a curator before preparing the execution plan.");
+		const planRows = values.map((row) => {
+			const addSelected = Boolean(row.addSelected);
+			const assignSelected = Boolean(row.assignSelected);
+			let add = null;
+			let assign = null;
+			if (addSelected) add = !row.actionable ? operationPreview("rejected", "INVALID_USER_INPUT", row.message || "The user is not actionable.") : row.membership === "in_marathon" ? operationPreview("noop", "USER_ALREADY_IN_MARATHON", "User is already in the marathon.") : operationPreview("pending", "USER_ADD_PENDING", "User will be added to the marathon.");
+			if (assignSelected) if (!row.actionable) assign = operationPreview("rejected", "INVALID_USER_INPUT", row.message || "The user is not actionable.");
+			else if (!row.moderatorStateSafe) assign = operationPreview("rejected", "UNSAFE_MODERATOR_REPLACEMENT", "Existing curator assignments cannot be preserved safely.");
+			else if (row.membership === "not_in_marathon" && !addSelected) assign = operationPreview("rejected", "USER_NOT_IN_MARATHON", "Curator assignment requires adding this user first.");
+			else if (row.membership === "in_marathon" && row.currentModerators.some((moderator) => moderator.teacherId === target.teacherId)) assign = operationPreview("noop", "CURATOR_ALREADY_ASSIGNED", "Target curator is already assigned.");
+			else assign = operationPreview("pending", "CURATOR_ASSIGNMENT_PENDING", row.membership === "not_in_marathon" ? "The curator will be assigned by the recorded add-user request." : "The curator will be added while preserving all current curators.", row.membership === "not_in_marathon" ? Object.freeze({ blockedBy: "add_user" }) : null);
+			return deepFreeze({
+				itemId: row.normalizedEmail || row.email,
+				email: row.email,
+				normalizedEmail: row.normalizedEmail,
+				resolution: row.resolution,
+				membership: row.membership,
+				user: row.user ? { ...row.user } : null,
+				currentModerators: (row.currentModerators || []).map((moderator) => ({ ...moderator })),
+				moderatorStateSafe: Boolean(row.moderatorStateSafe),
+				actionable: Boolean(row.actionable),
+				message: row.message || "",
+				selectedOperations: Object.freeze([...addSelected ? ["add_user"] : [], ...assignSelected ? ["assign_curator"] : []]),
+				addSelected,
+				assignSelected,
+				add,
+				assign,
+				targetModerator: target ? { ...target } : null
+			});
+		});
+		const countStatus = (status) => planRows.reduce((sum, row) => sum + (row.add?.status === status ? 1 : 0) + (row.assign?.status === status ? 1 : 0), 0);
+		return deepFreeze({
+			rows: planRows,
+			targetModerator: target ? { ...target } : null,
+			counts: {
+				requested: planRows.length,
+				selectedOperations: planRows.reduce((sum, row) => sum + row.selectedOperations.length, 0),
+				additions: planRows.filter((row) => row.addSelected).length,
+				assignments: planRows.filter((row) => row.assignSelected).length,
+				noOps: countStatus("noop"),
+				rejectedOperations: countStatus("rejected"),
+				dependentAssignments: planRows.filter((row) => row.assign?.dependency?.blockedBy === "add_user").length
+			}
+		});
+	}
+	function pad(value, length = 2) {
+		return String(value).padStart(length, "0");
+	}
+	function formatClientTime(value) {
+		const date = value instanceof Date ? value : new Date(value);
+		if (Number.isNaN(date.getTime())) throw featureError$1("INVALID_CLIENT_TIME", "Could not build the Edvibe client timestamp.");
+		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
+	}
+	function buildAddRequest({ marathonId, emails, moderatorIds = [], host = "edvibe.com", now = /* @__PURE__ */ new Date(), userId = null }) {
+		const normalizedEmails = (emails || []).map((email) => String(email || "").trim()).filter(Boolean);
+		if (normalizedEmails.length === 0) throw featureError$1("EMAILS_REQUIRED", "At least one email is required for addition.");
+		const hostname = String(host || "").trim() || "edvibe.com";
+		const value = {
+			MarathonId: marathonId,
+			Emails: normalizedEmails,
+			MailMessageLanguageId: 0,
+			ModeratorsIds: [...moderatorIds],
+			AccessGroups: [],
+			Domain: hostname,
+			ApiHost: hostname,
+			ClientTime: formatClientTime(now),
+			DeviceType: "desktop"
+		};
+		const numericUserId = Number(userId);
+		if (Number.isSafeInteger(numericUserId) && numericUserId > 0) value.UserId = numericUserId;
+		return deepFreeze({
+			controller: "MarathonPupilsWsController",
+			method: "AddMarathonPupil",
+			projectName: "Marathons",
+			value
+		});
+	}
+	function buildAssignRequest({ marathonId, marathonPupilId, existingModeratorIds, targetModeratorId }) {
+		const selected = [.../* @__PURE__ */ new Set([...(existingModeratorIds || []).map(Number), Number(targetModeratorId)])];
+		if (selected.some((id) => !Number.isSafeInteger(id) || id <= 0)) throw featureError$1("UNSAFE_MODERATOR_REPLACEMENT", "A safe complete curator list could not be constructed.");
+		return deepFreeze({
+			controller: "MarathonPupilsWsController",
+			method: "AddModeratorsToPupil",
+			projectName: "Marathons",
+			value: {
+				MarathonId: marathonId,
+				MarathonPupilId: marathonPupilId,
+				SelectedModeratorsIds: selected
+			}
+		});
+	}
+	function operationResult(status, code, message, attempts = 0, dependency = null) {
+		return {
+			status,
+			code,
+			message,
+			attempts,
+			dependency
+		};
+	}
+	function initializeExecutionRows(plan) {
+		const fromPreview = (preview, label) => preview ? operationResult(preview.status === "pending" ? "not_attempted" : preview.status, preview.status === "pending" ? "NOT_ATTEMPTED" : preview.code, preview.status === "pending" ? `${label} has not been attempted yet.` : preview.message, 0, preview.dependency) : null;
+		return plan.rows.map((row) => ({
+			...row,
+			currentModerators: row.currentModerators.map((moderator) => ({ ...moderator })),
+			runtimePupil: row.user ? { ...row.user } : null,
+			addResult: fromPreview(row.add, "The addition"),
+			assignResult: fromPreview(row.assign, "The curator assignment")
+		}));
+	}
+	function isPending(result) {
+		return result?.status === "not_attempted";
+	}
+	function isRevalidatable(result) {
+		return result && ![
+			"rejected",
+			"failed",
+			"skipped"
+		].includes(result.status);
+	}
+	function moderatorTeacherIds(values) {
+		return (values || []).map((moderator) => moderator.teacherId).sort((a, b) => a - b);
+	}
+	function sameNumbers(left, right) {
+		return left.length === right.length && left.every((value, index) => value === right[index]);
+	}
+	function rejectSelectedState(row, code, message) {
+		if (row.addSelected && isRevalidatable(row.addResult)) row.addResult = operationResult("rejected", code, message);
+		if (row.assignSelected && isRevalidatable(row.assignResult)) row.assignResult = operationResult("rejected", code, message);
+	}
+	function revalidateRows({ rows, pupils, moderators, targetModerator }) {
+		const pupilIndex = buildPupilEmailIndex(pupils);
+		for (const row of rows) {
+			if (!row.actionable || row.selectedOperations.length === 0) continue;
+			const candidates = pupilIndex.get(row.normalizedEmail) || [];
+			if (candidates.length > 1) {
+				rejectSelectedState(row, "USER_AMBIGUOUS", "The user became ambiguous before execution.");
+				continue;
+			}
+			if (row.membership === "in_marathon") {
+				if (candidates.length !== 1 || Number(candidates[0].MarathonPupilId) !== Number(row.user?.marathonPupilId)) {
+					rejectSelectedState(row, "STATE_CHANGED", "Marathon membership changed after preflight.");
+					continue;
+				}
+				const currentPupil = candidates[0];
+				row.runtimePupil = serializePupil(currentPupil);
+				if (row.addSelected && isRevalidatable(row.addResult)) row.addResult = operationResult("noop", "USER_ALREADY_IN_MARATHON", "User is already in the marathon.");
+				if (!row.assignSelected || !isRevalidatable(row.assignResult)) continue;
+				const current = resolvePupilModerators(currentPupil.Moderators, moderators);
+				if (!current.safe) {
+					row.assignResult = operationResult("rejected", current.code, current.message);
+					continue;
+				}
+				if (!sameNumbers(moderatorTeacherIds(row.currentModerators), moderatorTeacherIds(current.moderators))) {
+					row.assignResult = operationResult("rejected", "STATE_CHANGED", "Current curator assignments changed after preflight.");
+					continue;
+				}
+				row.currentModerators = current.moderators.map((moderator) => ({ ...moderator }));
+				row.assignResult = current.moderators.some((moderator) => moderator.teacherId === targetModerator?.teacherId) ? operationResult("noop", "CURATOR_ALREADY_ASSIGNED", "Target curator is already assigned.") : operationResult("not_attempted", "NOT_ATTEMPTED", "The curator assignment has not been attempted yet.");
+				continue;
+			}
+			if (row.membership !== "not_in_marathon" || candidates.length === 0) continue;
+			const currentPupil = candidates[0];
+			row.runtimePupil = serializePupil(currentPupil);
+			if (row.addSelected && isRevalidatable(row.addResult)) row.addResult = operationResult("noop", "USER_ALREADY_IN_MARATHON", "User entered the marathon after preflight; no duplicate add was sent.");
+			if (row.assignSelected && isRevalidatable(row.assignResult)) {
+				const current = resolvePupilModerators(currentPupil.Moderators, moderators);
+				row.assignResult = current.safe && current.moderators.some((moderator) => moderator.teacherId === targetModerator?.teacherId) ? operationResult("noop", "CURATOR_ALREADY_ASSIGNED", "Target curator was assigned after preflight.") : operationResult("rejected", "STATE_CHANGED", "The user entered the marathon after preflight; curator state was not part of the confirmed plan.");
+			}
+		}
+		return rows;
+	}
+	function isOperationWide(error, getConnectionState) {
+		if (!error?.code) return true;
+		if (error.code === "WS_UNAVAILABLE") return true;
+		if (error.code === "SEND_FAILED" && !getConnectionState().isOpen) return true;
+		return !EXPECTED_WRITE_CODES$2.has(error.code);
+	}
+	function countTerminalOperations(rows) {
+		const results = rows.flatMap((row) => [row.addResult, row.assignResult]).filter(Boolean);
+		return {
+			completed: results.filter((result) => result.status !== "not_attempted").length,
+			total: results.length,
+			successes: results.filter((result) => ["success", "noop"].includes(result.status)).length,
+			failures: results.filter((result) => [
+				"failed",
+				"rejected",
+				"skipped"
+			].includes(result.status)).length
+		};
+	}
+	function emitProgress(onProgress, rows, current = null) {
+		try {
+			onProgress?.({
+				...countTerminalOperations(rows),
+				current
+			});
+		} catch (_) {}
+	}
+	async function executeAddGroup({ rows, marathonId, targetModerator, includeModerator, sendRequest, wait, getConnectionState, getRequestContext, now }) {
+		const targets = rows.filter((row) => isPending(row.addResult) && row.membership === "not_in_marathon" && Boolean(row.assignSelected) === includeModerator);
+		if (targets.length === 0) return {
+			targets,
+			confirmed: false,
+			fatalError: null
+		};
+		const context = getRequestContext?.() || {};
+		const request = buildAddRequest({
+			marathonId,
+			emails: targets.map((row) => row.email),
+			moderatorIds: includeModerator ? [targetModerator.id] : [],
+			host: context.host,
+			userId: context.userId,
+			now: now()
+		});
+		try {
+			const result = await runWithRetry(async () => {
+				const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
+				if (response?.Value?.IsSuccess !== true) throw featureError$1("INVALID_RESPONSE", "User addition was not positively confirmed.");
+				return response;
+			}, {
+				wait,
+				getConnectionState
+			});
+			for (const row of targets) row.addRequestAttempts = result.attempts;
+			return {
+				targets,
+				confirmed: true,
+				fatalError: null
+			};
+		} catch (error) {
+			for (const row of targets) {
+				row.addResult = operationResult("failed", error.code || "USER_ADD_FAILED", error.message || "User addition failed.", error.attempts || 1);
+				if (isPending(row.assignResult)) row.assignResult = operationResult("skipped", "ASSIGNMENT_BLOCKED_BY_ADD_FAILURE", "Curator assignment was skipped because user addition failed.", 0, { blockedBy: "add_user" });
+			}
+			return {
+				targets,
+				confirmed: false,
+				fatalError: isOperationWide(error, getConnectionState) ? error : null
+			};
+		}
+	}
+	function reconcileAddedRows({ groups, pupils, targetModerator }) {
+		const pupilIndex = buildPupilEmailIndex(pupils);
+		for (const group of groups.filter((item) => item.confirmed)) for (const row of group.targets) {
+			const candidates = pupilIndex.get(row.normalizedEmail) || [];
+			if (candidates.length !== 1) {
+				row.addResult = operationResult("failed", "INVALID_USER_RESPONSE", candidates.length === 0 ? "The add request succeeded, but the user was not found in the refreshed marathon roster." : "The add request succeeded, but the refreshed user identity was ambiguous.", row.addRequestAttempts || 1);
+				if (isPending(row.assignResult)) row.assignResult = operationResult("skipped", "ASSIGNMENT_BLOCKED_BY_ADD_FAILURE", "Curator assignment was skipped because the added user could not be resolved safely.", 0, { blockedBy: "add_user" });
+				continue;
+			}
+			const currentPupil = candidates[0];
+			row.runtimePupil = serializePupil(currentPupil);
+			row.addResult = operationResult("success", "USER_ADDED", "User was added to the marathon.", row.addRequestAttempts || 1);
+			if (isPending(row.assignResult) && row.assignSelected) row.assignResult = Array.isArray(currentPupil.Moderators) && currentPupil.Moderators.some((moderator) => Number(moderator?.TeacherId) === Number(targetModerator?.teacherId)) ? operationResult("success", "CURATOR_ASSIGNED", "Target curator was assigned during user addition.", row.addRequestAttempts || 1, { blockedBy: "add_user" }) : operationResult("failed", "INVALID_MODERATOR_RESPONSE", "The user was added, but the target curator was not confirmed on the refreshed roster.", row.addRequestAttempts || 1, { blockedBy: "add_user" });
+		}
+	}
+	function markConfirmedGroupsUnverified(groups, error) {
+		for (const group of groups.filter((item) => item.confirmed)) for (const row of group.targets) {
+			if (!isPending(row.addResult)) continue;
+			row.addResult = operationResult("failed", "ADD_VERIFICATION_FAILED", `The add request was accepted, but per-user verification could not finish: ${error?.message || "operation interrupted"}`, row.addRequestAttempts || 1);
+			if (isPending(row.assignResult)) row.assignResult = operationResult("skipped", "ASSIGNMENT_BLOCKED_BY_ADD_FAILURE", "Curator assignment could not be verified because the added user was not safely resolved.", 0, { blockedBy: "add_user" });
+		}
+	}
+	async function executeExistingAssignments({ rows, marathonId, targetModerator, sendRequest, wait, getConnectionState, requestDelayMs, onProgress }) {
+		let fatalError = null;
+		const targets = rows.filter((row) => isPending(row.assignResult) && row.membership === "in_marathon" && row.runtimePupil?.marathonPupilId);
+		for (const [index, row] of targets.entries()) {
+			if (fatalError) break;
+			const request = buildAssignRequest({
+				marathonId,
+				marathonPupilId: row.runtimePupil.marathonPupilId,
+				existingModeratorIds: row.currentModerators.map((moderator) => moderator.id),
+				targetModeratorId: targetModerator.id
+			});
+			try {
+				row.assignResult = operationResult("success", "CURATOR_ASSIGNED", "Target curator was assigned while preserving existing curators.", (await runWithRetry(async () => {
+					const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
+					if (response?.Value?.IsSuccess !== true) throw featureError$1("INVALID_RESPONSE", "Curator assignment was not positively confirmed.");
+					return response;
+				}, {
+					wait,
+					getConnectionState
+				})).attempts);
+			} catch (error) {
+				row.assignResult = operationResult("failed", error.code || "CURATOR_ASSIGNMENT_FAILED", error.message || "Curator assignment failed.", error.attempts || 1);
+				if (isOperationWide(error, getConnectionState)) fatalError = error;
+			}
+			emitProgress(onProgress, rows, {
+				email: row.email,
+				operation: "assign_curator"
+			});
+			if (index < targets.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
+		}
+		return fatalError;
+	}
+	function markRemainingNotAttempted(rows, message = "Not attempted because the operation stopped.") {
+		for (const row of rows) {
+			if (isPending(row.addResult)) row.addResult = operationResult("not_attempted", "NOT_ATTEMPTED", message);
+			if (isPending(row.assignResult)) row.assignResult = operationResult("not_attempted", "NOT_ATTEMPTED", message);
+		}
+	}
+	function rejectRevalidatableRows(rows, error) {
+		for (const row of rows) rejectSelectedState(row, error?.code || "STATE_CHANGED", error?.message || "The confirmed plan could not be revalidated.");
+	}
+	async function executePlan$1({ plan, marathonId, sendRequest, wait, getConnectionState, getRequestContext = () => ({ host: "edvibe.com" }), now = () => /* @__PURE__ */ new Date(), requestDelayMs = 250, onProgress = () => {} }) {
+		const rows = initializeExecutionRows(plan);
+		const groups = [];
+		let fatalError = null;
+		let writesStarted = false;
+		try {
+			const [latestPupils, latestModerators] = await Promise.all([loadAllPupils({
+				sendRequest,
+				marathonId
+			}), loadModerators({
+				sendRequest,
+				marathonId
+			})]);
+			const target = plan.targetModerator ? findTargetModerator(latestModerators, plan.targetModerator.id) : null;
+			if (plan.targetModerator && (!target || target.teacherId !== plan.targetModerator.teacherId)) throw featureError$1("STATE_CHANGED", "The selected curator changed or disappeared after preflight.");
+			revalidateRows({
+				rows,
+				pupils: latestPupils,
+				moderators: latestModerators,
+				targetModerator: target
+			});
+			emitProgress(onProgress, rows, { operation: "revalidate" });
+			for (const includeModerator of [false, true]) {
+				if (!rows.some((row) => isPending(row.addResult) && row.membership === "not_in_marathon" && Boolean(row.assignSelected) === includeModerator)) continue;
+				writesStarted = true;
+				const group = await executeAddGroup({
+					rows,
+					marathonId,
+					targetModerator: target,
+					includeModerator,
+					sendRequest,
+					wait,
+					getConnectionState,
+					getRequestContext,
+					now
+				});
+				groups.push(group);
+				fatalError ||= group.fatalError;
+				emitProgress(onProgress, rows, { operation: includeModerator ? "add_user_with_curator" : "add_user" });
+				if (fatalError) break;
+				if (requestDelayMs > 0) await wait(requestDelayMs);
+			}
+			if (!fatalError && groups.some((group) => group.confirmed)) {
+				reconcileAddedRows({
+					groups,
+					pupils: await loadAllPupils({
+						sendRequest,
+						marathonId
+					}),
+					targetModerator: target
+				});
+				emitProgress(onProgress, rows, { operation: "verify_additions" });
+			}
+			if (!fatalError && target) {
+				if (rows.some((row) => isPending(row.assignResult) && row.membership === "in_marathon")) writesStarted = true;
+				fatalError = await executeExistingAssignments({
+					rows,
+					marathonId,
+					targetModerator: target,
+					sendRequest,
+					wait,
+					getConnectionState,
+					requestDelayMs,
+					onProgress
+				});
+			}
+		} catch (error) {
+			fatalError = error;
+		}
+		if (fatalError && groups.some((group) => group.confirmed)) markConfirmedGroupsUnverified(groups, fatalError);
+		if (fatalError && !writesStarted) rejectRevalidatableRows(rows, fatalError);
+		markRemainingNotAttempted(rows, fatalError ? "Not attempted because the operation stopped." : "The selected operation was not applicable after revalidation.");
+		emitProgress(onProgress, rows, null);
+		return deepFreeze({
+			plan,
+			rows: rows.map((row) => ({
+				itemId: row.itemId,
+				email: row.email,
+				normalizedEmail: row.normalizedEmail,
+				resolution: row.resolution,
+				membership: row.membership,
+				user: row.runtimePupil ? { ...row.runtimePupil } : row.user ? { ...row.user } : null,
+				currentModerators: row.currentModerators.map((moderator) => ({ ...moderator })),
+				targetModerator: row.targetModerator ? { ...row.targetModerator } : null,
+				selectedOperations: [...row.selectedOperations],
+				addResult: row.addResult ? { ...row.addResult } : null,
+				assignResult: row.assignResult ? { ...row.assignResult } : null,
+				message: row.message
+			})),
+			fatalError: fatalError ? Object.freeze({
+				code: fatalError.code || "INTERNAL_ERROR",
+				message: fatalError.message || "The operation stopped unexpectedly."
+			}) : null
+		});
+	}
+	function inferRowStatus(row) {
+		const results = [row.addResult, row.assignResult].filter(Boolean);
+		if (row.resolution === "invalid" || row.resolution === "ambiguous") return "rejected";
+		if (results.length === 0) return "skipped";
+		if (results.some((result) => result.status === "failed")) return "failed";
+		if (results.some((result) => result.status === "not_attempted")) return "not_attempted";
+		if (results.some((result) => result.status === "rejected")) return "rejected";
+		if (results.some((result) => result.status === "skipped")) return "skipped";
+		if (results.every((result) => result.status === "noop")) return "noop";
+		return "success";
+	}
+	function formatReport$1(result) {
+		const lines = [
+			"Edvibe Toolbox: batch user onboarding",
+			`Requested users: ${result.plan.counts.requested}`,
+			`Selected additions: ${result.plan.counts.additions}`,
+			`Selected assignments: ${result.plan.counts.assignments}`,
+			result.plan.targetModerator ? `Target curator: ${result.plan.targetModerator.name || result.plan.targetModerator.email || result.plan.targetModerator.id}` : "Target curator: not selected",
+			""
+		];
+		for (const row of result.rows) {
+			const label = row.user?.name ? `${row.user.name} <${row.email}>` : row.email;
+			lines.push(`[${inferRowStatus(row)}] ${label}`);
+			if (row.addResult) lines.push(`  add_user: ${row.addResult.status} ${row.addResult.code} — ${row.addResult.message}`);
+			if (row.assignResult) lines.push(`  assign_curator: ${row.assignResult.status} ${row.assignResult.code} — ${row.assignResult.message}`);
+			if (!row.addResult && !row.assignResult) lines.push(`  discovery: ${row.resolution} — ${row.message || "No operation selected."}`);
+		}
+		if (result.fatalError) lines.push("", `Interrupted: ${result.fatalError.code} — ${result.fatalError.message}`);
+		return lines.join("\n");
+	}
+	function buildCounts$1(rows) {
+		const statuses = rows.map(inferRowStatus);
+		return Object.freeze({
+			requested: rows.length,
+			eligible: rows.filter((row) => !["invalid", "ambiguous"].includes(row.resolution) && row.selectedOperations.length > 0).length,
+			attempted: rows.filter((row) => [row.addResult, row.assignResult].filter(Boolean).some((result) => !["not_attempted", "rejected"].includes(result.status))).length,
+			successful: statuses.filter((status) => status === "success").length,
+			noOp: statuses.filter((status) => status === "noop").length,
+			skipped: statuses.filter((status) => status === "skipped" || status === "rejected").length,
+			failed: statuses.filter((status) => status === "failed").length,
+			notAttempted: statuses.filter((status) => status === "not_attempted").length
+		});
+	}
+	function serializeHistoryOperation(name, result) {
+		return result ? Object.freeze({
+			name,
+			status: result.status,
+			attemptCount: Number(result.attempts) || 0,
+			code: result.code || null,
+			message: result.message || null,
+			dependency: result.dependency ? Object.freeze({ ...result.dependency }) : null
+		}) : null;
+	}
+	function buildExecutionHistoryInput$3({ marathonId, marathonName = null, startedAt, completedAt, result }) {
+		const rows = result.rows || [];
+		const counts = buildCounts$1(rows);
+		const operationCounts = {
+			selected: 0,
+			attempted: 0,
+			successful: 0,
+			noOp: 0,
+			skipped: 0,
+			rejected: 0,
+			failed: 0,
+			notAttempted: 0
+		};
+		const historyRows = rows.map((row) => {
+			const operations = [serializeHistoryOperation("add_user", row.addResult), serializeHistoryOperation("assign_curator", row.assignResult)].filter(Boolean);
+			for (const operation of operations) {
+				operationCounts.selected += 1;
+				if (!["not_attempted", "rejected"].includes(operation.status)) operationCounts.attempted += 1;
+				if (operation.status === "success") operationCounts.successful += 1;
+				if (operation.status === "noop") operationCounts.noOp += 1;
+				if (operation.status === "skipped") operationCounts.skipped += 1;
+				if (operation.status === "rejected") operationCounts.rejected += 1;
+				if (operation.status === "failed") operationCounts.failed += 1;
+				if (operation.status === "not_attempted") operationCounts.notAttempted += 1;
+			}
+			const status = inferRowStatus(row);
+			return Object.freeze({
+				itemId: row.itemId,
+				label: row.email,
+				status,
+				code: {
+					success: "USER_ONBOARDING_COMPLETED",
+					noop: "USER_ONBOARDING_NOOP",
+					skipped: "USER_ONBOARDING_SKIPPED",
+					rejected: "USER_ONBOARDING_REJECTED",
+					failed: "USER_ONBOARDING_FAILED",
+					not_attempted: "NOT_ATTEMPTED"
+				}[status],
+				message: operations.map((operation) => operation.message).filter(Boolean).join("; ") || row.message || "No operation selected.",
+				attempts: operations.reduce((sum, operation) => sum + operation.attemptCount, 0),
+				data: Object.freeze({
+					submittedInput: row.email,
+					normalizedEmail: row.normalizedEmail,
+					resolution: row.resolution,
+					membershipPreflight: row.membership,
+					user: row.user ? Object.freeze({ ...row.user }) : null,
+					existingCurators: Object.freeze(row.currentModerators.map((moderator) => Object.freeze({ ...moderator }))),
+					targetCurator: row.targetModerator ? Object.freeze({ ...row.targetModerator }) : null,
+					selectedOperations: Object.freeze([...row.selectedOperations]),
+					operations: Object.freeze(operations)
+				})
+			});
+		});
+		return deepFreeze({
+			operationType: OPERATION_TYPE$2,
+			startedAt,
+			completedAt,
+			status: result.fatalError ? "interrupted" : counts.failed > 0 || counts.skipped > 0 ? "completed_with_failures" : "completed",
+			pageContext: {
+				marathonId: String(marathonId),
+				marathonName
+			},
+			counts,
+			results: historyRows,
+			message: JSON.stringify({
+				userCounts: counts,
+				operationCounts
+			})
+		});
+	}
+	function createBatchUserOnboardingFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog = () => document.createElement(DIALOG_TAG$2), copyText = (text) => navigator.clipboard.writeText(text), persistExecution = async () => Object.freeze({ stored: false }), openHistory = () => {}, getLocationHref = () => window.location.href, getMarathonName = () => document.querySelector("h1")?.textContent?.trim() || document.title || null, getRequestContext = () => ({ host: window.location.hostname }), now = () => /* @__PURE__ */ new Date(), log = () => {} }) {
+		let active = false;
+		function release() {
+			if (!active) return;
+			active = false;
+			onActiveChange(false);
+		}
+		async function open({ stylesheetUrl = "" } = {}) {
+			if (active || !canStart()) {
+				window.alert("Another Edvibe Toolbox operation is already running.");
+				return;
+			}
+			const marathonId = parseMarathonId$5(getLocationHref());
+			if (!marathonId) {
+				window.alert("Open an Edvibe marathon page before adding users.");
+				return;
+			}
+			active = true;
+			onActiveChange(true);
+			const dialog = createDialog();
+			(document.body || document.documentElement).appendChild(dialog);
+			try {
+				dialog.showLoading?.("Loading marathon users and curators…");
+				const [pupils, moderators] = await Promise.all([loadAllPupils({
+					sendRequest,
+					marathonId
+				}), loadModerators({
+					sendRequest,
+					marathonId
+				})]);
+				let discoveryRows = [];
+				dialog.configure({
+					stylesheetUrl,
+					moderators,
+					parseEmailInput,
+					onDiscover({ emailInput }) {
+						const parsed = parseEmailInput(emailInput);
+						if (parsed.items.length === 0) throw featureError$1("EMAILS_REQUIRED", "Enter at least one email address.");
+						discoveryRows = resolveOnboardingRows(parsed, pupils, moderators);
+						return discoveryRows;
+					},
+					onPreflight({ rows, targetModeratorId }) {
+						const selections = new Map((rows || []).map((row) => [row.normalizedEmail, {
+							addSelected: Boolean(row.addSelected),
+							assignSelected: Boolean(row.assignSelected)
+						}]));
+						const plan = buildExecutionPlan$1({
+							rows: discoveryRows.map((row) => ({
+								...row,
+								...selections.get(row.normalizedEmail) || {
+									addSelected: false,
+									assignSelected: false
+								}
+							})),
+							moderators,
+							targetModeratorId
+						});
+						if (plan.counts.selectedOperations === 0) throw featureError$1("OPERATIONS_REQUIRED", "Select at least one add or curator-assignment operation.");
+						return plan;
+					},
+					async onExecute(plan, onProgress) {
+						const startedAt = now().toISOString();
+						const result = await executePlan$1({
+							plan,
+							marathonId,
+							sendRequest,
+							wait,
+							getConnectionState,
+							getRequestContext,
+							now,
+							onProgress
+						});
+						const report = formatReport$1(result);
+						const completedAt = now().toISOString();
+						let history;
+						try {
+							history = await persistExecution(buildExecutionHistoryInput$3({
+								marathonId,
+								marathonName: getMarathonName(),
+								startedAt,
+								completedAt,
+								result
+							}));
+						} catch (persistenceError) {
+							history = Object.freeze({
+								stored: false,
+								persistenceError
+							});
+							log("Batch user onboarding history persistence failed:", persistenceError);
+						}
+						return {
+							...result,
+							report,
+							history
+						};
+					},
+					onCopy: copyText,
+					onOpenHistory(executionId) {
+						dialog.remove();
+						release();
+						openHistory(executionId, stylesheetUrl);
+					},
+					onClose() {
+						dialog.remove();
+						release();
+					}
+				});
+				dialog.showConfigure?.();
+				log(`Batch user onboarding initialized for MarathonId ${marathonId}.`);
+			} catch (error) {
+				log(`Batch user onboarding initialization failed (${error.code || "UNKNOWN_ERROR"}).`);
+				dialog.remove();
+				release();
+				window.alert(error.message || "Could not initialize batch user onboarding.");
+			}
+		}
+		return Object.freeze({ open });
+	}
+	//#endregion
 	//#region src/components/batch-user-onboarding-dialog.js
-	init_lit();
 	var BATCH_USER_ONBOARDING_DIALOG_TAG = "edvibe-toolbox-batch-user-onboarding-dialog";
 	var BatchUserOnboardingDialog = class extends i {
 		static properties = {
@@ -7391,337 +11556,1069 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 	};
 	if (!customElements.get("edvibe-toolbox-batch-user-onboarding-dialog")) customElements.define(BATCH_USER_ONBOARDING_DIALOG_TAG, BatchUserOnboardingDialog);
-	var batchUserOnboardingDialogApi$1 = Object.freeze({
+	var batchUserOnboardingDialogApi = Object.freeze({
 		BATCH_USER_ONBOARDING_DIALOG_TAG,
 		BatchUserOnboardingDialog
 	});
-	globalThis.EdVibeBatchUserOnboardingDialog = batchUserOnboardingDialogApi$1;
+	globalThis.EdVibeBatchUserOnboardingDialog = batchUserOnboardingDialogApi;
 	//#endregion
-	//#region src/components/batch-user-management-dialog.js
-	init_lit();
-	var USER_MANAGEMENT_DIALOG_TAG = "edvibe-toolbox-batch-user-management-dialog";
-	var USER_MANAGEMENT_OVERLAY_ID = "edvibe-toolbox-batch-user-management-overlay";
-	var BatchUserManagementDialog = class extends i {
-		static properties = {
-			stylesheetUrl: { state: true },
-			rows: { state: true },
-			emailState: { state: true },
-			emailInput: { state: true },
-			mode: { state: true },
-			errors: { state: true },
-			statusMessage: { state: true },
-			statusError: { state: true },
-			progress: { state: true }
+	//#region src/features/batch-section-creation.js
+	var DIALOG_TAG$1 = "edvibe-toolbox-batch-section-creation-dialog";
+	var EXPECTED_WRITE_CODES$1 = /* @__PURE__ */ new Set([
+		.../* @__PURE__ */ new Set([
+			"WS_UNAVAILABLE",
+			"REQUEST_TIMEOUT",
+			"SEND_FAILED"
+		]),
+		"SERVER_REJECTED",
+		"INVALID_RESPONSE"
+	]);
+	var TOKEN_PATTERN = /\{\{\s*([^{}]+?)\s*\}\}/g;
+	function createFeatureError(code, message, details = {}) {
+		const error = new Error(message);
+		error.code = code;
+		Object.assign(error, details);
+		return error;
+	}
+	function parseMarathonId$3(url) {
+		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
+		return match ? Number(match[1]) : null;
+	}
+	function normalizeUrl(value) {
+		const text = String(value || "").trim();
+		if (!text) return "";
+		try {
+			const url = new URL(text);
+			return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
+		} catch (_) {
+			return "";
+		}
+	}
+	function normalizeBlock(block, index) {
+		const type = String(block?.type || "").trim();
+		const id = String(block?.id || `block-${index + 1}`).trim();
+		if (type === "image") return Object.freeze({
+			id,
+			type,
+			url: String(block?.url || "").trim(),
+			alt: String(block?.alt || "").trim()
+		});
+		if (type === "text") return Object.freeze({
+			id,
+			type,
+			text: String(block?.text || "").trim()
+		});
+		if (type === "link") return Object.freeze({
+			id,
+			type,
+			label: String(block?.label || "").trim(),
+			url: String(block?.url || "").trim()
+		});
+		return Object.freeze({
+			id,
+			type
+		});
+	}
+	function validateSectionDefinition(input = {}) {
+		const errors = [];
+		const name = String(input?.name || "").trim();
+		const blocks = Array.isArray(input?.blocks) ? input.blocks.map(normalizeBlock) : [];
+		const seenIds = /* @__PURE__ */ new Set();
+		if (!name) errors.push(createFeatureError("SECTION_NAME_REQUIRED", "Section name is required."));
+		if (blocks.length === 0) errors.push(createFeatureError("SECTION_BLOCK_REQUIRED", "Add at least one section block."));
+		for (const [index, block] of blocks.entries()) {
+			if (seenIds.has(block.id)) errors.push(createFeatureError("DUPLICATE_BLOCK_ID", `Block ${index + 1} has a duplicate ID.`));
+			seenIds.add(block.id);
+			if (block.type === "image") {
+				if (!normalizeUrl(block.url)) errors.push(createFeatureError("IMAGE_URL_REQUIRED", `Image block ${index + 1} requires an HTTP(S) URL.`));
+			} else if (block.type === "text") {
+				if (!block.text) errors.push(createFeatureError("TEXT_REQUIRED", `Text block ${index + 1} cannot be empty.`));
+			} else if (block.type === "link") {
+				if (!block.label) errors.push(createFeatureError("LINK_LABEL_REQUIRED", `Link block ${index + 1} requires a label.`));
+				if (!normalizeUrl(block.url)) errors.push(createFeatureError("LINK_URL_REQUIRED", `Link block ${index + 1} requires an HTTP(S) URL.`));
+			} else errors.push(createFeatureError("UNSUPPORTED_BLOCK_TYPE", `Block ${index + 1} has unsupported type "${block.type || "unknown"}".`));
+		}
+		return {
+			definition: Object.freeze({
+				name,
+				blocks: Object.freeze(blocks)
+			}),
+			errors
 		};
-		constructor() {
-			super();
-			this.stylesheetUrl = "";
-			this.rows = [];
-			this.emailState = {
-				validCount: 0,
-				malformedCount: 0
+	}
+	function normalizeLesson$2(node, index = 0) {
+		const lessonId = node?.LessonId ?? node?.lessonId ?? node?.Id;
+		const marathonLessonId = node?.MarathonLessonId ?? node?.marathonLessonId ?? node?.Id;
+		return Object.freeze({
+			lessonId: Number(lessonId),
+			marathonLessonId: Number(marathonLessonId),
+			number: Number(node?.Number ?? node?.number ?? index) + (node?.Number !== void 0 ? 1 : 0),
+			name: String(node?.Name ?? node?.name ?? `Lesson ${index + 1}`)
+		});
+	}
+	function extractNormalSections$1(structure) {
+		const value = structure?.Value ?? structure;
+		if (!value || !Array.isArray(value.Sections)) throw createFeatureError("INVALID_LESSON_RESPONSE", "The lesson response did not contain a normal sections array.");
+		return value.Sections;
+	}
+	function freezeEntries(entries) {
+		return Object.freeze(entries.map((entry) => Object.freeze({ ...entry })));
+	}
+	function buildPreflightPlan({ lessons, selectedLessonIds, definition, inspectionsByLessonId }) {
+		const validated = validateSectionDefinition(definition);
+		if (validated.errors.length > 0) throw createFeatureError("INVALID_SECTION_DEFINITION", "The section definition is invalid.", { validationErrors: validated.errors });
+		const selected = new Set((selectedLessonIds || []).map(Number));
+		const eligible = [];
+		const rejected = [];
+		for (const lesson of (lessons || []).filter((entry) => selected.has(Number(entry.lessonId)))) {
+			const inspection = inspectionsByLessonId.get(Number(lesson.lessonId));
+			if (!inspection || inspection.error) {
+				const error = inspection?.error || createFeatureError("INVALID_LESSON_RESPONSE", "The lesson was not inspected.");
+				rejected.push({
+					...lesson,
+					code: error.code || "INVALID_LESSON_RESPONSE",
+					message: error.message || "The lesson could not be inspected."
+				});
+				continue;
+			}
+			try {
+				if (extractNormalSections$1(inspection.structure).some((section) => String(section?.Name || "").trim() === validated.definition.name)) rejected.push({
+					...lesson,
+					code: "SECTION_NAME_COLLISION",
+					message: `A section named "${validated.definition.name}" already exists.`
+				});
+				else eligible.push({ ...lesson });
+			} catch (error) {
+				rejected.push({
+					...lesson,
+					code: error.code || "INVALID_LESSON_RESPONSE",
+					message: error.message
+				});
+			}
+		}
+		const blockSummary = validated.definition.blocks.map((block, index) => Object.freeze({
+			index,
+			type: block.type,
+			id: block.id
+		}));
+		return Object.freeze({
+			definition: validated.definition,
+			selectedLessonIds: Object.freeze([...selected]),
+			eligible: freezeEntries(eligible),
+			rejected: freezeEntries(rejected),
+			blockSummary: Object.freeze(blockSummary)
+		});
+	}
+	function readPath(source, path) {
+		return String(path || "").split(".").filter(Boolean).reduce((value, key) => value == null ? void 0 : value[key], source);
+	}
+	function resolveToken(path, context) {
+		if (path.startsWith("generated.")) {
+			const key = path.slice(10);
+			const store = context.block ? context.blockGenerated : context.generated;
+			if (!(key in store)) store[key] = context.createId();
+			return store[key];
+		}
+		return readPath(context, path);
+	}
+	function resolveTemplate(value, context) {
+		if (Array.isArray(value)) return value.map((entry) => resolveTemplate(entry, context));
+		if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, resolveTemplate(entry, context)]));
+		if (typeof value !== "string") return value;
+		const exact = value.match(/^\{\{\s*([^{}]+?)\s*\}\}$/);
+		if (exact) return resolveToken(exact[1], context);
+		return value.replace(TOKEN_PATTERN, (_match, path) => {
+			const resolved = resolveToken(path, context);
+			return resolved == null ? "" : String(resolved);
+		});
+	}
+	function validateRecipe(recipe) {
+		const errors = [];
+		if (!recipe || recipe.version !== 1) errors.push(createFeatureError("RECIPE_MISSING", "A version 1 recording recipe is required."));
+		if (recipe && recipe.reviewedDynamicFields !== true) errors.push(createFeatureError("RECIPE_NOT_REVIEWED", "The recording recipe must explicitly confirm reviewed dynamic fields."));
+		if (recipe && !Array.isArray(recipe.steps)) errors.push(createFeatureError("RECIPE_STEPS_REQUIRED", "The recording recipe requires steps."));
+		for (const step of recipe?.steps || []) if (!step.controller || !step.method || !step.projectName || !step.valueTemplate) errors.push(createFeatureError("INVALID_RECIPE_STEP", `Recipe step "${step.id || step.method || "unknown"}" is incomplete.`));
+		return errors;
+	}
+	function createRecordedCreationAdapter({ recipe = null, cryptoApi = globalThis.crypto, requestDelayMs = 300 } = {}) {
+		const errors = validateRecipe(recipe);
+		const createId = () => cryptoApi?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+		function expandSteps(steps, definition) {
+			const expanded = [];
+			for (let index = 0; index < steps.length;) {
+				const step = steps[index];
+				if (step.forEach !== "blocks") {
+					expanded.push({
+						step,
+						block: null,
+						blockIndex: null
+					});
+					index += 1;
+					continue;
+				}
+				const group = [];
+				while (index < steps.length && steps[index].forEach === "blocks") {
+					group.push(steps[index]);
+					index += 1;
+				}
+				definition.blocks.forEach((block, blockIndex) => {
+					const matching = group.find((candidate) => !Array.isArray(candidate.blockTypes) || candidate.blockTypes.includes(block.type));
+					if (matching) expanded.push({
+						step: matching,
+						block,
+						blockIndex
+					});
+				});
+			}
+			return expanded;
+		}
+		async function executeSteps({ steps, marathonId, lesson, definition, sendRequest, wait, captured = {}, generated = {} }) {
+			const blockGeneratedById = /* @__PURE__ */ new Map();
+			const expanded = expandSteps(steps, definition);
+			let markedCreated = false;
+			for (const [index, entry] of expanded.entries()) {
+				const blockGenerated = entry.block ? blockGeneratedById.get(entry.block.id) || {} : generated;
+				if (entry.block) blockGeneratedById.set(entry.block.id, blockGenerated);
+				const context = {
+					marathonId,
+					lesson,
+					section: definition,
+					block: entry.block,
+					blockIndex: entry.blockIndex,
+					captured,
+					generated,
+					blockGenerated,
+					createId
+				};
+				try {
+					const response = await sendRequest(entry.step.controller, entry.step.method, entry.step.projectName, resolveTemplate(entry.step.valueTemplate, context));
+					for (const [name, path] of Object.entries(entry.step.capture || {})) {
+						const capturedValue = readPath(response, path);
+						if (capturedValue === void 0) throw createFeatureError("INVALID_RESPONSE", `Recipe capture "${name}" was missing after ${entry.step.id || entry.step.method}.`);
+						captured[name] = capturedValue;
+					}
+					if (entry.step.marksSectionCreated === true) markedCreated = true;
+					if (index < expanded.length - 1 && requestDelayMs > 0) await wait(requestDelayMs);
+				} catch (error) {
+					error.partialCreated = markedCreated;
+					error.captured = { ...captured };
+					error.generated = { ...generated };
+					throw error;
+				}
+			}
+			return {
+				captured: { ...captured },
+				generated: { ...generated }
 			};
-			this.emailInput = "";
-			this.mode = "configure";
-			this.errors = [];
-			this.statusMessage = "";
-			this.statusError = false;
-			this.progress = {
-				visible: false,
-				completed: 0,
-				total: 0
-			};
-			this.handleKeydownBound = (event) => this.handleKeydown(event);
 		}
-		connectedCallback() {
-			super.connectedCallback();
-			if (!this.id) this.id = USER_MANAGEMENT_OVERLAY_ID;
-			this.ownerDocument?.addEventListener("keydown", this.handleKeydownBound);
-		}
-		disconnectedCallback() {
-			this.ownerDocument?.removeEventListener("keydown", this.handleKeydownBound);
-			super.disconnectedCallback();
-		}
-		configure(options = {}) {
-			options = options && typeof options === "object" ? options : {};
-			if (options.stylesheetUrl !== void 0) this.stylesheetUrl = String(options.stylesheetUrl || "");
-			return this;
-		}
-		setEmailState(state = {}) {
-			this.emailState = {
-				validCount: Math.max(0, Number(state?.validCount) || 0),
-				malformedCount: Math.max(0, Number(state?.malformedCount) || 0)
-			};
-			return this;
-		}
-		showConfigure() {
-			this.mode = "configure";
-			this.clearMessages();
-			return this;
-		}
-		showChecking(message = "Проверяем пользователей…") {
-			this.mode = "checking";
-			this.clearMessages();
-			this.setStatus(message);
-			return this;
-		}
-		showValidationErrors(errors = []) {
-			this.mode = "validation-error";
-			this.errors = this.normalizeErrors(errors);
-			this.progress = {
-				visible: false,
-				completed: 0,
-				total: 0
-			};
-			this.setStatus("Исправьте ошибки и повторите проверку.", "error");
-			return this;
-		}
-		showReview({ rows = [] } = {}) {
-			this.mode = "review";
-			this.rows = this.normalizeRows(rows);
-			this.clearMessages();
-			this.setStatus("Выберите операции для пользователей.");
-			return this;
-		}
-		showExecution(progress = {}) {
-			this.mode = "executing";
-			const completed = Math.max(0, Number(progress.completed) || 0);
-			const total = Math.max(0, Number(progress.total) || 0);
-			const successes = Math.max(0, Number(progress.successes) || 0);
-			const failures = Math.max(0, Number(progress.failures) || 0);
-			this.progress = {
-				visible: true,
-				completed,
-				total
-			};
-			const current = progress.current?.email && progress.current?.operation ? ` Сейчас: ${progress.current.email} — ${{
-				unassign: "снятие куратора",
-				delete: "удаление пользователя"
-			}[progress.current.operation] || progress.current.operation}.` : "";
-			this.setStatus(`Выполнено: ${completed} из ${total}. Успешно: ${successes}. Ошибок: ${failures}.${current}`);
-			return this;
-		}
-		showComplete(summary = {}) {
-			this.rows = this.normalizeRows(Array.isArray(summary.rows) ? summary.rows : this.rows);
-			const failures = Math.max(0, Number(summary.failures) || 0);
-			this.mode = failures > 0 ? "partial-complete" : "complete";
-			this.clearMessages();
-			this.setStatus(failures > 0 ? `Завершено с ошибками. Успешно: ${Math.max(0, Number(summary.successes) || 0)}.` : "Готово.");
-			return this;
-		}
-		showFatalError(error) {
-			this.mode = "fatal-error";
-			this.clearMessages();
-			this.errors = this.normalizeErrors([error]);
-			this.setStatus("Не удалось загрузить пользователей.", "error");
-			return this;
-		}
-		normalizeRows(rows) {
-			return rows.map((row) => ({
-				...row,
-				result: { ...row.result || {
-					status: "pending",
-					message: "Not started"
-				} }
-			}));
-		}
-		normalizeErrors(errors) {
-			return (Array.isArray(errors) ? errors : [errors]).map((error) => typeof error === "string" ? error : String(error?.message || "Неизвестная ошибка."));
-		}
-		selectOperation(row, operation, selected) {
-			if (this.isLocked() || row.actionable === false) return;
-			this.rows = this.rows.map((item) => item === row ? {
-				...item,
-				[`${operation}Selected`]: Boolean(selected),
-				result: { ...item.result || {} }
-			} : item);
-			this.dispatchSelectionChange();
-		}
-		selectAll(operation, selected) {
-			if (this.isLocked()) return;
-			this.rows = this.rows.map((row) => row.actionable === false ? row : {
-				...row,
-				[`${operation}Selected`]: Boolean(selected),
-				result: { ...row.result || {} }
+		return Object.freeze({
+			isReady: errors.length === 0,
+			errors: Object.freeze(errors),
+			async createSection(context) {
+				if (errors.length > 0) throw createFeatureError("RECIPE_UNAVAILABLE", errors[0].message);
+				return executeSteps({
+					...context,
+					steps: recipe.steps
+				});
+			},
+			async cleanupSection(context) {
+				if (!Array.isArray(recipe?.cleanupSteps) || recipe.cleanupSteps.length === 0) return {
+					attempted: false,
+					status: "unavailable"
+				};
+				try {
+					await executeSteps({
+						...context,
+						steps: recipe.cleanupSteps
+					});
+					return {
+						attempted: true,
+						status: "success"
+					};
+				} catch (error) {
+					return {
+						attempted: true,
+						status: "failed",
+						code: error.code || "CLEANUP_FAILED",
+						message: error.message
+					};
+				}
+			}
+		});
+	}
+	async function loadLessonCatalogue$1({ sendRequest, marathonId, pageSize = 100 }) {
+		let items = [];
+		let total = null;
+		while (total === null || items.length < total) {
+			const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
+				MarathonId: marathonId,
+				SearchTerm: "",
+				Page: {
+					Skip: items.length,
+					Take: pageSize
+				}
 			});
-			this.dispatchSelectionChange();
+			const next = response?.Value?.Items;
+			const count = response?.Value?.Page?.Count;
+			if (!Array.isArray(next) || !Number.isInteger(count)) throw createFeatureError("INVALID_RESPONSE", "Lesson catalogue pagination was invalid.");
+			if (next.length === 0 && items.length < count) throw createFeatureError("INVALID_RESPONSE", "Lesson catalogue pagination stalled.");
+			items = items.concat(next);
+			total = count;
 		}
-		allSelected(operation) {
-			const actionable = this.rows.filter((row) => row.actionable !== false);
-			return actionable.length > 0 && actionable.every((row) => row[`${operation}Selected`]);
+		return items.map(normalizeLesson$2);
+	}
+	async function inspectLessonsSequentially$1({ lessons, selectedLessonIds, sendRequest, wait, delayMs = 300 }) {
+		const selected = new Set((selectedLessonIds || []).map(Number));
+		const targets = (lessons || []).filter((lesson) => selected.has(Number(lesson.lessonId)));
+		const inspections = /* @__PURE__ */ new Map();
+		for (const [index, lesson] of targets.entries()) {
+			try {
+				const structure = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.lessonId });
+				inspections.set(Number(lesson.lessonId), { structure });
+			} catch (error) {
+				inspections.set(Number(lesson.lessonId), { error });
+			}
+			if (index < targets.length - 1 && delayMs > 0) await wait(delayMs);
 		}
-		dispatchSelectionChange() {
-			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-selection-change", { detail: { rows: this.copyRows() } }));
-		}
-		handleInput(event) {
-			this.emailInput = String(event.currentTarget.value || "");
-			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-input-change", { detail: { emailInput: this.emailInput } }));
-		}
-		handleCheck() {
-			if (!this.canCheck()) return;
-			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-check", { detail: { emailInput: this.emailInput } }));
-		}
-		handleStart() {
-			if (!this.canStart()) return;
-			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-start", { detail: { rows: this.copyRows() } }));
-		}
-		handleRestart() {
-			if (!["complete", "partial-complete"].includes(this.mode)) return;
-			this.rows = [];
-			this.mode = "configure";
-			this.emailInput = "";
-			this.setEmailState({
-				validCount: 0,
-				malformedCount: 0
+		return inspections;
+	}
+	function createResult(lesson, status, details = {}) {
+		return {
+			lessonId: lesson.lessonId,
+			marathonLessonId: lesson.marathonLessonId,
+			lessonNumber: lesson.number,
+			lessonName: lesson.name,
+			status,
+			...details
+		};
+	}
+	function isFatalError(error, getConnectionState) {
+		if (error?.code === "WS_UNAVAILABLE") return true;
+		if (error?.code === "SEND_FAILED" && !getConnectionState().isOpen) return true;
+		return !EXPECTED_WRITE_CODES$1.has(error?.code);
+	}
+	async function executeCreationPlan({ marathonId, plan, adapter, sendRequest, wait, getConnectionState, lessonDelayMs = 300, onProgress = () => {} }) {
+		if (!adapter?.isReady) throw createFeatureError("RECIPE_UNAVAILABLE", adapter?.errors?.[0]?.message || "Recording recipe unavailable.");
+		const results = plan.rejected.map((lesson) => createResult(lesson, "rejected", {
+			code: lesson.code,
+			message: lesson.message
+		}));
+		let attempts = 0;
+		for (const [index, lesson] of plan.eligible.entries()) {
+			onProgress({
+				completed: index,
+				total: plan.eligible.length,
+				lesson,
+				results: [...results]
 			});
-			this.clearMessages();
-			this.dispatchEvent(new CustomEvent("edvibe-batch-user-management-restart"));
+			try {
+				attempts += 1;
+				const created = await adapter.createSection({
+					marathonId,
+					lesson,
+					definition: plan.definition,
+					sendRequest,
+					wait
+				});
+				results.push(createResult(lesson, "created", {
+					captured: created.captured,
+					generated: created.generated,
+					attempts: 1
+				}));
+			} catch (error) {
+				const partial = Boolean(error.partialCreated);
+				const fatal = isFatalError(error, getConnectionState);
+				let cleanup = null;
+				if (partial && !fatal) cleanup = await adapter.cleanupSection({
+					marathonId,
+					lesson,
+					definition: plan.definition,
+					sendRequest,
+					wait,
+					captured: error.captured || {},
+					generated: error.generated || {}
+				});
+				results.push(createResult(lesson, partial ? "partially_created" : "failed", {
+					code: error.code || "UNKNOWN_ERROR",
+					message: error.message || "Section creation failed.",
+					captured: error.captured,
+					generated: error.generated,
+					cleanup,
+					attempts: error.attempts || 1
+				}));
+				if (fatal) {
+					for (const remaining of plan.eligible.slice(index + 1)) results.push(createResult(remaining, "not_attempted", {
+						code: "OPERATION_INTERRUPTED",
+						message: "Not attempted because the batch operation stopped."
+					}));
+					error.partialResult = {
+						definition: plan.definition,
+						results,
+						attempts,
+						fatalError: error
+					};
+					throw error;
+				}
+			}
+			onProgress({
+				completed: index + 1,
+				total: plan.eligible.length,
+				lesson,
+				results: [...results]
+			});
+			if (index < plan.eligible.length - 1 && lessonDelayMs > 0) await wait(lessonDelayMs);
 		}
-		handleBackdropClick(event) {
-			if (event.target === event.currentTarget) this.close();
+		return {
+			definition: plan.definition,
+			results,
+			attempts
+		};
+	}
+	function formatCreationReport(result) {
+		const rows = Array.isArray(result?.results) ? result.results : [];
+		const counts = (status) => rows.filter((entry) => entry.status === status).length;
+		const lines = [
+			`Section: ${result?.definition?.name || "Unknown"}`,
+			`Blocks: ${result?.definition?.blocks?.length || 0}`,
+			`Created: ${counts("created")}`,
+			`Rejected in preflight: ${counts("rejected")}`,
+			`Failed: ${counts("failed")}`,
+			`Partially created: ${counts("partially_created")}`,
+			`Not attempted: ${counts("not_attempted")}`,
+			""
+		];
+		for (const entry of rows) {
+			lines.push(`${entry.lessonNumber || "?"}. ${entry.lessonName} — ${entry.status}` + (entry.code ? ` — ${entry.code}: ${entry.message || ""}` : ""));
+			if (entry.captured?.sectionId !== void 0) lines.push(`  Captured sectionId: ${entry.captured.sectionId}`);
+			if (entry.cleanup) lines.push(`  Cleanup: ${entry.cleanup.status}`);
 		}
-		handleKeydown(event) {
-			if (event.key === "Escape") this.close();
+		return lines.join("\n").trim();
+	}
+	function createBatchSectionCreationFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, adapter, createDialog = () => document.createElement(DIALOG_TAG$1), copyText = async () => {}, log = () => {} }) {
+		let active = false;
+		let running = false;
+		let dialog = null;
+		let marathonId = null;
+		let lessons = [];
+		let pendingPlan = null;
+		let completedResult = null;
+		function release() {
+			if (active) {
+				active = false;
+				onActiveChange(false);
+			}
 		}
-		close() {
-			if (!this.canClose()) return;
-			this.dispatchEvent(new CustomEvent("edvibe-dialog-close"));
-			this.remove();
+		function close() {
+			running = false;
+			dialog = null;
+			lessons = [];
+			pendingPlan = null;
+			completedResult = null;
+			release();
 		}
-		copyRows() {
-			return this.rows.map((row) => ({
-				...row,
-				result: { ...row.result || {} }
-			}));
+		async function preflight(event) {
+			if (running) return;
+			running = true;
+			try {
+				const definition = event?.detail?.definition || {};
+				const selectedLessonIds = event?.detail?.selectedLessonIds || [];
+				const validation = validateSectionDefinition(definition);
+				const errors = [...validation.errors];
+				if (selectedLessonIds.length === 0) errors.push(createFeatureError("LESSON_SELECTION_REQUIRED", "Select at least one lesson."));
+				if (errors.length > 0) {
+					dialog.showValidationErrors(errors);
+					return;
+				}
+				dialog.showLoading("Проверяем выбранные уроки…");
+				const inspections = await inspectLessonsSequentially$1({
+					lessons,
+					selectedLessonIds,
+					sendRequest,
+					wait
+				});
+				pendingPlan = buildPreflightPlan({
+					lessons,
+					selectedLessonIds,
+					definition: validation.definition,
+					inspectionsByLessonId: inspections
+				});
+				dialog.showConfirmation(pendingPlan);
+			} catch (error) {
+				dialog.showValidationErrors([error]);
+			} finally {
+				running = false;
+			}
 		}
-		clearMessages() {
-			this.errors = [];
-			this.progress = {
-				visible: false,
-				completed: 0,
-				total: 0
+		async function confirm() {
+			if (running || !pendingPlan?.eligible?.length) return;
+			running = true;
+			try {
+				completedResult = await executeCreationPlan({
+					marathonId,
+					plan: pendingPlan,
+					adapter,
+					sendRequest,
+					wait,
+					getConnectionState,
+					onProgress: (progress) => dialog.showExecution(progress)
+				});
+				dialog.showComplete(completedResult);
+			} catch (error) {
+				completedResult = error.partialResult || {
+					definition: pendingPlan.definition,
+					results: pendingPlan.rejected,
+					fatalError: error
+				};
+				dialog.showComplete(completedResult, error);
+			} finally {
+				running = false;
+			}
+		}
+		async function copyReport() {
+			if (completedResult) await copyText(formatCreationReport(completedResult));
+		}
+		function restart() {
+			pendingPlan = null;
+			completedResult = null;
+			dialog.showConfigure({
+				lessons,
+				recipeReady: adapter?.isReady,
+				recipeErrors: adapter?.errors || []
+			});
+		}
+		async function open({ stylesheetUrl = "" } = {}) {
+			if (active || document.getElementById("edvibe-toolbox-batch-section-creation-overlay")) return;
+			if (!canStart()) {
+				window.alert("Another Edvibe Toolbox operation is already running.");
+				return;
+			}
+			marathonId = parseMarathonId$3(window.location.href);
+			if (!marathonId) {
+				window.alert("Open an Edvibe marathon page before creating sections.");
+				return;
+			}
+			active = true;
+			onActiveChange(true);
+			try {
+				dialog = createDialog();
+				dialog.addEventListener("edvibe-dialog-close", close);
+				dialog.addEventListener("edvibe-batch-section-preflight", preflight);
+				dialog.addEventListener("edvibe-batch-section-confirm", confirm);
+				dialog.addEventListener("edvibe-batch-section-copy", copyReport);
+				dialog.addEventListener("edvibe-batch-section-restart", restart);
+				dialog.configure({ stylesheetUrl });
+				(document.body || document.documentElement).appendChild(dialog);
+				dialog.showLoading("Загружаем уроки марафона…");
+				lessons = await loadLessonCatalogue$1({
+					sendRequest,
+					marathonId
+				});
+				if (lessons.length === 0) throw createFeatureError("EMPTY_LESSON_CATALOGUE", "No lessons were found.");
+				dialog.showConfigure({
+					lessons,
+					recipeReady: adapter?.isReady,
+					recipeErrors: adapter?.errors || []
+				});
+				log(`Batch section creation ready for MarathonId ${marathonId}.`);
+			} catch (error) {
+				log(`Batch section creation initialization failed (${error.code || "UNKNOWN_ERROR"}).`);
+				try {
+					dialog?.showFatalError?.(error);
+				} finally {
+					release();
+				}
+			}
+		}
+		return {
+			open,
+			isRunning: () => running
+		};
+	}
+	//#endregion
+	//#region src/features/batch-section-creation-history-model.js
+	var OPERATION_TYPE$1 = "batch_section_creation";
+	var TERMINAL_STATUSES$2 = Object.freeze([
+		"completed",
+		"completed_with_failures",
+		"cancelled",
+		"interrupted"
+	]);
+	var ATTEMPTED_STATUSES$1 = Object.freeze([
+		"created",
+		"failed",
+		"partially_created"
+	]);
+	var FAILURE_STATUSES = Object.freeze(["failed", "partially_created"]);
+	var SENSITIVE_IDENTIFIER_WORDS = /* @__PURE__ */ new Set([
+		"auth",
+		"authorization",
+		"cookie",
+		"credential",
+		"credentials",
+		"password",
+		"response",
+		"session",
+		"token",
+		"transport",
+		"websocket"
+	]);
+	function parseMarathonId$2(url) {
+		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
+		return match ? String(match[1]) : null;
+	}
+	function text$1(value, fallback = "", maxLength = 4e3) {
+		const normalized = String(value ?? "").trim();
+		if (!normalized) return fallback;
+		return normalized.length <= maxLength ? normalized : `${normalized.slice(0, Math.max(0, maxLength - 1))}…`;
+	}
+	function safeUrl(value) {
+		const normalized = text$1(value);
+		if (!normalized) return null;
+		try {
+			const url = new URL(normalized);
+			return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+		} catch (_) {
+			return null;
+		}
+	}
+	function safeBlockText(value, maxLength) {
+		return text$1(value, "", maxLength).replace(/data:image\/[^;,<>"'\s]+(?:;[^,<>"'\s]+)*;base64,[a-z0-9+/=\r\n]+/gi, "[redacted image data]");
+	}
+	function freezeArray(entries) {
+		return Object.freeze(entries.map((entry) => Object.freeze(entry)));
+	}
+	function summarizeBlock(block, index) {
+		const type = text$1(block?.type, "unknown", 80);
+		const summary = {
+			order: index,
+			blockId: text$1(block?.id, `block-${index + 1}`, 160),
+			type
+		};
+		const clientId = text$1(block?.clientId, "", 500);
+		if (clientId) summary.clientId = clientId;
+		if (type === "image") {
+			summary.url = safeUrl(block?.url);
+			summary.alt = safeBlockText(block?.alt, 1e3) || null;
+		} else if (type === "text") summary.content = safeBlockText(block?.text, 1e4) || null;
+		else if (type === "link") {
+			summary.label = safeBlockText(block?.label, 1e3) || null;
+			summary.url = safeUrl(block?.url);
+		}
+		return summary;
+	}
+	function serializeSectionDefinition(definition = {}) {
+		const blocks = Array.isArray(definition?.blocks) ? definition.blocks.map(summarizeBlock) : [];
+		return Object.freeze({
+			name: text$1(definition?.name, "Unnamed section", 500),
+			blocks: freezeArray(blocks)
+		});
+	}
+	function words(value) {
+		return String(value || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+	}
+	function isSafeIdentifierPath(path) {
+		const leaf = words(path.at(-1));
+		const allParts = path.flatMap(words);
+		return leaf.includes("id") && !allParts.some((part) => SENSITIVE_IDENTIFIER_WORDS.has(part));
+	}
+	function collectIdentifiers(source, sourceName, output, path = [], depth = 0, seen = /* @__PURE__ */ new WeakSet()) {
+		if (source === null || source === void 0 || depth > 5) return;
+		if (typeof source !== "object") {
+			if (!isSafeIdentifierPath(path)) return;
+			const value = typeof source === "number" || typeof source === "boolean" ? source : text$1(source, "", 500);
+			if (value === "") return;
+			output.push({
+				source: sourceName,
+				name: path.join("."),
+				value
+			});
+			return;
+		}
+		if (seen.has(source)) return;
+		seen.add(source);
+		try {
+			if (Array.isArray(source)) {
+				source.forEach((entry, index) => collectIdentifiers(entry, sourceName, output, [...path, String(index)], depth + 1, seen));
+				return;
+			}
+			for (const [key, value] of Object.entries(source)) collectIdentifiers(value, sourceName, output, [...path, key], depth + 1, seen);
+		} finally {
+			seen.delete(source);
+		}
+	}
+	function serializeIdentifiers(result = {}) {
+		const entries = [];
+		collectIdentifiers(result?.captured, "captured", entries);
+		collectIdentifiers(result?.generated, "generated", entries);
+		collectIdentifiers(result?.blockGenerated, "block_generated", entries);
+		const deduplicated = [];
+		const seen = /* @__PURE__ */ new Set();
+		for (const entry of entries) {
+			const key = `${entry.source}\u0000${entry.name}\u0000${String(entry.value)}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+			deduplicated.push(entry);
+		}
+		return freezeArray(deduplicated);
+	}
+	function normalizeLesson$1(value = {}, fallbackId = null) {
+		const lessonId = value.lessonId ?? value.LessonId ?? fallbackId;
+		const marathonLessonId = value.marathonLessonId ?? value.MarathonLessonId ?? null;
+		const number = value.lessonNumber ?? value.number ?? value.Number ?? null;
+		const name = value.lessonName ?? value.name ?? value.Name ?? null;
+		return Object.freeze({
+			lessonId: lessonId === void 0 || lessonId === null ? null : lessonId,
+			marathonLessonId: marathonLessonId === void 0 ? null : marathonLessonId,
+			number: number === void 0 ? null : number,
+			name: text$1(name, "Unnamed lesson", 500)
+		});
+	}
+	function lessonKey$1(value) {
+		const lessonId = value?.lessonId ?? value?.LessonId;
+		return lessonId === void 0 || lessonId === null ? null : String(lessonId);
+	}
+	function asExecutionResult(value, fallbackStatus, terminalStatus) {
+		return {
+			lessonId: value?.lessonId ?? value?.LessonId ?? null,
+			marathonLessonId: value?.marathonLessonId ?? value?.MarathonLessonId ?? null,
+			lessonNumber: value?.lessonNumber ?? value?.number ?? value?.Number ?? null,
+			lessonName: value?.lessonName ?? value?.name ?? value?.Name ?? null,
+			status: value?.status || fallbackStatus,
+			code: value?.code,
+			message: value?.message,
+			attempts: value?.attempts,
+			captured: value?.captured,
+			generated: value?.generated,
+			blockGenerated: value?.blockGenerated,
+			cleanup: value?.cleanup,
+			terminalStatus
+		};
+	}
+	function materializeResults$1(plan = {}, executionResult = {}, terminalStatus = null) {
+		const rejectedByLesson = /* @__PURE__ */ new Map();
+		for (const entry of plan?.rejected || []) {
+			const key = lessonKey$1(entry);
+			if (key !== null) rejectedByLesson.set(key, asExecutionResult(entry, "rejected", terminalStatus));
+		}
+		const finalByLesson = /* @__PURE__ */ new Map();
+		for (const entry of executionResult?.results || []) {
+			const key = lessonKey$1(entry);
+			if (key === null) continue;
+			const fallbackStatus = entry?.status || (rejectedByLesson.has(key) ? "rejected" : null);
+			finalByLesson.set(key, asExecutionResult(entry, fallbackStatus, terminalStatus));
+		}
+		const eligibleByLesson = /* @__PURE__ */ new Map();
+		for (const entry of plan?.eligible || []) {
+			const key = lessonKey$1(entry);
+			if (key !== null) eligibleByLesson.set(key, entry);
+		}
+		const selectedIds = Array.isArray(plan?.selectedLessonIds) ? plan.selectedLessonIds.map(String) : [];
+		const ordered = [];
+		const included = /* @__PURE__ */ new Set();
+		for (const id of selectedIds) {
+			let entry = finalByLesson.get(id) || rejectedByLesson.get(id);
+			if (!entry && eligibleByLesson.has(id)) entry = asExecutionResult(eligibleByLesson.get(id), "not_attempted", terminalStatus);
+			if (!entry) entry = asExecutionResult({
+				lessonId: id,
+				lessonName: `Lesson ${id}`
+			}, "not_attempted", terminalStatus);
+			ordered.push(entry);
+			included.add(id);
+		}
+		for (const entry of [...rejectedByLesson.values(), ...finalByLesson.values()]) {
+			const key = lessonKey$1(entry);
+			if (key !== null && included.has(key)) continue;
+			ordered.push(entry);
+			if (key !== null) included.add(key);
+		}
+		for (const [key, entry] of eligibleByLesson.entries()) {
+			if (included.has(key)) continue;
+			ordered.push(asExecutionResult(entry, "not_attempted", terminalStatus));
+			included.add(key);
+		}
+		return ordered;
+	}
+	function isAttemptedStatus(status) {
+		return ATTEMPTED_STATUSES$1.includes(status);
+	}
+	function isFailureStatus(status) {
+		return FAILURE_STATUSES.includes(status);
+	}
+	function buildCounts(results, plan = {}) {
+		const attempted = results.filter((result) => isAttemptedStatus(result.status)).length;
+		const notAttempted = results.filter((result) => result.status === "not_attempted").length;
+		const inferredEligible = attempted + notAttempted;
+		const plannedEligible = Array.isArray(plan?.eligible) ? plan.eligible.length : 0;
+		return Object.freeze({
+			requested: results.length,
+			eligible: Math.max(plannedEligible, inferredEligible),
+			attempted,
+			successful: results.filter((result) => result.status === "created").length,
+			noOp: 0,
+			skipped: results.filter((result) => result.status === "rejected").length,
+			failed: results.filter((result) => isFailureStatus(result.status)).length,
+			notAttempted
+		});
+	}
+	//#endregion
+	//#region src/features/batch-section-creation-history-record.js
+	var TERMINAL_STATUSES$1 = new Set(TERMINAL_STATUSES$2);
+	function resultCode$1(result, terminalStatus) {
+		if (result?.code) return text$1(result.code, "UNKNOWN_ERROR", 120);
+		return {
+			created: "SECTION_CREATED",
+			rejected: "PREFLIGHT_REJECTED",
+			failed: "SECTION_CREATION_FAILED",
+			partially_created: "SECTION_PARTIALLY_CREATED",
+			not_attempted: terminalStatus === "cancelled" ? "OPERATION_CANCELLED" : "OPERATION_INTERRUPTED"
+		}[result?.status] || "UNKNOWN_RESULT";
+	}
+	function resultMessage$1(result, terminalStatus) {
+		if (result?.message) return text$1(result.message, "No message was provided.", 1e3);
+		return {
+			created: "Section created successfully.",
+			rejected: "The lesson was rejected during preflight.",
+			failed: "Section creation failed.",
+			partially_created: "Section creation failed after the section had been created.",
+			not_attempted: terminalStatus === "cancelled" ? "Not attempted because the confirmed run was cancelled." : "Not attempted because the confirmed run was interrupted."
+		}[result?.status] || "The operation produced an unknown result.";
+	}
+	function serializeCleanup(result, terminalStatus) {
+		if (result?.status !== "partially_created") return null;
+		const cleanup = result?.cleanup;
+		if (!cleanup) return Object.freeze({
+			attempted: false,
+			status: "unavailable",
+			code: terminalStatus === "interrupted" ? "CLEANUP_UNAVAILABLE_AFTER_INTERRUPTION" : "CLEANUP_UNAVAILABLE",
+			message: terminalStatus === "interrupted" ? "Cleanup was unavailable after the batch was interrupted." : "Cleanup was unavailable for this partially created section."
+		});
+		const attempted = Boolean(cleanup.attempted);
+		const status = [
+			"success",
+			"failed",
+			"unavailable"
+		].includes(cleanup.status) ? cleanup.status : attempted ? "failed" : "unavailable";
+		return Object.freeze({
+			attempted,
+			status,
+			code: cleanup.code ? text$1(cleanup.code, "CLEANUP_FAILED", 120) : status === "success" ? "CLEANUP_SUCCEEDED" : status === "unavailable" ? "CLEANUP_UNAVAILABLE" : "CLEANUP_FAILED",
+			message: cleanup.message ? text$1(cleanup.message, "Cleanup failed.", 1e3) : status === "success" ? "Cleanup completed successfully." : status === "unavailable" ? "Cleanup was unavailable." : "Cleanup failed."
+		});
+	}
+	function serializeCreationFailure(result, terminalStatus) {
+		if (!isFailureStatus(result?.status)) return null;
+		return Object.freeze({
+			code: resultCode$1(result, terminalStatus),
+			message: resultMessage$1(result, terminalStatus),
+			attemptCount: Number.isSafeInteger(result?.attempts) && result.attempts >= 0 ? result.attempts : 1
+		});
+	}
+	function serializeResult$1(result, definitionSummary, terminalStatus) {
+		const lesson = normalizeLesson$1(result);
+		const status = text$1(result?.status, "not_attempted", 80);
+		const attempts = Number.isSafeInteger(result?.attempts) && result.attempts >= 0 ? result.attempts : isAttemptedStatus(status) ? 1 : 0;
+		const normalizedResult = {
+			...result,
+			status
+		};
+		const code = resultCode$1(normalizedResult, terminalStatus);
+		const message = resultMessage$1(normalizedResult, terminalStatus);
+		return Object.freeze({
+			itemId: lesson.lessonId === null ? null : String(lesson.lessonId),
+			label: `${lesson.number ?? "?"}. ${lesson.name}`,
+			status,
+			code,
+			message,
+			attempts,
+			data: Object.freeze({
+				lesson,
+				section: definitionSummary,
+				preflight: Object.freeze({
+					status: status === "rejected" ? "rejected" : "eligible",
+					code: status === "rejected" ? code : "PREFLIGHT_ELIGIBLE",
+					message: status === "rejected" ? message : "The lesson passed preflight and was included in the confirmed plan."
+				}),
+				creationFailure: serializeCreationFailure(normalizedResult, terminalStatus),
+				cleanup: serializeCleanup(normalizedResult, terminalStatus),
+				identifiers: serializeIdentifiers(result)
+			})
+		});
+	}
+	function inferTerminalStatus$1(explicitStatus, fatalError, results) {
+		if (TERMINAL_STATUSES$1.has(explicitStatus)) return explicitStatus;
+		if (fatalError) return "interrupted";
+		return results.some((result) => [
+			"rejected",
+			"failed",
+			"partially_created",
+			"not_attempted"
+		].includes(result.status)) ? "completed_with_failures" : "completed";
+	}
+	function buildExecutionHistoryInput$2({ plan, result = {}, startedAt, completedAt, marathonId, marathonName = null, terminalStatus = null, fatalError = null }) {
+		const materializationStatus = TERMINAL_STATUSES$1.has(terminalStatus) ? terminalStatus : fatalError ? "interrupted" : null;
+		const definitionSummary = serializeSectionDefinition(plan?.definition || result?.definition || {});
+		const results = materializeResults$1(plan, result, materializationStatus).map((entry) => serializeResult$1(entry, definitionSummary, materializationStatus));
+		const status = inferTerminalStatus$1(terminalStatus, fatalError || result?.fatalError, results);
+		const counts = buildCounts(results, plan);
+		return Object.freeze({
+			operationType: OPERATION_TYPE$1,
+			startedAt,
+			completedAt,
+			status,
+			pageContext: Object.freeze({
+				marathonId,
+				marathonName
+			}),
+			counts,
+			results: Object.freeze(results),
+			message: JSON.stringify({
+				sectionName: definitionSummary.name,
+				blockCount: definitionSummary.blocks.length,
+				counts
+			})
+		});
+	}
+	//#endregion
+	//#region src/features/batch-section-creation-history.js
+	function appendStatus$1(dialog, message, isError = false) {
+		const current = dialog.elements?.status?.textContent || "";
+		dialog.setStatus?.(`${current}${current ? " " : ""}${message}`, isError ? "error" : "");
+	}
+	function addHistoryButton$1(dialog, executionId, stylesheetUrl, openHistory) {
+		dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-history")?.remove?.();
+		const button = (dialog.ownerDocument || globalThis.document)?.createElement?.("button");
+		if (!button) return;
+		button.type = "button";
+		button.className = "edvibe-batch-section-history";
+		button.textContent = "Открыть в истории";
+		button.addEventListener("click", () => {
+			dialog.close?.();
+			openHistory(executionId, stylesheetUrl);
+		});
+		(dialog.elements?.footer || dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-footer"))?.appendChild?.(button);
+	}
+	function createHistoryAwareDialog({ createDialog, persistExecution, openHistory = () => {}, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {} }) {
+		if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
+		if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
+		return function createPatchedDialog() {
+			const dialog = createDialog();
+			let confirmedPlan = null;
+			let latestResult = null;
+			let startedAt = null;
+			let terminal = false;
+			let stylesheetUrl = "";
+			let sequence = 0;
+			const originalConfigure = dialog.configure.bind(dialog);
+			const originalShowConfigure = dialog.showConfigure.bind(dialog);
+			const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
+			const originalShowExecution = dialog.showExecution.bind(dialog);
+			const originalShowComplete = dialog.showComplete.bind(dialog);
+			const originalShowFatalError = dialog.showFatalError.bind(dialog);
+			function clearHistoryButton() {
+				dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-history")?.remove?.();
+			}
+			function resetAttempt() {
+				sequence += 1;
+				confirmedPlan = null;
+				latestResult = null;
+				startedAt = null;
+				terminal = false;
+				clearHistoryButton();
+			}
+			function persist(result, terminalStatus = null, fatalError = null) {
+				if (!confirmedPlan || terminal) return;
+				terminal = true;
+				const currentSequence = sequence;
+				let input;
+				try {
+					const completedAt = now().toISOString();
+					input = buildExecutionHistoryInput$2({
+						plan: confirmedPlan,
+						result: result || latestResult || {},
+						startedAt: startedAt || completedAt,
+						completedAt,
+						marathonId: parseMarathonId$2(getLocationHref()),
+						marathonName: getMarathonName(),
+						terminalStatus,
+						fatalError
+					});
+				} catch (error) {
+					appendStatus$1(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
+					log("Batch section creation history record creation failed:", error);
+					return;
+				}
+				Promise.resolve().then(() => persistExecution(input)).then((history) => {
+					if (currentSequence !== sequence) return;
+					if (history?.stored) {
+						appendStatus$1(dialog, "Результат сохранён в истории.");
+						if (history.record?.id) addHistoryButton$1(dialog, history.record.id, stylesheetUrl, openHistory);
+					} else {
+						appendStatus$1(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
+						if (history?.persistenceError) log("Batch section creation history persistence failed:", history.persistenceError);
+					}
+				}).catch((error) => {
+					if (currentSequence !== sequence) return;
+					appendStatus$1(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
+					log("Batch section creation history persistence failed:", error);
+				});
+			}
+			dialog.configure = (options = {}) => {
+				stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || "");
+				return originalConfigure(options);
 			};
-			this.setStatus("");
-		}
-		setStatus(message, state = "") {
-			this.statusMessage = String(message || "");
-			this.statusError = state === "error";
-		}
-		isLocked() {
-			return [
-				"checking",
-				"executing",
-				"complete",
-				"partial-complete"
-			].includes(this.mode);
-		}
-		canCheck() {
-			return ["configure", "validation-error"].includes(this.mode) && this.emailInput.trim().length > 0;
-		}
-		canStart() {
-			return this.mode === "review" && this.rows.some((row) => row.actionable !== false && (row.unassignSelected || row.deleteSelected));
-		}
-		canClose() {
-			return [
-				"configure",
-				"validation-error",
-				"review",
-				"complete",
-				"partial-complete",
-				"fatal-error"
-			].includes(this.mode);
-		}
-		renderRow(row) {
-			const locked = this.isLocked();
-			return b`
-            <tr>
-                <td class="edvibe-batch-user-management-user">${row.pupil?.Name ? `${row.pupil.Name} — ` : ""}${row.email}</td>
-                <td><input class="operation-unassign" type="checkbox"
-                    .checked=${Boolean(row.unassignSelected)} ?disabled=${row.actionable === false || locked}
-                    @change=${(event) => this.selectOperation(row, "unassign", event.currentTarget.checked)}></td>
-                <td><input class="operation-delete" type="checkbox"
-                    .checked=${Boolean(row.deleteSelected)} ?disabled=${row.actionable === false || locked}
-                    @change=${(event) => this.selectOperation(row, "delete", event.currentTarget.checked)}></td>
-                <td class="edvibe-batch-user-management-result">${String(row.result?.message || row.message || "")}</td>
-            </tr>
-        `;
-		}
-		render() {
-			const completed = ["complete", "partial-complete"].includes(this.mode);
-			const locked = this.isLocked();
-			const statusClass = `edvibe-batch-user-management-status${this.statusError ? " is-error" : ""}`;
-			return b`
-            <link class="edvibe-batch-user-management-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || A}>
-            <div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>
-                <section class="edvibe-batch-user-management-card" role="dialog" aria-modal="true"
-                    aria-labelledby="edvibe-batch-user-management-title">
-                    <header class="edvibe-batch-user-management-header">
-                        <div><h2 id="edvibe-batch-user-management-title">Управление пользователями</h2>
-                            <p class="edvibe-batch-user-management-description">Снимите кураторов и удалите пользователей по списку email.</p></div>
-                        <button class="edvibe-batch-user-management-close" type="button" aria-label="Закрыть"
-                            ?disabled=${!this.canClose()} @click=${() => this.close()}>&times;</button>
-                    </header>
-                    <div class="edvibe-batch-user-management-body">
-                        <section class="edvibe-batch-user-management-configure">
-                            <label for="edvibe-batch-user-management-emails">Email пользователей</label>
-                            <textarea id="edvibe-batch-user-management-emails" class="edvibe-batch-user-management-emails"
-                                rows="5" placeholder="user@example.com" .value=${this.emailInput}
-                                ?disabled=${locked || completed || this.mode === "fatal-error"} @input=${this.handleInput}></textarea>
-                            <div class="edvibe-batch-user-management-email-state" aria-live="polite">
-                                <span class="edvibe-batch-user-management-email-count">Уникальных email: ${this.emailState.validCount}</span>
-                                <span class="edvibe-batch-user-management-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
-                            </div>
-                        </section>
-                        <section class="edvibe-batch-user-management-errors" aria-live="polite" ?hidden=${this.errors.length === 0}>
-                            ${this.errors.map((error) => b`<p class="edvibe-batch-user-management-error">${error}</p>`)}
-                        </section>
-                        <section class="edvibe-batch-user-management-table-wrap" ?hidden=${this.rows.length === 0}>
-                            <table class="edvibe-batch-user-management-table">
-                                <thead><tr><th scope="col">Пользователь</th>
-                                    <th scope="col">Снять куратора <button class="edvibe-batch-user-management-select-all-unassign" type="button"
-                                        ?disabled=${locked || this.rows.length === 0} @click=${() => this.selectAll("unassign", !this.allSelected("unassign"))}>Выбрать все</button></th>
-                                    <th scope="col">Удалить пользователя <button class="edvibe-batch-user-management-select-all-delete" type="button"
-                                        ?disabled=${locked || this.rows.length === 0} @click=${() => this.selectAll("delete", !this.allSelected("delete"))}>Выбрать все</button></th>
-                                    <th scope="col">Результат</th></tr></thead>
-                                <tbody class="edvibe-batch-user-management-table-body">${this.rows.map((row) => this.renderRow(row))}</tbody>
-                            </table>
-                        </section>
-                    </div>
-                    <div class="edvibe-batch-user-management-live-region">
-                        <p class=${statusClass} role="status" aria-live="polite">${this.statusMessage}</p>
-                        <progress class="edvibe-batch-user-management-progress" max=${this.progress.total}
-                            value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress>
-                    </div>
-                    <footer class="edvibe-batch-user-management-footer">
-                        <button class="edvibe-batch-user-management-restart" type="button" ?hidden=${!completed}
-                            ?disabled=${!completed} @click=${this.handleRestart}>Запустить другую группу</button>
-                        <button class="edvibe-batch-user-management-start" type="button" ?hidden=${this.mode !== "review"}
-                            ?disabled=${!this.canStart()} @click=${this.handleStart}>Начать обработку</button>
-                        <button class="edvibe-batch-user-management-check" type="button"
-                            ?hidden=${!["configure", "validation-error"].includes(this.mode)} ?disabled=${!this.canCheck()}
-                            @click=${this.handleCheck}>Проверить пользователей</button>
-                    </footer>
-                </section>
-            </div>
-        `;
-		}
-	};
-	if (!customElements.get("edvibe-toolbox-batch-user-management-dialog")) customElements.define(USER_MANAGEMENT_DIALOG_TAG, BatchUserManagementDialog);
-	globalThis.EdVibeBatchUserManagementDialog = {
-		USER_MANAGEMENT_DIALOG_TAG,
-		USER_MANAGEMENT_OVERLAY_ID,
-		BatchUserManagementDialog
-	};
+			dialog.showConfigure = (...args) => {
+				resetAttempt();
+				return originalShowConfigure(...args);
+			};
+			dialog.showConfirmation = (plan) => {
+				sequence += 1;
+				clearHistoryButton();
+				confirmedPlan = plan;
+				latestResult = {
+					definition: plan?.definition,
+					results: Array.isArray(plan?.rejected) ? plan.rejected.map((entry) => asExecutionResult(entry, "rejected")) : []
+				};
+				startedAt = now().toISOString();
+				terminal = false;
+				const output = originalShowConfirmation(plan);
+				if (!plan?.eligible?.length) persist(latestResult);
+				return output;
+			};
+			dialog.showExecution = (progress = {}) => {
+				if (confirmedPlan && Array.isArray(progress?.results)) latestResult = {
+					definition: confirmedPlan.definition,
+					results: [...progress.results]
+				};
+				return originalShowExecution(progress);
+			};
+			dialog.showComplete = (result = {}, fatalError = null) => {
+				const output = originalShowComplete(result, fatalError);
+				latestResult = result;
+				persist(result, fatalError ? "interrupted" : null, fatalError);
+				return output;
+			};
+			dialog.showFatalError = (error) => {
+				const output = originalShowFatalError(error);
+				if (confirmedPlan) persist(latestResult, "interrupted", error);
+				return output;
+			};
+			dialog.addEventListener("edvibe-batch-section-restart", resetAttempt);
+			dialog.addEventListener("edvibe-dialog-close", () => {
+				if (confirmedPlan && !terminal) persist(latestResult, "cancelled");
+			});
+			return dialog;
+		};
+	}
 	//#endregion
 	//#region src/components/batch-section-image-upload.js
-	var IMAGE_PLACEHOLDER_PREFIX = "https://media-files-y.edvibe.com/local-upload/";
+	var IMAGE_PLACEHOLDER_PREFIX$1 = "https://media-files-y.edvibe.com/local-upload/";
 	function createClientId(cryptoApi = globalThis.crypto) {
 		return cryptoApi?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 	}
 	function createPlaceholderUrl(clientId) {
-		return `${IMAGE_PLACEHOLDER_PREFIX}${encodeURIComponent(String(clientId || ""))}`;
+		return `${IMAGE_PLACEHOLDER_PREFIX$1}${encodeURIComponent(String(clientId || ""))}`;
 	}
-	function parseClientId(value) {
+	function parseClientId$1(value) {
 		const text = String(value || "");
 		if (!text.startsWith("https://media-files-y.edvibe.com/local-upload/")) return "";
 		try {
@@ -7757,7 +12654,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		});
 	}
 	function enhanceImageBlock(block, cryptoApi = globalThis.crypto) {
-		const clientId = block?.clientId || parseClientId(block?.url) || createClientId(cryptoApi);
+		const clientId = block?.clientId || parseClientId$1(block?.url) || createClientId(cryptoApi);
 		return {
 			...block,
 			clientId,
@@ -7788,7 +12685,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 		hasSelectedFile(block) {
 			if (!block || block.type !== "image") return true;
-			return Boolean(this.registry.get(block.clientId || parseClientId(block.url)));
+			return Boolean(this.registry.get(block.clientId || parseClientId$1(block.url)));
 		}
 		canSubmit(blocks = []) {
 			return !blocks.some((block) => block.type === "image" && !this.hasSelectedFile(block));
@@ -7819,7 +12716,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 		releaseBlock(block) {
 			if (!block || block.type !== "image") return block;
-			const clientId = block.clientId || parseClientId(block.url);
+			const clientId = block.clientId || parseClientId$1(block.url);
 			if (clientId) this.registry.remove(clientId);
 			if (block.previewUrl) this.urlApi?.revokeObjectURL?.(block.previewUrl);
 			return {
@@ -7840,25 +12737,8 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 	};
 	var registry = createRegistry();
 	var controller = new BatchSectionImageUploadController({ registry });
-	var batchSectionImageUploadComponentApi = Object.freeze({
-		IMAGE_PLACEHOLDER_PREFIX,
-		createClientId,
-		createPlaceholderUrl,
-		parseClientId,
-		formatFileSize,
-		createRegistry,
-		enhanceImageBlock,
-		resolveEnhancementStylesheet,
-		BatchSectionImageUploadController,
-		createController: (options = {}) => new BatchSectionImageUploadController(options),
-		registry,
-		controller
-	});
-	globalThis.EdVibeBatchSectionImageRegistry = registry;
-	globalThis.EdVibeBatchSectionImageUploadComponent = batchSectionImageUploadComponentApi;
 	//#endregion
 	//#region src/components/batch-section-creation-dialog.js
-	init_lit();
 	var BATCH_SECTION_DIALOG_TAG = "edvibe-toolbox-batch-section-creation-dialog";
 	var BATCH_SECTION_OVERLAY_ID = "edvibe-toolbox-batch-section-creation-overlay";
 	var BatchSectionCreationDialog = class extends i {
@@ -8401,8 +13281,1024 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		BATCH_SECTION_OVERLAY_ID
 	};
 	//#endregion
+	//#region src/features/batch-section-creation-recipe.js
+	var clientTime = (/* @__PURE__ */ new Date()).toISOString();
+	var batchSectionCreationRecipe = Object.freeze({
+		version: 1,
+		reviewedDynamicFields: true,
+		steps: Object.freeze([
+			Object.freeze({
+				id: "create-section",
+				controller: "LessonSectionWsController",
+				method: "AddStageSection",
+				projectName: "Books",
+				valueTemplate: Object.freeze({
+					LessonId: "{{lesson.lessonId}}",
+					StageSectionName: "{{section.name}}",
+					SortId: 4
+				}),
+				capture: Object.freeze({ sectionId: "Value.StageSectionId" }),
+				marksSectionCreated: true
+			}),
+			Object.freeze({
+				id: "confirm-section-name",
+				controller: "LessonSectionWsController",
+				method: "EditStageSection",
+				projectName: "Books",
+				valueTemplate: Object.freeze({
+					LessonId: "{{lesson.lessonId}}",
+					StageSectionId: "{{captured.sectionId}}",
+					StageSectionName: "{{section.name}}",
+					SortId: 4
+				})
+			}),
+			Object.freeze({
+				id: "save-image",
+				controller: "SaveExerciseWsController",
+				method: "SaveExercise",
+				projectName: "Exercises",
+				forEach: "blocks",
+				blockTypes: Object.freeze(["image"]),
+				valueTemplate: Object.freeze({
+					ClassId: null,
+					Domain: "edvibe.com",
+					ExerciseView: Object.freeze({
+						Id: 0,
+						Number: "{{blockIndex}}",
+						Name: "",
+						IsHidePupil: false,
+						Type: 27,
+						HomeworkLessonId: null,
+						PersonalMaterialId: null,
+						LessonSectionId: "{{captured.sectionId}}",
+						Descriptions: Object.freeze([""]),
+						ChangeExerciseImages: Object.freeze([Object.freeze({
+							ImageId: 687640222,
+							FullImageId: 687640223,
+							ImageUrl: "https://media-y.edvibe.com/files/LessonExerciseImages/b455a98f-ef63-49b5-a6f4-2111c7edebc6.png",
+							FullImageUrl: "https://media-y.edvibe.com/files/LessonExerciseImages/035f9f67-1474-4eb3-8359-5eb93ea68a2e.png",
+							cropped: false
+						})])
+					}),
+					AiUsed: false,
+					UsedNewConstructor: true,
+					ClientTime: clientTime,
+					DeviceType: "desktop"
+				})
+			}),
+			Object.freeze({
+				id: "save-cta",
+				controller: "SaveExerciseWsController",
+				method: "SaveExercise",
+				projectName: "Exercises",
+				forEach: "blocks",
+				blockTypes: Object.freeze(["link"]),
+				valueTemplate: Object.freeze({
+					ClassId: null,
+					Domain: "edvibe.com",
+					ExerciseView: Object.freeze({
+						Id: 0,
+						Number: "{{blockIndex}}",
+						Name: "",
+						IsHidePupil: false,
+						Type: 29,
+						HomeworkLessonId: null,
+						PersonalMaterialId: null,
+						LessonSectionId: "{{captured.sectionId}}",
+						Button: Object.freeze({
+							Link: "{{block.url}}",
+							Text: "{{block.label}}"
+						})
+					}),
+					AiUsed: false,
+					UsedNewConstructor: true,
+					ClientTime: clientTime,
+					DeviceType: "desktop"
+				})
+			})
+		])
+	});
+	//#endregion
+	//#region src/features/batch-section-image-upload.js
+	var UPLOAD_ENDPOINT = "https://media-files-y.edvibe.com/api/MediaFile/create-multiple";
+	function createUploadError(code, message, details = {}) {
+		const error = new Error(message);
+		error.code = code;
+		Object.assign(error, details);
+		return error;
+	}
+	function parseClientId(value) {
+		const text = String(value || "");
+		if (!text.startsWith("https://media-files-y.edvibe.com/local-upload/")) return "";
+		try {
+			return decodeURIComponent(text.slice(46));
+		} catch (_) {
+			return "";
+		}
+	}
+	function normalizeRequestUrl(input, baseUrl) {
+		const candidate = typeof input === "string" || input instanceof URL ? String(input) : String(input?.url || "");
+		try {
+			return new URL(candidate, baseUrl || "https://edvibe.com/");
+		} catch (_) {
+			return null;
+		}
+	}
+	function isTrustedEdvibeUrl(input, baseUrl) {
+		const url = normalizeRequestUrl(input, baseUrl);
+		return Boolean(url) && url.protocol === "https:" && (url.hostname === "edvibe.com" || url.hostname.endsWith(".edvibe.com"));
+	}
+	function readHeader(headers, name, HeadersCtor = globalThis.Headers) {
+		if (!headers) return "";
+		try {
+			if (HeadersCtor) return new HeadersCtor(headers).get(name) || "";
+		} catch (_) {}
+		const target = String(name).toLowerCase();
+		if (Array.isArray(headers)) {
+			const entry = headers.find(([key]) => String(key).toLowerCase() === target);
+			return entry ? String(entry[1] || "") : "";
+		}
+		for (const [key, value] of Object.entries(headers)) if (String(key).toLowerCase() === target) return String(value || "");
+		return "";
+	}
+	function createAuthorizationCapture(rootObject) {
+		let authorization = "";
+		const baseUrl = rootObject.location?.href || "https://edvibe.com/";
+		const originalFetch = rootObject.fetch;
+		const HeadersCtor = rootObject.Headers;
+		function capture(input, headers) {
+			if (!isTrustedEdvibeUrl(input, baseUrl)) return;
+			const value = readHeader(headers, "authorization", HeadersCtor);
+			if (value) authorization = value;
+		}
+		if (typeof originalFetch === "function") rootObject.fetch = function edvibeToolboxFetch(input, init) {
+			capture(input, init?.headers || input?.headers);
+			return originalFetch.apply(this, arguments);
+		};
+		const xhrPrototype = rootObject.XMLHttpRequest?.prototype;
+		if (xhrPrototype?.open && xhrPrototype?.setRequestHeader) {
+			const originalOpen = xhrPrototype.open;
+			const originalSetRequestHeader = xhrPrototype.setRequestHeader;
+			const urls = /* @__PURE__ */ new WeakMap();
+			xhrPrototype.open = function open(method, url) {
+				urls.set(this, url);
+				return originalOpen.apply(this, arguments);
+			};
+			xhrPrototype.setRequestHeader = function setRequestHeader(name, value) {
+				if (String(name).toLowerCase() === "authorization" && isTrustedEdvibeUrl(urls.get(this), baseUrl) && value) authorization = String(value);
+				return originalSetRequestHeader.apply(this, arguments);
+			};
+		}
+		return Object.freeze({
+			getAuthorization: () => authorization,
+			capture
+		});
+	}
+	function createDynamicImageRecipe(recipe) {
+		if (!recipe || !Array.isArray(recipe.steps)) return recipe;
+		const steps = recipe.steps.map((step) => {
+			if (step.id !== "save-image") return step;
+			const exerciseView = step.valueTemplate?.ExerciseView || {};
+			return Object.freeze({
+				...step,
+				valueTemplate: Object.freeze({
+					...step.valueTemplate,
+					ExerciseView: Object.freeze({
+						...exerciseView,
+						ChangeExerciseImages: Object.freeze([Object.freeze({
+							ImageId: "{{block.asset.imageId}}",
+							FullImageId: "{{block.asset.fullImageId}}",
+							ImageUrl: "{{block.asset.imageUrl}}",
+							FullImageUrl: "{{block.asset.fullImageUrl}}",
+							cropped: false
+						})])
+					})
+				})
+			});
+		});
+		return Object.freeze({
+			...recipe,
+			steps: Object.freeze(steps)
+		});
+	}
+	async function uploadImageAssets({ definition, registry, authorization, fetchFn, FormDataCtor }) {
+		const imageBlocks = (definition?.blocks || []).filter((block) => block.type === "image");
+		if (imageBlocks.length === 0) return definition;
+		if (!authorization) throw createUploadError("AUTH_CONTEXT_UNAVAILABLE", "Edvibe authorization context is unavailable. Reload the page and try again.");
+		const formData = new FormDataCtor();
+		formData.append("Type", "8");
+		formData.append("SaveOriginal", "true");
+		formData.append("IsOriginalSizeOutputImage", "true");
+		const clientIds = [];
+		imageBlocks.forEach((block, index) => {
+			const clientId = parseClientId(block.url);
+			const file = registry?.get?.(clientId);
+			if (!clientId || !file) throw createUploadError("IMAGE_FILE_REQUIRED", `Image block ${index + 1} requires a selected file.`);
+			clientIds.push(clientId);
+			formData.append(`Files[${index}]`, file, file.name);
+			formData.append(`Selections[${index}].X`, "0");
+			formData.append(`Selections[${index}].Y`, "0");
+			formData.append(`Selections[${index}].Width`, "0");
+			formData.append(`Selections[${index}].Height`, "0");
+			formData.append(`Ids[${index}]`, clientId);
+		});
+		let response;
+		try {
+			response = await fetchFn(UPLOAD_ENDPOINT, {
+				method: "POST",
+				headers: {
+					accept: "*/*",
+					authorization
+				},
+				body: formData,
+				mode: "cors",
+				credentials: "include"
+			});
+		} catch (error) {
+			throw createUploadError("MEDIA_UPLOAD_FAILED", "Could not upload the selected image.", { cause: error });
+		}
+		if (!response?.ok) throw createUploadError("MEDIA_UPLOAD_FAILED", `Edvibe image upload failed with HTTP ${response?.status || "unknown"}.`);
+		let payload;
+		try {
+			payload = await response.json();
+		} catch (error) {
+			throw createUploadError("INVALID_MEDIA_RESPONSE", "Edvibe returned an invalid image response.", { cause: error });
+		}
+		if (!payload?.IsSuccess) throw createUploadError("MEDIA_UPLOAD_REJECTED", payload?.ErrorMessage || "Edvibe rejected the selected image.");
+		if ((payload?.Data?.ErrorItems || []).length > 0) throw createUploadError("MEDIA_UPLOAD_PARTIAL", "Edvibe failed to upload one or more selected images.", { errorItems: payload.Data.ErrorItems });
+		const assetsByClientId = new Map((payload?.Data?.Items || []).map((item) => [String(item.OldId || ""), Object.freeze({
+			imageId: item.Id,
+			fullImageId: item.IdFull,
+			imageUrl: item.Url,
+			fullImageUrl: item.UrlFull
+		})]));
+		for (const clientId of clientIds) if (!assetsByClientId.has(clientId)) throw createUploadError("INVALID_MEDIA_RESPONSE", "Edvibe did not return an asset for every selected image.");
+		const blocks = definition.blocks.map((block) => {
+			if (block.type !== "image") return block;
+			const clientId = parseClientId(block.url);
+			return Object.freeze({
+				...block,
+				asset: assetsByClientId.get(clientId)
+			});
+		});
+		return Object.freeze({
+			...definition,
+			blocks: Object.freeze(blocks)
+		});
+	}
+	function createEnhancedAdapterFactory({ originalFactory, registry, authorizationCapture, fetchFn, FormDataCtor }) {
+		if (typeof originalFactory !== "function") return null;
+		return function createEnhancedAdapter(options) {
+			const adapter = originalFactory(options);
+			const uploadsByDefinition = /* @__PURE__ */ new WeakMap();
+			async function enrich(definition) {
+				if (!definition || typeof definition !== "object") return definition;
+				let upload = uploadsByDefinition.get(definition);
+				if (!upload) {
+					upload = uploadImageAssets({
+						definition,
+						registry,
+						authorization: authorizationCapture.getAuthorization(),
+						fetchFn,
+						FormDataCtor
+					});
+					uploadsByDefinition.set(definition, upload);
+				}
+				return upload;
+			}
+			return Object.freeze({
+				...adapter,
+				async createSection(context) {
+					const definition = await enrich(context.definition);
+					return adapter.createSection({
+						...context,
+						definition
+					});
+				},
+				async cleanupSection(context) {
+					const definition = await enrich(context.definition);
+					return adapter.cleanupSection({
+						...context,
+						definition
+					});
+				}
+			});
+		};
+	}
+	var authorizationCapture = globalThis.document ? createAuthorizationCapture(globalThis) : null;
+	var dynamicImageRecipe = createDynamicImageRecipe(batchSectionCreationRecipe);
+	var createImageUploadCreationAdapter = authorizationCapture ? createEnhancedAdapterFactory({
+		originalFactory: createRecordedCreationAdapter,
+		registry,
+		authorizationCapture,
+		fetchFn: globalThis.fetch.bind(globalThis),
+		FormDataCtor: globalThis.FormData
+	}) : createRecordedCreationAdapter;
+	//#endregion
+	//#region src/features/batch-section-deletion.js
+	var batch_section_deletion_exports = /* @__PURE__ */ __exportAll({
+		DIALOG_TAG: () => DIALOG_TAG,
+		buildDeleteRequest: () => buildDeleteRequest,
+		buildExecutionHistoryInput: () => buildExecutionHistoryInput$1,
+		buildExecutionPlan: () => buildExecutionPlan,
+		createBatchSectionDeletionFeature: () => createBatchSectionDeletionFeature$1,
+		executePlan: () => executePlan,
+		extractNormalSections: () => extractNormalSections,
+		findExactSectionMatches: () => findExactSectionMatches,
+		formatReport: () => formatReport,
+		inspectLessonsSequentially: () => inspectLessonsSequentially,
+		loadLessonCatalogue: () => loadLessonCatalogue,
+		normalizeLesson: () => normalizeLesson,
+		normalizeSectionName: () => normalizeSectionName,
+		parseMarathonId: () => parseMarathonId$1
+	});
+	var DIALOG_TAG = "edvibe-toolbox-batch-section-deletion-dialog";
+	var EXPECTED_WRITE_CODES = /* @__PURE__ */ new Set([
+		"SERVER_REJECTED",
+		"INVALID_RESPONSE",
+		"REQUEST_TIMEOUT",
+		"SEND_FAILED",
+		"WS_UNAVAILABLE"
+	]);
+	function featureError(code, message, details = {}) {
+		const error = new Error(message);
+		error.code = code;
+		Object.assign(error, details);
+		return error;
+	}
+	function parseMarathonId$1(url) {
+		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
+		return match ? Number(match[1]) : null;
+	}
+	function normalizeSectionName(value) {
+		const name = String(value || "").trim();
+		if (!name) throw featureError("SECTION_NAME_REQUIRED", "Enter the exact section name.");
+		return name;
+	}
+	function normalizeLesson(node, index = 0) {
+		const lessonId = Number(node?.LessonId ?? node?.lessonId ?? node?.Id);
+		return Object.freeze({
+			lessonId,
+			marathonLessonId: Number(node?.MarathonLessonId ?? node?.marathonLessonId ?? node?.Id),
+			number: Number(node?.Number ?? node?.number ?? index + 1),
+			name: String(node?.Name ?? node?.name ?? `Lesson ${index + 1}`)
+		});
+	}
+	function extractNormalSections(response) {
+		const value = response?.Value ?? response?.value ?? response;
+		if (!value || !Array.isArray(value.Sections)) throw featureError("INVALID_LESSON_RESPONSE", "The lesson response did not contain a normal Sections array.");
+		return value.Sections;
+	}
+	function findExactSectionMatches(sections, sectionName) {
+		const name = normalizeSectionName(sectionName);
+		if (!Array.isArray(sections)) throw featureError("INVALID_LESSON_RESPONSE", "Sections must be an array.");
+		return sections.filter((section) => String(section?.Name ?? "") === name);
+	}
+	function rejection(lesson, code, message) {
+		return Object.freeze({
+			...lesson,
+			status: "rejected",
+			code,
+			message
+		});
+	}
+	function buildExecutionPlan({ lessons, selectedLessonIds, sectionName, inspectionsByLessonId }) {
+		const name = normalizeSectionName(sectionName);
+		const selected = new Set((selectedLessonIds || []).map(Number));
+		const eligible = [];
+		const rejected = [];
+		for (const lesson of (lessons || []).filter((item) => selected.has(Number(item.lessonId)))) {
+			const inspection = inspectionsByLessonId.get(Number(lesson.lessonId));
+			if (!inspection || inspection.error) {
+				const error = inspection?.error;
+				rejected.push(rejection(lesson, error?.code || "INVALID_LESSON_RESPONSE", error?.message || "The lesson could not be inspected."));
+				continue;
+			}
+			try {
+				const matches = findExactSectionMatches(extractNormalSections(inspection.response), name);
+				if (matches.length === 0) rejected.push(rejection(lesson, "SECTION_NOT_FOUND", `Section "${name}" was not found.`));
+				else if (matches.length > 1) rejected.push(rejection(lesson, "SECTION_NAME_AMBIGUOUS", `Found ${matches.length} sections named "${name}".`));
+				else {
+					const sectionId = Number(matches[0]?.Id);
+					if (!Number.isSafeInteger(sectionId) || sectionId <= 0) rejected.push(rejection(lesson, "UNSUPPORTED_SECTION_TYPE", "The matching section has no safe normal-section ID."));
+					else eligible.push(Object.freeze({
+						...lesson,
+						sectionName: name,
+						sectionId
+					}));
+				}
+			} catch (error) {
+				rejected.push(rejection(lesson, error.code || "INVALID_LESSON_RESPONSE", error.message));
+			}
+		}
+		return Object.freeze({
+			sectionName: name,
+			selectedCount: selected.size,
+			eligible: Object.freeze(eligible),
+			rejected: Object.freeze(rejected)
+		});
+	}
+	function buildDeleteRequest(entry) {
+		return Object.freeze({
+			controller: "LessonSectionWsController",
+			method: "DeleteStageSection",
+			projectName: "Books",
+			value: Object.freeze({ StageSectionId: entry.sectionId })
+		});
+	}
+	async function loadLessonCatalogue({ sendRequest, marathonId, pageSize = 100 }) {
+		const items = [];
+		let count = null;
+		while (count === null || items.length < count) {
+			const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
+				MarathonId: marathonId,
+				SearchTerm: "",
+				Page: {
+					Skip: items.length,
+					Take: pageSize
+				}
+			});
+			const value = response?.Value ?? response?.value;
+			const next = value?.Items;
+			count = value?.Page?.Count;
+			if (!Array.isArray(next) || !Number.isInteger(count) || next.length === 0 && items.length < count) throw featureError("INVALID_RESPONSE", "Lesson catalogue pagination was invalid.");
+			items.push(...next);
+		}
+		return items.map(normalizeLesson);
+	}
+	async function inspectLessonsSequentially({ lessons, selectedLessonIds, sendRequest, wait, requestDelayMs = 250, onProgress }) {
+		const selected = new Set((selectedLessonIds || []).map(Number));
+		const targets = lessons.filter((lesson) => selected.has(Number(lesson.lessonId)));
+		const inspections = /* @__PURE__ */ new Map();
+		for (const [index, lesson] of targets.entries()) {
+			try {
+				const response = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.lessonId });
+				extractNormalSections(response);
+				inspections.set(lesson.lessonId, { response });
+			} catch (error) {
+				inspections.set(lesson.lessonId, { error: featureError(error.code || "INVALID_LESSON_RESPONSE", error.message || "Inspection failed.") });
+			}
+			onProgress?.({
+				current: index + 1,
+				total: targets.length,
+				lesson
+			});
+			if (index < targets.length - 1 && requestDelayMs > 0) await wait(requestDelayMs);
+		}
+		return inspections;
+	}
+	async function executePlan({ plan, sendRequest, wait, requestDelayMs = 300, onProgress }) {
+		const results = plan.rejected.map((entry) => ({ ...entry }));
+		let fatalError = null;
+		for (const [index, entry] of plan.eligible.entries()) {
+			if (fatalError) {
+				results.push({
+					...entry,
+					status: "not_attempted",
+					code: "OPERATION_INTERRUPTED",
+					message: "Not attempted because the operation stopped."
+				});
+				continue;
+			}
+			try {
+				const request = buildDeleteRequest(entry);
+				const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
+				const value = response?.Value ?? response?.value;
+				if (response?.IsSuccess === false || response?.isSuccess === false || value === false || value == null) throw featureError("INVALID_RESPONSE", "Deletion was not positively confirmed.");
+				results.push({
+					...entry,
+					status: "deleted",
+					code: "DELETED",
+					message: "Section deleted."
+				});
+			} catch (error) {
+				const code = error.code || "DELETE_FAILED";
+				results.push({
+					...entry,
+					status: "failed",
+					code,
+					message: error.message || "Deletion failed."
+				});
+				if (!EXPECTED_WRITE_CODES.has(code)) fatalError = error;
+			}
+			onProgress?.({
+				current: index + 1,
+				total: plan.eligible.length,
+				entry,
+				results: [...results]
+			});
+			if (index < plan.eligible.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
+		}
+		return Object.freeze({
+			plan,
+			results: Object.freeze(results.map(Object.freeze)),
+			fatalError
+		});
+	}
+	function formatReport(result) {
+		const lines = [
+			"Edvibe Toolbox: batch section deletion",
+			`Section: ${result.plan.sectionName}`,
+			`Selected: ${result.plan.selectedCount}`,
+			`Eligible: ${result.plan.eligible.length}`,
+			`Rejected: ${result.plan.rejected.length}`,
+			""
+		];
+		for (const entry of result.results) {
+			const label = `#${entry.number} ${entry.name} (lesson ${entry.lessonId})`;
+			const section = entry.sectionId ? `, section ${entry.sectionId}` : "";
+			lines.push(`[${entry.status}] ${label}${section}: ${entry.code} — ${entry.message}`);
+		}
+		return lines.join("\n");
+	}
+	function buildExecutionHistoryInput$1({ marathonId, startedAt, completedAt, result }) {
+		const deleted = result.results.filter((entry) => entry.status === "deleted").length;
+		const failed = result.results.filter((entry) => entry.status === "failed").length;
+		const rejected = result.results.filter((entry) => entry.status === "rejected").length;
+		const notAttempted = result.results.filter((entry) => entry.status === "not_attempted").length;
+		const status = result.fatalError ? "interrupted" : failed > 0 || rejected > 0 ? "completed_with_failures" : "completed";
+		return Object.freeze({
+			operationType: "batch-section-deletion",
+			startedAt,
+			completedAt,
+			status,
+			pageContext: Object.freeze({ marathonId }),
+			counts: Object.freeze({
+				requested: result.plan.selectedCount,
+				eligible: result.plan.eligible.length,
+				attempted: deleted + failed,
+				successful: deleted,
+				noOp: 0,
+				skipped: rejected,
+				failed,
+				notAttempted
+			}),
+			results: Object.freeze(result.results.map((entry) => Object.freeze({
+				itemId: `lesson-${entry.lessonId}`,
+				label: `#${entry.number} ${entry.name}`,
+				status: entry.status,
+				code: entry.code,
+				message: entry.message,
+				attempts: entry.status === "not_attempted" || entry.status === "rejected" ? 0 : 1,
+				data: Object.freeze({
+					lessonId: entry.lessonId,
+					marathonLessonId: entry.marathonLessonId,
+					sectionId: entry.sectionId || null,
+					sectionName: result.plan.sectionName
+				})
+			})))
+		});
+	}
+	function createBatchSectionDeletionFeature$1({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog, copyText, persistExecution = async () => Object.freeze({ stored: false }), openHistory = () => {}, log = () => {} }) {
+		let active = false;
+		async function open({ stylesheetUrl } = {}) {
+			if (active || !canStart()) {
+				window.alert("Another Edvibe Toolbox operation is already running.");
+				return;
+			}
+			const marathonId = parseMarathonId$1(window.location.href);
+			if (!marathonId) {
+				window.alert("Open an Edvibe marathon page first.");
+				return;
+			}
+			if (getConnectionState?.()?.ready === false) {
+				window.alert("Edvibe WebSocket connection is not ready.");
+				return;
+			}
+			active = true;
+			onActiveChange(true);
+			const dialog = createDialog();
+			document.body.append(dialog);
+			try {
+				const lessons = await loadLessonCatalogue({
+					sendRequest,
+					marathonId
+				});
+				dialog.configure({
+					stylesheetUrl,
+					marathonId,
+					lessons,
+					async onInspect(input) {
+						const inspectionsByLessonId = await inspectLessonsSequentially({
+							lessons,
+							selectedLessonIds: input.selectedLessonIds,
+							sendRequest,
+							wait,
+							onProgress: input.onProgress
+						});
+						return buildExecutionPlan({
+							lessons,
+							selectedLessonIds: input.selectedLessonIds,
+							sectionName: input.sectionName,
+							inspectionsByLessonId
+						});
+					},
+					async onExecute(plan, onProgress) {
+						const startedAt = (/* @__PURE__ */ new Date()).toISOString();
+						const result = await executePlan({
+							plan,
+							sendRequest,
+							wait,
+							onProgress
+						});
+						const completedAt = (/* @__PURE__ */ new Date()).toISOString();
+						let history;
+						try {
+							history = await persistExecution(buildExecutionHistoryInput$1({
+								marathonId,
+								startedAt,
+								completedAt,
+								result
+							}));
+						} catch (persistenceError) {
+							history = Object.freeze({
+								stored: false,
+								persistenceError
+							});
+							log("Batch section deletion history persistence failed:", persistenceError);
+						}
+						return {
+							...result,
+							report: formatReport(result),
+							history
+						};
+					},
+					onCopy: copyText,
+					onOpenHistory(executionId) {
+						dialog.remove();
+						active = false;
+						onActiveChange(false);
+						openHistory(executionId, stylesheetUrl);
+					},
+					onClose() {
+						dialog.remove();
+						active = false;
+						onActiveChange(false);
+					}
+				});
+			} catch (error) {
+				log("Failed to open batch section deletion:", error);
+				dialog.remove();
+				active = false;
+				onActiveChange(false);
+				window.alert(error.message || "Failed to load lessons.");
+			}
+		}
+		return Object.freeze({ open });
+	}
+	//#endregion
+	//#region src/features/batch-section-deletion-history.js
+	var OPERATION_TYPE = "batch-section-deletion";
+	var TERMINAL_STATUSES = /* @__PURE__ */ new Set([
+		"completed",
+		"completed_with_failures",
+		"cancelled",
+		"interrupted"
+	]);
+	var ATTEMPTED_STATUSES = /* @__PURE__ */ new Set(["deleted", "failed"]);
+	function text(value, fallback = "", maxLength = 1e3) {
+		const normalized = String(value ?? "").trim();
+		if (!normalized) return fallback;
+		return normalized.length <= maxLength ? normalized : `${normalized.slice(0, maxLength - 1)}…`;
+	}
+	function parseMarathonId(url) {
+		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
+		return match ? String(match[1]) : null;
+	}
+	function lessonKey(value) {
+		const id = value?.lessonId ?? value?.LessonId;
+		return id === void 0 || id === null ? null : String(id);
+	}
+	function discoveryOutcome(entry = {}) {
+		if (entry.discoveryOutcome) return text(entry.discoveryOutcome, "inspection_failed", 120);
+		return {
+			SECTION_NOT_FOUND: "not_found",
+			SECTION_NAME_AMBIGUOUS: "ambiguous",
+			UNSUPPORTED_SECTION_TYPE: "unsupported_section_type",
+			INVALID_LESSON_RESPONSE: "invalid_lesson_response"
+		}[entry.code] || (entry.sectionId ? "matched" : "inspection_failed");
+	}
+	function enrichPlan(plan = {}, selectedLessonIds = []) {
+		const sectionName = text(plan.sectionName, "Unnamed section", 500);
+		const eligible = (plan.eligible || []).map((entry) => Object.freeze({
+			...entry,
+			sectionName,
+			sectionType: "normal",
+			discoveryOutcome: "matched",
+			matchCount: 1
+		}));
+		const rejected = (plan.rejected || []).map((entry) => Object.freeze({
+			...entry,
+			sectionName,
+			sectionId: null,
+			sectionType: null,
+			discoveryOutcome: discoveryOutcome(entry),
+			matchCount: entry.code === "SECTION_NOT_FOUND" ? 0 : null,
+			attempts: 0
+		}));
+		return Object.freeze({
+			...plan,
+			sectionName,
+			selectedLessonIds: Object.freeze([...selectedLessonIds]),
+			selectedCount: Number.isSafeInteger(plan.selectedCount) ? plan.selectedCount : selectedLessonIds.length,
+			eligible: Object.freeze(eligible),
+			rejected: Object.freeze(rejected)
+		});
+	}
+	function resultCode(entry, terminalStatus) {
+		if (entry.code) return text(entry.code, "UNKNOWN_RESULT", 120);
+		if (entry.status === "deleted") return "DELETED";
+		if (entry.status === "rejected") return "PREFLIGHT_REJECTED";
+		if (entry.status === "failed") return "DELETE_FAILED";
+		return terminalStatus === "cancelled" ? "OPERATION_CANCELLED" : "OPERATION_INTERRUPTED";
+	}
+	function resultMessage(entry, terminalStatus) {
+		if (entry.message) return text(entry.message, "No message was provided.");
+		if (entry.status === "deleted") return "Section deleted.";
+		if (entry.status === "rejected") return "The lesson was rejected during discovery.";
+		if (entry.status === "failed") return "The validated deletion request failed.";
+		return terminalStatus === "cancelled" ? "Not attempted because the confirmed run was cancelled." : "Not attempted because the confirmed run was interrupted.";
+	}
+	function materializeResults(plan = {}, execution = {}, terminalStatus = null) {
+		const byId = /* @__PURE__ */ new Map();
+		for (const entry of plan.rejected || []) byId.set(lessonKey(entry), {
+			...entry,
+			status: "rejected",
+			attempts: 0
+		});
+		for (const entry of execution.results || []) byId.set(lessonKey(entry), { ...entry });
+		const eligible = new Map((plan.eligible || []).map((entry) => [lessonKey(entry), entry]));
+		const ordered = [];
+		const included = /* @__PURE__ */ new Set();
+		for (const id of plan.selectedLessonIds || []) {
+			const key = String(id);
+			let entry = byId.get(key);
+			if (!entry && eligible.has(key)) entry = {
+				...eligible.get(key),
+				status: "not_attempted",
+				attempts: 0
+			};
+			if (!entry) entry = {
+				lessonId: id,
+				name: `Lesson ${id}`,
+				status: "not_attempted",
+				attempts: 0,
+				sectionName: plan.sectionName
+			};
+			ordered.push(entry);
+			included.add(key);
+		}
+		for (const entry of [...byId.values(), ...eligible.values()]) {
+			const key = lessonKey(entry);
+			if (key !== null && included.has(key)) continue;
+			ordered.push(byId.get(key) || {
+				...entry,
+				status: "not_attempted",
+				attempts: 0
+			});
+			if (key !== null) included.add(key);
+		}
+		return ordered.map((entry) => {
+			const status = text(entry.status, "not_attempted", 80);
+			return {
+				...entry,
+				status,
+				attempts: Number.isSafeInteger(entry.attempts) && entry.attempts >= 0 ? entry.attempts : ATTEMPTED_STATUSES.has(status) ? 1 : 0,
+				terminalStatus
+			};
+		});
+	}
+	function matchCount(entry) {
+		if (Number.isSafeInteger(entry.matchCount) && entry.matchCount >= 0) return entry.matchCount;
+		if (entry.sectionId) return 1;
+		if (entry.code === "SECTION_NOT_FOUND") return 0;
+		const match = String(entry.message || "").match(/Found (\d+) sections/);
+		return match ? Number(match[1]) : null;
+	}
+	function serializeResult(entry, plan, terminalStatus) {
+		const status = entry.status;
+		const code = resultCode(entry, terminalStatus);
+		const message = resultMessage(entry, terminalStatus);
+		const outcome = discoveryOutcome(entry);
+		const lesson = Object.freeze({
+			lessonId: entry.lessonId ?? null,
+			marathonLessonId: entry.marathonLessonId ?? null,
+			number: entry.number ?? null,
+			name: text(entry.name, "Unnamed lesson", 500)
+		});
+		return Object.freeze({
+			itemId: lesson.lessonId === null ? null : `lesson-${lesson.lessonId}`,
+			label: `${lesson.number ?? "?"}. ${lesson.name}`,
+			status,
+			code,
+			message,
+			attempts: entry.attempts,
+			data: Object.freeze({
+				lesson,
+				section: Object.freeze({
+					requestedName: text(entry.sectionName || plan.sectionName, "Unnamed section", 500),
+					matchedId: entry.sectionId ?? null,
+					supportedType: entry.sectionId ? "normal" : null
+				}),
+				discovery: Object.freeze({
+					outcome,
+					code: outcome === "matched" ? "DISCOVERY_MATCHED" : code,
+					message: outcome === "matched" ? "Exactly one supported normal lesson section matched the requested name." : message,
+					matchCount: matchCount(entry)
+				}),
+				finalOutcome: status,
+				deletionFailure: status === "failed" ? Object.freeze({
+					code,
+					message,
+					attemptCount: entry.attempts
+				}) : null
+			})
+		});
+	}
+	function inferTerminalStatus(explicitStatus, fatalError, results) {
+		if (TERMINAL_STATUSES.has(explicitStatus)) return explicitStatus;
+		if (fatalError) return "interrupted";
+		return results.some((entry) => [
+			"rejected",
+			"failed",
+			"not_attempted"
+		].includes(entry.status)) ? "completed_with_failures" : "completed";
+	}
+	function buildExecutionHistoryInput({ plan, result = {}, startedAt, completedAt, marathonId, marathonName = null, terminalStatus = null, fatalError = null }) {
+		const materializationStatus = TERMINAL_STATUSES.has(terminalStatus) ? terminalStatus : fatalError || result.fatalError ? "interrupted" : null;
+		const results = materializeResults(plan, result, materializationStatus).map((entry) => serializeResult(entry, plan, materializationStatus));
+		const status = inferTerminalStatus(terminalStatus, fatalError || result.fatalError, results);
+		const attempted = results.filter((entry) => ATTEMPTED_STATUSES.has(entry.status)).length;
+		const notAttempted = results.filter((entry) => entry.status === "not_attempted").length;
+		const counts = Object.freeze({
+			requested: results.length,
+			eligible: Math.max(plan.eligible?.length || 0, attempted + notAttempted),
+			attempted,
+			successful: results.filter((entry) => entry.status === "deleted").length,
+			noOp: 0,
+			skipped: results.filter((entry) => entry.status === "rejected").length,
+			failed: results.filter((entry) => entry.status === "failed").length,
+			notAttempted
+		});
+		return Object.freeze({
+			operationType: OPERATION_TYPE,
+			startedAt,
+			completedAt,
+			status,
+			pageContext: Object.freeze({
+				marathonId,
+				marathonName
+			}),
+			counts,
+			results: Object.freeze(results),
+			message: JSON.stringify({
+				sectionName: plan.sectionName,
+				counts
+			})
+		});
+	}
+	function appendStatus(dialog, message) {
+		const current = (dialog.shadowRoot?.querySelector?.(".status"))?.textContent || "";
+		dialog.showStatus?.(`${current}${current ? " " : ""}${message}`);
+	}
+	function addHistoryButton(dialog, executionId, openHistory) {
+		const button = (dialog.ownerDocument || globalThis.document)?.createElement?.("button");
+		if (!button) return;
+		button.type = "button";
+		button.className = "edvibe-batch-section-deletion-history";
+		button.textContent = "Open in history";
+		button.addEventListener("click", () => openHistory?.(executionId));
+		dialog.shadowRoot?.querySelector?.("footer")?.appendChild?.(button);
+	}
+	function createHistoryAwareFeature(options = {}) {
+		const { createFeature = createBatchSectionDeletionFeature$1, createDialog, persistExecution, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {}, ...featureOptions } = options;
+		if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
+		if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
+		function createTrackedDialog() {
+			const dialog = createDialog();
+			const originalConfigure = dialog.configure.bind(dialog);
+			let plan = null;
+			let latestResult = null;
+			let startedAt = null;
+			let terminal = false;
+			let sequence = 0;
+			async function persist(result, terminalStatus = null, fatalError = null) {
+				const currentSequence = sequence;
+				try {
+					const completedAt = now().toISOString();
+					const input = buildExecutionHistoryInput({
+						plan,
+						result: result || latestResult || {},
+						startedAt: startedAt || completedAt,
+						completedAt,
+						marathonId: parseMarathonId(getLocationHref()),
+						marathonName: getMarathonName(),
+						terminalStatus,
+						fatalError
+					});
+					const history = await persistExecution(input);
+					return currentSequence === sequence ? history : Object.freeze({
+						stored: false,
+						stale: true
+					});
+				} catch (persistenceError) {
+					log("Batch section deletion history persistence failed:", persistenceError);
+					return Object.freeze({
+						stored: false,
+						persistenceError
+					});
+				}
+			}
+			dialog.configure = (config = {}) => {
+				const originalInspect = config.onInspect;
+				const originalExecute = config.onExecute;
+				const originalClose = config.onClose;
+				const originalOpenHistory = config.onOpenHistory;
+				return originalConfigure({
+					...config,
+					async onInspect(input) {
+						const inspected = await originalInspect(input);
+						sequence += 1;
+						plan = enrichPlan(inspected, input?.selectedLessonIds || []);
+						latestResult = {
+							plan,
+							results: []
+						};
+						startedAt = now().toISOString();
+						terminal = false;
+						if (!plan.eligible.length) {
+							terminal = true;
+							persist(latestResult).then((history) => {
+								if (history?.stored) {
+									appendStatus(dialog, "Result saved to execution history.");
+									if (history.record?.id) addHistoryButton(dialog, history.record.id, originalOpenHistory);
+								} else if (history?.persistenceError) appendStatus(dialog, "The visible preflight is intact, but history could not be saved.");
+							});
+						}
+						return plan;
+					},
+					async onExecute(confirmedPlan, onProgress) {
+						plan = enrichPlan(confirmedPlan, confirmedPlan.selectedLessonIds || []);
+						startedAt = startedAt || now().toISOString();
+						terminal = false;
+						try {
+							const result = await originalExecute(plan, (progress = {}) => {
+								if (Array.isArray(progress.results)) latestResult = {
+									plan,
+									results: [...progress.results],
+									fatalError: progress.fatalError || null
+								};
+								onProgress?.(progress);
+							});
+							latestResult = result;
+							terminal = true;
+							const history = await persist(result, result.fatalError ? "interrupted" : null, result.fatalError || null);
+							return {
+								...result,
+								history
+							};
+						} catch (error) {
+							terminal = true;
+							await persist(latestResult, "interrupted", error);
+							throw error;
+						}
+					},
+					onOpenHistory: originalOpenHistory,
+					onClose() {
+						if (plan && !terminal) {
+							terminal = true;
+							persist(latestResult, "cancelled");
+						}
+						originalClose?.();
+					}
+				});
+			};
+			return dialog;
+		}
+		return createFeature({
+			...featureOptions,
+			createDialog: createTrackedDialog,
+			log
+		});
+	}
+	function installHistoryAwareFeature(baseApi = batch_section_deletion_exports) {
+		return Object.freeze({
+			...baseApi,
+			createBatchSectionDeletionFeature(options = {}) {
+				return createHistoryAwareFeature({
+					...options,
+					createFeature: baseApi.createBatchSectionDeletionFeature,
+					getLocationHref: options.getLocationHref || (() => globalThis.location?.href || ""),
+					getMarathonName: options.getMarathonName || (() => globalThis.document?.querySelector?.("h1")?.textContent?.trim() || globalThis.document?.title || null)
+				});
+			}
+		});
+	}
+	function createBatchSectionDeletionFeature(options = {}) {
+		return installHistoryAwareFeature(batch_section_deletion_exports).createBatchSectionDeletionFeature(options);
+	}
+	//#endregion
 	//#region src/components/batch-section-deletion-dialog.js
-	init_lit();
 	var BATCH_SECTION_DELETION_DIALOG_TAG = "edvibe-toolbox-batch-section-deletion-dialog";
 	var BatchSectionDeletionDialog = class extends i {
 		static properties = {
@@ -8591,6664 +14487,50 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 	};
 	if (!customElements.get("edvibe-toolbox-batch-section-deletion-dialog")) customElements.define(BATCH_SECTION_DELETION_DIALOG_TAG, BatchSectionDeletionDialog);
-	var batchSectionDeletionDialogApi$1 = Object.freeze({
+	var batchSectionDeletionDialogApi = Object.freeze({
 		BATCH_SECTION_DELETION_DIALOG_TAG,
 		BatchSectionDeletionDialog
 	});
-	globalThis.EdVibeBatchSectionDeletionDialog = batchSectionDeletionDialogApi$1;
+	globalThis.EdVibeBatchSectionDeletionDialog = batchSectionDeletionDialogApi;
 	//#endregion
-	//#region src/components/execution-history-dialog.js
-	init_lit();
-	var EXECUTION_HISTORY_DIALOG_TAG = "edvibe-toolbox-execution-history-dialog";
-	var STATUS_LABELS = Object.freeze({
-		completed: "Completed",
-		completed_with_failures: "Completed with failures",
-		cancelled: "Cancelled",
-		interrupted: "Interrupted"
-	});
-	function formatExecutionStatus(status) {
-		return STATUS_LABELS[status] || String(status || "Unknown");
-	}
-	function formatExecutionDate(value, locale) {
-		const date = new Date(value);
-		return Number.isNaN(date.getTime()) ? String(value || "") : new Intl.DateTimeFormat(locale || void 0, {
-			dateStyle: "medium",
-			timeStyle: "short"
-		}).format(date);
-	}
-	function createSummary(record) {
-		return Object.freeze({
-			title: record.operationType,
-			subtitle: record.pageContext?.marathonName || (record.pageContext?.marathonId ? `Marathon #${record.pageContext.marathonId}` : "No marathon context"),
-			outcome: `${record.counts.successful} successful · ${record.counts.failed} failed · ${record.counts.skipped} skipped`
-		});
-	}
-	var ExecutionHistoryDialog = class extends i {
-		static properties = {
-			options: { state: true },
-			records: { state: true },
-			selectedRecord: { state: true },
-			operationTypes: { state: true },
-			filterOperationType: { state: true },
-			filterStatus: { state: true },
-			filterMarathonId: { state: true },
-			filterFrom: { state: true },
-			filterTo: { state: true },
-			listState: { state: true },
-			listMessage: { state: true },
-			preferences: { state: true },
-			toastMessage: { state: true },
-			toastError: { state: true }
-		};
-		constructor() {
-			super();
-			this.options = null;
-			this.records = [];
-			this.selectedRecord = null;
-			this.operationTypes = [];
-			this.filterOperationType = "";
-			this.filterStatus = "";
-			this.filterMarathonId = "";
-			this.filterFrom = "";
-			this.filterTo = "";
-			this.listState = "loading";
-			this.listMessage = "Loading history…";
-			this.preferences = {
-				mode: "limits",
-				maxCount: "",
-				maxAgeDays: "",
-				autoExport: false
-			};
-			this.toastMessage = "";
-			this.toastError = false;
-			this.initializationPromise = null;
-			this.handleKeydownBound = (event) => {
-				if (event.key === "Escape") this.options?.onClose?.();
-			};
-		}
-		configure(options = {}) {
-			this.options = options && typeof options === "object" ? options : {};
-			if (this.isConnected) this.initialize();
-			return this;
-		}
-		connectedCallback() {
-			super.connectedCallback();
-			this.addEventListener("keydown", this.handleKeydownBound);
-			this.initialize();
-		}
-		disconnectedCallback() {
-			this.removeEventListener("keydown", this.handleKeydownBound);
-			super.disconnectedCallback();
-		}
-		initialize() {
-			if (!this.options) return Promise.resolve();
-			if (this.initializationPromise) return this.initializationPromise;
-			this.initializationPromise = (async () => {
-				await this.updateComplete;
-				this.shadowRoot?.querySelector("[data-action=\"close\"]")?.focus();
-				await this.loadPreferences();
-				await this.loadRecords();
-				if (this.options.initialExecutionId) await this.openRecord(this.options.initialExecutionId);
-			})();
-			return this.initializationPromise;
-		}
-		get filters() {
-			const entries = {
-				operationType: this.filterOperationType,
-				status: this.filterStatus,
-				marathonId: this.filterMarathonId,
-				from: this.filterFrom,
-				to: this.filterTo
-			};
-			return Object.fromEntries(Object.entries(entries).filter(([, value]) => value !== ""));
-		}
-		setFilter(name, value) {
-			const normalized = String(value || "");
-			if (name === "operationType") this.filterOperationType = normalized;
-			if (name === "status") this.filterStatus = normalized;
-			if (name === "marathonId") this.filterMarathonId = normalized;
-			if (name === "from") this.filterFrom = normalized;
-			if (name === "to") this.filterTo = normalized;
-		}
-		async loadRecords() {
-			this.listState = "loading";
-			this.listMessage = "Loading history…";
-			try {
-				this.records = await this.options.service.list(this.filters);
-				this.operationTypes = [.../* @__PURE__ */ new Set([...this.operationTypes, ...this.records.map((record) => record.operationType)])].sort();
-				this.listState = this.records.length === 0 ? "empty" : "ready";
-				this.listMessage = this.records.length === 0 ? "No executions match these filters." : "";
-			} catch (error) {
-				this.records = [];
-				this.listState = "error";
-				this.listMessage = error.message || "Could not load execution history.";
-			}
-		}
-		renderEmptyDetail() {
-			this.selectedRecord = null;
-		}
-		async openRecord(executionId) {
-			try {
-				const record = await this.options.service.get(executionId);
-				if (!record) throw new Error("Execution record was not found.");
-				this.selectedRecord = record;
-			} catch (error) {
-				this.showToast(error.message || "Could not open the execution.", true);
-			}
-		}
-		async loadPreferences() {
-			try {
-				const preferences = await this.options.service.getPreferences();
-				this.preferences = {
-					mode: preferences.mode,
-					maxCount: preferences.maxCount,
-					maxAgeDays: preferences.maxAgeDays,
-					autoExport: Boolean(preferences.autoExport)
-				};
-			} catch (error) {
-				this.showToast(error.message || "Could not load retention settings.", true);
-			}
-		}
-		updatePreference(name, value) {
-			this.preferences = {
-				...this.preferences,
-				[name]: value
-			};
-		}
-		async savePreferences() {
-			const preferences = {
-				mode: this.preferences.mode,
-				maxCount: Number(this.preferences.maxCount),
-				maxAgeDays: Number(this.preferences.maxAgeDays),
-				autoExport: Boolean(this.preferences.autoExport)
-			};
-			try {
-				await this.options.service.setPreferences(preferences);
-				this.showToast("Retention settings saved.");
-			} catch (error) {
-				this.showToast(error.message || "Could not save retention settings.", true);
-			}
-		}
-		async resetFilters() {
-			this.filterOperationType = "";
-			this.filterStatus = "";
-			this.filterMarathonId = "";
-			this.filterFrom = "";
-			this.filterTo = "";
-			await this.loadRecords();
-		}
-		confirm(message) {
-			return this.ownerDocument.defaultView.confirm(message);
-		}
-		async runAction(action, successMessage, failureMessage) {
-			try {
-				await action();
-				this.showToast(successMessage);
-			} catch (error) {
-				this.showToast(error.message || failureMessage, true);
-			}
-		}
-		async runMutation(action, successMessage, failureMessage) {
-			try {
-				await action();
-				this.renderEmptyDetail();
-				await this.loadRecords();
-				this.showToast(successMessage);
-			} catch (error) {
-				this.showToast(error.message || failureMessage, true);
-			}
-		}
-		async handleAction(action) {
-			if (action === "close") this.options.onClose?.();
-			if (action === "reset-filters") await this.resetFilters();
-			if (action === "export-filtered") await this.runAction(() => this.options.service.exportFiltered(this.filters), "Filtered history exported.", "Could not export history.");
-			if (action === "download-one" && this.selectedRecord) await this.runAction(() => this.options.service.exportRecord(this.selectedRecord.id), "Execution exported.", "Could not export execution.");
-			if (action === "delete-one" && this.selectedRecord && this.confirm(`Delete execution ${this.selectedRecord.id}?`)) await this.runMutation(() => this.options.service.delete(this.selectedRecord.id), "Execution deleted.", "Could not delete the execution.");
-			if (action === "clear-all" && this.confirm("Clear all execution history? This cannot be undone.")) await this.runMutation(() => this.options.service.clear(), "Execution history cleared.", "Could not clear execution history.");
-			if (action === "save-preferences") await this.savePreferences();
-		}
-		showToast(message, isError = false) {
-			this.toastMessage = String(message || "");
-			this.toastError = Boolean(isError);
-		}
-		renderRecord(record) {
-			const summary = createSummary(record);
-			return b`
-            <button type="button" class="record-card" data-execution-id=${record.id}
-                data-status=${record.status}
-                aria-pressed=${String(this.selectedRecord?.id === record.id)}
-                @click=${() => this.openRecord(record.id)}>
-                <span class="record-heading">
-                    <strong>${summary.title}</strong>
-                    <span class="status-chip">${formatExecutionStatus(record.status)}</span>
-                </span>
-                <span class="record-context">${summary.subtitle}</span>
-                <span class="record-outcome">${summary.outcome}</span>
-                <time>${formatExecutionDate(record.completedAt)}</time>
-            </button>
-        `;
-		}
-		renderOutcome(result) {
-			const hasData = result.data && Object.keys(result.data).length > 0;
-			return b`
-            <article class="outcome-card" data-status=${result.status}>
-                <div><strong>${result.label}</strong><span class="status-chip">${result.status}</span></div>
-                <p>${result.message}</p>
-                <small>${result.code} · ${result.attempts} attempt${result.attempts === 1 ? "" : "s"}</small>
-                ${hasData ? b`
-                    <details><summary>Item details</summary><pre>${JSON.stringify(result.data, null, 2)}</pre></details>
-                ` : ""}
-            </article>
-        `;
-		}
-		renderDetail() {
-			const record = this.selectedRecord;
-			if (!record) return b`
-                <div class="detail-placeholder">
-                    <span aria-hidden="true">↗</span>
-                    <h3>Select an execution</h3>
-                    <p>Its summary and ordered item outcomes will appear here.</p>
-                </div>
-            `;
-			const context = [
-				["Execution ID", record.id],
-				["Marathon", record.pageContext?.marathonName || record.pageContext?.marathonId || "Not recorded"],
-				["Started", formatExecutionDate(record.startedAt)],
-				["Completed", formatExecutionDate(record.completedAt)]
-			];
-			return b`
-            <section class="detail-header">
-                <div>
-                    <h3>${record.operationType}</h3>
-                    <p>${formatExecutionStatus(record.status)} · ${formatExecutionDate(record.completedAt)}</p>
-                </div>
-                <div class="detail-actions">
-                    <button type="button" class="secondary" @click=${() => this.handleAction("download-one")}>Download JSON</button>
-                    <button type="button" class="danger secondary" @click=${() => this.handleAction("delete-one")}>Delete</button>
-                </div>
-            </section>
-            <dl class="summary-grid">
-                ${context.map(([label, value]) => b`<div><dt>${label}</dt><dd>${value}</dd></div>`)}
-            </dl>
-            <section class="counts">
-                ${Object.entries(record.counts).map(([key, value]) => b`
-                    <div><strong>${value}</strong><span>${key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)}</span></div>
-                `)}
-            </section>
-            <section class="outcomes">
-                <h4>Item outcomes (${record.results.length})</h4>
-                ${record.results.length === 0 ? b`<p class="muted">No per-item outcomes were recorded.</p>` : record.results.map((result) => this.renderOutcome(result))}
-            </section>
-        `;
-		}
-		render() {
-			const listVisible = this.listState === "ready";
-			const stateVisible = !listVisible;
-			const stateClass = `state-card${this.listState === "error" ? " is-error" : ""}`;
-			const indefinite = this.preferences.mode === "indefinite";
-			const toastClass = `toast${this.toastError ? " is-error" : ""}`;
-			return b`
-            <link rel="stylesheet" href=${String(this.options?.stylesheetUrl || "")}>
-            <div class="overlay">
-                <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
-                    <header class="dialog-header">
-                        <div><p class="eyebrow">Edvibe Toolbox</p><h2 id="history-title">Execution history</h2><p class="header-copy">Browse terminal operation reports stored in this browser.</p></div>
-                        <button class="icon-button" type="button" data-action="close" aria-label="Close" @click=${() => this.handleAction("close")}>×</button>
-                    </header>
-                    <div class="workspace">
-                        <aside class="browser-panel">
-                            <form class="filters" data-role="filters" @submit=${(event) => {
-				event.preventDefault();
-				this.loadRecords();
-			}}>
-                                <label>Operation<select name="operationType" .value=${this.filterOperationType} @change=${(event) => this.setFilter("operationType", event.currentTarget.value)}>
-                                    <option value="">All operations</option>
-                                    ${this.operationTypes.map((operationType) => b`<option value=${operationType}>${operationType}</option>`)}
-                                </select></label>
-                                <label>Status<select name="status" .value=${this.filterStatus} @change=${(event) => this.setFilter("status", event.currentTarget.value)}>
-                                    <option value="">All statuses</option><option value="completed">Completed</option><option value="completed_with_failures">Completed with failures</option><option value="cancelled">Cancelled</option><option value="interrupted">Interrupted</option>
-                                </select></label>
-                                <label>Marathon<input name="marathonId" type="search" inputmode="numeric" placeholder="Any marathon" .value=${this.filterMarathonId} @input=${(event) => this.setFilter("marathonId", event.currentTarget.value)}></label>
-                                <div class="date-fields">
-                                    <label>From<input name="from" type="date" .value=${this.filterFrom} @input=${(event) => this.setFilter("from", event.currentTarget.value)}></label>
-                                    <label>To<input name="to" type="date" .value=${this.filterTo} @input=${(event) => this.setFilter("to", event.currentTarget.value)}></label>
-                                </div>
-                                <div class="filter-actions"><button type="submit">Apply</button><button type="button" class="secondary" @click=${() => this.handleAction("reset-filters")}>Reset</button></div>
-                            </form>
-                            <div class="list-toolbar"><strong data-role="record-count">${this.records.length} execution${this.records.length === 1 ? "" : "s"}</strong><button type="button" class="secondary compact" @click=${() => this.handleAction("export-filtered")}>Export filtered</button></div>
-                            <div class=${stateClass} data-role="state" ?hidden=${!stateVisible}>${this.listMessage}</div>
-                            <div class="record-list" data-role="record-list" ?hidden=${!listVisible}>${this.records.map((record) => this.renderRecord(record))}</div>
-                        </aside>
-                        <main class="detail-panel" data-role="detail">${this.renderDetail()}</main>
-                    </div>
-                    <footer class="dialog-footer">
-                        <details class="retention-settings"><summary>Retention & automatic export</summary><div class="settings-grid">
-                            <label class="checkbox"><input type="checkbox" name="keepIndefinitely" .checked=${indefinite} @change=${(event) => this.updatePreference("mode", event.currentTarget.checked ? "indefinite" : "limits")}>Keep indefinitely</label>
-                            <label>Newest executions<input type="number" name="maxCount" min="1" step="1" .value=${String(this.preferences.maxCount)} ?disabled=${indefinite} @input=${(event) => this.updatePreference("maxCount", event.currentTarget.value)}></label>
-                            <label>Maximum age, days<input type="number" name="maxAgeDays" min="1" step="1" .value=${String(this.preferences.maxAgeDays)} ?disabled=${indefinite} @input=${(event) => this.updatePreference("maxAgeDays", event.currentTarget.value)}></label>
-                            <label class="checkbox"><input type="checkbox" name="autoExport" .checked=${this.preferences.autoExport} @change=${(event) => this.updatePreference("autoExport", event.currentTarget.checked)}>Download JSON after persistence</label>
-                            <button type="button" @click=${() => this.handleAction("save-preferences")}>Save settings</button>
-                        </div></details>
-                        <div class="footer-actions"><button type="button" class="danger secondary" @click=${() => this.handleAction("clear-all")}>Clear all history</button><button type="button" @click=${() => this.handleAction("close")}>Close</button></div>
-                        <p class=${toastClass} data-role="toast" role="status" ?hidden=${!this.toastMessage}>${this.toastMessage}</p>
-                    </footer>
-                </section>
-            </div>
-        `;
-		}
-	};
-	if (!customElements.get("edvibe-toolbox-execution-history-dialog")) customElements.define(EXECUTION_HISTORY_DIALOG_TAG, ExecutionHistoryDialog);
-	var executionHistoryDialogApi = Object.freeze({
-		EXECUTION_HISTORY_DIALOG_TAG,
-		ExecutionHistoryDialog,
-		formatExecutionStatus,
-		formatExecutionDate,
-		createSummary
-	});
-	globalThis.EdVibeExecutionHistoryDialog = executionHistoryDialogApi;
-	//#endregion
-	//#region src/features/reset-lessons.js
-	var require_reset_lessons = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeResetLessons(root, factory) {
-			if (typeof define === "function" && define.amd) define(["../components/reset-lessons-dialog.js"], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory((init_reset_lessons_dialog(), __toCommonJS(reset_lessons_dialog_exports)));
-			else root.EdVibeLessonReset = factory(root.EdVibeResetDialogComponent);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createResetLessonsModule(dialogComponent) {
-			"use strict";
-			if (!dialogComponent || !dialogComponent.RESET_DIALOG_TAG) throw new Error("EdVibe reset lessons requires the reset dialog component module.");
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/marathon\/(\d+)/);
-				return match ? Number(match[1]) : null;
-			}
-			function collectLessonSections(lessonValue) {
-				const sections = Array.isArray(lessonValue?.Sections) ? lessonValue.Sections.filter(Boolean) : [];
-				if (lessonValue?.HomeworkSection) sections.push(lessonValue.HomeworkSection);
-				return sections;
-			}
-			function shouldDeleteLastRequest(lesson) {
-				const status = lesson?.LastRequest?.Status;
-				return Boolean(lesson?.LastRequest?.Id && Number.isFinite(status) && status !== 0);
-			}
-			function buildLoadExercisesPayload({ marathonId, pupilId, marathonLessonId, sectionId }) {
-				return {
-					MarathonId: marathonId,
-					LessonId: marathonLessonId,
-					SectionId: sectionId,
-					PupilId: pupilId,
-					IsTeacher: true,
-					LessonSection: 0,
-					Domain: "edvibe.com"
-				};
-			}
-			function buildResetAnswerPayload({ marathonId, pupilId, lessonId, exercise }) {
-				return {
-					SelfSync: false,
-					IsReset: true,
-					ExerciseId: exercise.id,
-					ExerciseType: exercise.type,
-					SectionId: exercise.sectionId,
-					PupilId: pupilId,
-					MarathonId: marathonId,
-					SingleAnswer: {},
-					ManyAnswers: [],
-					RepeatingManyAnswers: [],
-					AnswerErrorsCount: [[]],
-					StatisticsInfo: {
-						CountAnswersTrue: 0,
-						CountAnswersFalse: 0,
-						CountAnswersPending: 0
-					},
-					LessonId: lessonId
-				};
-			}
-			function createPupilPager(sendRequest, marathonId, pageSize = 50) {
-				let pupils = [];
-				let total = null;
-				let inFlight = null;
-				function snapshot() {
-					return {
-						pupils: [...pupils],
-						total,
-						hasMore: total === null || pupils.length < total
-					};
-				}
-				async function requestNextPage() {
-					if (total !== null && pupils.length >= total) return snapshot();
-					const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
-						MarathonId: marathonId,
-						Skip: pupils.length,
-						Take: pageSize
-					});
-					const items = response.Value?.Items;
-					const nextTotal = response.Value?.Page?.Count;
-					if (!Array.isArray(items) || typeof nextTotal !== "number" || !Number.isInteger(nextTotal) || nextTotal < 0) throw new Error("GetMarathonPupils returned an invalid response.");
-					if (items.length === 0 && pupils.length < nextTotal) throw new Error("GetMarathonPupils pagination stopped before all pupils were loaded.");
-					pupils = pupils.concat(items);
-					total = nextTotal;
-					return snapshot();
-				}
-				return {
-					loadNext() {
-						if (inFlight) return inFlight;
-						inFlight = requestNextPage().finally(() => {
-							inFlight = null;
-						});
-						return inFlight;
-					},
-					getSnapshot: snapshot
-				};
-			}
-			async function discoverResetWork({ sendRequest, wait, marathonId, pupilId, lessons, onDiscovery = () => {}, log = () => {} }) {
-				const work = [];
-				for (const lesson of lessons) {
-					log(`Discovering lesson ${lesson.MarathonLessonId} (LessonId: ${lesson.LessonId}).`);
-					onDiscovery(`Loading sections for "${lesson.Name}"...`);
-					const sections = collectLessonSections((await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.LessonId })).Value);
-					const exercises = [];
-					log(`Lesson ${lesson.MarathonLessonId}: ${sections.length} section(s) found.`);
-					for (const section of sections) {
-						await wait(300);
-						const items = (await sendRequest("GetExerciseWsController", "LoadExercises", "Exercises", buildLoadExercisesPayload({
-							marathonId,
-							pupilId,
-							marathonLessonId: lesson.MarathonLessonId,
-							sectionId: section.Id
-						}))).Value?.Items;
-						if (!Array.isArray(items)) throw new Error(`LoadExercises returned invalid data for "${lesson.Name}".`);
-						const resettableItems = items.filter((item) => Number.isFinite(item.Id) && Array.isArray(item.AnswerVersion1) && item.AnswerVersion1.length > 0);
-						exercises.push(...resettableItems.map((item) => ({
-							id: item.Id,
-							type: item.Type,
-							sectionId: section.Id
-						})));
-						log(`Lesson ${lesson.MarathonLessonId}, section ${section.Id}: ${resettableItems.length} of ${items.length} exercise(s) have saved answers.`);
-					}
-					work.push({
-						lesson,
-						exercises,
-						deleteRequestId: shouldDeleteLastRequest(lesson) ? lesson.LastRequest.Id : null
-					});
-					log(`Lesson ${lesson.MarathonLessonId}: ${exercises.length} exercise reset(s), ${shouldDeleteLastRequest(lesson) ? "request deletion required" : "no request deletion"}.`);
-				}
-				return work;
-			}
-			async function executeResetWork({ sendRequest, sendWithoutResponse, wait, marathonId, pupilId, work, onProgress, log = () => {} }) {
-				const total = work.reduce((sum, item) => sum + item.exercises.length, 0);
-				let completed = 0;
-				log(`Starting ${total} operation(s) for PupilId ${pupilId} across ${work.length} lesson(s).`);
-				for (const item of work) {
-					for (const exercise of item.exercises) {
-						try {
-							log(`Resetting exercise ${exercise.id} for lesson ${item.lesson.MarathonLessonId} (${completed + 1}/${total}).`);
-							await wait(300);
-							await sendRequest("ExerciseAnswerSaveVersion1WsController", "SaveAnswer", "ExerciseAnswer", buildResetAnswerPayload({
-								marathonId,
-								pupilId,
-								lessonId: item.lesson.LessonId,
-								exercise
-							}));
-							if ((await sendRequest("MarathonStatisticService", "DropMarathonExerciseStatistic", "Statistic", {
-								MarathondId: marathonId,
-								PupilId: pupilId,
-								ExerciseId: exercise.id
-							})).Value !== true) throw new Error("server did not confirm the reset");
-						} catch (error) {
-							throw new Error(`Failed in "${item.lesson.Name}", exercise ${exercise.id}: ${error.message}`);
-						}
-						completed += 1;
-						onProgress({
-							completed,
-							total,
-							lesson: item.lesson,
-							exerciseId: exercise.id
-						});
-					}
-					if (item.deleteRequestId) sendWithoutResponse("MarathonLessonWsController", "DeleteMarathonLessonRequestPupil", "Marathons", { RequestId: item.deleteRequestId });
-				}
-				log(`Completed all ${total} operation(s) for PupilId ${pupilId}.`);
-			}
-			function getErrorType(error) {
-				return typeof error?.name === "string" ? error.name : "Error";
-			}
-			function createResetLessonsFeature({ sendRequest, sendWithoutResponse, wait, canStart, onActiveChange, createDialog = () => document.createElement(dialogComponent.RESET_DIALOG_TAG), log = () => {} }) {
-				let running = false;
-				let active = false;
-				function releaseOperation() {
-					if (!active) return;
-					active = false;
-					onActiveChange(false);
-				}
-				async function open({ stylesheetUrl = "" } = {}) {
-					if (document.getElementById(dialogComponent.RESET_OVERLAY_ID)) return;
-					if (!canStart()) {
-						window.alert("Another Edvibe Toolbox operation is already running.");
-						return;
-					}
-					const marathonId = parseMarathonId(window.location.href);
-					if (!marathonId) {
-						window.alert("Open an Edvibe marathon page before resetting lessons.");
-						return;
-					}
-					active = true;
-					onActiveChange(true);
-					const dialog = createDialog();
-					dialog.addEventListener("edvibe-dialog-close", releaseOperation);
-					dialog.addEventListener("edvibe-reset-request", async (event) => {
-						const { pupil, lessons } = event.detail;
-						if (!window.confirm(`Reset ${lessons.length} lesson(s) for ${pupil.Email}?`)) return;
-						running = true;
-						dialog.lock();
-						let completed = false;
-						try {
-							dialog.showDiscovery("Discovering exercises...");
-							const work = await discoverResetWork({
-								sendRequest,
-								wait,
-								marathonId,
-								pupilId: pupil.PupilId,
-								lessons,
-								onDiscovery: (message) => dialog.showDiscovery(message),
-								log
-							});
-							await executeResetWork({
-								sendRequest,
-								sendWithoutResponse,
-								wait,
-								marathonId,
-								pupilId: pupil.PupilId,
-								work,
-								onProgress: (progress) => dialog.showProgress(progress),
-								log
-							});
-							dialog.showComplete("Selected lesson progress was reset successfully.");
-							completed = true;
-						} catch (error) {
-							const lessonIds = lessons.map((lesson) => lesson.MarathonLessonId).join(", ");
-							log(`Reset stopped for PupilId ${pupil.PupilId}; MarathonLessonIds: ${lessonIds} (${getErrorType(error)}).`);
-							dialog.showError(error.message);
-						} finally {
-							running = false;
-							if (completed) dialog.completeRun();
-							else dialog.unlockAfterRun();
-						}
-					});
-					try {
-						const pupilPager = createPupilPager(sendRequest, marathonId);
-						dialog.configure({
-							stylesheetUrl,
-							loadNextPupils: () => pupilPager.loadNext(),
-							loadLessons: async (pupil) => {
-								log(`Loading lessons for PupilId ${pupil.PupilId}.`);
-								const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsForPupil", "Marathons", {
-									PupilId: pupil.PupilId,
-									MarathonId: marathonId,
-									SearchTerm: "",
-									Domain: "edvibe.com"
-								});
-								if (!Array.isArray(response.Value)) throw new Error("GetMarathonLessonsForPupil returned invalid data.");
-								log(`Loaded ${response.Value.length} lesson(s) for PupilId ${pupil.PupilId}.`);
-								return response.Value;
-							},
-							log
-						});
-						(document.body || document.documentElement).appendChild(dialog);
-						dialog.setLoading("Loading marathon pupils...");
-						const initialPage = await pupilPager.loadNext();
-						log(`Loaded ${initialPage.pupils.length} of ${initialPage.total} pupil(s) for MarathonId ${marathonId}.`);
-						dialog.showPupils({
-							pupils: initialPage.pupils,
-							total: initialPage.total
-						});
-					} catch (error) {
-						log(`Failed to initialize reset workflow for MarathonId ${marathonId} (${getErrorType(error)}).`);
-						if (typeof dialog.showError === "function") dialog.showError(error.message);
-						else {
-							releaseOperation();
-							throw error;
-						}
-					}
-				}
-				return {
-					open,
-					isRunning: () => running
-				};
-			}
-			return {
-				parseMarathonId,
-				collectLessonSections,
-				shouldDeleteLastRequest,
-				buildLoadExercisesPayload,
-				buildResetAnswerPayload,
-				createPupilPager,
-				discoverResetWork,
-				executeResetWork,
-				createResetLessonsFeature,
-				getErrorType
-			};
-		});
-	}));
-	//#endregion
-	//#region src/features/marathon-export.js
-	var require_marathon_export = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeMarathonExport(root, factory) {
-			if (typeof define === "function" && define.amd) define([], () => factory(root));
-			else if (typeof module === "object" && module.exports) module.exports = factory(root);
-			else root.EdVibeMarathonExport = factory(root);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createMarathonExportModule(root) {
-			"use strict";
-			const FORBIDDEN_PATH_CHARS = /[\\/:*?"<>|]/g;
-			function sanitizePathName(name, fallback = "untitled") {
-				return String(name || "").replace(FORBIDDEN_PATH_CHARS, "").replace(/\s+/g, " ").trim().replace(/\.+$/, "") || fallback;
-			}
-			function uniquePathName(baseName, usedNames, fallback = "untitled") {
-				let candidate = sanitizePathName(baseName, fallback);
-				if (!usedNames.has(candidate)) {
-					usedNames.add(candidate);
-					return candidate;
-				}
-				let counter = 2;
-				while (usedNames.has(`${candidate} (${counter})`)) counter += 1;
-				candidate = `${candidate} (${counter})`;
-				usedNames.add(candidate);
-				return candidate;
-			}
-			function createMarkdownTurndownService() {
-				const service = new window.TurndownService({
-					headingStyle: "atx",
-					bulletListMarker: "-",
-					codeBlockStyle: "fenced",
-					emDelimiter: "*",
-					strongDelimiter: "**",
-					br: "\n"
-				});
-				service.addRule("stripInlineStyles", {
-					filter: ["span", "font"],
-					replacement: (content) => content
-				});
-				service.addRule("hideExerciseIds", {
-					filter: (node) => node.nodeName === "EM" && node.classList?.contains("hide-id-exercise-item"),
-					replacement: () => ""
-				});
-				return service;
-			}
-			function preprocessHtml(html) {
-				if (!html) return "";
-				return String(html).replace(/<br\s+style="[^"]*"\s*\/?>/gi, "<br>").replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ").replace(/(<br\s*\/?>\s*){3,}/gi, "<br><br>");
-			}
-			function postprocessMarkdown(markdown) {
-				return markdown.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-			}
-			function htmlToMarkdown(html, turndown, log) {
-				const preprocessed = preprocessHtml(html);
-				if (!preprocessed.trim()) return "";
-				try {
-					return postprocessMarkdown(turndown.turndown(preprocessed));
-				} catch (error) {
-					log("HTML conversion failed, falling back to plain text:", error);
-					return preprocessed.replace(/<[^>]+>/g, "").trim();
-				}
-			}
-			function extensionFromUrl(url) {
-				try {
-					const ext = new URL(url).pathname.split(".").pop()?.toLowerCase();
-					if (ext && /^[a-z0-9]{2,5}$/.test(ext)) return ext;
-				} catch (_) {}
-				return "jpg";
-			}
-			async function localizeImage(url, imageId, imagesFolder, urlMap, log) {
-				if (!url) return null;
-				if (urlMap.has(url)) return urlMap.get(url);
-				const filename = `${imageId || "img"}_${crypto.randomUUID().slice(0, 8)}.${extensionFromUrl(url)}`;
-				const relativePath = `./images/${filename}`;
-				try {
-					const response = await fetch(url);
-					if (!response.ok) throw new Error(`HTTP ${response.status}`);
-					const blob = await response.blob();
-					imagesFolder.file(filename, blob);
-					urlMap.set(url, relativePath);
-					return relativePath;
-				} catch (error) {
-					log(`Image fetch failed for ${url}:`, error.message);
-					urlMap.set(url, url);
-					return url;
-				}
-			}
-			async function renderImageMarkdown(imageEntry, imagesFolder, urlMap, log) {
-				const url = imageEntry.UrlFull || imageEntry.Url;
-				if (!url) return "";
-				return `![Illustration](${await localizeImage(url, imageEntry.ImageId || imageEntry.ImageFullId, imagesFolder, urlMap, log)})`;
-			}
-			async function processDescriptionsAndImages(item, ctx) {
-				const parts = [];
-				const descriptions = item.Descriptions || [];
-				const images = item.Images || [];
-				const slotCount = Math.max(descriptions.length, images.length);
-				for (let index = 0; index < slotCount; index += 1) {
-					const description = descriptions[index];
-					if (description && description.trim()) parts.push(ctx.htmlToMarkdown(description));
-					if (images[index]) parts.push(await renderImageMarkdown(images[index], ctx.imagesFolder, ctx.urlMap, ctx.log));
-				}
-				return parts.filter(Boolean).join("\n\n");
-			}
-			function appendRichTextBlocks(blocks, item, htmlToMarkdownFn) {
-				for (const block of blocks || []) {
-					if (block.Question) item.push(htmlToMarkdownFn(block.Question));
-					if (block.Text) item.push(htmlToMarkdownFn(block.Text));
-				}
-			}
-			async function processItemToMarkdown(item, ctx) {
-				const sections = [];
-				if (item.Name && String(item.Name).trim()) sections.push(`### ${ctx.htmlToMarkdown(item.Name)}`);
-				switch (item.Type) {
-					case 27:
-					case 2:
-						sections.push(await processDescriptionsAndImages(item, ctx));
-						break;
-					case 29:
-						if (item.Button?.Link) {
-							const linkText = (item.Button.Text ? ctx.htmlToMarkdown(item.Button.Text) : item.Button.Link).replace(/\n+/g, " ").trim() || "Open link";
-							sections.push(`[${linkText}](${item.Button.Link})`);
-						}
-						break;
-					case 10:
-					case 13:
-						appendRichTextBlocks(item.QuestionWithCodingTexts, sections, ctx.htmlToMarkdown);
-						break;
-					case 3:
-						for (const video of item.Videos || []) {
-							if (!video.Link) continue;
-							const linkText = (video.Text ? ctx.htmlToMarkdown(video.Text) : "Watch video").replace(/\n+/g, " ").trim() || "Watch video";
-							sections.push(`[${linkText}](${video.Link})`);
-						}
-						break;
-					default:
-						appendRichTextBlocks(item.QuestionWithCodingTexts, sections, ctx.htmlToMarkdown);
-						for (const description of item.Descriptions || []) if (description && description.trim()) sections.push(ctx.htmlToMarkdown(description));
-						if (item.Button?.Link) {
-							const linkText = (item.Button.Text ? ctx.htmlToMarkdown(item.Button.Text) : item.Button.Link).replace(/\n+/g, " ").trim() || "Open link";
-							sections.push(`[${linkText}](${item.Button.Link})`);
-						}
-						for (const video of item.Videos || []) if (video.Link) sections.push(`[${video.Text || "Watch video"}](${video.Link})`);
-						for (const image of item.Images || []) sections.push(await renderImageMarkdown(image, ctx.imagesFolder, ctx.urlMap, ctx.log));
-						if (item.Text) sections.push(ctx.htmlToMarkdown(item.Text));
-						if (sections.length === 0) ctx.log(`Unhandled item Type ${item.Type} (Id: ${item.Id})`);
-						break;
-				}
-				for (const pdf of item.Pdfs || []) {
-					const pdfUrl = pdf.Url || pdf.Link;
-					if (pdfUrl) {
-						const pdfLabel = pdf.Name || pdf.Text || "PDF document";
-						sections.push(`[${pdfLabel}](${pdfUrl})`);
-					}
-				}
-				return sections.filter(Boolean).join("\n\n");
-			}
-			function triggerBlobDownload(blob, filename) {
-				const url = URL.createObjectURL(blob);
-				const link = document.createElement("a");
-				link.href = url;
-				link.download = filename;
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-				URL.revokeObjectURL(url);
-			}
-			async function compileMarathonToZip(backupData, options = {}) {
-				const log = options.log || (() => {});
-				if (!window.JSZip) throw new Error("JSZip is not loaded. Ensure lib/jszip.min.js is injected before this script.");
-				if (!window.TurndownService) throw new Error("TurndownService is not loaded. Ensure lib/turndown.min.js is injected before this script.");
-				if (!backupData || !Array.isArray(backupData.lessons)) throw new Error("Invalid backup data: expected an object with a lessons array.");
-				log("Starting marathon workspace compilation...");
-				const zip = new window.JSZip();
-				const turndown = createMarkdownTurndownService();
-				const archiveRootName = `marathon_${backupData.marathonId || "export"}`;
-				const rootFolder = zip.folder(archiveRootName);
-				const backupJsonName = `edvibe_marathon_${backupData.marathonId || "export"}_backup.json`;
-				rootFolder.file(backupJsonName, JSON.stringify(backupData, null, 2));
-				const usedLessonNames = /* @__PURE__ */ new Set();
-				const totalLessons = backupData.lessons.length;
-				for (const [lessonIndex, lesson] of backupData.lessons.entries()) {
-					options.onProgress?.({
-						message: `Processing lesson ${lessonIndex + 1} of ${totalLessons}: ${lesson.name}`,
-						current: lessonIndex + 1,
-						total: totalLessons
-					});
-					const lessonFolderName = uniquePathName(lesson.name, usedLessonNames, `lesson_${lesson.lessonId}`);
-					const lessonFolder = rootFolder.folder(lessonFolderName);
-					const imagesFolder = lessonFolder.folder("images");
-					const usedSectionNames = /* @__PURE__ */ new Set();
-					const ctx = {
-						turndown,
-						imagesFolder,
-						urlMap: /* @__PURE__ */ new Map(),
-						log,
-						htmlToMarkdown: (html) => htmlToMarkdown(html, turndown, log)
-					};
-					if (lesson.imageUrl) await localizeImage(lesson.imageUrl, `lesson_${lesson.lessonId}`, imagesFolder, ctx.urlMap, log);
-					for (const [sectionIndex, section] of (lesson.sections || []).entries()) {
-						const sectionFileName = `${uniquePathName(`${sectionIndex + 1} - ${section.name}`, usedSectionNames, `section_${section.sectionId}`)}.md`;
-						const markdownParts = [`# ${section.name}`];
-						if (section.isHomework) markdownParts.push("> Homework section");
-						markdownParts.push("");
-						for (const item of section.items || []) {
-							if (item.IsHideExercise) continue;
-							const block = await processItemToMarkdown(item, ctx);
-							if (!block) continue;
-							markdownParts.push(block);
-							markdownParts.push("---");
-						}
-						while (markdownParts.length && markdownParts[markdownParts.length - 1] === "---") markdownParts.pop();
-						if (markdownParts.length <= 2) markdownParts.push("_No content in this section._");
-						lessonFolder.file(sectionFileName, `${markdownParts.join("\n\n").trim()}\n`);
-					}
-				}
-				rootFolder.file("_export_meta.json", JSON.stringify({
-					exportedAt: backupData.exportedAt,
-					marathonId: backupData.marathonId,
-					totalLessons: backupData.totalLessons,
-					compiledAt: (/* @__PURE__ */ new Date()).toISOString()
-				}, null, 2));
-				options.onProgress?.({ message: "Compressing archive..." });
-				const zipBlob = await zip.generateAsync({
-					type: "blob",
-					compression: "DEFLATE",
-					compressionOptions: { level: 6 }
-				});
-				const downloadName = `edvibe_marathon_${backupData.marathonId || "export"}_workspace.zip`;
-				triggerBlobDownload(zipBlob, downloadName);
-				log("Marathon workspace archive downloaded:", downloadName);
-				return zipBlob;
-			}
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/marathon\/(\d+)/);
-				return match ? Number(match[1]) : null;
-			}
-			function createExportProgressOverlay({ stylesheetUrl = "" } = {}) {
-				const componentApi = root.EdVibeExportProgressDialog;
-				if (!componentApi) throw new Error("Export progress component is unavailable.");
-				document.querySelector(componentApi.EXPORT_PROGRESS_TAG)?.remove();
-				const dialog = document.createElement(componentApi.EXPORT_PROGRESS_TAG);
-				dialog.configure({ stylesheetUrl });
-				(document.body || document.documentElement).appendChild(dialog);
-				return dialog;
-			}
-			function createMarathonExportFeature({ sendRequest, wait, canStart, onActiveChange, compileToZip = compileMarathonToZip, notifyStatus, createProgressOverlay = createExportProgressOverlay, getCurrentUrl = () => window.location.href, now = () => (/* @__PURE__ */ new Date()).toISOString(), log = () => {} }) {
-				async function start({ stylesheetUrl = "" } = {}) {
-					if (!canStart()) {
-						const message = "Cannot start export while another operation is active.";
-						log(message);
-						notifyStatus("error", message);
-						return;
-					}
-					onActiveChange(true);
-					let progressOverlay = null;
-					try {
-						notifyStatus("started");
-						log("Starting marathon export...");
-						progressOverlay = createProgressOverlay({ stylesheetUrl });
-						progressOverlay.update({
-							statusText: "Finding marathon lessons...",
-							loadedSections: 0,
-							totalSections: 0
-						});
-						const marathonId = parseMarathonId(getCurrentUrl());
-						if (!marathonId) {
-							progressOverlay.error("Failed to find a valid MarathonId in the current page URL.");
-							notifyStatus("error", "Invalid marathon URL.");
-							return;
-						}
-						const backupBundle = {
-							exportedAt: now(),
-							marathonId,
-							totalLessons: 0,
-							lessons: []
-						};
-						const marathonLessons = (await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
-							MarathonId: marathonId,
-							SearchTerm: "",
-							Page: {
-								Skip: 0,
-								Take: 100
-							}
-						})).Value?.Items || [];
-						backupBundle.totalLessons = marathonLessons.length;
-						progressOverlay.update({
-							statusText: `Found ${marathonLessons.length} lessons. Loading lesson sections...`,
-							loadedSections: 0,
-							totalSections: 0
-						});
-						const lessonQueue = [];
-						let totalSections = 0;
-						for (const [lessonIndex, lessonNode] of marathonLessons.entries()) {
-							progressOverlay.update({
-								statusText: `Loading sections for lesson ${lessonIndex + 1} of ${marathonLessons.length}: ` + lessonNode.Name,
-								loadedSections: 0,
-								totalSections: 0
-							});
-							const lessonStructure = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lessonNode.LessonId });
-							const sections = [...lessonStructure.Value?.Sections || []];
-							if (lessonStructure.Value?.HomeworkSection) sections.push(lessonStructure.Value.HomeworkSection);
-							totalSections += sections.length;
-							lessonQueue.push({
-								lessonNode,
-								lessonStructure,
-								sections
-							});
-						}
-						progressOverlay.update({
-							statusText: `Found ${totalSections} sections. Loading exercise assets...`,
-							loadedSections: 0,
-							totalSections
-						});
-						let loadedSections = 0;
-						for (const { lessonNode, lessonStructure, sections } of lessonQueue) {
-							const lessonEntry = {
-								lessonId: lessonNode.LessonId,
-								marathonLessonId: lessonNode.MarathonLessonId,
-								name: lessonNode.Name,
-								imageUrl: lessonStructure.Value?.ImageUrl || lessonNode.Image,
-								sections: []
-							};
-							for (const section of sections) {
-								progressOverlay.update({
-									statusText: `Lesson: ${lessonNode.Name}\nSection: ${section.Name}`,
-									loadedSections,
-									totalSections
-								});
-								await wait(300);
-								const exerciseResponse = await sendRequest("GetExerciseWsController", "LoadExercises", "Exercises", {
-									IsTeacher: true,
-									SectionId: section.Id,
-									LessonId: lessonNode.LessonId,
-									LessonSection: 0
-								});
-								const parsedValue = typeof exerciseResponse.Value === "string" ? JSON.parse(exerciseResponse.Value) : exerciseResponse.Value;
-								lessonEntry.sections.push({
-									sectionId: section.Id,
-									name: section.Name,
-									isHomework: section.IsHomework || false,
-									items: parsedValue?.Items || []
-								});
-								loadedSections += 1;
-								progressOverlay.update({
-									statusText: `Loaded "${section.Name}" from "${lessonNode.Name}".`,
-									loadedSections,
-									totalSections
-								});
-							}
-							backupBundle.lessons.push(lessonEntry);
-						}
-						progressOverlay.update({
-							statusText: "All sections loaded.\nProcessing lesson content and archiving workspace...\nDownloading images — this may take a few minutes.",
-							loadedSections: 0,
-							totalSections: 0
-						});
-						await compileToZip(backupBundle, { onProgress({ message, current, total }) {
-							const isCompressing = message === "Compressing archive...";
-							progressOverlay.update({
-								statusText: isCompressing ? "Processing lesson content and archiving workspace...\nCompressing archive..." : "Processing lesson content and archiving workspace...\n" + message,
-								loadedSections: isCompressing ? 0 : current || 0,
-								totalSections: isCompressing ? 0 : total || 0,
-								countText: isCompressing ? "Compressing archive..." : total ? `${current} / ${total} lessons processed` : "Preparing archive..."
-							});
-						} });
-						progressOverlay.complete("ZIP workspace archive downloaded successfully.", totalSections);
-						progressOverlay.dismissAfter(3e3);
-						notifyStatus("complete");
-					} catch (error) {
-						log("Export workflow failed:", error);
-						progressOverlay?.error(`Export failed: ${error.message}`);
-						notifyStatus("error", error.message);
-					} finally {
-						onActiveChange(false);
-					}
-				}
-				return { start };
-			}
-			return {
-				parseMarathonId,
-				compileMarathonToZip,
-				createExportProgressOverlay,
-				createMarathonExportFeature
-			};
-		});
-	}));
-	//#endregion
-	//#region src/features/action-recorder.js
-	var require_action_recorder = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeActionRecorder(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeActionRecorder = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createActionRecorderModule() {
-			"use strict";
-			const DEFAULT_LIMITS = Object.freeze({
-				maxFrames: 1e3,
-				maxStoredBytes: 5 * 1024 * 1024,
-				maxDurationMs: 600 * 1e3
-			});
-			const REDACTED_VALUE = "[REDACTED_BY_TOOLBOX]";
-			const SENSITIVE_KEYS = /* @__PURE__ */ new Set([
-				"authorization",
-				"accesstoken",
-				"refreshtoken",
-				"token",
-				"cookie",
-				"password",
-				"secret"
-			]);
-			function parseJson(value) {
-				if (typeof value !== "string") return {
-					parsed: false,
-					value
-				};
-				try {
-					return {
-						parsed: true,
-						value: JSON.parse(value)
-					};
-				} catch (_) {
-					return {
-						parsed: false,
-						value
-					};
-				}
-			}
-			function redactValue(value, path = "", redactions = []) {
-				if (Array.isArray(value)) return value.map((item, index) => redactValue(item, `${path}[${index}]`, redactions));
-				if (!value || typeof value !== "object") return value;
-				const redacted = {};
-				for (const [key, entry] of Object.entries(value)) {
-					const entryPath = path ? `${path}.${key}` : key;
-					if (SENSITIVE_KEYS.has(key.toLowerCase())) {
-						redacted[key] = REDACTED_VALUE;
-						redactions.push(entryPath);
-					} else redacted[key] = redactValue(entry, entryPath, redactions);
-				}
-				return redacted;
-			}
-			function parseEnvelope(rawText, redactions) {
-				const outer = parseJson(rawText);
-				if (!outer.parsed || !outer.value || typeof outer.value !== "object") return {
-					parsed: false,
-					value: rawText
-				};
-				const envelope = { ...outer.value };
-				const nested = parseJson(envelope.Value);
-				if (nested.parsed) envelope.Value = nested.value;
-				return {
-					parsed: true,
-					value: redactValue(envelope, "", redactions)
-				};
-			}
-			function pickExtra(envelope, knownKeys) {
-				const extra = {};
-				for (const [key, value] of Object.entries(envelope)) if (!knownKeys.has(key)) extra[key] = value;
-				return Object.keys(extra).length > 0 ? extra : void 0;
-			}
-			function operationKey(socketId, requestId) {
-				return `${socketId}:${String(requestId)}`;
-			}
-			function safePageContext(locationObject) {
-				const pathname = String(locationObject?.pathname || "");
-				const marathonMatch = pathname.match(/\/marathon\/(\d+)(?:\/|$)/);
-				return {
-					origin: String(locationObject?.origin || ""),
-					pathname,
-					marathonId: marathonMatch ? Number(marathonMatch[1]) : null
-				};
-			}
-			function sanitizeIsoForFilename(isoDate) {
-				return isoDate.replace(/[:.]/g, "-");
-			}
-			function makeRequestSnippet(operation) {
-				const serializedValue = JSON.stringify(operation.requestValue === void 0 ? null : operation.requestValue, null, 4);
-				return [
-					"await sendRequest(",
-					`    ${JSON.stringify(operation.controller || "")},`,
-					`    ${JSON.stringify(operation.method || "")},`,
-					`    ${JSON.stringify(operation.projectName || "")},`,
-					serializedValue.split("\n").map((line) => `    ${line}`).join("\n"),
-					");"
-				].join("\n");
-			}
-			function makeRecipe(operations) {
-				const pageOperations = operations.filter((operation) => operation.origin === "page");
-				const lines = [
-					"// Recorded from Edvibe UI. Review IDs, ordering, and mutation effects before use.",
-					"// This code is intentionally not executable by the recorder.",
-					""
-				];
-				pageOperations.forEach((operation, index) => {
-					if (index > 0) {
-						const previous = pageOperations[index - 1];
-						const gap = operation.startedAfterMs - previous.startedAfterMs;
-						if (gap >= 250) lines.push(`await wait(${Math.round(gap)});`, "");
-					}
-					lines.push(makeRequestSnippet(operation), "");
-				});
-				return lines.join("\n").trimEnd();
-			}
-			function createBrowserDownload(filename, text) {
-				const blob = new Blob([text], { type: "application/json;charset=utf-8" });
-				const url = URL.createObjectURL(blob);
-				const link = document.createElement("a");
-				link.href = url;
-				link.download = filename;
-				document.body.appendChild(link);
-				link.click();
-				link.remove();
-				URL.revokeObjectURL(url);
-			}
-			function createActionRecorderFeature({ subscribeFrames, createPanel, getPageContext = () => safePageContext(window.location), downloadText = createBrowserDownload, copyText = (text) => navigator.clipboard.writeText(text), createId = () => crypto.randomUUID(), now = Date.now, setTimeoutFn = setTimeout, clearTimeoutFn = clearTimeout, limits = DEFAULT_LIMITS, log = () => {} }) {
-				if (typeof subscribeFrames !== "function") throw new Error("Action recorder requires a frame subscription.");
-				if (typeof createPanel !== "function") throw new Error("Action recorder requires a panel factory.");
-				const configuredLimits = {
-					...DEFAULT_LIMITS,
-					...limits
-				};
-				let status = "idle";
-				let session = null;
-				let pendingOperations = /* @__PURE__ */ new Map();
-				let durationTimer = null;
-				let panel = null;
-				let stylesheetUrl = "";
-				let copyFallback = "";
-				let notice = "";
-				function getState() {
-					return {
-						status,
-						session,
-						copyFallback,
-						notice,
-						limits: configuredLimits
-					};
-				}
-				function render() {
-					panel?.setState?.(getState());
-				}
-				function finish(nextStatus, reason = "") {
-					if (status !== "recording") return;
-					clearTimeoutFn(durationTimer);
-					durationTimer = null;
-					status = nextStatus;
-					session.stoppedAt = new Date(now()).toISOString();
-					if (reason) {
-						session.limits.limitReached = true;
-						session.limits.reason = reason;
-						notice = `Recording stopped: ${reason}.`;
-					}
-					render();
-				}
-				function start() {
-					if (status === "recording") return;
-					const startedAtMs = now();
-					status = "recording";
-					copyFallback = "";
-					notice = "";
-					pendingOperations = /* @__PURE__ */ new Map();
-					session = {
-						schemaVersion: 1,
-						sessionId: createId(),
-						startedAt: new Date(startedAtMs).toISOString(),
-						stoppedAt: null,
-						page: getPageContext(),
-						limits: {
-							maxFrames: configuredLimits.maxFrames,
-							maxStoredBytes: configuredLimits.maxStoredBytes,
-							maxDurationMs: configuredLimits.maxDurationMs,
-							limitReached: false
-						},
-						frameCount: 0,
-						storedBytes: 0,
-						operations: [],
-						otherFrames: [],
-						anomalies: [],
-						redactions: [],
-						_startedAtMs: startedAtMs
-					};
-					durationTimer = setTimeoutFn(() => {
-						finish("limit-reached", "duration limit reached");
-					}, configuredLimits.maxDurationMs);
-					render();
-				}
-				function stop() {
-					finish("stopped");
-				}
-				function clear() {
-					if (status === "recording") {
-						clearTimeoutFn(durationTimer);
-						durationTimer = null;
-					}
-					status = "idle";
-					session = null;
-					pendingOperations = /* @__PURE__ */ new Map();
-					copyFallback = "";
-					notice = "";
-					render();
-				}
-				function limitReason(frame) {
-					if (session.frameCount + 1 > configuredLimits.maxFrames) return "frame limit reached";
-					if (session.storedBytes + (frame.dataType === "text" ? Number(frame.byteLength || 0) : 0) > configuredLimits.maxStoredBytes) return "size limit reached";
-					return "";
-				}
-				function storeOtherFrame(frame, envelope, rawText) {
-					const otherFrame = {
-						sequence: session.frameCount,
-						direction: frame.direction,
-						socketId: frame.socketId,
-						origin: frame.origin,
-						capturedAfterMs: frame.capturedAt - session._startedAtMs,
-						dataType: frame.dataType,
-						byteLength: frame.byteLength
-					};
-					if (envelope !== void 0) otherFrame.envelope = envelope;
-					if (rawText !== void 0) otherFrame.rawText = rawText;
-					session.otherFrames.push(otherFrame);
-				}
-				function storeOutbound(frame, envelope) {
-					const requestId = envelope.RequestId;
-					if (!(requestId !== void 0 && (envelope.Controller !== void 0 || envelope.Method !== void 0 || envelope.ProjectName !== void 0))) {
-						storeOtherFrame(frame, envelope);
-						return;
-					}
-					const key = operationKey(frame.socketId, requestId);
-					if (pendingOperations.has(key)) {
-						session.anomalies.push({
-							type: "duplicate-outbound-request",
-							socketId: frame.socketId,
-							requestId
-						});
-						storeOtherFrame(frame, envelope);
-						return;
-					}
-					const operation = {
-						sequence: session.operations.length + 1,
-						socketId: frame.socketId,
-						origin: frame.origin,
-						requestId,
-						startedAfterMs: frame.capturedAt - session._startedAtMs,
-						durationMs: null,
-						controller: envelope.Controller || "",
-						method: envelope.Method || "",
-						projectName: envelope.ProjectName || "",
-						requestValue: envelope.Value,
-						response: null,
-						extra: pickExtra(envelope, /* @__PURE__ */ new Set([
-							"Controller",
-							"Method",
-							"ProjectName",
-							"RequestId",
-							"Value"
-						])),
-						_capturedAt: frame.capturedAt
-					};
-					session.operations.push(operation);
-					pendingOperations.set(key, operation);
-				}
-				function storeInbound(frame, envelope) {
-					const requestId = envelope.RequestId;
-					const key = requestId === void 0 ? "" : operationKey(frame.socketId, requestId);
-					const operation = pendingOperations.get(key);
-					if (!operation) {
-						storeOtherFrame(frame, envelope);
-						return;
-					}
-					operation.durationMs = Math.max(0, frame.capturedAt - operation._capturedAt);
-					operation.response = {
-						isSuccess: typeof envelope.IsSuccess === "boolean" ? envelope.IsSuccess : null,
-						errorCode: envelope.ErrorCode ?? null,
-						value: envelope.Value,
-						extra: pickExtra(envelope, /* @__PURE__ */ new Set([
-							"RequestId",
-							"IsSuccess",
-							"ErrorCode",
-							"Value"
-						]))
-					};
-					pendingOperations.delete(key);
-				}
-				function handleFrame(frame) {
-					if (status !== "recording" || !session) return;
-					const reason = limitReason(frame);
-					if (reason) {
-						finish("limit-reached", reason);
-						return;
-					}
-					session.frameCount += 1;
-					if (frame.dataType === "text") session.storedBytes += Number(frame.byteLength || 0);
-					if (frame.dataType !== "text") {
-						storeOtherFrame(frame);
-						render();
-						return;
-					}
-					const frameRedactions = [];
-					const parsed = parseEnvelope(frame.data, frameRedactions);
-					session.redactions.push(...frameRedactions.map((path) => ({
-						frame: session.frameCount,
-						path
-					})));
-					if (!parsed.parsed) storeOtherFrame(frame, void 0, parsed.value);
-					else if (frame.direction === "outbound") storeOutbound(frame, parsed.value);
-					else storeInbound(frame, parsed.value);
-					render();
-				}
-				function buildExport() {
-					if (!session) return null;
-					return {
-						schemaVersion: session.schemaVersion,
-						sessionId: session.sessionId,
-						startedAt: session.startedAt,
-						stoppedAt: session.stoppedAt,
-						page: session.page,
-						limits: session.limits,
-						frameCount: session.frameCount,
-						storedBytes: session.storedBytes,
-						operations: session.operations.map((operation) => {
-							const { _capturedAt, ...exported } = operation;
-							return exported;
-						}),
-						otherFrames: session.otherFrames,
-						anomalies: session.anomalies,
-						redactions: session.redactions
-					};
-				}
-				function exportJson() {
-					const exported = buildExport();
-					if (!exported) return;
-					const filename = `edvibe-ws-recording-${sanitizeIsoForFilename(exported.startedAt)}.json`;
-					downloadText(filename, JSON.stringify(exported, null, 2));
-					notice = `Saved ${filename}.`;
-					render();
-				}
-				async function copy(content) {
-					copyFallback = "";
-					try {
-						await copyText(content);
-						notice = "Copied to clipboard.";
-					} catch (error) {
-						log("Clipboard copy failed:", error);
-						copyFallback = content;
-						notice = "Clipboard unavailable. Copy the text below.";
-					}
-					render();
-				}
-				function copyRequest(sequence) {
-					const operation = session?.operations.find((entry) => entry.sequence === sequence);
-					if (operation) return copy(makeRequestSnippet(operation));
-					return Promise.resolve();
-				}
-				function copyRecipe() {
-					if (!session) return Promise.resolve();
-					return copy(makeRecipe(session.operations));
-				}
-				function closePanel() {
-					panel?.remove?.();
-					panel = null;
-				}
-				function open(options = {}) {
-					stylesheetUrl = options.stylesheetUrl || stylesheetUrl;
-					if (!panel) {
-						panel = createPanel();
-						panel.configure?.({
-							stylesheetUrl,
-							onStart: start,
-							onStop: stop,
-							onClear: clear,
-							onExport: exportJson,
-							onCopyRequest: copyRequest,
-							onCopyRecipe: copyRecipe,
-							onClose: closePanel
-						});
-						panel.mount?.();
-					} else {
-						panel.configure?.({ stylesheetUrl });
-						panel.restore?.();
-					}
-					render();
-				}
-				subscribeFrames(handleFrame);
-				return {
-					open,
-					start,
-					stop,
-					clear,
-					exportJson,
-					copyRequest,
-					copyRecipe,
-					buildExport,
-					getState
-				};
-			}
-			return {
-				DEFAULT_LIMITS,
-				REDACTED_VALUE,
-				createActionRecorderFeature,
-				makeRecipe,
-				makeRequestSnippet,
-				parseEnvelope,
-				redactValue,
-				safePageContext
-			};
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-lesson-access.js
-	var require_batch_lesson_access = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchLessonAccess(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeBatchLessonAccess = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			const TRANSIENT_CODES = /* @__PURE__ */ new Set([
-				"WS_UNAVAILABLE",
-				"REQUEST_TIMEOUT",
-				"SEND_FAILED"
-			]);
-			const OPERATIONAL_WRITE_CODES = /* @__PURE__ */ new Set([
-				...TRANSIENT_CODES,
-				"SERVER_REJECTED",
-				"INVALID_RESPONSE"
-			]);
-			const BATCH_ACCESS_DIALOG_TAG = "edvibe-toolbox-batch-access-dialog";
-			const BATCH_ACCESS_OVERLAY_ID = "edvibe-toolbox-batch-access-overlay";
-			function createFeatureError(code, message, details = {}) {
-				const error = new Error(message);
-				error.code = code;
-				Object.assign(error, details);
-				return error;
-			}
-			function getPupilId(pupil) {
-				return pupil.PupilId === void 0 ? pupil.Id : pupil.PupilId;
-			}
-			function getMarathonPupilId(pupil) {
-				return pupil.MarathonPupilId === void 0 ? pupil.Id : pupil.MarathonPupilId;
-			}
-			function isTransientError(error, getConnectionState) {
-				if (!TRANSIENT_CODES.has(error?.code)) return false;
-				if (error.code !== "SEND_FAILED") return true;
-				return Boolean(error.cause) && !getConnectionState().isOpen;
-			}
-			async function runWithRetry(operation, { wait, getConnectionState, retryDelays = [1e3, 3e3] }) {
-				let attempts = 0;
-				while (attempts <= retryDelays.length) {
-					attempts += 1;
-					try {
-						if (attempts > 1 && !getConnectionState().isOpen) throw createFeatureError("WS_UNAVAILABLE", "The Edvibe connection is unavailable.");
-						return {
-							value: await operation(),
-							attempts
-						};
-					} catch (error) {
-						if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
-							error.attempts = attempts;
-							throw error;
-						}
-						await wait(retryDelays[attempts - 1]);
-					}
-				}
-			}
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-				return match ? Number(match[1]) : null;
-			}
-			function parseEmailInput(value) {
-				const entries = [];
-				const malformed = [];
-				const seen = /* @__PURE__ */ new Set();
-				for (const token of String(value || "").split(/[,;\r\n]+/)) {
-					const input = token.trim();
-					if (!input) continue;
-					const normalized = input.toLowerCase();
-					if (seen.has(normalized)) continue;
-					seen.add(normalized);
-					if (!EMAIL_PATTERN.test(input)) {
-						malformed.push(input);
-						continue;
-					}
-					entries.push({
-						input,
-						normalized
-					});
-				}
-				return {
-					entries,
-					malformed
-				};
-			}
-			function appendPage(items, total, nextItems, nextTotal, label) {
-				if (!Array.isArray(nextItems) || !Number.isInteger(nextTotal) || nextTotal < 0 || total !== null && nextTotal !== total || nextItems.length === 0 && items.length < nextTotal || items.length + nextItems.length > nextTotal) {
-					const error = /* @__PURE__ */ new Error(`${label} returned invalid pagination data.`);
-					error.code = "INVALID_RESPONSE";
-					throw error;
-				}
-				return {
-					items: items.concat(nextItems),
-					total: nextTotal
-				};
-			}
-			async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
-				let items = [];
-				let total = null;
-				while (total === null || items.length < total) {
-					const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
-						MarathonId: marathonId,
-						Skip: items.length,
-						Take: pageSize
-					});
-					const page = appendPage(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonPupils");
-					items = page.items;
-					total = page.total;
-				}
-				return items;
-			}
-			async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize = 20 }) {
-				let items = [];
-				let total = null;
-				while (total === null || items.length < total) {
-					const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsForPupilPagination", "Marathons", {
-						PupilId: pupilId,
-						MarathonId: marathonId,
-						SearchTerm: "",
-						Page: {
-							Skip: items.length,
-							Take: pageSize
-						}
-					});
-					const page = appendPage(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonLessonsForPupilPagination");
-					items = page.items;
-					total = page.total;
-				}
-				return items;
-			}
-			function resolvePupilsByEmail(entries, pupils) {
-				const pupilsByEmail = /* @__PURE__ */ new Map();
-				for (const pupil of pupils) {
-					const email = String(pupil.Email || "").trim().toLowerCase();
-					const candidates = pupilsByEmail.get(email) || [];
-					candidates.push(pupil);
-					pupilsByEmail.set(email, candidates);
-				}
-				const matches = [];
-				const errors = [];
-				for (const entry of entries) {
-					const candidates = pupilsByEmail.get(entry.normalized) || [];
-					if (candidates.length === 1) matches.push(candidates[0]);
-					else if (candidates.length === 0) errors.push({
-						type: "missing",
-						input: entry.input,
-						message: `No marathon pupil found for ${entry.input}.`
-					});
-					else errors.push({
-						type: "ambiguous",
-						input: entry.input,
-						count: candidates.length,
-						message: `Multiple marathon pupils found for ${entry.input}.`
-					});
-				}
-				return {
-					matches,
-					errors
-				};
-			}
-			function buildAccessPlan({ pupils, selectedLessonIds, lessonsByPupilId }) {
-				const alreadyOpen = [];
-				const needsOpening = [];
-				const errors = [];
-				for (const pupil of pupils) {
-					const pupilId = getPupilId(pupil);
-					const lessons = lessonsByPupilId.get(pupilId) || [];
-					const selectedLessons = /* @__PURE__ */ new Map();
-					const duplicateLessonIds = /* @__PURE__ */ new Set();
-					for (const lesson of lessons) {
-						if (!selectedLessonIds.includes(lesson.MarathonLessonId)) continue;
-						if (selectedLessons.get(lesson.MarathonLessonId)) {
-							duplicateLessonIds.add(lesson.MarathonLessonId);
-							errors.push(createFeatureError("INVALID_RESPONSE", `Multiple lesson states were returned for lesson ${lesson.MarathonLessonId}.`, {
-								email: pupil.Email,
-								pupilId,
-								marathonLessonId: lesson.MarathonLessonId
-							}));
-							continue;
-						}
-						selectedLessons.set(lesson.MarathonLessonId, lesson);
-					}
-					for (const marathonLessonId of selectedLessonIds) {
-						const lesson = selectedLessons.get(marathonLessonId);
-						if (duplicateLessonIds.has(marathonLessonId)) continue;
-						if (!lesson) {
-							errors.push(createFeatureError("INVALID_RESPONSE", `Lesson ${marathonLessonId} was not returned for ${pupil.Email}.`, {
-								email: pupil.Email,
-								pupilId,
-								marathonLessonId
-							}));
-							continue;
-						}
-						if (typeof lesson.IsOpen !== "boolean") {
-							errors.push(createFeatureError("INVALID_RESPONSE", `Lesson ${marathonLessonId} returned an invalid access state.`, {
-								email: pupil.Email,
-								pupilId,
-								marathonLessonId
-							}));
-							continue;
-						}
-						const item = {
-							email: pupil.Email,
-							pupilId,
-							marathonPupilId: getMarathonPupilId(pupil),
-							marathonLessonId,
-							lessonNumber: lesson.Number + 1,
-							lessonName: lesson.Name
-						};
-						if (lesson.IsOpen === true) alreadyOpen.push(item);
-						else needsOpening.push(item);
-					}
-				}
-				return {
-					alreadyOpen,
-					needsOpening,
-					errors
-				};
-			}
-			function createProgressSnapshot({ completed, total, opened, failures, alreadyOpen, item }) {
-				return Object.freeze({
-					completed,
-					total,
-					opened,
-					failures,
-					alreadyOpen,
-					current: Object.freeze({
-						email: item.email,
-						lessonName: item.lessonName
-					})
-				});
-			}
-			function createExecutionFailure(item, error, { code = error?.code || "UNKNOWN_ERROR", message = error?.message || "The lesson access change failed.", attempts = error?.attempts || 1 } = {}) {
-				return {
-					email: item.email,
-					lessonNumber: item.lessonNumber,
-					lessonName: item.lessonName,
-					marathonLessonId: item.marathonLessonId,
-					attempts,
-					code,
-					message
-				};
-			}
-			function createExecutionResult({ requestedEmails, matchedUsers, selectedLessons, opened, alreadyOpen, failures, attempts }) {
-				return {
-					requestedEmails,
-					matchedUsers,
-					selectedLessons,
-					opened,
-					alreadyOpen: alreadyOpen.length,
-					failures,
-					attempts
-				};
-			}
-			async function executeAccessPlan({ marathonId, requestedEmails, matchedUsers, selectedLessons, alreadyOpen = [], needsOpening = [], sendRequest, wait, getConnectionState, onProgress = () => {} }) {
-				const opened = [];
-				const failures = [];
-				let attempts = 0;
-				for (let index = 0; index < needsOpening.length; index += 1) {
-					const item = needsOpening[index];
-					let itemAttempts = 0;
-					try {
-						onProgress(createProgressSnapshot({
-							completed: index,
-							total: needsOpening.length,
-							opened: opened.length,
-							failures: failures.length,
-							alreadyOpen: alreadyOpen.length,
-							item
-						}));
-						await wait(300);
-						try {
-							itemAttempts = (await runWithRetry(async () => {
-								const response = await sendRequest("MarathonLessonWsController", "ChangeIsOpenLessonForPupil", "Marathons", {
-									IsOpen: true,
-									MarathonLessonId: item.marathonLessonId,
-									MarathonPupilId: item.marathonPupilId,
-									MarathonId: marathonId
-								});
-								if (response?.Value !== true) throw createFeatureError("INVALID_RESPONSE", "The lesson access change was not confirmed.");
-								return response;
-							}, {
-								wait,
-								getConnectionState
-							})).attempts;
-							attempts += itemAttempts;
-							opened.push(item);
-						} catch (error) {
-							itemAttempts = error.attempts || 1;
-							attempts += itemAttempts;
-							if (!OPERATIONAL_WRITE_CODES.has(error?.code)) throw error;
-							failures.push(createExecutionFailure(item, error, { attempts: itemAttempts }));
-						}
-						onProgress(createProgressSnapshot({
-							completed: index + 1,
-							total: needsOpening.length,
-							opened: opened.length,
-							failures: failures.length,
-							alreadyOpen: alreadyOpen.length,
-							item
-						}));
-					} catch (error) {
-						failures.push(createExecutionFailure(item, error, {
-							code: "INTERNAL_ERROR",
-							message: "An internal error stopped the batch operation.",
-							attempts: itemAttempts
-						}));
-						throw createFeatureError("INTERNAL_ERROR", "An internal error stopped the batch operation.", {
-							cause: error,
-							partialResult: createExecutionResult({
-								requestedEmails,
-								matchedUsers,
-								selectedLessons,
-								opened,
-								alreadyOpen,
-								failures,
-								attempts
-							})
-						});
-					}
-				}
-				return createExecutionResult({
-					requestedEmails,
-					matchedUsers,
-					selectedLessons,
-					opened,
-					alreadyOpen,
-					failures,
-					attempts
-				});
-			}
-			function formatBatchReport(result) {
-				const lines = [
-					`Requested emails: ${result.requestedEmails.length}`,
-					`Matched users: ${result.matchedUsers}`,
-					`Selected lessons: ${result.selectedLessons}`,
-					`Opened: ${result.opened.length}`,
-					`Already open: ${result.alreadyOpen}`,
-					`Failed: ${result.failures.length}`,
-					`Attempts: ${result.attempts}`
-				];
-				for (const failure of result.failures) lines.push(`FAILED ${failure.email} — ${failure.lessonNumber}. ${failure.lessonName} — ${failure.attempts} attempts — ${failure.code}: ${failure.message}`);
-				return lines.join("\n");
-			}
-			function freezeItems(items) {
-				return Object.freeze(items.map((item) => Object.freeze({ ...item })));
-			}
-			function freezePlan({ requestedEmails, matchedUsers, selectedLessonIds, alreadyOpen, needsOpening }) {
-				return Object.freeze({
-					requestedEmails: Object.freeze([...requestedEmails]),
-					matchedUsers,
-					selectedLessonIds: Object.freeze([...selectedLessonIds]),
-					alreadyOpen: freezeItems(alreadyOpen),
-					needsOpening: freezeItems(needsOpening)
-				});
-			}
-			function createBatchLessonAccessFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG), copyText = async () => {}, log = () => {} }) {
-				let active = false;
-				let running = false;
-				let pupils = [];
-				let lessonCatalogue = [];
-				let pendingPlan = null;
-				let completedResult = null;
-				let marathonId = null;
-				let dialog = null;
-				function releaseOperation() {
-					if (!active) return;
-					active = false;
-					onActiveChange(false);
-				}
-				function handleClose() {
-					running = false;
-					pupils = [];
-					lessonCatalogue = [];
-					pendingPlan = null;
-					completedResult = null;
-					marathonId = null;
-					dialog = null;
-					releaseOperation();
-				}
-				function getErrorCode(error) {
-					return typeof error?.code === "string" ? error.code : "UNKNOWN_ERROR";
-				}
-				function createReadError(error, pupil, pupilId) {
-					const code = getErrorCode(error);
-					const email = String(pupil?.Email || "").trim();
-					return createFeatureError(code, `Could not load lesson access for ${email || "the selected pupil"} (${code}).`, {
-						email,
-						pupilId,
-						attempts: error?.attempts || 1
-					});
-				}
-				function createInputErrors(parsed, selectedLessonIds) {
-					const errors = parsed.malformed.map((input) => createFeatureError("INVALID_EMAIL", `Invalid email address: ${input}.`));
-					if (parsed.entries.length === 0 && parsed.malformed.length === 0) errors.push(createFeatureError("EMAILS_REQUIRED", "Enter at least one email address."));
-					if (selectedLessonIds.length === 0) errors.push(createFeatureError("LESSONS_REQUIRED", "Select at least one lesson."));
-					return errors;
-				}
-				function showCompletedPlan(plan) {
-					completedResult = {
-						requestedEmails: [...plan.requestedEmails],
-						matchedUsers: plan.matchedUsers,
-						selectedLessons: plan.selectedLessonIds.length,
-						opened: [],
-						alreadyOpen: plan.alreadyOpen.length,
-						failures: [],
-						attempts: 0
-					};
-					pendingPlan = null;
-					dialog.showComplete(completedResult);
-				}
-				async function handleSubmit(event) {
-					if (running) return;
-					running = true;
-					pendingPlan = null;
-					completedResult = null;
-					const submittedEmailInput = String(event?.detail?.emailInput || "");
-					const selectedLessonIds = Object.freeze(Array.isArray(event?.detail?.selectedLessonIds) ? [...event.detail.selectedLessonIds] : []);
-					try {
-						dialog.showValidation();
-						const parsed = parseEmailInput(submittedEmailInput);
-						const inputErrors = createInputErrors(parsed, selectedLessonIds);
-						const resolution = resolvePupilsByEmail(parsed.entries, pupils);
-						const validationErrors = inputErrors.concat(resolution.errors);
-						if (validationErrors.length > 0) {
-							log(`Batch access validation blocked for MarathonId ${marathonId}; ${validationErrors.length} error(s).`);
-							dialog.showValidationErrors(validationErrors);
-							return;
-						}
-						const lessonsByPupilId = /* @__PURE__ */ new Map();
-						const pupilsWithLessons = [];
-						const readErrors = [];
-						for (const pupil of resolution.matches) {
-							const pupilId = getPupilId(pupil);
-							try {
-								log(`Loading batch access state for PupilId ${pupilId} in MarathonId ${marathonId}.`);
-								const result = await runWithRetry(() => loadAllPupilLessons({
-									sendRequest,
-									marathonId,
-									pupilId
-								}), {
-									wait,
-									getConnectionState
-								});
-								lessonsByPupilId.set(pupilId, result.value);
-								pupilsWithLessons.push(pupil);
-								log(`Loaded ${result.value.length} lesson state(s) for PupilId ${pupilId} after ${result.attempts} attempt(s).`);
-							} catch (error) {
-								readErrors.push(createReadError(error, pupil, pupilId));
-								log(`Batch access state read failed for PupilId ${pupilId} in MarathonId ${marathonId} (${getErrorCode(error)}).`);
-							}
-						}
-						const plan = buildAccessPlan({
-							pupils: pupilsWithLessons,
-							selectedLessonIds,
-							lessonsByPupilId
-						});
-						const preflightErrors = readErrors.concat(plan.errors);
-						if (preflightErrors.length > 0) {
-							log(`Batch access preflight blocked for MarathonId ${marathonId}; ${preflightErrors.length} error(s), zero writes issued.`);
-							dialog.showValidationErrors(preflightErrors);
-							return;
-						}
-						pendingPlan = freezePlan({
-							requestedEmails: parsed.entries.map((entry) => entry.input),
-							matchedUsers: resolution.matches.length,
-							selectedLessonIds,
-							alreadyOpen: plan.alreadyOpen,
-							needsOpening: plan.needsOpening
-						});
-						log(`Batch access preflight complete for MarathonId ${marathonId}; ${pendingPlan.needsOpening.length} pending, ${pendingPlan.alreadyOpen.length} already open.`);
-						if (pendingPlan.needsOpening.length === 0) {
-							showCompletedPlan(pendingPlan);
-							return;
-						}
-						dialog.showConfirmation(Object.freeze({
-							matchedUsers: pendingPlan.matchedUsers,
-							selectedLessons: pendingPlan.selectedLessonIds.length,
-							needsOpening: pendingPlan.needsOpening,
-							alreadyOpen: pendingPlan.alreadyOpen
-						}));
-					} catch (error) {
-						log(`Batch access preflight failed for MarathonId ${marathonId} (${getErrorCode(error)}).`);
-						dialog.showValidationErrors([error]);
-					} finally {
-						running = false;
-					}
-				}
-				async function handleConfirm() {
-					if (running || !pendingPlan) return;
-					running = true;
-					const executionPlan = pendingPlan;
-					pendingPlan = null;
-					try {
-						try {
-							completedResult = await executeAccessPlan({
-								marathonId,
-								requestedEmails: executionPlan.requestedEmails,
-								matchedUsers: executionPlan.matchedUsers,
-								selectedLessons: executionPlan.selectedLessonIds.length,
-								alreadyOpen: executionPlan.alreadyOpen,
-								needsOpening: executionPlan.needsOpening,
-								sendRequest,
-								wait,
-								getConnectionState,
-								onProgress: (progress) => dialog.showExecution(progress)
-							});
-						} catch (error) {
-							if (error?.code !== "INTERNAL_ERROR" || !error.partialResult) throw error;
-							completedResult = error.partialResult;
-							log(`Batch access execution stopped for MarathonId ${marathonId}; ${completedResult.opened.length} opened, ${completedResult.failures.length} failed (INTERNAL_ERROR).`);
-						}
-						log(`Batch access execution complete for MarathonId ${marathonId}; ${completedResult.opened.length} opened, ${completedResult.alreadyOpen} already open, ${completedResult.failures.length} failed.`);
-						for (const failure of completedResult.failures) log(`Batch access write failed for MarathonLessonId ${failure.marathonLessonId} (${failure.code}).`);
-						dialog.showComplete(completedResult);
-					} finally {
-						running = false;
-					}
-				}
-				async function handleCopyReport() {
-					if (!completedResult) return;
-					await copyText(formatBatchReport(completedResult));
-				}
-				function handleRestart() {
-					pendingPlan = null;
-					completedResult = null;
-					running = false;
-				}
-				async function open({ stylesheetUrl = "" } = {}) {
-					if (active || document.getElementById(BATCH_ACCESS_OVERLAY_ID)) return;
-					if (!canStart()) {
-						window.alert("Another Edvibe Toolbox operation is already running.");
-						return;
-					}
-					marathonId = parseMarathonId(window.location.href);
-					if (!marathonId) {
-						window.alert("Open an Edvibe marathon page before opening batch lesson access.");
-						return;
-					}
-					active = true;
-					onActiveChange(true);
-					try {
-						dialog = createDialog();
-						dialog.addEventListener("edvibe-dialog-close", handleClose);
-						dialog.addEventListener("edvibe-batch-access-input-change", (event) => {
-							const parsed = parseEmailInput(event?.detail?.emailInput);
-							dialog.setEmailState({
-								validCount: parsed.entries.length,
-								malformedCount: parsed.malformed.length
-							});
-						});
-						dialog.addEventListener("edvibe-batch-access-submit", handleSubmit);
-						dialog.addEventListener("edvibe-batch-access-confirm", handleConfirm);
-						dialog.addEventListener("edvibe-batch-access-copy-report", handleCopyReport);
-						dialog.addEventListener("edvibe-batch-access-restart", handleRestart);
-						dialog.configure({ stylesheetUrl });
-						(document.body || document.documentElement).appendChild(dialog);
-						dialog.showLoading();
-						log(`Initializing batch access for MarathonId ${marathonId}.`);
-						pupils = await loadAllPupils({
-							sendRequest,
-							marathonId
-						});
-						if (pupils.length === 0) throw createFeatureError("EMPTY_ROSTER", "No pupils were found in this marathon.");
-						const firstPupilId = getPupilId(pupils[0]);
-						lessonCatalogue = await loadAllPupilLessons({
-							sendRequest,
-							marathonId,
-							pupilId: firstPupilId
-						});
-						log(`Initialized batch access for MarathonId ${marathonId}; ${pupils.length} pupil(s), ${lessonCatalogue.length} lesson(s), catalogue PupilId ${firstPupilId}.`);
-						dialog.showConfigure({ lessons: lessonCatalogue });
-					} catch (error) {
-						log(`Batch access initialization failed for MarathonId ${marathonId} (${getErrorCode(error)}).`);
-						try {
-							if (typeof dialog?.showFatalError === "function") dialog.showFatalError(error);
-							else throw error;
-						} finally {
-							releaseOperation();
-						}
-					}
-				}
-				return {
-					open,
-					isRunning: () => running
-				};
-			}
-			return {
-				parseMarathonId,
-				parseEmailInput,
-				appendPage,
-				loadAllPupils,
-				loadAllPupilLessons,
-				resolvePupilsByEmail,
-				createFeatureError,
-				runWithRetry,
-				buildAccessPlan,
-				executeAccessPlan,
-				formatBatchReport,
-				createBatchLessonAccessFeature
-			};
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-lesson-access-history-model.js
-	var require_batch_lesson_access_history_model = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchLessonAccessHistoryModel(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_batch_lesson_access());
-			else root.EdVibeBatchLessonAccessHistoryModel = factory(root.EdVibeBatchLessonAccess);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(batchAccessApi) {
-			"use strict";
-			const OPERATION_TYPE = "batch_lesson_access";
-			function freezeObject(value) {
-				return Object.freeze({ ...value });
-			}
-			function freezeItems(items) {
-				return Object.freeze(items.map((item) => freezeObject(item)));
-			}
-			function normalizeEmail(value) {
-				return String(value || "").trim().toLowerCase();
-			}
-			function getPupilId(pupil) {
-				return pupil?.PupilId ?? pupil?.Id ?? null;
-			}
-			function getMarathonPupilId(pupil) {
-				return pupil?.MarathonPupilId ?? pupil?.Id ?? null;
-			}
-			function sanitizePupil(pupil) {
-				return freezeObject({
-					email: String(pupil?.Email || "").trim() || null,
-					pupilId: getPupilId(pupil),
-					marathonPupilId: getMarathonPupilId(pupil)
-				});
-			}
-			function sanitizeLesson(lesson) {
-				const number = Number(lesson?.Number);
-				return freezeObject({
-					marathonLessonId: lesson?.MarathonLessonId ?? null,
-					lessonNumber: Number.isFinite(number) ? number + 1 : null,
-					lessonName: String(lesson?.Name || "").trim() || null,
-					isOpen: typeof lesson?.IsOpen === "boolean" ? lesson.IsOpen : null
-				});
-			}
-			function splitSubmittedInputs(value) {
-				const entries = [];
-				const seen = /* @__PURE__ */ new Set();
-				for (const token of String(value || "").split(/[,;\r\n]+/)) {
-					const submittedInput = token.trim();
-					if (!submittedInput) continue;
-					const normalizedEmail = normalizeEmail(submittedInput);
-					if (seen.has(normalizedEmail)) continue;
-					seen.add(normalizedEmail);
-					entries.push(freezeObject({
-						submittedInput,
-						normalizedEmail
-					}));
-				}
-				return Object.freeze(entries);
-			}
-			function lessonKey(email, marathonLessonId) {
-				return `${normalizeEmail(email)}:${String(marathonLessonId)}`;
-			}
-			function attemptKey(marathonPupilId, marathonLessonId) {
-				return `${String(marathonPupilId)}:${String(marathonLessonId)}`;
-			}
-			function serializeError(error, fallbackCode, fallbackMessage) {
-				return freezeObject({
-					code: typeof error?.code === "string" ? error.code : fallbackCode,
-					message: String(error?.message || fallbackMessage),
-					email: String(error?.email || "").trim() || null,
-					pupilId: error?.pupilId ?? null,
-					marathonLessonId: error?.marathonLessonId ?? null,
-					attempts: Number.isInteger(error?.attempts) ? error.attempts : 0,
-					type: typeof error?.type === "string" ? error.type : null,
-					count: Number.isInteger(error?.count) ? error.count : null
-				});
-			}
-			function createCapture() {
-				return {
-					pupils: [],
-					lessonsByPupilId: /* @__PURE__ */ new Map(),
-					lessonCatalogue: [],
-					writeAttempts: /* @__PURE__ */ new Map(),
-					stylesheetUrl: "",
-					attempt: null,
-					sequence: 0
-				};
-			}
-			function replacePage(target, offset, values) {
-				if (offset === 0) target.length = 0;
-				for (let index = 0; index < values.length; index += 1) target[offset + index] = values[index];
-				while (target.length > 0 && target[target.length - 1] === void 0) target.pop();
-			}
-			function observeRequest(capture, method, value, result) {
-				if (method === "GetMarathonPupils") {
-					const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(sanitizePupil) : [];
-					replacePage(capture.pupils, Number(value?.Skip) || 0, items);
-					return;
-				}
-				if (method === "GetMarathonLessonsForPupilPagination") {
-					const pupilId = value?.PupilId ?? null;
-					const lessons = capture.lessonsByPupilId.get(pupilId) || [];
-					const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(sanitizeLesson) : [];
-					replacePage(lessons, Number(value?.Page?.Skip) || 0, items);
-					capture.lessonsByPupilId.set(pupilId, lessons);
-				}
-			}
-			function recordWriteAttempt(capture, method, value) {
-				if (method !== "ChangeIsOpenLessonForPupil") return;
-				const key = attemptKey(value?.MarathonPupilId, value?.MarathonLessonId);
-				capture.writeAttempts.set(key, (capture.writeAttempts.get(key) || 0) + 1);
-			}
-			function buildIdentityResolution({ submittedEmailInput, pupils }) {
-				const submitted = splitSubmittedInputs(submittedEmailInput);
-				const valid = batchAccessApi.parseEmailInput(submittedEmailInput);
-				const malformed = new Set(valid.malformed.map(normalizeEmail));
-				const pupilsByEmail = /* @__PURE__ */ new Map();
-				for (const pupil of pupils) {
-					const key = normalizeEmail(pupil.email);
-					const candidates = pupilsByEmail.get(key) || [];
-					candidates.push(pupil);
-					pupilsByEmail.set(key, candidates);
-				}
-				return submitted.map((entry) => {
-					if (malformed.has(entry.normalizedEmail)) return freezeObject({
-						...entry,
-						resolution: "malformed",
-						resolvedEmail: null,
-						pupilId: null,
-						marathonPupilId: null,
-						code: "USER_INPUT_MALFORMED",
-						message: `Invalid email address: ${entry.submittedInput}.`
-					});
-					const candidates = pupilsByEmail.get(entry.normalizedEmail) || [];
-					if (candidates.length === 0) return freezeObject({
-						...entry,
-						resolution: "missing",
-						resolvedEmail: null,
-						pupilId: null,
-						marathonPupilId: null,
-						code: "USER_NOT_FOUND",
-						message: `No marathon pupil found for ${entry.submittedInput}.`
-					});
-					if (candidates.length > 1) return freezeObject({
-						...entry,
-						resolution: "ambiguous",
-						resolvedEmail: null,
-						pupilId: null,
-						marathonPupilId: null,
-						code: "USER_AMBIGUOUS",
-						message: `Multiple marathon pupils found for ${entry.submittedInput}.`
-					});
-					const pupil = candidates[0];
-					return freezeObject({
-						...entry,
-						resolution: "matched",
-						resolvedEmail: pupil.email,
-						pupilId: pupil.pupilId,
-						marathonPupilId: pupil.marathonPupilId,
-						code: null,
-						message: null
-					});
-				});
-			}
-			function selectedLessonMetadata(selectedLessonIds, lessonCatalogue) {
-				const byId = new Map(lessonCatalogue.map((lesson) => [lesson.marathonLessonId, lesson]));
-				return freezeItems(selectedLessonIds.map((marathonLessonId) => {
-					const lesson = byId.get(marathonLessonId);
-					return {
-						marathonLessonId,
-						lessonNumber: lesson?.lessonNumber ?? null,
-						lessonName: lesson?.lessonName || `Lesson ${marathonLessonId}`
-					};
-				}));
-			}
-			function findDiscoveryError(errors, identity) {
-				return errors.find((error) => identity.pupilId !== null && error.pupilId === identity.pupilId || identity.resolvedEmail && normalizeEmail(error.email) === normalizeEmail(identity.resolvedEmail));
-			}
-			function buildObservedPlan({ submittedEmailInput, selectedLessonIds, pupils, lessonsByPupilId, lessonCatalogue, errors = [] }) {
-				const identities = buildIdentityResolution({
-					submittedEmailInput,
-					pupils
-				});
-				const selectedLessons = selectedLessonMetadata(selectedLessonIds, lessonCatalogue);
-				const serializedErrors = freezeItems(errors.map((error) => serializeError(error, "LESSON_ACCESS_PREFLIGHT_FAILED", "The lesson-access preflight failed.")));
-				const matrix = [];
-				const discoveryFailures = [];
-				const representedErrorCodes = /* @__PURE__ */ new Set([
-					"INVALID_EMAIL",
-					"USER_INPUT_MALFORMED",
-					"USER_NOT_FOUND",
-					"USER_AMBIGUOUS"
-				]);
-				const operationFailures = serializedErrors.filter((error) => !error.email && error.pupilId === null && error.marathonLessonId === null && !error.type && !representedErrorCodes.has(error.code)).map((error) => freezeObject({
-					code: error.code,
-					message: error.message,
-					attempts: error.attempts,
-					kind: ["EMAILS_REQUIRED", "LESSONS_REQUIRED"].includes(error.code) ? "input" : "preflight"
-				}));
-				for (const identity of identities) {
-					if (identity.resolution !== "matched") continue;
-					const lessons = lessonsByPupilId.get(identity.pupilId);
-					if (!Array.isArray(lessons)) {
-						const source = findDiscoveryError(serializedErrors, identity);
-						if (source) discoveryFailures.push(freezeObject({
-							submittedEmail: identity.submittedInput,
-							resolvedEmail: identity.resolvedEmail,
-							pupilId: identity.pupilId,
-							marathonPupilId: identity.marathonPupilId,
-							code: source.code || "LESSON_STATE_DISCOVERY_FAILED",
-							message: source.message || `Could not load lesson access for ${identity.resolvedEmail}.`,
-							attempts: source.attempts || 0
-						}));
-						for (const selected of selectedLessons) matrix.push(freezeObject({
-							...identity,
-							...selected,
-							preflightAccessState: "unknown",
-							plannedOutcome: "not_attempted",
-							code: source ? "LESSON_STATE_UNAVAILABLE" : "PREFLIGHT_BLOCKED",
-							message: source ? "The lesson state could not be loaded, so this combination was not attempted." : "Validation stopped before this confirmed user and lesson combination could be prepared."
-						}));
-						continue;
-					}
-					const matchingByLessonId = /* @__PURE__ */ new Map();
-					for (const lesson of lessons) {
-						const values = matchingByLessonId.get(lesson.marathonLessonId) || [];
-						values.push(lesson);
-						matchingByLessonId.set(lesson.marathonLessonId, values);
-					}
-					for (const selected of selectedLessons) {
-						const states = matchingByLessonId.get(selected.marathonLessonId) || [];
-						if (states.length === 0) {
-							matrix.push(freezeObject({
-								...identity,
-								...selected,
-								preflightAccessState: "unknown",
-								plannedOutcome: "rejected",
-								code: "LESSON_NOT_RETURNED",
-								message: `Lesson ${selected.marathonLessonId} was not returned for ${identity.resolvedEmail}.`
-							}));
-							continue;
-						}
-						if (states.length > 1) {
-							matrix.push(freezeObject({
-								...identity,
-								...selected,
-								preflightAccessState: "unknown",
-								plannedOutcome: "rejected",
-								code: "LESSON_STATE_AMBIGUOUS",
-								message: `Multiple lesson states were returned for lesson ${selected.marathonLessonId}.`
-							}));
-							continue;
-						}
-						const state = states[0];
-						if (typeof state.isOpen !== "boolean") {
-							matrix.push(freezeObject({
-								...identity,
-								...selected,
-								lessonNumber: state.lessonNumber ?? selected.lessonNumber,
-								lessonName: state.lessonName || selected.lessonName,
-								preflightAccessState: "unknown",
-								plannedOutcome: "rejected",
-								code: "INVALID_ACCESS_STATE",
-								message: `Lesson ${selected.marathonLessonId} returned an invalid access state.`
-							}));
-							continue;
-						}
-						matrix.push(freezeObject({
-							...identity,
-							...selected,
-							lessonNumber: state.lessonNumber ?? selected.lessonNumber,
-							lessonName: state.lessonName || selected.lessonName,
-							preflightAccessState: state.isOpen ? "open" : "closed",
-							plannedOutcome: state.isOpen ? "already_open" : "pending",
-							code: null,
-							message: null
-						}));
-					}
-				}
-				return Object.freeze({
-					identities: freezeItems(identities),
-					selectedLessons,
-					matrix: freezeItems(matrix),
-					discoveryFailures: freezeItems(discoveryFailures),
-					operationFailures: freezeItems(operationFailures),
-					errors: serializedErrors
-				});
-			}
-			return Object.freeze({
-				OPERATION_TYPE,
-				freezeObject,
-				normalizeEmail,
-				sanitizePupil,
-				sanitizeLesson,
-				splitSubmittedInputs,
-				lessonKey,
-				attemptKey,
-				createCapture,
-				observeRequest,
-				recordWriteAttempt,
-				buildObservedPlan
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-lesson-access-history-record.js
-	var require_batch_lesson_access_history_record = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchLessonAccessHistoryRecord(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_batch_lesson_access_history_model());
-			else root.EdVibeBatchLessonAccessHistoryRecord = factory(root.EdVibeBatchLessonAccessHistoryModel);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(modelApi) {
-			"use strict";
-			const { OPERATION_TYPE, freezeObject, normalizeEmail, lessonKey, attemptKey } = modelApi;
-			const REJECTED_WRITE_CODES = /* @__PURE__ */ new Set(["SERVER_REJECTED", "INVALID_RESPONSE"]);
-			function resultFromMatrix(item, outcome, attempts, code, message) {
-				const status = {
-					opened: "success",
-					already_open: "noop",
-					rejected: "rejected",
-					failed: "failed",
-					not_attempted: "not_attempted"
-				}[outcome];
-				return freezeObject({
-					itemId: lessonKey(item.resolvedEmail || item.submittedInput, item.marathonLessonId),
-					label: `${item.resolvedEmail || item.submittedInput} — ${item.lessonNumber || "?"}. ${item.lessonName}`,
-					status,
-					code,
-					message,
-					attempts,
-					data: freezeObject({
-						submittedEmail: item.submittedInput,
-						resolvedEmail: item.resolvedEmail,
-						pupilId: item.pupilId,
-						marathonPupilId: item.marathonPupilId,
-						marathonLessonId: item.marathonLessonId,
-						lessonNumber: item.lessonNumber,
-						lessonName: item.lessonName,
-						preflightAccessState: item.preflightAccessState,
-						outcome
-					})
-				});
-			}
-			function buildMatrixResults(plan, summary = {}, writeAttempts = /* @__PURE__ */ new Map()) {
-				const openedKeys = new Set((Array.isArray(summary.opened) ? summary.opened : []).map((item) => lessonKey(item.email, item.marathonLessonId)));
-				const failuresByKey = /* @__PURE__ */ new Map();
-				for (const failure of Array.isArray(summary.failures) ? summary.failures : []) failuresByKey.set(lessonKey(failure.email, failure.marathonLessonId), failure);
-				return plan.matrix.map((item) => {
-					if (item.plannedOutcome === "already_open") return resultFromMatrix(item, "already_open", 0, "LESSON_ALREADY_OPEN", "Lesson access was already open.");
-					if (item.plannedOutcome === "rejected") return resultFromMatrix(item, "rejected", 0, item.code, item.message);
-					if (item.plannedOutcome === "not_attempted") return resultFromMatrix(item, "not_attempted", 0, item.code, item.message);
-					const key = lessonKey(item.resolvedEmail, item.marathonLessonId);
-					if (openedKeys.has(key)) return resultFromMatrix(item, "opened", writeAttempts.get(attemptKey(item.marathonPupilId, item.marathonLessonId)) || 1, "LESSON_ACCESS_OPENED", "Lesson access was opened.");
-					const failure = failuresByKey.get(key);
-					if (failure) return resultFromMatrix(item, REJECTED_WRITE_CODES.has(failure.code) ? "rejected" : "failed", Number.isInteger(failure.attempts) ? failure.attempts : 1, failure.code || "LESSON_ACCESS_WRITE_FAILED", failure.message || "The lesson access change failed.");
-					return resultFromMatrix(item, "not_attempted", 0, "LESSON_ACCESS_NOT_ATTEMPTED", "The confirmed combination was not attempted.");
-				});
-			}
-			function inputFailureResults(identities) {
-				return identities.filter((identity) => identity.resolution !== "matched").map((identity) => freezeObject({
-					itemId: `input:${identity.normalizedEmail || identity.submittedInput}`,
-					label: identity.submittedInput,
-					status: "rejected",
-					code: identity.code,
-					message: identity.message,
-					attempts: 0,
-					data: freezeObject({
-						submittedInput: identity.submittedInput,
-						normalizedEmail: identity.normalizedEmail,
-						resolution: identity.resolution
-					})
-				}));
-			}
-			function operationFailureResults(failures) {
-				return failures.map((failure, index) => freezeObject({
-					itemId: `operation:${index + 1}:${failure.code}`,
-					label: failure.kind === "input" ? "Submitted request" : "Lesson-access preflight",
-					status: failure.kind === "input" ? "rejected" : "failed",
-					code: failure.code,
-					message: failure.message,
-					attempts: failure.attempts,
-					data: freezeObject({ stage: failure.kind === "input" ? "input_validation" : "preflight" })
-				}));
-			}
-			function discoveryFailureResults(failures) {
-				return failures.map((failure) => freezeObject({
-					itemId: `discovery:${normalizeEmail(failure.resolvedEmail || failure.submittedEmail)}`,
-					label: failure.resolvedEmail || failure.submittedEmail,
-					status: "failed",
-					code: failure.code,
-					message: failure.message,
-					attempts: failure.attempts,
-					data: freezeObject({
-						submittedEmail: failure.submittedEmail,
-						resolvedEmail: failure.resolvedEmail,
-						pupilId: failure.pupilId,
-						marathonPupilId: failure.marathonPupilId,
-						stage: "lesson_state_discovery"
-					})
-				}));
-			}
-			function buildSummary(plan, matrixResults) {
-				const matchedUsers = plan.identities.filter((identity) => identity.resolution === "matched").length;
-				const countOutcome = (outcome) => matrixResults.filter((result) => result.data.outcome === outcome).length;
-				return Object.freeze({
-					requestedInputs: plan.identities.length,
-					matchedUsers,
-					selectedLessons: plan.selectedLessons.length,
-					totalCombinations: plan.matrix.length,
-					newlyOpened: countOutcome("opened"),
-					alreadyOpen: countOutcome("already_open"),
-					rejected: countOutcome("rejected"),
-					failedWrites: countOutcome("failed"),
-					notAttempted: countOutcome("not_attempted"),
-					inputFailures: plan.identities.filter((identity) => identity.resolution !== "matched").length,
-					discoveryFailures: plan.discoveryFailures.length,
-					operationFailures: plan.operationFailures.length
-				});
-			}
-			function inferTerminalStatus(explicitStatus, operationSummary) {
-				if (explicitStatus === "cancelled" || explicitStatus === "interrupted") return explicitStatus;
-				return operationSummary.rejected > 0 || operationSummary.failedWrites > 0 || operationSummary.notAttempted > 0 || operationSummary.inputFailures > 0 || operationSummary.discoveryFailures > 0 || operationSummary.operationFailures > 0 ? "completed_with_failures" : "completed";
-			}
-			function buildExecutionHistoryInput({ plan, summary = {}, writeAttempts = /* @__PURE__ */ new Map(), startedAt, completedAt, marathonId, marathonName = null, terminalStatus = null }) {
-				const matrixResults = buildMatrixResults(plan, summary, writeAttempts);
-				const inputResults = inputFailureResults(plan.identities);
-				const discoveryResults = discoveryFailureResults(plan.discoveryFailures);
-				const operationResults = operationFailureResults(plan.operationFailures);
-				const operationSummary = buildSummary(plan, matrixResults);
-				const attempted = operationSummary.newlyOpened + operationSummary.rejected + operationSummary.failedWrites;
-				const failed = operationSummary.rejected + operationSummary.failedWrites;
-				return Object.freeze({
-					operationType: OPERATION_TYPE,
-					startedAt,
-					completedAt,
-					status: inferTerminalStatus(terminalStatus, operationSummary),
-					pageContext: Object.freeze({
-						marathonId,
-						marathonName
-					}),
-					counts: Object.freeze({
-						requested: operationSummary.requestedInputs,
-						eligible: operationSummary.totalCombinations,
-						attempted,
-						successful: operationSummary.newlyOpened,
-						noOp: operationSummary.alreadyOpen,
-						skipped: operationSummary.inputFailures + operationSummary.discoveryFailures + operationSummary.operationFailures,
-						failed,
-						notAttempted: operationSummary.notAttempted
-					}),
-					results: Object.freeze([
-						...inputResults,
-						...operationResults,
-						...discoveryResults,
-						...matrixResults
-					]),
-					message: JSON.stringify(operationSummary)
-				});
-			}
-			return Object.freeze({ buildExecutionHistoryInput });
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-lesson-access-history.js
-	var require_batch_lesson_access_history = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchLessonAccessHistory(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_batch_lesson_access(), require_batch_lesson_access_history_model(), require_batch_lesson_access_history_record(), root);
-			else root.EdVibeBatchLessonAccessHistory = factory(root.EdVibeBatchLessonAccess, root.EdVibeBatchLessonAccessHistoryModel, root.EdVibeBatchLessonAccessHistoryRecord, root);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(batchAccessApi, modelApi, recordApi, rootObject) {
-			"use strict";
-			const { createCapture, recordWriteAttempt, observeRequest, sanitizeLesson, buildObservedPlan } = modelApi;
-			const { buildExecutionHistoryInput } = recordApi;
-			function appendStatus(dialog, message, isError = false) {
-				const current = dialog.elements?.status?.textContent || "";
-				dialog.setStatus?.(`${current}${current ? " " : ""}${message}`, isError ? "error" : "");
-			}
-			function addHistoryButton(rootObject, dialog, executionId, stylesheetUrl, openHistory) {
-				dialog.shadowRoot?.querySelector?.(".edvibe-batch-access-history")?.remove?.();
-				const button = (dialog.ownerDocument || rootObject.document)?.createElement?.("button");
-				if (!button) return;
-				button.type = "button";
-				button.className = "edvibe-batch-access-history";
-				button.textContent = "Открыть в истории";
-				button.addEventListener("click", () => {
-					dialog.close?.();
-					openHistory(executionId, stylesheetUrl);
-				});
-				dialog.elements?.footer?.appendChild?.(button);
-			}
-			function createHistoryAwareFeature(options = {}) {
-				const { createFeature = batchAccessApi.createBatchLessonAccessFeature, sendRequest, createDialog, persistExecution, openHistory = () => {}, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {}, ...featureOptions } = options;
-				if (typeof createFeature !== "function") throw new TypeError("createFeature is required");
-				if (typeof sendRequest !== "function") throw new TypeError("sendRequest is required");
-				if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
-				if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
-				let capture = null;
-				async function trackedSendRequest(controller, method, projectName, value) {
-					const current = capture;
-					if (current) recordWriteAttempt(current, method, value);
-					const result = await sendRequest(controller, method, projectName, value);
-					if (current) observeRequest(current, method, value, result);
-					return result;
-				}
-				function createTrackedDialog() {
-					const dialog = createDialog();
-					const current = createCapture();
-					capture = current;
-					const originalConfigure = dialog.configure.bind(dialog);
-					const originalShowConfigure = dialog.showConfigure.bind(dialog);
-					const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
-					const originalShowValidationErrors = dialog.showValidationErrors.bind(dialog);
-					const originalShowComplete = dialog.showComplete.bind(dialog);
-					const originalShowFatalError = dialog.showFatalError.bind(dialog);
-					function startAttempt(detail = {}) {
-						current.sequence += 1;
-						current.writeAttempts.clear();
-						current.attempt = {
-							sequence: current.sequence,
-							startedAt: now().toISOString(),
-							submittedEmailInput: String(detail.emailInput || ""),
-							selectedLessonIds: Array.isArray(detail.selectedLessonIds) ? [...detail.selectedLessonIds] : [],
-							plan: null,
-							terminal: false
-						};
-						dialog.shadowRoot?.querySelector?.(".edvibe-batch-access-history")?.remove?.();
-					}
-					function buildPlan(errors = []) {
-						const attempt = current.attempt;
-						if (!attempt) return null;
-						return buildObservedPlan({
-							submittedEmailInput: attempt.submittedEmailInput,
-							selectedLessonIds: attempt.selectedLessonIds,
-							pupils: current.pupils,
-							lessonsByPupilId: current.lessonsByPupilId,
-							lessonCatalogue: current.lessonCatalogue,
-							errors
-						});
-					}
-					function persist(summary, terminalStatus, errors = []) {
-						const attempt = current.attempt;
-						if (!attempt || attempt.terminal) return;
-						attempt.terminal = true;
-						const sequence = attempt.sequence;
-						let input;
-						try {
-							const completedAt = now().toISOString();
-							const plan = attempt.plan || buildPlan(errors);
-							if (!plan) return;
-							input = buildExecutionHistoryInput({
-								plan,
-								summary,
-								writeAttempts: current.writeAttempts,
-								startedAt: attempt.startedAt,
-								completedAt,
-								marathonId: batchAccessApi.parseMarathonId(getLocationHref()),
-								marathonName: getMarathonName(),
-								terminalStatus
-							});
-						} catch (error) {
-							appendStatus(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
-							log("Batch lesson access history record creation failed:", error);
-							return;
-						}
-						Promise.resolve().then(() => persistExecution(input)).then((history) => {
-							if (sequence !== current.sequence) return;
-							if (history?.stored) {
-								appendStatus(dialog, "Результат сохранён в истории.");
-								if (history.record?.id) addHistoryButton(rootObject, dialog, history.record.id, current.stylesheetUrl, openHistory);
-							} else {
-								appendStatus(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
-								if (history?.persistenceError) log("Batch lesson access history persistence failed:", history.persistenceError);
-							}
-						}).catch((error) => {
-							if (sequence !== current.sequence) return;
-							appendStatus(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
-							log("Batch lesson access history persistence failed:", error);
-						});
-					}
-					dialog.configure = (value = {}) => {
-						current.stylesheetUrl = String(value.stylesheetUrl || current.stylesheetUrl || "");
-						return originalConfigure(value);
-					};
-					dialog.showConfigure = (value = {}) => {
-						current.lessonCatalogue = Array.isArray(value.lessons) ? value.lessons.map(sanitizeLesson) : [];
-						current.attempt = null;
-						current.sequence += 1;
-						return originalShowConfigure(value);
-					};
-					dialog.showConfirmation = (value = {}) => {
-						if (current.attempt) current.attempt.plan = buildPlan();
-						return originalShowConfirmation(value);
-					};
-					dialog.showValidationErrors = (errors = []) => {
-						const output = originalShowValidationErrors(errors);
-						if (current.attempt) persist({}, null, Array.isArray(errors) ? errors : [errors]);
-						return output;
-					};
-					dialog.showComplete = (summary = {}) => {
-						const output = originalShowComplete(summary);
-						if (current.attempt) {
-							if (!current.attempt.plan) current.attempt.plan = buildPlan();
-							persist(summary, (summary.failures || []).some((failure) => failure?.code === "INTERNAL_ERROR") ? "interrupted" : null);
-						}
-						return output;
-					};
-					dialog.showFatalError = (error) => {
-						const output = originalShowFatalError(error);
-						if (current.attempt) persist({}, "interrupted", [error]);
-						return output;
-					};
-					dialog.addEventListener("edvibe-batch-access-submit", (event) => startAttempt(event?.detail));
-					dialog.addEventListener("edvibe-batch-access-restart", () => {
-						current.sequence += 1;
-						current.attempt = null;
-						dialog.shadowRoot?.querySelector?.(".edvibe-batch-access-history")?.remove?.();
-					});
-					dialog.addEventListener("edvibe-dialog-close", () => {
-						if (current.attempt?.plan && !current.attempt.terminal) persist({}, "cancelled");
-					});
-					return dialog;
-				}
-				return createFeature({
-					...featureOptions,
-					sendRequest: trackedSendRequest,
-					createDialog: createTrackedDialog,
-					log
-				});
-			}
-			return Object.freeze({
-				...modelApi,
-				...recordApi,
-				createHistoryAwareFeature
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-user-management.js
-	var require_batch_user_management = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchUserManagement(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeBatchUserManagement = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			const TRANSIENT_CODES = /* @__PURE__ */ new Set([
-				"WS_UNAVAILABLE",
-				"REQUEST_TIMEOUT",
-				"SEND_FAILED"
-			]);
-			const USER_MANAGEMENT_DIALOG_TAG = "edvibe-toolbox-batch-user-management-dialog";
-			const USER_MANAGEMENT_OVERLAY_ID = "edvibe-toolbox-batch-user-management-overlay";
-			function createFeatureError(code, message, details = {}) {
-				const error = new Error(message);
-				error.code = code;
-				Object.assign(error, details);
-				return error;
-			}
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-				return match ? Number(match[1]) : null;
-			}
-			function parseEmailInput(value) {
-				const entries = [];
-				const malformed = [];
-				const items = [];
-				const seen = /* @__PURE__ */ new Set();
-				for (const token of String(value || "").split(/[,;\r\n]+/)) {
-					const input = token.trim();
-					if (!input) continue;
-					const normalized = input.toLowerCase();
-					if (seen.has(normalized)) continue;
-					seen.add(normalized);
-					if (!EMAIL_PATTERN.test(input)) {
-						malformed.push(input);
-						items.push({
-							input,
-							normalized,
-							isValid: false
-						});
-						continue;
-					}
-					entries.push({
-						input,
-						normalized
-					});
-					items.push({
-						input,
-						normalized,
-						isValid: true
-					});
-				}
-				return {
-					entries,
-					malformed,
-					items
-				};
-			}
-			function appendPage(items, total, nextItems, nextTotal, label) {
-				if (!Array.isArray(nextItems) || !Number.isInteger(nextTotal) || nextTotal < 0 || total !== null && nextTotal !== total || nextItems.length === 0 && items.length < nextTotal || items.length + nextItems.length > nextTotal) throw createFeatureError("INVALID_RESPONSE", `${label} returned invalid pagination data.`);
-				return {
-					items: items.concat(nextItems),
-					total: nextTotal
-				};
-			}
-			async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
-				let items = [];
-				let total = null;
-				while (total === null || items.length < total) {
-					const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
-						MarathonId: marathonId,
-						Skip: items.length,
-						Take: pageSize
-					});
-					const page = appendPage(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonPupils");
-					items = page.items;
-					total = page.total;
-				}
-				return items;
-			}
-			function resolveUsersByEmail(entries, pupils) {
-				const pupilsByEmail = /* @__PURE__ */ new Map();
-				for (const pupil of Array.isArray(pupils) ? pupils : []) {
-					const email = String(pupil?.Email || "").trim().toLowerCase();
-					const candidates = pupilsByEmail.get(email) || [];
-					candidates.push(pupil);
-					pupilsByEmail.set(email, candidates);
-				}
-				const rows = [];
-				const errors = [];
-				for (const entry of Array.isArray(entries) ? entries : []) {
-					const candidates = pupilsByEmail.get(entry.normalized) || [];
-					if (candidates.length === 1) {
-						rows.push({
-							email: entry.input,
-							normalizedEmail: entry.normalized,
-							pupil: candidates[0],
-							status: "matched",
-							message: ""
-						});
-						continue;
-					}
-					const type = candidates.length === 0 ? "missing" : "ambiguous";
-					const message = candidates.length === 0 ? `No marathon pupil found for ${entry.input}.` : `Multiple marathon pupils found for ${entry.input}.`;
-					rows.push({
-						email: entry.input,
-						normalizedEmail: entry.normalized,
-						pupil: null,
-						status: type,
-						message
-					});
-					errors.push({
-						type,
-						input: entry.input,
-						count: candidates.length,
-						message
-					});
-				}
-				return {
-					rows,
-					errors
-				};
-			}
-			function buildUserPlan({ rows }) {
-				return (Array.isArray(rows) ? rows : []).map((row) => {
-					const matched = row.status === "matched" && row.pupil;
-					const hasCurator = Boolean(matched && Array.isArray(row.pupil.Moderators) && row.pupil.Moderators.length > 0);
-					return {
-						email: row.email,
-						normalizedEmail: row.normalizedEmail,
-						pupil: matched ? row.pupil : null,
-						marathonPupilId: matched ? row.pupil.MarathonPupilId : null,
-						hasCurator,
-						actionable: Boolean(matched),
-						status: row.status,
-						message: row.message,
-						unassignSelected: false,
-						deleteSelected: false,
-						unassign: null,
-						delete: null,
-						result: {
-							status: "pending",
-							message: matched ? "Not started" : row.message
-						}
-					};
-				});
-			}
-			function isTransientError(error, getConnectionState) {
-				if (!TRANSIENT_CODES.has(error?.code)) return false;
-				if (error.code !== "SEND_FAILED") return true;
-				return Boolean(error.cause) && !getConnectionState().isOpen;
-			}
-			async function runWithRetry(operation, { wait, getConnectionState, retryDelays = [1e3, 3e3] }) {
-				let attempts = 0;
-				while (attempts <= retryDelays.length) {
-					attempts += 1;
-					try {
-						if (attempts > 1 && !getConnectionState().isOpen) throw createFeatureError("WS_UNAVAILABLE", "The Edvibe connection is unavailable.");
-						return {
-							value: await operation(),
-							attempts
-						};
-					} catch (error) {
-						if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
-							error.attempts = attempts;
-							throw error;
-						}
-						await wait(retryDelays[attempts - 1]);
-					}
-				}
-				throw createFeatureError("INTERNAL_ERROR", "Retry loop ended unexpectedly.");
-			}
-			function cloneUserRow(row) {
-				return {
-					...row,
-					unassign: null,
-					delete: null,
-					result: { ...row.result }
-				};
-			}
-			function createOperationFailure(error) {
-				return {
-					status: "failed",
-					attempts: error?.attempts || 1,
-					code: error?.code || "UNKNOWN_ERROR",
-					message: error?.message || "The operation failed."
-				};
-			}
-			function createSuccessOperation(attempts) {
-				return {
-					status: "success",
-					attempts
-				};
-			}
-			function createNoopOperation() {
-				return {
-					status: "noop",
-					attempts: 0,
-					message: "No curator was assigned."
-				};
-			}
-			function createSkippedOperation(message) {
-				return {
-					status: "skipped",
-					attempts: 0,
-					message
-				};
-			}
-			function getSelectedOperations(row) {
-				const operations = [];
-				if (row.unassignSelected) operations.push("unassign");
-				if (row.deleteSelected) operations.push("delete");
-				return operations;
-			}
-			function describeOperation(operation, result) {
-				if (!result) return "";
-				if (operation === "unassign") {
-					if (result.status === "noop") return "Curator already absent";
-					if (result.status === "success") return "Curator removed";
-					return `Curator removal failed (${result.code || "UNKNOWN_ERROR"}): ${result.message || "The operation failed."}`;
-				}
-				if (result.status === "success") return "User deleted";
-				if (result.status === "skipped") return `Deletion skipped: ${result.message || "The operation was skipped."}`;
-				return `Deletion failed (${result.code || "UNKNOWN_ERROR"}): ${result.message || "The operation failed."}`;
-			}
-			function setRowResult(row) {
-				const operations = getSelectedOperations(row);
-				row.result = {
-					status: operations.some((operation) => row[operation]?.status === "failed") ? "failed" : "success",
-					message: operations.map((operation) => describeOperation(operation, row[operation])).filter(Boolean).join("; ")
-				};
-			}
-			async function executeUserPlan({ marathonId, rows, sendRequest, wait, getConnectionState, onProgress = () => {} }) {
-				const executionRows = (Array.isArray(rows) ? rows : []).filter((row) => row.actionable !== false && getSelectedOperations(row).length > 0).map(cloneUserRow);
-				const total = executionRows.length;
-				let completed = 0;
-				let successes = 0;
-				let failures = 0;
-				let attempts = 0;
-				function report(row, operation) {
-					try {
-						onProgress(Object.freeze({
-							completed,
-							total,
-							successes,
-							failures,
-							current: Object.freeze({
-								email: row.email,
-								operation
-							})
-						}));
-					} catch (_) {}
-				}
-				for (const row of executionRows) {
-					const selectedOperations = getSelectedOperations(row);
-					try {
-						if (row.unassignSelected) {
-							report(row, "unassign");
-							if (!row.hasCurator) row.unassign = createNoopOperation();
-							else try {
-								const result = await runWithRetry(async () => {
-									const response = await sendRequest("MarathonPupilsWsController", "AddModeratorsToPupil", "Marathons", {
-										MarathonId: marathonId,
-										MarathonPupilId: row.marathonPupilId,
-										SelectedModeratorsIds: []
-									});
-									if (response?.Value?.IsSuccess !== true) throw createFeatureError("INVALID_RESPONSE", "The curator removal was not confirmed.");
-									return response;
-								}, {
-									wait,
-									getConnectionState
-								});
-								row.unassign = createSuccessOperation(result.attempts);
-								attempts += result.attempts;
-							} catch (error) {
-								row.unassign = createOperationFailure(error);
-								attempts += row.unassign.attempts;
-							}
-						}
-						if (row.deleteSelected) if (row.unassign?.status === "failed") row.delete = createSkippedOperation("Skipped because curator removal failed.");
-						else {
-							report(row, "delete");
-							try {
-								const result = await runWithRetry(async () => {
-									const response = await sendRequest("MarathonPupilsWsController", "DeleteMarathonPupil", "Marathons", { MarathonPupilId: row.marathonPupilId });
-									if (response?.Value !== row.marathonPupilId) throw createFeatureError("INVALID_RESPONSE", "The user deletion was not confirmed.");
-									return response;
-								}, {
-									wait,
-									getConnectionState
-								});
-								row.delete = createSuccessOperation(result.attempts);
-								attempts += result.attempts;
-							} catch (error) {
-								row.delete = createOperationFailure(error);
-								attempts += row.delete.attempts;
-							}
-						}
-					} catch (error) {
-						const operation = row.unassign?.status !== "success" && row.unassign?.status !== "noop" ? "unassign" : "delete";
-						row[operation] ||= createOperationFailure(error);
-					}
-					setRowResult(row);
-					if (row.result.status === "failed") failures += 1;
-					else successes += 1;
-					completed += 1;
-					report(row, row.delete?.status === "skipped" ? "unassign" : selectedOperations[selectedOperations.length - 1]);
-				}
-				return {
-					rows: executionRows,
-					completed,
-					total,
-					successes,
-					failures,
-					attempts
-				};
-			}
-			function createInputErrors(parsed) {
-				if (parsed.entries.length === 0 && parsed.malformed.length === 0) return [createFeatureError("EMAILS_REQUIRED", "Enter at least one email address.")];
-				return [];
-			}
-			function orderResolvedRows(parsed, resolution) {
-				const resolvedRows = new Map(resolution.rows.map((row) => [row.normalizedEmail, row]));
-				return parsed.items.map((item) => item.isValid ? resolvedRows.get(item.normalized) : {
-					email: item.input,
-					normalizedEmail: item.normalized,
-					pupil: null,
-					status: "malformed",
-					message: `Invalid email address: ${item.input}.`
-				});
-			}
-			function createBatchUserManagementFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog = () => document.createElement(USER_MANAGEMENT_DIALOG_TAG), log = () => {} }) {
-				let active = false;
-				let running = false;
-				let pupils = [];
-				let currentRows = [];
-				let marathonId = null;
-				let dialog = null;
-				function releaseOperation() {
-					if (!active) return;
-					active = false;
-					onActiveChange(false);
-				}
-				function handleClose() {
-					running = false;
-					pupils = [];
-					currentRows = [];
-					marathonId = null;
-					dialog = null;
-					releaseOperation();
-				}
-				function getErrorCode(error) {
-					return typeof error?.code === "string" ? error.code : "UNKNOWN_ERROR";
-				}
-				function handleInput(event) {
-					const parsed = parseEmailInput(event?.detail?.emailInput);
-					dialog.setEmailState({
-						validCount: parsed.entries.length,
-						malformedCount: parsed.malformed.length
-					});
-				}
-				function applySelections(rows) {
-					const selectionsByEmail = new Map((Array.isArray(rows) ? rows : []).map((row) => [row.normalizedEmail, {
-						unassignSelected: Boolean(row.unassignSelected),
-						deleteSelected: Boolean(row.deleteSelected)
-					}]));
-					return currentRows.map((row) => ({
-						...row,
-						...selectionsByEmail.get(row.normalizedEmail) || {
-							unassignSelected: false,
-							deleteSelected: false
-						},
-						result: { ...row.result }
-					}));
-				}
-				function updateCachedPupils(executedRows) {
-					const deletedIds = new Set(executedRows.filter((row) => row.delete?.status === "success").map((row) => row.marathonPupilId));
-					const unassignedIds = new Set(executedRows.filter((row) => row.unassign?.status === "success" || row.unassign?.status === "noop").map((row) => row.marathonPupilId));
-					pupils = pupils.filter((pupil) => !deletedIds.has(pupil.MarathonPupilId)).map((pupil) => unassignedIds.has(pupil.MarathonPupilId) ? {
-						...pupil,
-						Moderators: []
-					} : pupil);
-				}
-				async function handleCheck(event) {
-					if (running) return;
-					running = true;
-					try {
-						const parsed = parseEmailInput(event?.detail?.emailInput);
-						const inputErrors = createInputErrors(parsed);
-						if (inputErrors.length > 0) {
-							dialog.showValidationErrors(inputErrors);
-							return;
-						}
-						dialog.showChecking("Проверяем пользователей…");
-						currentRows = buildUserPlan({ rows: orderResolvedRows(parsed, resolveUsersByEmail(parsed.entries, pupils)) });
-						dialog.showReview({ rows: currentRows });
-						log(`Batch user management checked ${currentRows.length} row(s) for MarathonId ${marathonId}.`);
-					} catch (error) {
-						dialog.showValidationErrors([error]);
-					} finally {
-						running = false;
-					}
-				}
-				function handleSelectionChange(event) {
-					if (Array.isArray(event?.detail?.rows)) currentRows = applySelections(event.detail.rows);
-				}
-				async function handleStart(event) {
-					if (running) return;
-					const selectedRows = applySelections(event?.detail?.rows || currentRows);
-					if (!selectedRows.some((row) => row.actionable !== false && (row.unassignSelected || row.deleteSelected))) return;
-					running = true;
-					try {
-						const result = await executeUserPlan({
-							marathonId,
-							rows: selectedRows,
-							sendRequest,
-							wait,
-							getConnectionState,
-							onProgress: (progress) => dialog.showExecution(progress)
-						});
-						const completedByEmail = new Map(result.rows.map((row) => [row.normalizedEmail, row]));
-						updateCachedPupils(result.rows);
-						currentRows = selectedRows.map((row) => completedByEmail.get(row.normalizedEmail) || row);
-						dialog.showComplete({
-							...result,
-							rows: currentRows
-						});
-					} catch (error) {
-						dialog.showComplete({
-							rows: currentRows,
-							completed: 0,
-							total: 0,
-							successes: 0,
-							failures: 1,
-							attempts: error?.attempts || 1,
-							error
-						});
-					} finally {
-						running = false;
-					}
-				}
-				function handleRestart() {
-					currentRows = [];
-					running = false;
-				}
-				async function open({ stylesheetUrl = "" } = {}) {
-					if (active || document.getElementById(USER_MANAGEMENT_OVERLAY_ID)) return;
-					if (!canStart()) {
-						window.alert("Another Edvibe Toolbox operation is already running.");
-						return;
-					}
-					marathonId = parseMarathonId(window.location.href);
-					if (!marathonId) {
-						window.alert("Open an Edvibe marathon page before managing users.");
-						return;
-					}
-					active = true;
-					onActiveChange(true);
-					try {
-						dialog = createDialog();
-						dialog.addEventListener("edvibe-dialog-close", handleClose);
-						dialog.addEventListener("edvibe-batch-user-management-input-change", handleInput);
-						dialog.addEventListener("edvibe-batch-user-management-check", handleCheck);
-						dialog.addEventListener("edvibe-batch-user-management-selection-change", handleSelectionChange);
-						dialog.addEventListener("edvibe-batch-user-management-start", handleStart);
-						dialog.addEventListener("edvibe-batch-user-management-restart", handleRestart);
-						dialog.configure({ stylesheetUrl });
-						(document.body || document.documentElement).appendChild(dialog);
-						dialog.showChecking("Загружаем пользователей…");
-						log(`Initializing batch user management for MarathonId ${marathonId}.`);
-						pupils = await loadAllPupils({
-							sendRequest,
-							marathonId
-						});
-						if (pupils.length === 0) throw createFeatureError("EMPTY_ROSTER", "No pupils were found in this marathon.");
-						dialog.showConfigure();
-					} catch (error) {
-						log(`Batch user management initialization failed for MarathonId ${marathonId} (${getErrorCode(error)}).`);
-						try {
-							dialog?.showFatalError?.(error);
-						} catch (renderError) {
-							log(`Batch user management error rendering failed (${getErrorCode(renderError)}).`);
-						} finally {
-							releaseOperation();
-						}
-					}
-				}
-				return {
-					open,
-					isRunning: () => running
-				};
-			}
-			return {
-				parseMarathonId,
-				parseEmailInput,
-				appendPage,
-				loadAllPupils,
-				resolveUsersByEmail,
-				buildUserPlan,
-				createFeatureError,
-				runWithRetry,
-				executeUserPlan,
-				createBatchUserManagementFeature,
-				USER_MANAGEMENT_DIALOG_TAG,
-				USER_MANAGEMENT_OVERLAY_ID
-			};
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-user-management-history.js
-	var require_batch_user_management_history = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchUserManagementHistory(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeBatchUserManagementHistory = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const OPERATION_TYPE = "batch_user_management";
-			const OPERATION_NAMES = Object.freeze({
-				unassign: "unassign_curator",
-				delete: "delete_user"
-			});
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-				return match ? String(match[1]) : null;
-			}
-			function selectedOperations(row) {
-				const operations = [];
-				if (row?.unassignSelected) operations.push(OPERATION_NAMES.unassign);
-				if (row?.deleteSelected) operations.push(OPERATION_NAMES.delete);
-				return operations;
-			}
-			function serializeIdentity(row) {
-				const pupil = row?.pupil || {};
-				return Object.freeze({
-					email: pupil.Email || row?.normalizedEmail || row?.email || null,
-					displayName: pupil.DisplayName || pupil.FullName || pupil.Name || null,
-					firstName: pupil.FirstName || null,
-					lastName: pupil.LastName || null,
-					pupilId: pupil.PupilId ?? pupil.Id ?? null,
-					marathonPupilId: row?.marathonPupilId ?? pupil.MarathonPupilId ?? null
-				});
-			}
-			function serializeOperation(name, result) {
-				if (!result) return Object.freeze({
-					name,
-					status: "not_attempted",
-					attemptCount: 0,
-					code: "NOT_ATTEMPTED",
-					message: "The operation was not attempted.",
-					dependency: null
-				});
-				const dependencyBlocked = result.status === "skipped" && /curator removal failed/i.test(result.message || "");
-				return Object.freeze({
-					name,
-					status: result.status,
-					attemptCount: Number.isInteger(result.attempts) ? result.attempts : 0,
-					code: result.code || (dependencyBlocked ? "DEPENDENCY_FAILED" : null),
-					message: result.message || null,
-					dependency: dependencyBlocked ? Object.freeze({ blockedBy: OPERATION_NAMES.unassign }) : null
-				});
-			}
-			function inferItemStatus(row, operations) {
-				if (row?.status !== "matched") return "rejected";
-				if (operations.length === 0) return "skipped";
-				const values = operations.map((operation) => operation.status);
-				if (values.includes("failed")) return "failed";
-				if (values.includes("not_attempted")) return "not_attempted";
-				if (values.includes("skipped")) return "skipped";
-				if (values.every((status) => status === "noop")) return "noop";
-				return "success";
-			}
-			function resultCode(row, status) {
-				if (status === "rejected") return {
-					malformed: "USER_INPUT_MALFORMED",
-					missing: "USER_NOT_FOUND",
-					ambiguous: "USER_AMBIGUOUS"
-				}[row?.status] || "USER_REJECTED";
-				return {
-					success: "USER_OPERATIONS_COMPLETED",
-					noop: "USER_OPERATIONS_NOOP",
-					skipped: "USER_OPERATIONS_SKIPPED",
-					failed: "USER_OPERATIONS_FAILED",
-					not_attempted: "USER_OPERATIONS_NOT_ATTEMPTED"
-				}[status];
-			}
-			function resultMessage(row, status, operations) {
-				if (status === "rejected") return row?.message || "The submitted user could not be resolved safely.";
-				if (operations.length === 0) return "No user-management operation was selected.";
-				const messages = operations.map((operation) => operation.message).filter(Boolean);
-				if (messages.length > 0) return messages.join("; ");
-				return {
-					success: "All selected operations completed successfully.",
-					noop: "All selected operations were already satisfied.",
-					skipped: "One or more selected operations were skipped.",
-					failed: "One or more selected operations failed.",
-					not_attempted: "One or more selected operations were not attempted."
-				}[status];
-			}
-			function serializeRow(row, index) {
-				const names = selectedOperations(row);
-				const operations = names.map((name) => name === OPERATION_NAMES.unassign ? serializeOperation(name, row?.unassign) : serializeOperation(name, row?.delete));
-				const status = inferItemStatus(row, operations);
-				return Object.freeze({
-					itemId: row?.normalizedEmail || row?.email || `input-${index + 1}`,
-					label: row?.email || row?.normalizedEmail || `Input ${index + 1}`,
-					status,
-					code: resultCode(row, status),
-					message: resultMessage(row, status, operations),
-					attempts: operations.reduce((sum, operation) => sum + operation.attemptCount, 0),
-					data: Object.freeze({
-						submittedInput: row?.email || null,
-						normalizedEmail: row?.normalizedEmail || null,
-						resolution: row?.status || "malformed",
-						resolutionMessage: row?.message || null,
-						user: row?.status === "matched" ? serializeIdentity(row) : null,
-						curatorPresent: row?.status === "matched" ? Boolean(row?.hasCurator) : null,
-						selectedOperations: Object.freeze(names),
-						operations: Object.freeze(operations)
-					})
-				});
-			}
-			function buildCounts(results) {
-				const eligible = results.filter((result) => result.data.resolution === "matched" && result.data.selectedOperations.length > 0).length;
-				const notAttempted = results.filter((result) => result.status === "not_attempted").length;
-				const attempted = results.filter((result) => result.data.resolution === "matched" && result.data.selectedOperations.length > 0 && result.status !== "not_attempted").length;
-				return Object.freeze({
-					requested: results.length,
-					eligible,
-					attempted,
-					successful: results.filter((result) => result.status === "success").length,
-					noOp: results.filter((result) => result.status === "noop").length,
-					skipped: results.filter((result) => result.status === "skipped" || result.status === "rejected").length,
-					failed: results.filter((result) => result.status === "failed").length,
-					notAttempted
-				});
-			}
-			function inferTerminalStatus(summary, results) {
-				if (summary?.error) return "interrupted";
-				return results.some((result) => result.status === "failed" || result.status === "skipped" || result.status === "rejected") ? "completed_with_failures" : "completed";
-			}
-			function buildExecutionHistoryInput({ rows, summary = {}, startedAt, completedAt, marathonId, marathonName = null }) {
-				const results = (Array.isArray(rows) ? rows : []).map(serializeRow);
-				const operationCounts = {
-					selected: 0,
-					attempted: 0,
-					successful: 0,
-					noOp: 0,
-					skipped: 0,
-					failed: 0,
-					notAttempted: 0
-				};
-				for (const result of results) for (const operation of result.data.operations) {
-					operationCounts.selected += 1;
-					if (operation.status !== "not_attempted") operationCounts.attempted += 1;
-					if (operation.status === "success") operationCounts.successful += 1;
-					if (operation.status === "noop") operationCounts.noOp += 1;
-					if (operation.status === "skipped") operationCounts.skipped += 1;
-					if (operation.status === "failed") operationCounts.failed += 1;
-					if (operation.status === "not_attempted") operationCounts.notAttempted += 1;
-				}
-				return Object.freeze({
-					operationType: OPERATION_TYPE,
-					startedAt,
-					completedAt,
-					status: inferTerminalStatus(summary, results),
-					pageContext: Object.freeze({
-						marathonId,
-						marathonName
-					}),
-					counts: buildCounts(results),
-					results: Object.freeze(results),
-					message: JSON.stringify({
-						userCounts: buildCounts(results),
-						operationCounts
-					})
-				});
-			}
-			function createHistoryAwareDialog({ createDialog, persistExecution, openHistory = () => {}, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {} }) {
-				if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
-				if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
-				return function createPatchedDialog() {
-					const dialog = createDialog();
-					let startedAt = null;
-					let stylesheetUrl = "";
-					let persistenceSequence = 0;
-					const originalConfigure = dialog.configure.bind(dialog);
-					const originalShowComplete = dialog.showComplete.bind(dialog);
-					const originalShowReview = dialog.showReview.bind(dialog);
-					const originalShowConfigure = dialog.showConfigure.bind(dialog);
-					function clearHistoryButton() {
-						dialog.shadowRoot?.querySelector?.(".edvibe-batch-user-management-history")?.remove?.();
-					}
-					function appendStatus(message) {
-						const current = dialog.elements?.status?.textContent || "";
-						dialog.setStatus?.(`${current}${current ? " " : ""}${message}`);
-					}
-					function addHistoryButton(executionId) {
-						clearHistoryButton();
-						const button = (dialog.ownerDocument || root.document)?.createElement?.("button");
-						if (!button) return;
-						button.type = "button";
-						button.className = "edvibe-batch-user-management-history";
-						button.textContent = "Открыть в истории";
-						button.addEventListener("click", () => {
-							dialog.close?.();
-							openHistory(executionId, stylesheetUrl);
-						});
-						dialog.elements?.footer?.appendChild?.(button);
-						if (!dialog.elements?.footer) dialog.shadowRoot?.querySelector?.(".edvibe-batch-user-management-footer")?.appendChild?.(button);
-					}
-					dialog.configure = (options = {}) => {
-						stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || "");
-						return originalConfigure(options);
-					};
-					dialog.showReview = (value) => {
-						startedAt = null;
-						persistenceSequence += 1;
-						clearHistoryButton();
-						return originalShowReview(value);
-					};
-					dialog.showConfigure = (...args) => {
-						startedAt = null;
-						persistenceSequence += 1;
-						clearHistoryButton();
-						return originalShowConfigure(...args);
-					};
-					dialog.addEventListener("edvibe-batch-user-management-start", () => {
-						startedAt = now().toISOString();
-						persistenceSequence += 1;
-						clearHistoryButton();
-					});
-					dialog.showComplete = (summary = {}) => {
-						const output = originalShowComplete(summary);
-						const sequence = persistenceSequence;
-						const completedAt = now().toISOString();
-						const input = buildExecutionHistoryInput({
-							rows: summary.rows || dialog.rows,
-							summary,
-							startedAt: startedAt || completedAt,
-							completedAt,
-							marathonId: parseMarathonId(getLocationHref()),
-							marathonName: getMarathonName()
-						});
-						Promise.resolve().then(() => persistExecution(input)).then((history) => {
-							if (sequence !== persistenceSequence) return;
-							if (history?.stored) {
-								appendStatus("Результат сохранён в истории.");
-								if (history.record?.id) addHistoryButton(history.record.id);
-							} else {
-								appendStatus("Экранный результат сохранён, но записать историю не удалось.");
-								if (history?.persistenceError) log("Batch user management history persistence failed:", history.persistenceError);
-							}
-						}).catch((error) => {
-							if (sequence !== persistenceSequence) return;
-							appendStatus("Экранный результат сохранён, но записать историю не удалось.");
-							log("Batch user management history persistence failed:", error);
-						});
-						return output;
-					};
-					return dialog;
-				};
-			}
-			return Object.freeze({
-				OPERATION_TYPE,
-				OPERATION_NAMES,
-				parseMarathonId,
-				serializeRow,
-				buildCounts,
-				buildExecutionHistoryInput,
-				createHistoryAwareDialog
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-user-onboarding.js
-	var require_batch_user_onboarding = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchUserOnboarding(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_batch_user_management());
-			else root.EdVibeBatchUserOnboarding = factory(root.EdVibeBatchUserManagement);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(baseApi) {
-			"use strict";
-			if (!baseApi) throw new Error("EdVibeBatchUserManagement is required.");
-			const DIALOG_TAG = "edvibe-toolbox-batch-user-onboarding-dialog";
-			const OPERATION_TYPE = "batch_user_onboarding";
-			const EXPECTED_WRITE_CODES = /* @__PURE__ */ new Set([
-				"SERVER_REJECTED",
-				"INVALID_RESPONSE",
-				"REQUEST_TIMEOUT",
-				"SEND_FAILED"
-			]);
-			function featureError(code, message, details = {}) {
-				return baseApi.createFeatureError(code, message, details);
-			}
-			function deepFreeze(value) {
-				if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-				Object.freeze(value);
-				for (const nested of Object.values(value)) deepFreeze(nested);
-				return value;
-			}
-			function normalizeModerator(item) {
-				const id = Number(item?.Id);
-				const teacherId = Number(item?.TeacherId);
-				if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(teacherId) || teacherId <= 0) throw featureError("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained an invalid identifier.");
-				return Object.freeze({
-					id,
-					teacherId,
-					name: String(item?.Name || "").trim() || null,
-					email: String(item?.Email || "").trim() || null
-				});
-			}
-			function normalizeModeratorCatalogue(items) {
-				if (!Array.isArray(items)) throw featureError("INVALID_MODERATOR_RESPONSE", "The moderator catalogue was not an array.");
-				const moderators = items.map(normalizeModerator);
-				const ids = /* @__PURE__ */ new Set();
-				const teacherIds = /* @__PURE__ */ new Set();
-				for (const moderator of moderators) {
-					if (ids.has(moderator.id) || teacherIds.has(moderator.teacherId)) throw featureError("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained ambiguous identifiers.");
-					ids.add(moderator.id);
-					teacherIds.add(moderator.teacherId);
-				}
-				return Object.freeze(moderators);
-			}
-			async function loadModerators({ sendRequest, marathonId }) {
-				return normalizeModeratorCatalogue((await sendRequest("MarathonModeratorWsController", "GetMarathonModerators", "Marathons", { MarathonId: marathonId }))?.Value?.Items);
-			}
-			function buildModeratorIndex(moderators) {
-				return new Map((moderators || []).map((moderator) => [moderator.teacherId, moderator]));
-			}
-			function resolvePupilModerators(pupilModerators, moderators) {
-				if (!Array.isArray(pupilModerators)) return Object.freeze({
-					safe: false,
-					moderators: Object.freeze([]),
-					code: "UNSAFE_MODERATOR_REPLACEMENT",
-					message: "Current curator assignments could not be interpreted safely."
-				});
-				const byTeacherId = buildModeratorIndex(moderators);
-				const resolved = [];
-				const seen = /* @__PURE__ */ new Set();
-				for (const current of pupilModerators) {
-					const teacherId = Number(current?.TeacherId);
-					const moderator = byTeacherId.get(teacherId);
-					if (!Number.isSafeInteger(teacherId) || !moderator || seen.has(moderator.id)) return Object.freeze({
-						safe: false,
-						moderators: Object.freeze([]),
-						code: "UNSAFE_MODERATOR_REPLACEMENT",
-						message: "Existing curator assignments cannot be preserved without guessing."
-					});
-					seen.add(moderator.id);
-					resolved.push(moderator);
-				}
-				return Object.freeze({
-					safe: true,
-					moderators: Object.freeze(resolved),
-					code: null,
-					message: null
-				});
-			}
-			function serializePupil(pupil) {
-				if (!pupil) return null;
-				return Object.freeze({
-					email: String(pupil.Email || "").trim() || null,
-					name: String(pupil.Name || pupil.DisplayName || pupil.FullName || "").trim() || null,
-					pupilId: Number.isSafeInteger(Number(pupil.PupilId)) ? Number(pupil.PupilId) : null,
-					marathonPupilId: Number.isSafeInteger(Number(pupil.MarathonPupilId)) ? Number(pupil.MarathonPupilId) : null
-				});
-			}
-			function buildPupilEmailIndex(pupils) {
-				const index = /* @__PURE__ */ new Map();
-				for (const pupil of Array.isArray(pupils) ? pupils : []) {
-					const email = String(pupil?.Email || "").trim().toLowerCase();
-					if (!email) continue;
-					const values = index.get(email) || [];
-					values.push(pupil);
-					index.set(email, values);
-				}
-				return index;
-			}
-			function resolveOnboardingRows(parsed, pupils, moderators) {
-				const pupilIndex = buildPupilEmailIndex(pupils);
-				const rows = [];
-				for (const item of parsed?.items || []) {
-					if (!item.isValid) {
-						rows.push(Object.freeze({
-							email: item.input,
-							normalizedEmail: item.normalized,
-							resolution: "invalid",
-							membership: "unknown",
-							user: null,
-							currentModerators: Object.freeze([]),
-							moderatorStateSafe: false,
-							actionable: false,
-							message: `Invalid email address: ${item.input}.`,
-							addSelected: false,
-							assignSelected: false
-						}));
-						continue;
-					}
-					const candidates = pupilIndex.get(item.normalized) || [];
-					if (candidates.length > 1) {
-						rows.push(Object.freeze({
-							email: item.input,
-							normalizedEmail: item.normalized,
-							resolution: "ambiguous",
-							membership: "ambiguous",
-							user: null,
-							currentModerators: Object.freeze([]),
-							moderatorStateSafe: false,
-							actionable: false,
-							message: `Multiple marathon users matched ${item.input}.`,
-							addSelected: false,
-							assignSelected: false
-						}));
-						continue;
-					}
-					if (candidates.length === 0) {
-						rows.push(Object.freeze({
-							email: item.input,
-							normalizedEmail: item.normalized,
-							resolution: "resolvable_not_in_marathon",
-							membership: "not_in_marathon",
-							user: null,
-							currentModerators: Object.freeze([]),
-							moderatorStateSafe: true,
-							actionable: true,
-							message: "Not currently in the marathon; the recorded add-by-email workflow is available.",
-							addSelected: false,
-							assignSelected: false
-						}));
-						continue;
-					}
-					const current = resolvePupilModerators(candidates[0].Moderators, moderators);
-					rows.push(Object.freeze({
-						email: item.input,
-						normalizedEmail: item.normalized,
-						resolution: "in_marathon",
-						membership: "in_marathon",
-						user: serializePupil(candidates[0]),
-						currentModerators: current.moderators,
-						moderatorStateSafe: current.safe,
-						actionable: true,
-						message: current.safe ? "Already in the marathon." : current.message,
-						addSelected: false,
-						assignSelected: false
-					}));
-				}
-				return Object.freeze(rows);
-			}
-			function operationPreview(status, code, message, dependency = null) {
-				return Object.freeze({
-					status,
-					code,
-					message,
-					dependency
-				});
-			}
-			function findTargetModerator(moderators, targetModeratorId) {
-				const targetId = Number(targetModeratorId);
-				return (moderators || []).find((moderator) => moderator.id === targetId) || null;
-			}
-			function buildExecutionPlan({ rows, moderators, targetModeratorId }) {
-				const values = Array.isArray(rows) ? rows : [];
-				const assignmentSelected = values.some((row) => Boolean(row.assignSelected));
-				const target = assignmentSelected ? findTargetModerator(moderators, targetModeratorId) : null;
-				if (assignmentSelected && !target) throw featureError("CURATOR_REQUIRED", "Select a curator before preparing the execution plan.");
-				const planRows = values.map((row) => {
-					const addSelected = Boolean(row.addSelected);
-					const assignSelected = Boolean(row.assignSelected);
-					let add = null;
-					let assign = null;
-					if (addSelected) add = !row.actionable ? operationPreview("rejected", "INVALID_USER_INPUT", row.message || "The user is not actionable.") : row.membership === "in_marathon" ? operationPreview("noop", "USER_ALREADY_IN_MARATHON", "User is already in the marathon.") : operationPreview("pending", "USER_ADD_PENDING", "User will be added to the marathon.");
-					if (assignSelected) if (!row.actionable) assign = operationPreview("rejected", "INVALID_USER_INPUT", row.message || "The user is not actionable.");
-					else if (!row.moderatorStateSafe) assign = operationPreview("rejected", "UNSAFE_MODERATOR_REPLACEMENT", "Existing curator assignments cannot be preserved safely.");
-					else if (row.membership === "not_in_marathon" && !addSelected) assign = operationPreview("rejected", "USER_NOT_IN_MARATHON", "Curator assignment requires adding this user first.");
-					else if (row.membership === "in_marathon" && row.currentModerators.some((moderator) => moderator.teacherId === target.teacherId)) assign = operationPreview("noop", "CURATOR_ALREADY_ASSIGNED", "Target curator is already assigned.");
-					else assign = operationPreview("pending", "CURATOR_ASSIGNMENT_PENDING", row.membership === "not_in_marathon" ? "The curator will be assigned by the recorded add-user request." : "The curator will be added while preserving all current curators.", row.membership === "not_in_marathon" ? Object.freeze({ blockedBy: "add_user" }) : null);
-					return deepFreeze({
-						itemId: row.normalizedEmail || row.email,
-						email: row.email,
-						normalizedEmail: row.normalizedEmail,
-						resolution: row.resolution,
-						membership: row.membership,
-						user: row.user ? { ...row.user } : null,
-						currentModerators: (row.currentModerators || []).map((moderator) => ({ ...moderator })),
-						moderatorStateSafe: Boolean(row.moderatorStateSafe),
-						actionable: Boolean(row.actionable),
-						message: row.message || "",
-						selectedOperations: Object.freeze([...addSelected ? ["add_user"] : [], ...assignSelected ? ["assign_curator"] : []]),
-						addSelected,
-						assignSelected,
-						add,
-						assign,
-						targetModerator: target ? { ...target } : null
-					});
-				});
-				const countStatus = (status) => planRows.reduce((sum, row) => sum + (row.add?.status === status ? 1 : 0) + (row.assign?.status === status ? 1 : 0), 0);
-				return deepFreeze({
-					rows: planRows,
-					targetModerator: target ? { ...target } : null,
-					counts: {
-						requested: planRows.length,
-						selectedOperations: planRows.reduce((sum, row) => sum + row.selectedOperations.length, 0),
-						additions: planRows.filter((row) => row.addSelected).length,
-						assignments: planRows.filter((row) => row.assignSelected).length,
-						noOps: countStatus("noop"),
-						rejectedOperations: countStatus("rejected"),
-						dependentAssignments: planRows.filter((row) => row.assign?.dependency?.blockedBy === "add_user").length
-					}
-				});
-			}
-			function pad(value, length = 2) {
-				return String(value).padStart(length, "0");
-			}
-			function formatClientTime(value) {
-				const date = value instanceof Date ? value : new Date(value);
-				if (Number.isNaN(date.getTime())) throw featureError("INVALID_CLIENT_TIME", "Could not build the Edvibe client timestamp.");
-				return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
-			}
-			function buildAddRequest({ marathonId, emails, moderatorIds = [], host = "edvibe.com", now = /* @__PURE__ */ new Date(), userId = null }) {
-				const normalizedEmails = (emails || []).map((email) => String(email || "").trim()).filter(Boolean);
-				if (normalizedEmails.length === 0) throw featureError("EMAILS_REQUIRED", "At least one email is required for addition.");
-				const hostname = String(host || "").trim() || "edvibe.com";
-				const value = {
-					MarathonId: marathonId,
-					Emails: normalizedEmails,
-					MailMessageLanguageId: 0,
-					ModeratorsIds: [...moderatorIds],
-					AccessGroups: [],
-					Domain: hostname,
-					ApiHost: hostname,
-					ClientTime: formatClientTime(now),
-					DeviceType: "desktop"
-				};
-				const numericUserId = Number(userId);
-				if (Number.isSafeInteger(numericUserId) && numericUserId > 0) value.UserId = numericUserId;
-				return deepFreeze({
-					controller: "MarathonPupilsWsController",
-					method: "AddMarathonPupil",
-					projectName: "Marathons",
-					value
-				});
-			}
-			function buildAssignRequest({ marathonId, marathonPupilId, existingModeratorIds, targetModeratorId }) {
-				const selected = [.../* @__PURE__ */ new Set([...(existingModeratorIds || []).map(Number), Number(targetModeratorId)])];
-				if (selected.some((id) => !Number.isSafeInteger(id) || id <= 0)) throw featureError("UNSAFE_MODERATOR_REPLACEMENT", "A safe complete curator list could not be constructed.");
-				return deepFreeze({
-					controller: "MarathonPupilsWsController",
-					method: "AddModeratorsToPupil",
-					projectName: "Marathons",
-					value: {
-						MarathonId: marathonId,
-						MarathonPupilId: marathonPupilId,
-						SelectedModeratorsIds: selected
-					}
-				});
-			}
-			function operationResult(status, code, message, attempts = 0, dependency = null) {
-				return {
-					status,
-					code,
-					message,
-					attempts,
-					dependency
-				};
-			}
-			function initializeExecutionRows(plan) {
-				const fromPreview = (preview, label) => preview ? operationResult(preview.status === "pending" ? "not_attempted" : preview.status, preview.status === "pending" ? "NOT_ATTEMPTED" : preview.code, preview.status === "pending" ? `${label} has not been attempted yet.` : preview.message, 0, preview.dependency) : null;
-				return plan.rows.map((row) => ({
-					...row,
-					currentModerators: row.currentModerators.map((moderator) => ({ ...moderator })),
-					runtimePupil: row.user ? { ...row.user } : null,
-					addResult: fromPreview(row.add, "The addition"),
-					assignResult: fromPreview(row.assign, "The curator assignment")
-				}));
-			}
-			function isPending(result) {
-				return result?.status === "not_attempted";
-			}
-			function isRevalidatable(result) {
-				return result && ![
-					"rejected",
-					"failed",
-					"skipped"
-				].includes(result.status);
-			}
-			function moderatorTeacherIds(values) {
-				return (values || []).map((moderator) => moderator.teacherId).sort((a, b) => a - b);
-			}
-			function sameNumbers(left, right) {
-				return left.length === right.length && left.every((value, index) => value === right[index]);
-			}
-			function rejectSelectedState(row, code, message) {
-				if (row.addSelected && isRevalidatable(row.addResult)) row.addResult = operationResult("rejected", code, message);
-				if (row.assignSelected && isRevalidatable(row.assignResult)) row.assignResult = operationResult("rejected", code, message);
-			}
-			function revalidateRows({ rows, pupils, moderators, targetModerator }) {
-				const pupilIndex = buildPupilEmailIndex(pupils);
-				for (const row of rows) {
-					if (!row.actionable || row.selectedOperations.length === 0) continue;
-					const candidates = pupilIndex.get(row.normalizedEmail) || [];
-					if (candidates.length > 1) {
-						rejectSelectedState(row, "USER_AMBIGUOUS", "The user became ambiguous before execution.");
-						continue;
-					}
-					if (row.membership === "in_marathon") {
-						if (candidates.length !== 1 || Number(candidates[0].MarathonPupilId) !== Number(row.user?.marathonPupilId)) {
-							rejectSelectedState(row, "STATE_CHANGED", "Marathon membership changed after preflight.");
-							continue;
-						}
-						const currentPupil = candidates[0];
-						row.runtimePupil = serializePupil(currentPupil);
-						if (row.addSelected && isRevalidatable(row.addResult)) row.addResult = operationResult("noop", "USER_ALREADY_IN_MARATHON", "User is already in the marathon.");
-						if (!row.assignSelected || !isRevalidatable(row.assignResult)) continue;
-						const current = resolvePupilModerators(currentPupil.Moderators, moderators);
-						if (!current.safe) {
-							row.assignResult = operationResult("rejected", current.code, current.message);
-							continue;
-						}
-						if (!sameNumbers(moderatorTeacherIds(row.currentModerators), moderatorTeacherIds(current.moderators))) {
-							row.assignResult = operationResult("rejected", "STATE_CHANGED", "Current curator assignments changed after preflight.");
-							continue;
-						}
-						row.currentModerators = current.moderators.map((moderator) => ({ ...moderator }));
-						row.assignResult = current.moderators.some((moderator) => moderator.teacherId === targetModerator?.teacherId) ? operationResult("noop", "CURATOR_ALREADY_ASSIGNED", "Target curator is already assigned.") : operationResult("not_attempted", "NOT_ATTEMPTED", "The curator assignment has not been attempted yet.");
-						continue;
-					}
-					if (row.membership !== "not_in_marathon" || candidates.length === 0) continue;
-					const currentPupil = candidates[0];
-					row.runtimePupil = serializePupil(currentPupil);
-					if (row.addSelected && isRevalidatable(row.addResult)) row.addResult = operationResult("noop", "USER_ALREADY_IN_MARATHON", "User entered the marathon after preflight; no duplicate add was sent.");
-					if (row.assignSelected && isRevalidatable(row.assignResult)) {
-						const current = resolvePupilModerators(currentPupil.Moderators, moderators);
-						row.assignResult = current.safe && current.moderators.some((moderator) => moderator.teacherId === targetModerator?.teacherId) ? operationResult("noop", "CURATOR_ALREADY_ASSIGNED", "Target curator was assigned after preflight.") : operationResult("rejected", "STATE_CHANGED", "The user entered the marathon after preflight; curator state was not part of the confirmed plan.");
-					}
-				}
-				return rows;
-			}
-			function isOperationWide(error, getConnectionState) {
-				if (!error?.code) return true;
-				if (error.code === "WS_UNAVAILABLE") return true;
-				if (error.code === "SEND_FAILED" && !getConnectionState().isOpen) return true;
-				return !EXPECTED_WRITE_CODES.has(error.code);
-			}
-			function countTerminalOperations(rows) {
-				const results = rows.flatMap((row) => [row.addResult, row.assignResult]).filter(Boolean);
-				return {
-					completed: results.filter((result) => result.status !== "not_attempted").length,
-					total: results.length,
-					successes: results.filter((result) => ["success", "noop"].includes(result.status)).length,
-					failures: results.filter((result) => [
-						"failed",
-						"rejected",
-						"skipped"
-					].includes(result.status)).length
-				};
-			}
-			function emitProgress(onProgress, rows, current = null) {
-				try {
-					onProgress?.({
-						...countTerminalOperations(rows),
-						current
-					});
-				} catch (_) {}
-			}
-			async function executeAddGroup({ rows, marathonId, targetModerator, includeModerator, sendRequest, wait, getConnectionState, getRequestContext, now }) {
-				const targets = rows.filter((row) => isPending(row.addResult) && row.membership === "not_in_marathon" && Boolean(row.assignSelected) === includeModerator);
-				if (targets.length === 0) return {
-					targets,
-					confirmed: false,
-					fatalError: null
-				};
-				const context = getRequestContext?.() || {};
-				const request = buildAddRequest({
-					marathonId,
-					emails: targets.map((row) => row.email),
-					moderatorIds: includeModerator ? [targetModerator.id] : [],
-					host: context.host,
-					userId: context.userId,
-					now: now()
-				});
-				try {
-					const result = await baseApi.runWithRetry(async () => {
-						const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
-						if (response?.Value?.IsSuccess !== true) throw featureError("INVALID_RESPONSE", "User addition was not positively confirmed.");
-						return response;
-					}, {
-						wait,
-						getConnectionState
-					});
-					for (const row of targets) row.addRequestAttempts = result.attempts;
-					return {
-						targets,
-						confirmed: true,
-						fatalError: null
-					};
-				} catch (error) {
-					for (const row of targets) {
-						row.addResult = operationResult("failed", error.code || "USER_ADD_FAILED", error.message || "User addition failed.", error.attempts || 1);
-						if (isPending(row.assignResult)) row.assignResult = operationResult("skipped", "ASSIGNMENT_BLOCKED_BY_ADD_FAILURE", "Curator assignment was skipped because user addition failed.", 0, { blockedBy: "add_user" });
-					}
-					return {
-						targets,
-						confirmed: false,
-						fatalError: isOperationWide(error, getConnectionState) ? error : null
-					};
-				}
-			}
-			function reconcileAddedRows({ groups, pupils, targetModerator }) {
-				const pupilIndex = buildPupilEmailIndex(pupils);
-				for (const group of groups.filter((item) => item.confirmed)) for (const row of group.targets) {
-					const candidates = pupilIndex.get(row.normalizedEmail) || [];
-					if (candidates.length !== 1) {
-						row.addResult = operationResult("failed", "INVALID_USER_RESPONSE", candidates.length === 0 ? "The add request succeeded, but the user was not found in the refreshed marathon roster." : "The add request succeeded, but the refreshed user identity was ambiguous.", row.addRequestAttempts || 1);
-						if (isPending(row.assignResult)) row.assignResult = operationResult("skipped", "ASSIGNMENT_BLOCKED_BY_ADD_FAILURE", "Curator assignment was skipped because the added user could not be resolved safely.", 0, { blockedBy: "add_user" });
-						continue;
-					}
-					const currentPupil = candidates[0];
-					row.runtimePupil = serializePupil(currentPupil);
-					row.addResult = operationResult("success", "USER_ADDED", "User was added to the marathon.", row.addRequestAttempts || 1);
-					if (isPending(row.assignResult) && row.assignSelected) row.assignResult = Array.isArray(currentPupil.Moderators) && currentPupil.Moderators.some((moderator) => Number(moderator?.TeacherId) === Number(targetModerator?.teacherId)) ? operationResult("success", "CURATOR_ASSIGNED", "Target curator was assigned during user addition.", row.addRequestAttempts || 1, { blockedBy: "add_user" }) : operationResult("failed", "INVALID_MODERATOR_RESPONSE", "The user was added, but the target curator was not confirmed on the refreshed roster.", row.addRequestAttempts || 1, { blockedBy: "add_user" });
-				}
-			}
-			function markConfirmedGroupsUnverified(groups, error) {
-				for (const group of groups.filter((item) => item.confirmed)) for (const row of group.targets) {
-					if (!isPending(row.addResult)) continue;
-					row.addResult = operationResult("failed", "ADD_VERIFICATION_FAILED", `The add request was accepted, but per-user verification could not finish: ${error?.message || "operation interrupted"}`, row.addRequestAttempts || 1);
-					if (isPending(row.assignResult)) row.assignResult = operationResult("skipped", "ASSIGNMENT_BLOCKED_BY_ADD_FAILURE", "Curator assignment could not be verified because the added user was not safely resolved.", 0, { blockedBy: "add_user" });
-				}
-			}
-			async function executeExistingAssignments({ rows, marathonId, targetModerator, sendRequest, wait, getConnectionState, requestDelayMs, onProgress }) {
-				let fatalError = null;
-				const targets = rows.filter((row) => isPending(row.assignResult) && row.membership === "in_marathon" && row.runtimePupil?.marathonPupilId);
-				for (const [index, row] of targets.entries()) {
-					if (fatalError) break;
-					const request = buildAssignRequest({
-						marathonId,
-						marathonPupilId: row.runtimePupil.marathonPupilId,
-						existingModeratorIds: row.currentModerators.map((moderator) => moderator.id),
-						targetModeratorId: targetModerator.id
-					});
-					try {
-						row.assignResult = operationResult("success", "CURATOR_ASSIGNED", "Target curator was assigned while preserving existing curators.", (await baseApi.runWithRetry(async () => {
-							const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
-							if (response?.Value?.IsSuccess !== true) throw featureError("INVALID_RESPONSE", "Curator assignment was not positively confirmed.");
-							return response;
-						}, {
-							wait,
-							getConnectionState
-						})).attempts);
-					} catch (error) {
-						row.assignResult = operationResult("failed", error.code || "CURATOR_ASSIGNMENT_FAILED", error.message || "Curator assignment failed.", error.attempts || 1);
-						if (isOperationWide(error, getConnectionState)) fatalError = error;
-					}
-					emitProgress(onProgress, rows, {
-						email: row.email,
-						operation: "assign_curator"
-					});
-					if (index < targets.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
-				}
-				return fatalError;
-			}
-			function markRemainingNotAttempted(rows, message = "Not attempted because the operation stopped.") {
-				for (const row of rows) {
-					if (isPending(row.addResult)) row.addResult = operationResult("not_attempted", "NOT_ATTEMPTED", message);
-					if (isPending(row.assignResult)) row.assignResult = operationResult("not_attempted", "NOT_ATTEMPTED", message);
-				}
-			}
-			function rejectRevalidatableRows(rows, error) {
-				for (const row of rows) rejectSelectedState(row, error?.code || "STATE_CHANGED", error?.message || "The confirmed plan could not be revalidated.");
-			}
-			async function executePlan({ plan, marathonId, sendRequest, wait, getConnectionState, getRequestContext = () => ({ host: "edvibe.com" }), now = () => /* @__PURE__ */ new Date(), requestDelayMs = 250, onProgress = () => {} }) {
-				const rows = initializeExecutionRows(plan);
-				const groups = [];
-				let fatalError = null;
-				let writesStarted = false;
-				try {
-					const [latestPupils, latestModerators] = await Promise.all([baseApi.loadAllPupils({
-						sendRequest,
-						marathonId
-					}), loadModerators({
-						sendRequest,
-						marathonId
-					})]);
-					const target = plan.targetModerator ? findTargetModerator(latestModerators, plan.targetModerator.id) : null;
-					if (plan.targetModerator && (!target || target.teacherId !== plan.targetModerator.teacherId)) throw featureError("STATE_CHANGED", "The selected curator changed or disappeared after preflight.");
-					revalidateRows({
-						rows,
-						pupils: latestPupils,
-						moderators: latestModerators,
-						targetModerator: target
-					});
-					emitProgress(onProgress, rows, { operation: "revalidate" });
-					for (const includeModerator of [false, true]) {
-						if (!rows.some((row) => isPending(row.addResult) && row.membership === "not_in_marathon" && Boolean(row.assignSelected) === includeModerator)) continue;
-						writesStarted = true;
-						const group = await executeAddGroup({
-							rows,
-							marathonId,
-							targetModerator: target,
-							includeModerator,
-							sendRequest,
-							wait,
-							getConnectionState,
-							getRequestContext,
-							now
-						});
-						groups.push(group);
-						fatalError ||= group.fatalError;
-						emitProgress(onProgress, rows, { operation: includeModerator ? "add_user_with_curator" : "add_user" });
-						if (fatalError) break;
-						if (requestDelayMs > 0) await wait(requestDelayMs);
-					}
-					if (!fatalError && groups.some((group) => group.confirmed)) {
-						reconcileAddedRows({
-							groups,
-							pupils: await baseApi.loadAllPupils({
-								sendRequest,
-								marathonId
-							}),
-							targetModerator: target
-						});
-						emitProgress(onProgress, rows, { operation: "verify_additions" });
-					}
-					if (!fatalError && target) {
-						if (rows.some((row) => isPending(row.assignResult) && row.membership === "in_marathon")) writesStarted = true;
-						fatalError = await executeExistingAssignments({
-							rows,
-							marathonId,
-							targetModerator: target,
-							sendRequest,
-							wait,
-							getConnectionState,
-							requestDelayMs,
-							onProgress
-						});
-					}
-				} catch (error) {
-					fatalError = error;
-				}
-				if (fatalError && groups.some((group) => group.confirmed)) markConfirmedGroupsUnverified(groups, fatalError);
-				if (fatalError && !writesStarted) rejectRevalidatableRows(rows, fatalError);
-				markRemainingNotAttempted(rows, fatalError ? "Not attempted because the operation stopped." : "The selected operation was not applicable after revalidation.");
-				emitProgress(onProgress, rows, null);
-				return deepFreeze({
-					plan,
-					rows: rows.map((row) => ({
-						itemId: row.itemId,
-						email: row.email,
-						normalizedEmail: row.normalizedEmail,
-						resolution: row.resolution,
-						membership: row.membership,
-						user: row.runtimePupil ? { ...row.runtimePupil } : row.user ? { ...row.user } : null,
-						currentModerators: row.currentModerators.map((moderator) => ({ ...moderator })),
-						targetModerator: row.targetModerator ? { ...row.targetModerator } : null,
-						selectedOperations: [...row.selectedOperations],
-						addResult: row.addResult ? { ...row.addResult } : null,
-						assignResult: row.assignResult ? { ...row.assignResult } : null,
-						message: row.message
-					})),
-					fatalError: fatalError ? Object.freeze({
-						code: fatalError.code || "INTERNAL_ERROR",
-						message: fatalError.message || "The operation stopped unexpectedly."
-					}) : null
-				});
-			}
-			function inferRowStatus(row) {
-				const results = [row.addResult, row.assignResult].filter(Boolean);
-				if (row.resolution === "invalid" || row.resolution === "ambiguous") return "rejected";
-				if (results.length === 0) return "skipped";
-				if (results.some((result) => result.status === "failed")) return "failed";
-				if (results.some((result) => result.status === "not_attempted")) return "not_attempted";
-				if (results.some((result) => result.status === "rejected")) return "rejected";
-				if (results.some((result) => result.status === "skipped")) return "skipped";
-				if (results.every((result) => result.status === "noop")) return "noop";
-				return "success";
-			}
-			function formatReport(result) {
-				const lines = [
-					"Edvibe Toolbox: batch user onboarding",
-					`Requested users: ${result.plan.counts.requested}`,
-					`Selected additions: ${result.plan.counts.additions}`,
-					`Selected assignments: ${result.plan.counts.assignments}`,
-					result.plan.targetModerator ? `Target curator: ${result.plan.targetModerator.name || result.plan.targetModerator.email || result.plan.targetModerator.id}` : "Target curator: not selected",
-					""
-				];
-				for (const row of result.rows) {
-					const label = row.user?.name ? `${row.user.name} <${row.email}>` : row.email;
-					lines.push(`[${inferRowStatus(row)}] ${label}`);
-					if (row.addResult) lines.push(`  add_user: ${row.addResult.status} ${row.addResult.code} — ${row.addResult.message}`);
-					if (row.assignResult) lines.push(`  assign_curator: ${row.assignResult.status} ${row.assignResult.code} — ${row.assignResult.message}`);
-					if (!row.addResult && !row.assignResult) lines.push(`  discovery: ${row.resolution} — ${row.message || "No operation selected."}`);
-				}
-				if (result.fatalError) lines.push("", `Interrupted: ${result.fatalError.code} — ${result.fatalError.message}`);
-				return lines.join("\n");
-			}
-			function buildCounts(rows) {
-				const statuses = rows.map(inferRowStatus);
-				return Object.freeze({
-					requested: rows.length,
-					eligible: rows.filter((row) => !["invalid", "ambiguous"].includes(row.resolution) && row.selectedOperations.length > 0).length,
-					attempted: rows.filter((row) => [row.addResult, row.assignResult].filter(Boolean).some((result) => !["not_attempted", "rejected"].includes(result.status))).length,
-					successful: statuses.filter((status) => status === "success").length,
-					noOp: statuses.filter((status) => status === "noop").length,
-					skipped: statuses.filter((status) => status === "skipped" || status === "rejected").length,
-					failed: statuses.filter((status) => status === "failed").length,
-					notAttempted: statuses.filter((status) => status === "not_attempted").length
-				});
-			}
-			function serializeHistoryOperation(name, result) {
-				return result ? Object.freeze({
-					name,
-					status: result.status,
-					attemptCount: Number(result.attempts) || 0,
-					code: result.code || null,
-					message: result.message || null,
-					dependency: result.dependency ? Object.freeze({ ...result.dependency }) : null
-				}) : null;
-			}
-			function buildExecutionHistoryInput({ marathonId, marathonName = null, startedAt, completedAt, result }) {
-				const rows = result.rows || [];
-				const counts = buildCounts(rows);
-				const operationCounts = {
-					selected: 0,
-					attempted: 0,
-					successful: 0,
-					noOp: 0,
-					skipped: 0,
-					rejected: 0,
-					failed: 0,
-					notAttempted: 0
-				};
-				const historyRows = rows.map((row) => {
-					const operations = [serializeHistoryOperation("add_user", row.addResult), serializeHistoryOperation("assign_curator", row.assignResult)].filter(Boolean);
-					for (const operation of operations) {
-						operationCounts.selected += 1;
-						if (!["not_attempted", "rejected"].includes(operation.status)) operationCounts.attempted += 1;
-						if (operation.status === "success") operationCounts.successful += 1;
-						if (operation.status === "noop") operationCounts.noOp += 1;
-						if (operation.status === "skipped") operationCounts.skipped += 1;
-						if (operation.status === "rejected") operationCounts.rejected += 1;
-						if (operation.status === "failed") operationCounts.failed += 1;
-						if (operation.status === "not_attempted") operationCounts.notAttempted += 1;
-					}
-					const status = inferRowStatus(row);
-					return Object.freeze({
-						itemId: row.itemId,
-						label: row.email,
-						status,
-						code: {
-							success: "USER_ONBOARDING_COMPLETED",
-							noop: "USER_ONBOARDING_NOOP",
-							skipped: "USER_ONBOARDING_SKIPPED",
-							rejected: "USER_ONBOARDING_REJECTED",
-							failed: "USER_ONBOARDING_FAILED",
-							not_attempted: "NOT_ATTEMPTED"
-						}[status],
-						message: operations.map((operation) => operation.message).filter(Boolean).join("; ") || row.message || "No operation selected.",
-						attempts: operations.reduce((sum, operation) => sum + operation.attemptCount, 0),
-						data: Object.freeze({
-							submittedInput: row.email,
-							normalizedEmail: row.normalizedEmail,
-							resolution: row.resolution,
-							membershipPreflight: row.membership,
-							user: row.user ? Object.freeze({ ...row.user }) : null,
-							existingCurators: Object.freeze(row.currentModerators.map((moderator) => Object.freeze({ ...moderator }))),
-							targetCurator: row.targetModerator ? Object.freeze({ ...row.targetModerator }) : null,
-							selectedOperations: Object.freeze([...row.selectedOperations]),
-							operations: Object.freeze(operations)
-						})
-					});
-				});
-				return deepFreeze({
-					operationType: OPERATION_TYPE,
-					startedAt,
-					completedAt,
-					status: result.fatalError ? "interrupted" : counts.failed > 0 || counts.skipped > 0 ? "completed_with_failures" : "completed",
-					pageContext: {
-						marathonId: String(marathonId),
-						marathonName
-					},
-					counts,
-					results: historyRows,
-					message: JSON.stringify({
-						userCounts: counts,
-						operationCounts
-					})
-				});
-			}
-			function createBatchUserOnboardingFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog = () => document.createElement(DIALOG_TAG), copyText = (text) => navigator.clipboard.writeText(text), persistExecution = async () => Object.freeze({ stored: false }), openHistory = () => {}, getLocationHref = () => window.location.href, getMarathonName = () => document.querySelector("h1")?.textContent?.trim() || document.title || null, getRequestContext = () => ({ host: window.location.hostname }), now = () => /* @__PURE__ */ new Date(), log = () => {} }) {
-				let active = false;
-				function release() {
-					if (!active) return;
-					active = false;
-					onActiveChange(false);
-				}
-				async function open({ stylesheetUrl = "" } = {}) {
-					if (active || !canStart()) {
-						window.alert("Another Edvibe Toolbox operation is already running.");
-						return;
-					}
-					const marathonId = baseApi.parseMarathonId(getLocationHref());
-					if (!marathonId) {
-						window.alert("Open an Edvibe marathon page before adding users.");
-						return;
-					}
-					active = true;
-					onActiveChange(true);
-					const dialog = createDialog();
-					(document.body || document.documentElement).appendChild(dialog);
-					try {
-						dialog.showLoading?.("Loading marathon users and curators…");
-						const [pupils, moderators] = await Promise.all([baseApi.loadAllPupils({
-							sendRequest,
-							marathonId
-						}), loadModerators({
-							sendRequest,
-							marathonId
-						})]);
-						let discoveryRows = [];
-						dialog.configure({
-							stylesheetUrl,
-							moderators,
-							parseEmailInput: baseApi.parseEmailInput,
-							onDiscover({ emailInput }) {
-								const parsed = baseApi.parseEmailInput(emailInput);
-								if (parsed.items.length === 0) throw featureError("EMAILS_REQUIRED", "Enter at least one email address.");
-								discoveryRows = resolveOnboardingRows(parsed, pupils, moderators);
-								return discoveryRows;
-							},
-							onPreflight({ rows, targetModeratorId }) {
-								const selections = new Map((rows || []).map((row) => [row.normalizedEmail, {
-									addSelected: Boolean(row.addSelected),
-									assignSelected: Boolean(row.assignSelected)
-								}]));
-								const plan = buildExecutionPlan({
-									rows: discoveryRows.map((row) => ({
-										...row,
-										...selections.get(row.normalizedEmail) || {
-											addSelected: false,
-											assignSelected: false
-										}
-									})),
-									moderators,
-									targetModeratorId
-								});
-								if (plan.counts.selectedOperations === 0) throw featureError("OPERATIONS_REQUIRED", "Select at least one add or curator-assignment operation.");
-								return plan;
-							},
-							async onExecute(plan, onProgress) {
-								const startedAt = now().toISOString();
-								const result = await executePlan({
-									plan,
-									marathonId,
-									sendRequest,
-									wait,
-									getConnectionState,
-									getRequestContext,
-									now,
-									onProgress
-								});
-								const report = formatReport(result);
-								const completedAt = now().toISOString();
-								let history;
-								try {
-									history = await persistExecution(buildExecutionHistoryInput({
-										marathonId,
-										marathonName: getMarathonName(),
-										startedAt,
-										completedAt,
-										result
-									}));
-								} catch (persistenceError) {
-									history = Object.freeze({
-										stored: false,
-										persistenceError
-									});
-									log("Batch user onboarding history persistence failed:", persistenceError);
-								}
-								return {
-									...result,
-									report,
-									history
-								};
-							},
-							onCopy: copyText,
-							onOpenHistory(executionId) {
-								dialog.remove();
-								release();
-								openHistory(executionId, stylesheetUrl);
-							},
-							onClose() {
-								dialog.remove();
-								release();
-							}
-						});
-						dialog.showConfigure?.();
-						log(`Batch user onboarding initialized for MarathonId ${marathonId}.`);
-					} catch (error) {
-						log(`Batch user onboarding initialization failed (${error.code || "UNKNOWN_ERROR"}).`);
-						dialog.remove();
-						release();
-						window.alert(error.message || "Could not initialize batch user onboarding.");
-					}
-				}
-				return Object.freeze({ open });
-			}
-			return Object.freeze({
-				DIALOG_TAG,
-				OPERATION_TYPE,
-				parseMarathonId: baseApi.parseMarathonId,
-				parseEmailInput: baseApi.parseEmailInput,
-				loadAllPupils: baseApi.loadAllPupils,
-				normalizeModeratorCatalogue,
-				loadModerators,
-				resolvePupilModerators,
-				resolveOnboardingRows,
-				buildExecutionPlan,
-				formatClientTime,
-				buildAddRequest,
-				buildAssignRequest,
-				revalidateRows,
-				executePlan,
-				inferRowStatus,
-				formatReport,
-				buildCounts,
-				buildExecutionHistoryInput,
-				createBatchUserOnboardingFeature
-			});
-		});
-	}));
-	require_reset_lessons();
-	require_marathon_export();
-	require_action_recorder();
-	require_batch_lesson_access();
-	require_batch_lesson_access_history_model();
-	require_batch_lesson_access_history_record();
-	require_batch_lesson_access_history();
-	require_batch_user_management();
-	require_batch_user_management_history();
-	require_batch_user_onboarding();
-	(function installBatchSectionCreationRecipe(root) {
-		"use strict";
-		const clientTime = (/* @__PURE__ */ new Date()).toISOString();
-		root.EdVibeBatchSectionCreationRecipe = Object.freeze({
-			version: 1,
-			reviewedDynamicFields: true,
-			steps: Object.freeze([
-				Object.freeze({
-					id: "create-section",
-					controller: "LessonSectionWsController",
-					method: "AddStageSection",
-					projectName: "Books",
-					valueTemplate: Object.freeze({
-						LessonId: "{{lesson.lessonId}}",
-						StageSectionName: "{{section.name}}",
-						SortId: 4
-					}),
-					capture: Object.freeze({ sectionId: "Value.StageSectionId" }),
-					marksSectionCreated: true
-				}),
-				Object.freeze({
-					id: "confirm-section-name",
-					controller: "LessonSectionWsController",
-					method: "EditStageSection",
-					projectName: "Books",
-					valueTemplate: Object.freeze({
-						LessonId: "{{lesson.lessonId}}",
-						StageSectionId: "{{captured.sectionId}}",
-						StageSectionName: "{{section.name}}",
-						SortId: 4
-					})
-				}),
-				Object.freeze({
-					id: "save-image",
-					controller: "SaveExerciseWsController",
-					method: "SaveExercise",
-					projectName: "Exercises",
-					forEach: "blocks",
-					blockTypes: Object.freeze(["image"]),
-					valueTemplate: Object.freeze({
-						ClassId: null,
-						Domain: "edvibe.com",
-						ExerciseView: Object.freeze({
-							Id: 0,
-							Number: "{{blockIndex}}",
-							Name: "",
-							IsHidePupil: false,
-							Type: 27,
-							HomeworkLessonId: null,
-							PersonalMaterialId: null,
-							LessonSectionId: "{{captured.sectionId}}",
-							Descriptions: Object.freeze([""]),
-							ChangeExerciseImages: Object.freeze([Object.freeze({
-								ImageId: 687640222,
-								FullImageId: 687640223,
-								ImageUrl: "https://media-y.edvibe.com/files/LessonExerciseImages/b455a98f-ef63-49b5-a6f4-2111c7edebc6.png",
-								FullImageUrl: "https://media-y.edvibe.com/files/LessonExerciseImages/035f9f67-1474-4eb3-8359-5eb93ea68a2e.png",
-								cropped: false
-							})])
-						}),
-						AiUsed: false,
-						UsedNewConstructor: true,
-						ClientTime: clientTime,
-						DeviceType: "desktop"
-					})
-				}),
-				Object.freeze({
-					id: "save-cta",
-					controller: "SaveExerciseWsController",
-					method: "SaveExercise",
-					projectName: "Exercises",
-					forEach: "blocks",
-					blockTypes: Object.freeze(["link"]),
-					valueTemplate: Object.freeze({
-						ClassId: null,
-						Domain: "edvibe.com",
-						ExerciseView: Object.freeze({
-							Id: 0,
-							Number: "{{blockIndex}}",
-							Name: "",
-							IsHidePupil: false,
-							Type: 29,
-							HomeworkLessonId: null,
-							PersonalMaterialId: null,
-							LessonSectionId: "{{captured.sectionId}}",
-							Button: Object.freeze({
-								Link: "{{block.url}}",
-								Text: "{{block.label}}"
-							})
-						}),
-						AiUsed: false,
-						UsedNewConstructor: true,
-						ClientTime: clientTime,
-						DeviceType: "desktop"
-					})
-				})
-			])
-		});
-	})(typeof globalThis !== "undefined" ? globalThis : window);
-	//#endregion
-	//#region src/features/batch-section-creation.js
-	var require_batch_section_creation = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchSectionCreation(root, factory) {
-			if (typeof define === "function" && define.amd) define([], factory);
-			else if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeBatchSectionCreation = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const DIALOG_TAG = "edvibe-toolbox-batch-section-creation-dialog";
-			const OVERLAY_ID = "edvibe-toolbox-batch-section-creation-overlay";
-			const EXPECTED_WRITE_CODES = /* @__PURE__ */ new Set([
-				.../* @__PURE__ */ new Set([
-					"WS_UNAVAILABLE",
-					"REQUEST_TIMEOUT",
-					"SEND_FAILED"
-				]),
-				"SERVER_REJECTED",
-				"INVALID_RESPONSE"
-			]);
-			const TOKEN_PATTERN = /\{\{\s*([^{}]+?)\s*\}\}/g;
-			function createFeatureError(code, message, details = {}) {
-				const error = new Error(message);
-				error.code = code;
-				Object.assign(error, details);
-				return error;
-			}
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-				return match ? Number(match[1]) : null;
-			}
-			function normalizeUrl(value) {
-				const text = String(value || "").trim();
-				if (!text) return "";
-				try {
-					const url = new URL(text);
-					return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
-				} catch (_) {
-					return "";
-				}
-			}
-			function normalizeBlock(block, index) {
-				const type = String(block?.type || "").trim();
-				const id = String(block?.id || `block-${index + 1}`).trim();
-				if (type === "image") return Object.freeze({
-					id,
-					type,
-					url: String(block?.url || "").trim(),
-					alt: String(block?.alt || "").trim()
-				});
-				if (type === "text") return Object.freeze({
-					id,
-					type,
-					text: String(block?.text || "").trim()
-				});
-				if (type === "link") return Object.freeze({
-					id,
-					type,
-					label: String(block?.label || "").trim(),
-					url: String(block?.url || "").trim()
-				});
-				return Object.freeze({
-					id,
-					type
-				});
-			}
-			function validateSectionDefinition(input = {}) {
-				const errors = [];
-				const name = String(input?.name || "").trim();
-				const blocks = Array.isArray(input?.blocks) ? input.blocks.map(normalizeBlock) : [];
-				const seenIds = /* @__PURE__ */ new Set();
-				if (!name) errors.push(createFeatureError("SECTION_NAME_REQUIRED", "Section name is required."));
-				if (blocks.length === 0) errors.push(createFeatureError("SECTION_BLOCK_REQUIRED", "Add at least one section block."));
-				for (const [index, block] of blocks.entries()) {
-					if (seenIds.has(block.id)) errors.push(createFeatureError("DUPLICATE_BLOCK_ID", `Block ${index + 1} has a duplicate ID.`));
-					seenIds.add(block.id);
-					if (block.type === "image") {
-						if (!normalizeUrl(block.url)) errors.push(createFeatureError("IMAGE_URL_REQUIRED", `Image block ${index + 1} requires an HTTP(S) URL.`));
-					} else if (block.type === "text") {
-						if (!block.text) errors.push(createFeatureError("TEXT_REQUIRED", `Text block ${index + 1} cannot be empty.`));
-					} else if (block.type === "link") {
-						if (!block.label) errors.push(createFeatureError("LINK_LABEL_REQUIRED", `Link block ${index + 1} requires a label.`));
-						if (!normalizeUrl(block.url)) errors.push(createFeatureError("LINK_URL_REQUIRED", `Link block ${index + 1} requires an HTTP(S) URL.`));
-					} else errors.push(createFeatureError("UNSUPPORTED_BLOCK_TYPE", `Block ${index + 1} has unsupported type "${block.type || "unknown"}".`));
-				}
-				return {
-					definition: Object.freeze({
-						name,
-						blocks: Object.freeze(blocks)
-					}),
-					errors
-				};
-			}
-			function reorderBlocks(blocks, fromIndex, toIndex) {
-				const next = (Array.isArray(blocks) ? blocks : []).map((block) => ({ ...block }));
-				if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex) || fromIndex < 0 || toIndex < 0 || fromIndex >= next.length || toIndex >= next.length || fromIndex === toIndex) return next;
-				const [block] = next.splice(fromIndex, 1);
-				next.splice(toIndex, 0, block);
-				return next;
-			}
-			function normalizeLesson(node, index = 0) {
-				const lessonId = node?.LessonId ?? node?.lessonId ?? node?.Id;
-				const marathonLessonId = node?.MarathonLessonId ?? node?.marathonLessonId ?? node?.Id;
-				return Object.freeze({
-					lessonId: Number(lessonId),
-					marathonLessonId: Number(marathonLessonId),
-					number: Number(node?.Number ?? node?.number ?? index) + (node?.Number !== void 0 ? 1 : 0),
-					name: String(node?.Name ?? node?.name ?? `Lesson ${index + 1}`)
-				});
-			}
-			function extractNormalSections(structure) {
-				const value = structure?.Value ?? structure;
-				if (!value || !Array.isArray(value.Sections)) throw createFeatureError("INVALID_LESSON_RESPONSE", "The lesson response did not contain a normal sections array.");
-				return value.Sections;
-			}
-			function freezeEntries(entries) {
-				return Object.freeze(entries.map((entry) => Object.freeze({ ...entry })));
-			}
-			function buildPreflightPlan({ lessons, selectedLessonIds, definition, inspectionsByLessonId }) {
-				const validated = validateSectionDefinition(definition);
-				if (validated.errors.length > 0) throw createFeatureError("INVALID_SECTION_DEFINITION", "The section definition is invalid.", { validationErrors: validated.errors });
-				const selected = new Set((selectedLessonIds || []).map(Number));
-				const eligible = [];
-				const rejected = [];
-				for (const lesson of (lessons || []).filter((entry) => selected.has(Number(entry.lessonId)))) {
-					const inspection = inspectionsByLessonId.get(Number(lesson.lessonId));
-					if (!inspection || inspection.error) {
-						const error = inspection?.error || createFeatureError("INVALID_LESSON_RESPONSE", "The lesson was not inspected.");
-						rejected.push({
-							...lesson,
-							code: error.code || "INVALID_LESSON_RESPONSE",
-							message: error.message || "The lesson could not be inspected."
-						});
-						continue;
-					}
-					try {
-						if (extractNormalSections(inspection.structure).some((section) => String(section?.Name || "").trim() === validated.definition.name)) rejected.push({
-							...lesson,
-							code: "SECTION_NAME_COLLISION",
-							message: `A section named "${validated.definition.name}" already exists.`
-						});
-						else eligible.push({ ...lesson });
-					} catch (error) {
-						rejected.push({
-							...lesson,
-							code: error.code || "INVALID_LESSON_RESPONSE",
-							message: error.message
-						});
-					}
-				}
-				const blockSummary = validated.definition.blocks.map((block, index) => Object.freeze({
-					index,
-					type: block.type,
-					id: block.id
-				}));
-				return Object.freeze({
-					definition: validated.definition,
-					selectedLessonIds: Object.freeze([...selected]),
-					eligible: freezeEntries(eligible),
-					rejected: freezeEntries(rejected),
-					blockSummary: Object.freeze(blockSummary)
-				});
-			}
-			function readPath(source, path) {
-				return String(path || "").split(".").filter(Boolean).reduce((value, key) => value == null ? void 0 : value[key], source);
-			}
-			function resolveToken(path, context) {
-				if (path.startsWith("generated.")) {
-					const key = path.slice(10);
-					const store = context.block ? context.blockGenerated : context.generated;
-					if (!(key in store)) store[key] = context.createId();
-					return store[key];
-				}
-				return readPath(context, path);
-			}
-			function resolveTemplate(value, context) {
-				if (Array.isArray(value)) return value.map((entry) => resolveTemplate(entry, context));
-				if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, resolveTemplate(entry, context)]));
-				if (typeof value !== "string") return value;
-				const exact = value.match(/^\{\{\s*([^{}]+?)\s*\}\}$/);
-				if (exact) return resolveToken(exact[1], context);
-				return value.replace(TOKEN_PATTERN, (_match, path) => {
-					const resolved = resolveToken(path, context);
-					return resolved == null ? "" : String(resolved);
-				});
-			}
-			function validateRecipe(recipe) {
-				const errors = [];
-				if (!recipe || recipe.version !== 1) errors.push(createFeatureError("RECIPE_MISSING", "A version 1 recording recipe is required."));
-				if (recipe && recipe.reviewedDynamicFields !== true) errors.push(createFeatureError("RECIPE_NOT_REVIEWED", "The recording recipe must explicitly confirm reviewed dynamic fields."));
-				if (recipe && !Array.isArray(recipe.steps)) errors.push(createFeatureError("RECIPE_STEPS_REQUIRED", "The recording recipe requires steps."));
-				for (const step of recipe?.steps || []) if (!step.controller || !step.method || !step.projectName || !step.valueTemplate) errors.push(createFeatureError("INVALID_RECIPE_STEP", `Recipe step "${step.id || step.method || "unknown"}" is incomplete.`));
-				return errors;
-			}
-			function createRecordedCreationAdapter({ recipe = null, cryptoApi = globalThis.crypto, requestDelayMs = 300 } = {}) {
-				const errors = validateRecipe(recipe);
-				const createId = () => cryptoApi?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-				function expandSteps(steps, definition) {
-					const expanded = [];
-					for (let index = 0; index < steps.length;) {
-						const step = steps[index];
-						if (step.forEach !== "blocks") {
-							expanded.push({
-								step,
-								block: null,
-								blockIndex: null
-							});
-							index += 1;
-							continue;
-						}
-						const group = [];
-						while (index < steps.length && steps[index].forEach === "blocks") {
-							group.push(steps[index]);
-							index += 1;
-						}
-						definition.blocks.forEach((block, blockIndex) => {
-							const matching = group.find((candidate) => !Array.isArray(candidate.blockTypes) || candidate.blockTypes.includes(block.type));
-							if (matching) expanded.push({
-								step: matching,
-								block,
-								blockIndex
-							});
-						});
-					}
-					return expanded;
-				}
-				async function executeSteps({ steps, marathonId, lesson, definition, sendRequest, wait, captured = {}, generated = {} }) {
-					const blockGeneratedById = /* @__PURE__ */ new Map();
-					const expanded = expandSteps(steps, definition);
-					let markedCreated = false;
-					for (const [index, entry] of expanded.entries()) {
-						const blockGenerated = entry.block ? blockGeneratedById.get(entry.block.id) || {} : generated;
-						if (entry.block) blockGeneratedById.set(entry.block.id, blockGenerated);
-						const context = {
-							marathonId,
-							lesson,
-							section: definition,
-							block: entry.block,
-							blockIndex: entry.blockIndex,
-							captured,
-							generated,
-							blockGenerated,
-							createId
-						};
-						try {
-							const response = await sendRequest(entry.step.controller, entry.step.method, entry.step.projectName, resolveTemplate(entry.step.valueTemplate, context));
-							for (const [name, path] of Object.entries(entry.step.capture || {})) {
-								const capturedValue = readPath(response, path);
-								if (capturedValue === void 0) throw createFeatureError("INVALID_RESPONSE", `Recipe capture "${name}" was missing after ${entry.step.id || entry.step.method}.`);
-								captured[name] = capturedValue;
-							}
-							if (entry.step.marksSectionCreated === true) markedCreated = true;
-							if (index < expanded.length - 1 && requestDelayMs > 0) await wait(requestDelayMs);
-						} catch (error) {
-							error.partialCreated = markedCreated;
-							error.captured = { ...captured };
-							error.generated = { ...generated };
-							throw error;
-						}
-					}
-					return {
-						captured: { ...captured },
-						generated: { ...generated }
-					};
-				}
-				return Object.freeze({
-					isReady: errors.length === 0,
-					errors: Object.freeze(errors),
-					async createSection(context) {
-						if (errors.length > 0) throw createFeatureError("RECIPE_UNAVAILABLE", errors[0].message);
-						return executeSteps({
-							...context,
-							steps: recipe.steps
-						});
-					},
-					async cleanupSection(context) {
-						if (!Array.isArray(recipe?.cleanupSteps) || recipe.cleanupSteps.length === 0) return {
-							attempted: false,
-							status: "unavailable"
-						};
-						try {
-							await executeSteps({
-								...context,
-								steps: recipe.cleanupSteps
-							});
-							return {
-								attempted: true,
-								status: "success"
-							};
-						} catch (error) {
-							return {
-								attempted: true,
-								status: "failed",
-								code: error.code || "CLEANUP_FAILED",
-								message: error.message
-							};
-						}
-					}
-				});
-			}
-			async function loadLessonCatalogue({ sendRequest, marathonId, pageSize = 100 }) {
-				let items = [];
-				let total = null;
-				while (total === null || items.length < total) {
-					const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
-						MarathonId: marathonId,
-						SearchTerm: "",
-						Page: {
-							Skip: items.length,
-							Take: pageSize
-						}
-					});
-					const next = response?.Value?.Items;
-					const count = response?.Value?.Page?.Count;
-					if (!Array.isArray(next) || !Number.isInteger(count)) throw createFeatureError("INVALID_RESPONSE", "Lesson catalogue pagination was invalid.");
-					if (next.length === 0 && items.length < count) throw createFeatureError("INVALID_RESPONSE", "Lesson catalogue pagination stalled.");
-					items = items.concat(next);
-					total = count;
-				}
-				return items.map(normalizeLesson);
-			}
-			async function inspectLessonsSequentially({ lessons, selectedLessonIds, sendRequest, wait, delayMs = 300 }) {
-				const selected = new Set((selectedLessonIds || []).map(Number));
-				const targets = (lessons || []).filter((lesson) => selected.has(Number(lesson.lessonId)));
-				const inspections = /* @__PURE__ */ new Map();
-				for (const [index, lesson] of targets.entries()) {
-					try {
-						const structure = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.lessonId });
-						inspections.set(Number(lesson.lessonId), { structure });
-					} catch (error) {
-						inspections.set(Number(lesson.lessonId), { error });
-					}
-					if (index < targets.length - 1 && delayMs > 0) await wait(delayMs);
-				}
-				return inspections;
-			}
-			function createResult(lesson, status, details = {}) {
-				return {
-					lessonId: lesson.lessonId,
-					marathonLessonId: lesson.marathonLessonId,
-					lessonNumber: lesson.number,
-					lessonName: lesson.name,
-					status,
-					...details
-				};
-			}
-			function isFatalError(error, getConnectionState) {
-				if (error?.code === "WS_UNAVAILABLE") return true;
-				if (error?.code === "SEND_FAILED" && !getConnectionState().isOpen) return true;
-				return !EXPECTED_WRITE_CODES.has(error?.code);
-			}
-			async function executeCreationPlan({ marathonId, plan, adapter, sendRequest, wait, getConnectionState, lessonDelayMs = 300, onProgress = () => {} }) {
-				if (!adapter?.isReady) throw createFeatureError("RECIPE_UNAVAILABLE", adapter?.errors?.[0]?.message || "Recording recipe unavailable.");
-				const results = plan.rejected.map((lesson) => createResult(lesson, "rejected", {
-					code: lesson.code,
-					message: lesson.message
-				}));
-				let attempts = 0;
-				for (const [index, lesson] of plan.eligible.entries()) {
-					onProgress({
-						completed: index,
-						total: plan.eligible.length,
-						lesson,
-						results: [...results]
-					});
-					try {
-						attempts += 1;
-						const created = await adapter.createSection({
-							marathonId,
-							lesson,
-							definition: plan.definition,
-							sendRequest,
-							wait
-						});
-						results.push(createResult(lesson, "created", {
-							captured: created.captured,
-							generated: created.generated,
-							attempts: 1
-						}));
-					} catch (error) {
-						const partial = Boolean(error.partialCreated);
-						const fatal = isFatalError(error, getConnectionState);
-						let cleanup = null;
-						if (partial && !fatal) cleanup = await adapter.cleanupSection({
-							marathonId,
-							lesson,
-							definition: plan.definition,
-							sendRequest,
-							wait,
-							captured: error.captured || {},
-							generated: error.generated || {}
-						});
-						results.push(createResult(lesson, partial ? "partially_created" : "failed", {
-							code: error.code || "UNKNOWN_ERROR",
-							message: error.message || "Section creation failed.",
-							captured: error.captured,
-							generated: error.generated,
-							cleanup,
-							attempts: error.attempts || 1
-						}));
-						if (fatal) {
-							for (const remaining of plan.eligible.slice(index + 1)) results.push(createResult(remaining, "not_attempted", {
-								code: "OPERATION_INTERRUPTED",
-								message: "Not attempted because the batch operation stopped."
-							}));
-							error.partialResult = {
-								definition: plan.definition,
-								results,
-								attempts,
-								fatalError: error
-							};
-							throw error;
-						}
-					}
-					onProgress({
-						completed: index + 1,
-						total: plan.eligible.length,
-						lesson,
-						results: [...results]
-					});
-					if (index < plan.eligible.length - 1 && lessonDelayMs > 0) await wait(lessonDelayMs);
-				}
-				return {
-					definition: plan.definition,
-					results,
-					attempts
-				};
-			}
-			function formatCreationReport(result) {
-				const rows = Array.isArray(result?.results) ? result.results : [];
-				const counts = (status) => rows.filter((entry) => entry.status === status).length;
-				const lines = [
-					`Section: ${result?.definition?.name || "Unknown"}`,
-					`Blocks: ${result?.definition?.blocks?.length || 0}`,
-					`Created: ${counts("created")}`,
-					`Rejected in preflight: ${counts("rejected")}`,
-					`Failed: ${counts("failed")}`,
-					`Partially created: ${counts("partially_created")}`,
-					`Not attempted: ${counts("not_attempted")}`,
-					""
-				];
-				for (const entry of rows) {
-					lines.push(`${entry.lessonNumber || "?"}. ${entry.lessonName} — ${entry.status}` + (entry.code ? ` — ${entry.code}: ${entry.message || ""}` : ""));
-					if (entry.captured?.sectionId !== void 0) lines.push(`  Captured sectionId: ${entry.captured.sectionId}`);
-					if (entry.cleanup) lines.push(`  Cleanup: ${entry.cleanup.status}`);
-				}
-				return lines.join("\n").trim();
-			}
-			function createBatchSectionCreationFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, adapter, createDialog = () => document.createElement(DIALOG_TAG), copyText = async () => {}, log = () => {} }) {
-				let active = false;
-				let running = false;
-				let dialog = null;
-				let marathonId = null;
-				let lessons = [];
-				let pendingPlan = null;
-				let completedResult = null;
-				function release() {
-					if (active) {
-						active = false;
-						onActiveChange(false);
-					}
-				}
-				function close() {
-					running = false;
-					dialog = null;
-					lessons = [];
-					pendingPlan = null;
-					completedResult = null;
-					release();
-				}
-				async function preflight(event) {
-					if (running) return;
-					running = true;
-					try {
-						const definition = event?.detail?.definition || {};
-						const selectedLessonIds = event?.detail?.selectedLessonIds || [];
-						const validation = validateSectionDefinition(definition);
-						const errors = [...validation.errors];
-						if (selectedLessonIds.length === 0) errors.push(createFeatureError("LESSON_SELECTION_REQUIRED", "Select at least one lesson."));
-						if (errors.length > 0) {
-							dialog.showValidationErrors(errors);
-							return;
-						}
-						dialog.showLoading("Проверяем выбранные уроки…");
-						const inspections = await inspectLessonsSequentially({
-							lessons,
-							selectedLessonIds,
-							sendRequest,
-							wait
-						});
-						pendingPlan = buildPreflightPlan({
-							lessons,
-							selectedLessonIds,
-							definition: validation.definition,
-							inspectionsByLessonId: inspections
-						});
-						dialog.showConfirmation(pendingPlan);
-					} catch (error) {
-						dialog.showValidationErrors([error]);
-					} finally {
-						running = false;
-					}
-				}
-				async function confirm() {
-					if (running || !pendingPlan?.eligible?.length) return;
-					running = true;
-					try {
-						completedResult = await executeCreationPlan({
-							marathonId,
-							plan: pendingPlan,
-							adapter,
-							sendRequest,
-							wait,
-							getConnectionState,
-							onProgress: (progress) => dialog.showExecution(progress)
-						});
-						dialog.showComplete(completedResult);
-					} catch (error) {
-						completedResult = error.partialResult || {
-							definition: pendingPlan.definition,
-							results: pendingPlan.rejected,
-							fatalError: error
-						};
-						dialog.showComplete(completedResult, error);
-					} finally {
-						running = false;
-					}
-				}
-				async function copyReport() {
-					if (completedResult) await copyText(formatCreationReport(completedResult));
-				}
-				function restart() {
-					pendingPlan = null;
-					completedResult = null;
-					dialog.showConfigure({
-						lessons,
-						recipeReady: adapter?.isReady,
-						recipeErrors: adapter?.errors || []
-					});
-				}
-				async function open({ stylesheetUrl = "" } = {}) {
-					if (active || document.getElementById(OVERLAY_ID)) return;
-					if (!canStart()) {
-						window.alert("Another Edvibe Toolbox operation is already running.");
-						return;
-					}
-					marathonId = parseMarathonId(window.location.href);
-					if (!marathonId) {
-						window.alert("Open an Edvibe marathon page before creating sections.");
-						return;
-					}
-					active = true;
-					onActiveChange(true);
-					try {
-						dialog = createDialog();
-						dialog.addEventListener("edvibe-dialog-close", close);
-						dialog.addEventListener("edvibe-batch-section-preflight", preflight);
-						dialog.addEventListener("edvibe-batch-section-confirm", confirm);
-						dialog.addEventListener("edvibe-batch-section-copy", copyReport);
-						dialog.addEventListener("edvibe-batch-section-restart", restart);
-						dialog.configure({ stylesheetUrl });
-						(document.body || document.documentElement).appendChild(dialog);
-						dialog.showLoading("Загружаем уроки марафона…");
-						lessons = await loadLessonCatalogue({
-							sendRequest,
-							marathonId
-						});
-						if (lessons.length === 0) throw createFeatureError("EMPTY_LESSON_CATALOGUE", "No lessons were found.");
-						dialog.showConfigure({
-							lessons,
-							recipeReady: adapter?.isReady,
-							recipeErrors: adapter?.errors || []
-						});
-						log(`Batch section creation ready for MarathonId ${marathonId}.`);
-					} catch (error) {
-						log(`Batch section creation initialization failed (${error.code || "UNKNOWN_ERROR"}).`);
-						try {
-							dialog?.showFatalError?.(error);
-						} finally {
-							release();
-						}
-					}
-				}
-				return {
-					open,
-					isRunning: () => running
-				};
-			}
-			return {
-				parseMarathonId,
-				validateSectionDefinition,
-				reorderBlocks,
-				normalizeLesson,
-				buildPreflightPlan,
-				createRecordedCreationAdapter,
-				loadLessonCatalogue,
-				inspectLessonsSequentially,
-				executeCreationPlan,
-				formatCreationReport,
-				createBatchSectionCreationFeature,
-				createFeatureError,
-				DIALOG_TAG,
-				OVERLAY_ID
-			};
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-section-creation-history-model.js
-	var require_batch_section_creation_history_model = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchSectionCreationHistoryModel(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeBatchSectionCreationHistoryModel = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const OPERATION_TYPE = "batch_section_creation";
-			const TERMINAL_STATUSES = Object.freeze([
-				"completed",
-				"completed_with_failures",
-				"cancelled",
-				"interrupted"
-			]);
-			const ATTEMPTED_STATUSES = Object.freeze([
-				"created",
-				"failed",
-				"partially_created"
-			]);
-			const FAILURE_STATUSES = Object.freeze(["failed", "partially_created"]);
-			const SENSITIVE_IDENTIFIER_WORDS = /* @__PURE__ */ new Set([
-				"auth",
-				"authorization",
-				"cookie",
-				"credential",
-				"credentials",
-				"password",
-				"response",
-				"session",
-				"token",
-				"transport",
-				"websocket"
-			]);
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-				return match ? String(match[1]) : null;
-			}
-			function text(value, fallback = "", maxLength = 4e3) {
-				const normalized = String(value ?? "").trim();
-				if (!normalized) return fallback;
-				return normalized.length <= maxLength ? normalized : `${normalized.slice(0, Math.max(0, maxLength - 1))}…`;
-			}
-			function safeUrl(value) {
-				const normalized = text(value);
-				if (!normalized) return null;
-				try {
-					const url = new URL(normalized);
-					return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
-				} catch (_) {
-					return null;
-				}
-			}
-			function safeBlockText(value, maxLength) {
-				return text(value, "", maxLength).replace(/data:image\/[^;,<>"'\s]+(?:;[^,<>"'\s]+)*;base64,[a-z0-9+/=\r\n]+/gi, "[redacted image data]");
-			}
-			function freezeArray(entries) {
-				return Object.freeze(entries.map((entry) => Object.freeze(entry)));
-			}
-			function summarizeBlock(block, index) {
-				const type = text(block?.type, "unknown", 80);
-				const summary = {
-					order: index,
-					blockId: text(block?.id, `block-${index + 1}`, 160),
-					type
-				};
-				const clientId = text(block?.clientId, "", 500);
-				if (clientId) summary.clientId = clientId;
-				if (type === "image") {
-					summary.url = safeUrl(block?.url);
-					summary.alt = safeBlockText(block?.alt, 1e3) || null;
-				} else if (type === "text") summary.content = safeBlockText(block?.text, 1e4) || null;
-				else if (type === "link") {
-					summary.label = safeBlockText(block?.label, 1e3) || null;
-					summary.url = safeUrl(block?.url);
-				}
-				return summary;
-			}
-			function serializeSectionDefinition(definition = {}) {
-				const blocks = Array.isArray(definition?.blocks) ? definition.blocks.map(summarizeBlock) : [];
-				return Object.freeze({
-					name: text(definition?.name, "Unnamed section", 500),
-					blocks: freezeArray(blocks)
-				});
-			}
-			function words(value) {
-				return String(value || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-			}
-			function isSafeIdentifierPath(path) {
-				const leaf = words(path.at(-1));
-				const allParts = path.flatMap(words);
-				return leaf.includes("id") && !allParts.some((part) => SENSITIVE_IDENTIFIER_WORDS.has(part));
-			}
-			function collectIdentifiers(source, sourceName, output, path = [], depth = 0, seen = /* @__PURE__ */ new WeakSet()) {
-				if (source === null || source === void 0 || depth > 5) return;
-				if (typeof source !== "object") {
-					if (!isSafeIdentifierPath(path)) return;
-					const value = typeof source === "number" || typeof source === "boolean" ? source : text(source, "", 500);
-					if (value === "") return;
-					output.push({
-						source: sourceName,
-						name: path.join("."),
-						value
-					});
-					return;
-				}
-				if (seen.has(source)) return;
-				seen.add(source);
-				try {
-					if (Array.isArray(source)) {
-						source.forEach((entry, index) => collectIdentifiers(entry, sourceName, output, [...path, String(index)], depth + 1, seen));
-						return;
-					}
-					for (const [key, value] of Object.entries(source)) collectIdentifiers(value, sourceName, output, [...path, key], depth + 1, seen);
-				} finally {
-					seen.delete(source);
-				}
-			}
-			function serializeIdentifiers(result = {}) {
-				const entries = [];
-				collectIdentifiers(result?.captured, "captured", entries);
-				collectIdentifiers(result?.generated, "generated", entries);
-				collectIdentifiers(result?.blockGenerated, "block_generated", entries);
-				const deduplicated = [];
-				const seen = /* @__PURE__ */ new Set();
-				for (const entry of entries) {
-					const key = `${entry.source}\u0000${entry.name}\u0000${String(entry.value)}`;
-					if (seen.has(key)) continue;
-					seen.add(key);
-					deduplicated.push(entry);
-				}
-				return freezeArray(deduplicated);
-			}
-			function normalizeLesson(value = {}, fallbackId = null) {
-				const lessonId = value.lessonId ?? value.LessonId ?? fallbackId;
-				const marathonLessonId = value.marathonLessonId ?? value.MarathonLessonId ?? null;
-				const number = value.lessonNumber ?? value.number ?? value.Number ?? null;
-				const name = value.lessonName ?? value.name ?? value.Name ?? null;
-				return Object.freeze({
-					lessonId: lessonId === void 0 || lessonId === null ? null : lessonId,
-					marathonLessonId: marathonLessonId === void 0 ? null : marathonLessonId,
-					number: number === void 0 ? null : number,
-					name: text(name, "Unnamed lesson", 500)
-				});
-			}
-			function lessonKey(value) {
-				const lessonId = value?.lessonId ?? value?.LessonId;
-				return lessonId === void 0 || lessonId === null ? null : String(lessonId);
-			}
-			function asExecutionResult(value, fallbackStatus, terminalStatus) {
-				return {
-					lessonId: value?.lessonId ?? value?.LessonId ?? null,
-					marathonLessonId: value?.marathonLessonId ?? value?.MarathonLessonId ?? null,
-					lessonNumber: value?.lessonNumber ?? value?.number ?? value?.Number ?? null,
-					lessonName: value?.lessonName ?? value?.name ?? value?.Name ?? null,
-					status: value?.status || fallbackStatus,
-					code: value?.code,
-					message: value?.message,
-					attempts: value?.attempts,
-					captured: value?.captured,
-					generated: value?.generated,
-					blockGenerated: value?.blockGenerated,
-					cleanup: value?.cleanup,
-					terminalStatus
-				};
-			}
-			function materializeResults(plan = {}, executionResult = {}, terminalStatus = null) {
-				const rejectedByLesson = /* @__PURE__ */ new Map();
-				for (const entry of plan?.rejected || []) {
-					const key = lessonKey(entry);
-					if (key !== null) rejectedByLesson.set(key, asExecutionResult(entry, "rejected", terminalStatus));
-				}
-				const finalByLesson = /* @__PURE__ */ new Map();
-				for (const entry of executionResult?.results || []) {
-					const key = lessonKey(entry);
-					if (key === null) continue;
-					const fallbackStatus = entry?.status || (rejectedByLesson.has(key) ? "rejected" : null);
-					finalByLesson.set(key, asExecutionResult(entry, fallbackStatus, terminalStatus));
-				}
-				const eligibleByLesson = /* @__PURE__ */ new Map();
-				for (const entry of plan?.eligible || []) {
-					const key = lessonKey(entry);
-					if (key !== null) eligibleByLesson.set(key, entry);
-				}
-				const selectedIds = Array.isArray(plan?.selectedLessonIds) ? plan.selectedLessonIds.map(String) : [];
-				const ordered = [];
-				const included = /* @__PURE__ */ new Set();
-				for (const id of selectedIds) {
-					let entry = finalByLesson.get(id) || rejectedByLesson.get(id);
-					if (!entry && eligibleByLesson.has(id)) entry = asExecutionResult(eligibleByLesson.get(id), "not_attempted", terminalStatus);
-					if (!entry) entry = asExecutionResult({
-						lessonId: id,
-						lessonName: `Lesson ${id}`
-					}, "not_attempted", terminalStatus);
-					ordered.push(entry);
-					included.add(id);
-				}
-				for (const entry of [...rejectedByLesson.values(), ...finalByLesson.values()]) {
-					const key = lessonKey(entry);
-					if (key !== null && included.has(key)) continue;
-					ordered.push(entry);
-					if (key !== null) included.add(key);
-				}
-				for (const [key, entry] of eligibleByLesson.entries()) {
-					if (included.has(key)) continue;
-					ordered.push(asExecutionResult(entry, "not_attempted", terminalStatus));
-					included.add(key);
-				}
-				return ordered;
-			}
-			function isAttemptedStatus(status) {
-				return ATTEMPTED_STATUSES.includes(status);
-			}
-			function isFailureStatus(status) {
-				return FAILURE_STATUSES.includes(status);
-			}
-			function buildCounts(results, plan = {}) {
-				const attempted = results.filter((result) => isAttemptedStatus(result.status)).length;
-				const notAttempted = results.filter((result) => result.status === "not_attempted").length;
-				const inferredEligible = attempted + notAttempted;
-				const plannedEligible = Array.isArray(plan?.eligible) ? plan.eligible.length : 0;
-				return Object.freeze({
-					requested: results.length,
-					eligible: Math.max(plannedEligible, inferredEligible),
-					attempted,
-					successful: results.filter((result) => result.status === "created").length,
-					noOp: 0,
-					skipped: results.filter((result) => result.status === "rejected").length,
-					failed: results.filter((result) => isFailureStatus(result.status)).length,
-					notAttempted
-				});
-			}
-			return Object.freeze({
-				OPERATION_TYPE,
-				TERMINAL_STATUSES,
-				parseMarathonId,
-				text,
-				serializeSectionDefinition,
-				serializeIdentifiers,
-				normalizeLesson,
-				asExecutionResult,
-				materializeResults,
-				isAttemptedStatus,
-				isFailureStatus,
-				buildCounts
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-section-creation-history-record.js
-	var require_batch_section_creation_history_record = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchSectionCreationHistoryRecord(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_batch_section_creation_history_model());
-			else root.EdVibeBatchSectionCreationHistoryRecord = factory(root.EdVibeBatchSectionCreationHistoryModel);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(modelApi) {
-			"use strict";
-			const TERMINAL_STATUSES = new Set(modelApi.TERMINAL_STATUSES);
-			function resultCode(result, terminalStatus) {
-				if (result?.code) return modelApi.text(result.code, "UNKNOWN_ERROR", 120);
-				return {
-					created: "SECTION_CREATED",
-					rejected: "PREFLIGHT_REJECTED",
-					failed: "SECTION_CREATION_FAILED",
-					partially_created: "SECTION_PARTIALLY_CREATED",
-					not_attempted: terminalStatus === "cancelled" ? "OPERATION_CANCELLED" : "OPERATION_INTERRUPTED"
-				}[result?.status] || "UNKNOWN_RESULT";
-			}
-			function resultMessage(result, terminalStatus) {
-				if (result?.message) return modelApi.text(result.message, "No message was provided.", 1e3);
-				return {
-					created: "Section created successfully.",
-					rejected: "The lesson was rejected during preflight.",
-					failed: "Section creation failed.",
-					partially_created: "Section creation failed after the section had been created.",
-					not_attempted: terminalStatus === "cancelled" ? "Not attempted because the confirmed run was cancelled." : "Not attempted because the confirmed run was interrupted."
-				}[result?.status] || "The operation produced an unknown result.";
-			}
-			function serializeCleanup(result, terminalStatus) {
-				if (result?.status !== "partially_created") return null;
-				const cleanup = result?.cleanup;
-				if (!cleanup) return Object.freeze({
-					attempted: false,
-					status: "unavailable",
-					code: terminalStatus === "interrupted" ? "CLEANUP_UNAVAILABLE_AFTER_INTERRUPTION" : "CLEANUP_UNAVAILABLE",
-					message: terminalStatus === "interrupted" ? "Cleanup was unavailable after the batch was interrupted." : "Cleanup was unavailable for this partially created section."
-				});
-				const attempted = Boolean(cleanup.attempted);
-				const status = [
-					"success",
-					"failed",
-					"unavailable"
-				].includes(cleanup.status) ? cleanup.status : attempted ? "failed" : "unavailable";
-				return Object.freeze({
-					attempted,
-					status,
-					code: cleanup.code ? modelApi.text(cleanup.code, "CLEANUP_FAILED", 120) : status === "success" ? "CLEANUP_SUCCEEDED" : status === "unavailable" ? "CLEANUP_UNAVAILABLE" : "CLEANUP_FAILED",
-					message: cleanup.message ? modelApi.text(cleanup.message, "Cleanup failed.", 1e3) : status === "success" ? "Cleanup completed successfully." : status === "unavailable" ? "Cleanup was unavailable." : "Cleanup failed."
-				});
-			}
-			function serializeCreationFailure(result, terminalStatus) {
-				if (!modelApi.isFailureStatus(result?.status)) return null;
-				return Object.freeze({
-					code: resultCode(result, terminalStatus),
-					message: resultMessage(result, terminalStatus),
-					attemptCount: Number.isSafeInteger(result?.attempts) && result.attempts >= 0 ? result.attempts : 1
-				});
-			}
-			function serializeResult(result, definitionSummary, terminalStatus) {
-				const lesson = modelApi.normalizeLesson(result);
-				const status = modelApi.text(result?.status, "not_attempted", 80);
-				const attempts = Number.isSafeInteger(result?.attempts) && result.attempts >= 0 ? result.attempts : modelApi.isAttemptedStatus(status) ? 1 : 0;
-				const normalizedResult = {
-					...result,
-					status
-				};
-				const code = resultCode(normalizedResult, terminalStatus);
-				const message = resultMessage(normalizedResult, terminalStatus);
-				return Object.freeze({
-					itemId: lesson.lessonId === null ? null : String(lesson.lessonId),
-					label: `${lesson.number ?? "?"}. ${lesson.name}`,
-					status,
-					code,
-					message,
-					attempts,
-					data: Object.freeze({
-						lesson,
-						section: definitionSummary,
-						preflight: Object.freeze({
-							status: status === "rejected" ? "rejected" : "eligible",
-							code: status === "rejected" ? code : "PREFLIGHT_ELIGIBLE",
-							message: status === "rejected" ? message : "The lesson passed preflight and was included in the confirmed plan."
-						}),
-						creationFailure: serializeCreationFailure(normalizedResult, terminalStatus),
-						cleanup: serializeCleanup(normalizedResult, terminalStatus),
-						identifiers: modelApi.serializeIdentifiers(result)
-					})
-				});
-			}
-			function inferTerminalStatus(explicitStatus, fatalError, results) {
-				if (TERMINAL_STATUSES.has(explicitStatus)) return explicitStatus;
-				if (fatalError) return "interrupted";
-				return results.some((result) => [
-					"rejected",
-					"failed",
-					"partially_created",
-					"not_attempted"
-				].includes(result.status)) ? "completed_with_failures" : "completed";
-			}
-			function buildExecutionHistoryInput({ plan, result = {}, startedAt, completedAt, marathonId, marathonName = null, terminalStatus = null, fatalError = null }) {
-				const materializationStatus = TERMINAL_STATUSES.has(terminalStatus) ? terminalStatus : fatalError ? "interrupted" : null;
-				const definitionSummary = modelApi.serializeSectionDefinition(plan?.definition || result?.definition || {});
-				const results = modelApi.materializeResults(plan, result, materializationStatus).map((entry) => serializeResult(entry, definitionSummary, materializationStatus));
-				const status = inferTerminalStatus(terminalStatus, fatalError || result?.fatalError, results);
-				const counts = modelApi.buildCounts(results, plan);
-				return Object.freeze({
-					operationType: modelApi.OPERATION_TYPE,
-					startedAt,
-					completedAt,
-					status,
-					pageContext: Object.freeze({
-						marathonId,
-						marathonName
-					}),
-					counts,
-					results: Object.freeze(results),
-					message: JSON.stringify({
-						sectionName: definitionSummary.name,
-						blockCount: definitionSummary.blocks.length,
-						counts
-					})
-				});
-			}
-			return Object.freeze({
-				resultCode,
-				resultMessage,
-				serializeCleanup,
-				serializeResult,
-				inferTerminalStatus,
-				buildExecutionHistoryInput
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-section-creation-history.js
-	var require_batch_section_creation_history = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchSectionCreationHistory(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_batch_section_creation_history_model(), require_batch_section_creation_history_record(), root);
-			else root.EdVibeBatchSectionCreationHistory = factory(root.EdVibeBatchSectionCreationHistoryModel, root.EdVibeBatchSectionCreationHistoryRecord, root);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(modelApi, recordApi, rootObject) {
-			"use strict";
-			function appendStatus(dialog, message, isError = false) {
-				const current = dialog.elements?.status?.textContent || "";
-				dialog.setStatus?.(`${current}${current ? " " : ""}${message}`, isError ? "error" : "");
-			}
-			function addHistoryButton(dialog, executionId, stylesheetUrl, openHistory) {
-				dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-history")?.remove?.();
-				const button = (dialog.ownerDocument || rootObject.document)?.createElement?.("button");
-				if (!button) return;
-				button.type = "button";
-				button.className = "edvibe-batch-section-history";
-				button.textContent = "Открыть в истории";
-				button.addEventListener("click", () => {
-					dialog.close?.();
-					openHistory(executionId, stylesheetUrl);
-				});
-				(dialog.elements?.footer || dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-footer"))?.appendChild?.(button);
-			}
-			function createHistoryAwareDialog({ createDialog, persistExecution, openHistory = () => {}, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {} }) {
-				if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
-				if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
-				return function createPatchedDialog() {
-					const dialog = createDialog();
-					let confirmedPlan = null;
-					let latestResult = null;
-					let startedAt = null;
-					let terminal = false;
-					let stylesheetUrl = "";
-					let sequence = 0;
-					const originalConfigure = dialog.configure.bind(dialog);
-					const originalShowConfigure = dialog.showConfigure.bind(dialog);
-					const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
-					const originalShowExecution = dialog.showExecution.bind(dialog);
-					const originalShowComplete = dialog.showComplete.bind(dialog);
-					const originalShowFatalError = dialog.showFatalError.bind(dialog);
-					function clearHistoryButton() {
-						dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-history")?.remove?.();
-					}
-					function resetAttempt() {
-						sequence += 1;
-						confirmedPlan = null;
-						latestResult = null;
-						startedAt = null;
-						terminal = false;
-						clearHistoryButton();
-					}
-					function persist(result, terminalStatus = null, fatalError = null) {
-						if (!confirmedPlan || terminal) return;
-						terminal = true;
-						const currentSequence = sequence;
-						let input;
-						try {
-							const completedAt = now().toISOString();
-							input = recordApi.buildExecutionHistoryInput({
-								plan: confirmedPlan,
-								result: result || latestResult || {},
-								startedAt: startedAt || completedAt,
-								completedAt,
-								marathonId: modelApi.parseMarathonId(getLocationHref()),
-								marathonName: getMarathonName(),
-								terminalStatus,
-								fatalError
-							});
-						} catch (error) {
-							appendStatus(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
-							log("Batch section creation history record creation failed:", error);
-							return;
-						}
-						Promise.resolve().then(() => persistExecution(input)).then((history) => {
-							if (currentSequence !== sequence) return;
-							if (history?.stored) {
-								appendStatus(dialog, "Результат сохранён в истории.");
-								if (history.record?.id) addHistoryButton(dialog, history.record.id, stylesheetUrl, openHistory);
-							} else {
-								appendStatus(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
-								if (history?.persistenceError) log("Batch section creation history persistence failed:", history.persistenceError);
-							}
-						}).catch((error) => {
-							if (currentSequence !== sequence) return;
-							appendStatus(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
-							log("Batch section creation history persistence failed:", error);
-						});
-					}
-					dialog.configure = (options = {}) => {
-						stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || "");
-						return originalConfigure(options);
-					};
-					dialog.showConfigure = (...args) => {
-						resetAttempt();
-						return originalShowConfigure(...args);
-					};
-					dialog.showConfirmation = (plan) => {
-						sequence += 1;
-						clearHistoryButton();
-						confirmedPlan = plan;
-						latestResult = {
-							definition: plan?.definition,
-							results: Array.isArray(plan?.rejected) ? plan.rejected.map((entry) => modelApi.asExecutionResult(entry, "rejected")) : []
-						};
-						startedAt = now().toISOString();
-						terminal = false;
-						const output = originalShowConfirmation(plan);
-						if (!plan?.eligible?.length) persist(latestResult);
-						return output;
-					};
-					dialog.showExecution = (progress = {}) => {
-						if (confirmedPlan && Array.isArray(progress?.results)) latestResult = {
-							definition: confirmedPlan.definition,
-							results: [...progress.results]
-						};
-						return originalShowExecution(progress);
-					};
-					dialog.showComplete = (result = {}, fatalError = null) => {
-						const output = originalShowComplete(result, fatalError);
-						latestResult = result;
-						persist(result, fatalError ? "interrupted" : null, fatalError);
-						return output;
-					};
-					dialog.showFatalError = (error) => {
-						const output = originalShowFatalError(error);
-						if (confirmedPlan) persist(latestResult, "interrupted", error);
-						return output;
-					};
-					dialog.addEventListener("edvibe-batch-section-restart", resetAttempt);
-					dialog.addEventListener("edvibe-dialog-close", () => {
-						if (confirmedPlan && !terminal) persist(latestResult, "cancelled");
-					});
-					return dialog;
-				};
-			}
-			return Object.freeze({
-				...modelApi,
-				...recordApi,
-				createHistoryAwareDialog
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-section-image-upload.js
-	var require_batch_section_image_upload = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchSectionImageUpload(root, factory) {
-			if (typeof define === "function" && define.amd) define([], () => factory(root));
-			else if (typeof module === "object" && module.exports) module.exports = factory(null);
-			else root.EdVibeBatchSectionImageUpload = factory(root);
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(root) {
-			"use strict";
-			const UPLOAD_ENDPOINT = "https://media-files-y.edvibe.com/api/MediaFile/create-multiple";
-			const IMAGE_PLACEHOLDER_PREFIX = "https://media-files-y.edvibe.com/local-upload/";
-			function createUploadError(code, message, details = {}) {
-				const error = new Error(message);
-				error.code = code;
-				Object.assign(error, details);
-				return error;
-			}
-			function parseClientId(value) {
-				const text = String(value || "");
-				if (!text.startsWith(IMAGE_PLACEHOLDER_PREFIX)) return "";
-				try {
-					return decodeURIComponent(text.slice(46));
-				} catch (_) {
-					return "";
-				}
-			}
-			function normalizeRequestUrl(input, baseUrl) {
-				const candidate = typeof input === "string" || input instanceof URL ? String(input) : String(input?.url || "");
-				try {
-					return new URL(candidate, baseUrl || "https://edvibe.com/");
-				} catch (_) {
-					return null;
-				}
-			}
-			function isTrustedEdvibeUrl(input, baseUrl) {
-				const url = normalizeRequestUrl(input, baseUrl);
-				return Boolean(url) && url.protocol === "https:" && (url.hostname === "edvibe.com" || url.hostname.endsWith(".edvibe.com"));
-			}
-			function readHeader(headers, name, HeadersCtor = globalThis.Headers) {
-				if (!headers) return "";
-				try {
-					if (HeadersCtor) return new HeadersCtor(headers).get(name) || "";
-				} catch (_) {}
-				const target = String(name).toLowerCase();
-				if (Array.isArray(headers)) {
-					const entry = headers.find(([key]) => String(key).toLowerCase() === target);
-					return entry ? String(entry[1] || "") : "";
-				}
-				for (const [key, value] of Object.entries(headers)) if (String(key).toLowerCase() === target) return String(value || "");
-				return "";
-			}
-			function createAuthorizationCapture(rootObject) {
-				let authorization = "";
-				const baseUrl = rootObject.location?.href || "https://edvibe.com/";
-				const originalFetch = rootObject.fetch;
-				const HeadersCtor = rootObject.Headers;
-				function capture(input, headers) {
-					if (!isTrustedEdvibeUrl(input, baseUrl)) return;
-					const value = readHeader(headers, "authorization", HeadersCtor);
-					if (value) authorization = value;
-				}
-				if (typeof originalFetch === "function") rootObject.fetch = function edvibeToolboxFetch(input, init) {
-					capture(input, init?.headers || input?.headers);
-					return originalFetch.apply(this, arguments);
-				};
-				const xhrPrototype = rootObject.XMLHttpRequest?.prototype;
-				if (xhrPrototype?.open && xhrPrototype?.setRequestHeader) {
-					const originalOpen = xhrPrototype.open;
-					const originalSetRequestHeader = xhrPrototype.setRequestHeader;
-					const urls = /* @__PURE__ */ new WeakMap();
-					xhrPrototype.open = function open(method, url) {
-						urls.set(this, url);
-						return originalOpen.apply(this, arguments);
-					};
-					xhrPrototype.setRequestHeader = function setRequestHeader(name, value) {
-						if (String(name).toLowerCase() === "authorization" && isTrustedEdvibeUrl(urls.get(this), baseUrl) && value) authorization = String(value);
-						return originalSetRequestHeader.apply(this, arguments);
-					};
-				}
-				return Object.freeze({
-					getAuthorization: () => authorization,
-					capture
-				});
-			}
-			function createDynamicImageRecipe(recipe) {
-				if (!recipe || !Array.isArray(recipe.steps)) return recipe;
-				const steps = recipe.steps.map((step) => {
-					if (step.id !== "save-image") return step;
-					const exerciseView = step.valueTemplate?.ExerciseView || {};
-					return Object.freeze({
-						...step,
-						valueTemplate: Object.freeze({
-							...step.valueTemplate,
-							ExerciseView: Object.freeze({
-								...exerciseView,
-								ChangeExerciseImages: Object.freeze([Object.freeze({
-									ImageId: "{{block.asset.imageId}}",
-									FullImageId: "{{block.asset.fullImageId}}",
-									ImageUrl: "{{block.asset.imageUrl}}",
-									FullImageUrl: "{{block.asset.fullImageUrl}}",
-									cropped: false
-								})])
-							})
-						})
-					});
-				});
-				return Object.freeze({
-					...recipe,
-					steps: Object.freeze(steps)
-				});
-			}
-			async function uploadImageAssets({ definition, registry, authorization, fetchFn, FormDataCtor }) {
-				const imageBlocks = (definition?.blocks || []).filter((block) => block.type === "image");
-				if (imageBlocks.length === 0) return definition;
-				if (!authorization) throw createUploadError("AUTH_CONTEXT_UNAVAILABLE", "Edvibe authorization context is unavailable. Reload the page and try again.");
-				const formData = new FormDataCtor();
-				formData.append("Type", "8");
-				formData.append("SaveOriginal", "true");
-				formData.append("IsOriginalSizeOutputImage", "true");
-				const clientIds = [];
-				imageBlocks.forEach((block, index) => {
-					const clientId = parseClientId(block.url);
-					const file = registry?.get?.(clientId);
-					if (!clientId || !file) throw createUploadError("IMAGE_FILE_REQUIRED", `Image block ${index + 1} requires a selected file.`);
-					clientIds.push(clientId);
-					formData.append(`Files[${index}]`, file, file.name);
-					formData.append(`Selections[${index}].X`, "0");
-					formData.append(`Selections[${index}].Y`, "0");
-					formData.append(`Selections[${index}].Width`, "0");
-					formData.append(`Selections[${index}].Height`, "0");
-					formData.append(`Ids[${index}]`, clientId);
-				});
-				let response;
-				try {
-					response = await fetchFn(UPLOAD_ENDPOINT, {
-						method: "POST",
-						headers: {
-							accept: "*/*",
-							authorization
-						},
-						body: formData,
-						mode: "cors",
-						credentials: "include"
-					});
-				} catch (error) {
-					throw createUploadError("MEDIA_UPLOAD_FAILED", "Could not upload the selected image.", { cause: error });
-				}
-				if (!response?.ok) throw createUploadError("MEDIA_UPLOAD_FAILED", `Edvibe image upload failed with HTTP ${response?.status || "unknown"}.`);
-				let payload;
-				try {
-					payload = await response.json();
-				} catch (error) {
-					throw createUploadError("INVALID_MEDIA_RESPONSE", "Edvibe returned an invalid image response.", { cause: error });
-				}
-				if (!payload?.IsSuccess) throw createUploadError("MEDIA_UPLOAD_REJECTED", payload?.ErrorMessage || "Edvibe rejected the selected image.");
-				if ((payload?.Data?.ErrorItems || []).length > 0) throw createUploadError("MEDIA_UPLOAD_PARTIAL", "Edvibe failed to upload one or more selected images.", { errorItems: payload.Data.ErrorItems });
-				const assetsByClientId = new Map((payload?.Data?.Items || []).map((item) => [String(item.OldId || ""), Object.freeze({
-					imageId: item.Id,
-					fullImageId: item.IdFull,
-					imageUrl: item.Url,
-					fullImageUrl: item.UrlFull
-				})]));
-				for (const clientId of clientIds) if (!assetsByClientId.has(clientId)) throw createUploadError("INVALID_MEDIA_RESPONSE", "Edvibe did not return an asset for every selected image.");
-				const blocks = definition.blocks.map((block) => {
-					if (block.type !== "image") return block;
-					const clientId = parseClientId(block.url);
-					return Object.freeze({
-						...block,
-						asset: assetsByClientId.get(clientId)
-					});
-				});
-				return Object.freeze({
-					...definition,
-					blocks: Object.freeze(blocks)
-				});
-			}
-			function enhanceAdapterFactory({ featureApi, registry, authorizationCapture, fetchFn, FormDataCtor }) {
-				const originalFactory = featureApi?.createRecordedCreationAdapter;
-				if (typeof originalFactory !== "function" || originalFactory.__imageUploadEnhanced) return false;
-				function createEnhancedAdapter(options) {
-					const adapter = originalFactory(options);
-					const uploadsByDefinition = /* @__PURE__ */ new WeakMap();
-					async function enrich(definition) {
-						if (!definition || typeof definition !== "object") return definition;
-						let upload = uploadsByDefinition.get(definition);
-						if (!upload) {
-							upload = uploadImageAssets({
-								definition,
-								registry,
-								authorization: authorizationCapture.getAuthorization(),
-								fetchFn,
-								FormDataCtor
-							});
-							uploadsByDefinition.set(definition, upload);
-						}
-						return upload;
-					}
-					return Object.freeze({
-						...adapter,
-						async createSection(context) {
-							const definition = await enrich(context.definition);
-							return adapter.createSection({
-								...context,
-								definition
-							});
-						},
-						async cleanupSection(context) {
-							const definition = await enrich(context.definition);
-							return adapter.cleanupSection({
-								...context,
-								definition
-							});
-						}
-					});
-				}
-				createEnhancedAdapter.__imageUploadEnhanced = true;
-				featureApi.createRecordedCreationAdapter = createEnhancedAdapter;
-				return true;
-			}
-			let authorizationCapture = null;
-			if (root?.document && root.EdVibeBatchSectionCreation && root.EdVibeBatchSectionImageRegistry) {
-				authorizationCapture = createAuthorizationCapture(root);
-				root.EdVibeBatchSectionCreationRecipe = createDynamicImageRecipe(root.EdVibeBatchSectionCreationRecipe);
-				enhanceAdapterFactory({
-					featureApi: root.EdVibeBatchSectionCreation,
-					registry: root.EdVibeBatchSectionImageRegistry,
-					authorizationCapture,
-					fetchFn: root.fetch.bind(root),
-					FormDataCtor: root.FormData
-				});
-			}
-			return {
-				UPLOAD_ENDPOINT,
-				IMAGE_PLACEHOLDER_PREFIX,
-				createUploadError,
-				parseClientId,
-				normalizeRequestUrl,
-				isTrustedEdvibeUrl,
-				readHeader,
-				createAuthorizationCapture,
-				createDynamicImageRecipe,
-				uploadImageAssets,
-				enhanceAdapterFactory,
-				authorizationCapture
-			};
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-section-deletion.js
-	var require_batch_section_deletion = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchSectionDeletion(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeBatchSectionDeletion = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const DIALOG_TAG = "edvibe-toolbox-batch-section-deletion-dialog";
-			const EXPECTED_WRITE_CODES = /* @__PURE__ */ new Set([
-				"SERVER_REJECTED",
-				"INVALID_RESPONSE",
-				"REQUEST_TIMEOUT",
-				"SEND_FAILED",
-				"WS_UNAVAILABLE"
-			]);
-			function featureError(code, message, details = {}) {
-				const error = new Error(message);
-				error.code = code;
-				Object.assign(error, details);
-				return error;
-			}
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-				return match ? Number(match[1]) : null;
-			}
-			function normalizeSectionName(value) {
-				const name = String(value || "").trim();
-				if (!name) throw featureError("SECTION_NAME_REQUIRED", "Enter the exact section name.");
-				return name;
-			}
-			function normalizeLesson(node, index = 0) {
-				const lessonId = Number(node?.LessonId ?? node?.lessonId ?? node?.Id);
-				return Object.freeze({
-					lessonId,
-					marathonLessonId: Number(node?.MarathonLessonId ?? node?.marathonLessonId ?? node?.Id),
-					number: Number(node?.Number ?? node?.number ?? index + 1),
-					name: String(node?.Name ?? node?.name ?? `Lesson ${index + 1}`)
-				});
-			}
-			function extractNormalSections(response) {
-				const value = response?.Value ?? response?.value ?? response;
-				if (!value || !Array.isArray(value.Sections)) throw featureError("INVALID_LESSON_RESPONSE", "The lesson response did not contain a normal Sections array.");
-				return value.Sections;
-			}
-			function findExactSectionMatches(sections, sectionName) {
-				const name = normalizeSectionName(sectionName);
-				if (!Array.isArray(sections)) throw featureError("INVALID_LESSON_RESPONSE", "Sections must be an array.");
-				return sections.filter((section) => String(section?.Name ?? "") === name);
-			}
-			function rejection(lesson, code, message) {
-				return Object.freeze({
-					...lesson,
-					status: "rejected",
-					code,
-					message
-				});
-			}
-			function buildExecutionPlan({ lessons, selectedLessonIds, sectionName, inspectionsByLessonId }) {
-				const name = normalizeSectionName(sectionName);
-				const selected = new Set((selectedLessonIds || []).map(Number));
-				const eligible = [];
-				const rejected = [];
-				for (const lesson of (lessons || []).filter((item) => selected.has(Number(item.lessonId)))) {
-					const inspection = inspectionsByLessonId.get(Number(lesson.lessonId));
-					if (!inspection || inspection.error) {
-						const error = inspection?.error;
-						rejected.push(rejection(lesson, error?.code || "INVALID_LESSON_RESPONSE", error?.message || "The lesson could not be inspected."));
-						continue;
-					}
-					try {
-						const matches = findExactSectionMatches(extractNormalSections(inspection.response), name);
-						if (matches.length === 0) rejected.push(rejection(lesson, "SECTION_NOT_FOUND", `Section "${name}" was not found.`));
-						else if (matches.length > 1) rejected.push(rejection(lesson, "SECTION_NAME_AMBIGUOUS", `Found ${matches.length} sections named "${name}".`));
-						else {
-							const sectionId = Number(matches[0]?.Id);
-							if (!Number.isSafeInteger(sectionId) || sectionId <= 0) rejected.push(rejection(lesson, "UNSUPPORTED_SECTION_TYPE", "The matching section has no safe normal-section ID."));
-							else eligible.push(Object.freeze({
-								...lesson,
-								sectionName: name,
-								sectionId
-							}));
-						}
-					} catch (error) {
-						rejected.push(rejection(lesson, error.code || "INVALID_LESSON_RESPONSE", error.message));
-					}
-				}
-				return Object.freeze({
-					sectionName: name,
-					selectedCount: selected.size,
-					eligible: Object.freeze(eligible),
-					rejected: Object.freeze(rejected)
-				});
-			}
-			function buildDeleteRequest(entry) {
-				return Object.freeze({
-					controller: "LessonSectionWsController",
-					method: "DeleteStageSection",
-					projectName: "Books",
-					value: Object.freeze({ StageSectionId: entry.sectionId })
-				});
-			}
-			async function loadLessonCatalogue({ sendRequest, marathonId, pageSize = 100 }) {
-				const items = [];
-				let count = null;
-				while (count === null || items.length < count) {
-					const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
-						MarathonId: marathonId,
-						SearchTerm: "",
-						Page: {
-							Skip: items.length,
-							Take: pageSize
-						}
-					});
-					const value = response?.Value ?? response?.value;
-					const next = value?.Items;
-					count = value?.Page?.Count;
-					if (!Array.isArray(next) || !Number.isInteger(count) || next.length === 0 && items.length < count) throw featureError("INVALID_RESPONSE", "Lesson catalogue pagination was invalid.");
-					items.push(...next);
-				}
-				return items.map(normalizeLesson);
-			}
-			async function inspectLessonsSequentially({ lessons, selectedLessonIds, sendRequest, wait, requestDelayMs = 250, onProgress }) {
-				const selected = new Set((selectedLessonIds || []).map(Number));
-				const targets = lessons.filter((lesson) => selected.has(Number(lesson.lessonId)));
-				const inspections = /* @__PURE__ */ new Map();
-				for (const [index, lesson] of targets.entries()) {
-					try {
-						const response = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.lessonId });
-						extractNormalSections(response);
-						inspections.set(lesson.lessonId, { response });
-					} catch (error) {
-						inspections.set(lesson.lessonId, { error: featureError(error.code || "INVALID_LESSON_RESPONSE", error.message || "Inspection failed.") });
-					}
-					onProgress?.({
-						current: index + 1,
-						total: targets.length,
-						lesson
-					});
-					if (index < targets.length - 1 && requestDelayMs > 0) await wait(requestDelayMs);
-				}
-				return inspections;
-			}
-			async function executePlan({ plan, sendRequest, wait, requestDelayMs = 300, onProgress }) {
-				const results = plan.rejected.map((entry) => ({ ...entry }));
-				let fatalError = null;
-				for (const [index, entry] of plan.eligible.entries()) {
-					if (fatalError) {
-						results.push({
-							...entry,
-							status: "not_attempted",
-							code: "OPERATION_INTERRUPTED",
-							message: "Not attempted because the operation stopped."
-						});
-						continue;
-					}
-					try {
-						const request = buildDeleteRequest(entry);
-						const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
-						const value = response?.Value ?? response?.value;
-						if (response?.IsSuccess === false || response?.isSuccess === false || value === false || value == null) throw featureError("INVALID_RESPONSE", "Deletion was not positively confirmed.");
-						results.push({
-							...entry,
-							status: "deleted",
-							code: "DELETED",
-							message: "Section deleted."
-						});
-					} catch (error) {
-						const code = error.code || "DELETE_FAILED";
-						results.push({
-							...entry,
-							status: "failed",
-							code,
-							message: error.message || "Deletion failed."
-						});
-						if (!EXPECTED_WRITE_CODES.has(code)) fatalError = error;
-					}
-					onProgress?.({
-						current: index + 1,
-						total: plan.eligible.length,
-						entry,
-						results: [...results]
-					});
-					if (index < plan.eligible.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
-				}
-				return Object.freeze({
-					plan,
-					results: Object.freeze(results.map(Object.freeze)),
-					fatalError
-				});
-			}
-			function formatReport(result) {
-				const lines = [
-					"Edvibe Toolbox: batch section deletion",
-					`Section: ${result.plan.sectionName}`,
-					`Selected: ${result.plan.selectedCount}`,
-					`Eligible: ${result.plan.eligible.length}`,
-					`Rejected: ${result.plan.rejected.length}`,
-					""
-				];
-				for (const entry of result.results) {
-					const label = `#${entry.number} ${entry.name} (lesson ${entry.lessonId})`;
-					const section = entry.sectionId ? `, section ${entry.sectionId}` : "";
-					lines.push(`[${entry.status}] ${label}${section}: ${entry.code} — ${entry.message}`);
-				}
-				return lines.join("\n");
-			}
-			function buildExecutionHistoryInput({ marathonId, startedAt, completedAt, result }) {
-				const deleted = result.results.filter((entry) => entry.status === "deleted").length;
-				const failed = result.results.filter((entry) => entry.status === "failed").length;
-				const rejected = result.results.filter((entry) => entry.status === "rejected").length;
-				const notAttempted = result.results.filter((entry) => entry.status === "not_attempted").length;
-				const status = result.fatalError ? "interrupted" : failed > 0 || rejected > 0 ? "completed_with_failures" : "completed";
-				return Object.freeze({
-					operationType: "batch-section-deletion",
-					startedAt,
-					completedAt,
-					status,
-					pageContext: Object.freeze({ marathonId }),
-					counts: Object.freeze({
-						requested: result.plan.selectedCount,
-						eligible: result.plan.eligible.length,
-						attempted: deleted + failed,
-						successful: deleted,
-						noOp: 0,
-						skipped: rejected,
-						failed,
-						notAttempted
-					}),
-					results: Object.freeze(result.results.map((entry) => Object.freeze({
-						itemId: `lesson-${entry.lessonId}`,
-						label: `#${entry.number} ${entry.name}`,
-						status: entry.status,
-						code: entry.code,
-						message: entry.message,
-						attempts: entry.status === "not_attempted" || entry.status === "rejected" ? 0 : 1,
-						data: Object.freeze({
-							lessonId: entry.lessonId,
-							marathonLessonId: entry.marathonLessonId,
-							sectionId: entry.sectionId || null,
-							sectionName: result.plan.sectionName
-						})
-					})))
-				});
-			}
-			function createBatchSectionDeletionFeature({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog, copyText, persistExecution = async () => Object.freeze({ stored: false }), openHistory = () => {}, log = () => {} }) {
-				let active = false;
-				async function open({ stylesheetUrl } = {}) {
-					if (active || !canStart()) {
-						window.alert("Another Edvibe Toolbox operation is already running.");
-						return;
-					}
-					const marathonId = parseMarathonId(window.location.href);
-					if (!marathonId) {
-						window.alert("Open an Edvibe marathon page first.");
-						return;
-					}
-					if (getConnectionState?.()?.ready === false) {
-						window.alert("Edvibe WebSocket connection is not ready.");
-						return;
-					}
-					active = true;
-					onActiveChange(true);
-					const dialog = createDialog();
-					document.body.append(dialog);
-					try {
-						const lessons = await loadLessonCatalogue({
-							sendRequest,
-							marathonId
-						});
-						dialog.configure({
-							stylesheetUrl,
-							marathonId,
-							lessons,
-							async onInspect(input) {
-								const inspectionsByLessonId = await inspectLessonsSequentially({
-									lessons,
-									selectedLessonIds: input.selectedLessonIds,
-									sendRequest,
-									wait,
-									onProgress: input.onProgress
-								});
-								return buildExecutionPlan({
-									lessons,
-									selectedLessonIds: input.selectedLessonIds,
-									sectionName: input.sectionName,
-									inspectionsByLessonId
-								});
-							},
-							async onExecute(plan, onProgress) {
-								const startedAt = (/* @__PURE__ */ new Date()).toISOString();
-								const result = await executePlan({
-									plan,
-									sendRequest,
-									wait,
-									onProgress
-								});
-								const completedAt = (/* @__PURE__ */ new Date()).toISOString();
-								let history;
-								try {
-									history = await persistExecution(buildExecutionHistoryInput({
-										marathonId,
-										startedAt,
-										completedAt,
-										result
-									}));
-								} catch (persistenceError) {
-									history = Object.freeze({
-										stored: false,
-										persistenceError
-									});
-									log("Batch section deletion history persistence failed:", persistenceError);
-								}
-								return {
-									...result,
-									report: formatReport(result),
-									history
-								};
-							},
-							onCopy: copyText,
-							onOpenHistory(executionId) {
-								dialog.remove();
-								active = false;
-								onActiveChange(false);
-								openHistory(executionId, stylesheetUrl);
-							},
-							onClose() {
-								dialog.remove();
-								active = false;
-								onActiveChange(false);
-							}
-						});
-					} catch (error) {
-						log("Failed to open batch section deletion:", error);
-						dialog.remove();
-						active = false;
-						onActiveChange(false);
-						window.alert(error.message || "Failed to load lessons.");
-					}
-				}
-				return Object.freeze({ open });
-			}
-			return Object.freeze({
-				DIALOG_TAG,
-				parseMarathonId,
-				normalizeSectionName,
-				normalizeLesson,
-				extractNormalSections,
-				findExactSectionMatches,
-				buildExecutionPlan,
-				buildDeleteRequest,
-				loadLessonCatalogue,
-				inspectLessonsSequentially,
-				executePlan,
-				formatReport,
-				buildExecutionHistoryInput,
-				createBatchSectionDeletionFeature
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/batch-section-deletion-history.js
-	var require_batch_section_deletion_history = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeBatchSectionDeletionHistory(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory(require_batch_section_deletion(), root);
-			else {
-				const coreApi = root.EdVibeBatchSectionDeletion;
-				const historyApi = factory(coreApi, root);
-				root.EdVibeBatchSectionDeletionHistory = historyApi;
-				root.EdVibeBatchSectionDeletion = historyApi.installHistoryAwareFeature(coreApi);
-			}
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule(coreApi, rootObject) {
-			"use strict";
-			const OPERATION_TYPE = "batch-section-deletion";
-			const TERMINAL_STATUSES = /* @__PURE__ */ new Set([
-				"completed",
-				"completed_with_failures",
-				"cancelled",
-				"interrupted"
-			]);
-			const ATTEMPTED_STATUSES = /* @__PURE__ */ new Set(["deleted", "failed"]);
-			function text(value, fallback = "", maxLength = 1e3) {
-				const normalized = String(value ?? "").trim();
-				if (!normalized) return fallback;
-				return normalized.length <= maxLength ? normalized : `${normalized.slice(0, maxLength - 1)}…`;
-			}
-			function parseMarathonId(url) {
-				const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-				return match ? String(match[1]) : null;
-			}
-			function lessonKey(value) {
-				const id = value?.lessonId ?? value?.LessonId;
-				return id === void 0 || id === null ? null : String(id);
-			}
-			function discoveryOutcome(entry = {}) {
-				if (entry.discoveryOutcome) return text(entry.discoveryOutcome, "inspection_failed", 120);
-				return {
-					SECTION_NOT_FOUND: "not_found",
-					SECTION_NAME_AMBIGUOUS: "ambiguous",
-					UNSUPPORTED_SECTION_TYPE: "unsupported_section_type",
-					INVALID_LESSON_RESPONSE: "invalid_lesson_response"
-				}[entry.code] || (entry.sectionId ? "matched" : "inspection_failed");
-			}
-			function enrichPlan(plan = {}, selectedLessonIds = []) {
-				const sectionName = text(plan.sectionName, "Unnamed section", 500);
-				const eligible = (plan.eligible || []).map((entry) => Object.freeze({
-					...entry,
-					sectionName,
-					sectionType: "normal",
-					discoveryOutcome: "matched",
-					matchCount: 1
-				}));
-				const rejected = (plan.rejected || []).map((entry) => Object.freeze({
-					...entry,
-					sectionName,
-					sectionId: null,
-					sectionType: null,
-					discoveryOutcome: discoveryOutcome(entry),
-					matchCount: entry.code === "SECTION_NOT_FOUND" ? 0 : null,
-					attempts: 0
-				}));
-				return Object.freeze({
-					...plan,
-					sectionName,
-					selectedLessonIds: Object.freeze([...selectedLessonIds]),
-					selectedCount: Number.isSafeInteger(plan.selectedCount) ? plan.selectedCount : selectedLessonIds.length,
-					eligible: Object.freeze(eligible),
-					rejected: Object.freeze(rejected)
-				});
-			}
-			function resultCode(entry, terminalStatus) {
-				if (entry.code) return text(entry.code, "UNKNOWN_RESULT", 120);
-				if (entry.status === "deleted") return "DELETED";
-				if (entry.status === "rejected") return "PREFLIGHT_REJECTED";
-				if (entry.status === "failed") return "DELETE_FAILED";
-				return terminalStatus === "cancelled" ? "OPERATION_CANCELLED" : "OPERATION_INTERRUPTED";
-			}
-			function resultMessage(entry, terminalStatus) {
-				if (entry.message) return text(entry.message, "No message was provided.");
-				if (entry.status === "deleted") return "Section deleted.";
-				if (entry.status === "rejected") return "The lesson was rejected during discovery.";
-				if (entry.status === "failed") return "The validated deletion request failed.";
-				return terminalStatus === "cancelled" ? "Not attempted because the confirmed run was cancelled." : "Not attempted because the confirmed run was interrupted.";
-			}
-			function materializeResults(plan = {}, execution = {}, terminalStatus = null) {
-				const byId = /* @__PURE__ */ new Map();
-				for (const entry of plan.rejected || []) byId.set(lessonKey(entry), {
-					...entry,
-					status: "rejected",
-					attempts: 0
-				});
-				for (const entry of execution.results || []) byId.set(lessonKey(entry), { ...entry });
-				const eligible = new Map((plan.eligible || []).map((entry) => [lessonKey(entry), entry]));
-				const ordered = [];
-				const included = /* @__PURE__ */ new Set();
-				for (const id of plan.selectedLessonIds || []) {
-					const key = String(id);
-					let entry = byId.get(key);
-					if (!entry && eligible.has(key)) entry = {
-						...eligible.get(key),
-						status: "not_attempted",
-						attempts: 0
-					};
-					if (!entry) entry = {
-						lessonId: id,
-						name: `Lesson ${id}`,
-						status: "not_attempted",
-						attempts: 0,
-						sectionName: plan.sectionName
-					};
-					ordered.push(entry);
-					included.add(key);
-				}
-				for (const entry of [...byId.values(), ...eligible.values()]) {
-					const key = lessonKey(entry);
-					if (key !== null && included.has(key)) continue;
-					ordered.push(byId.get(key) || {
-						...entry,
-						status: "not_attempted",
-						attempts: 0
-					});
-					if (key !== null) included.add(key);
-				}
-				return ordered.map((entry) => {
-					const status = text(entry.status, "not_attempted", 80);
-					return {
-						...entry,
-						status,
-						attempts: Number.isSafeInteger(entry.attempts) && entry.attempts >= 0 ? entry.attempts : ATTEMPTED_STATUSES.has(status) ? 1 : 0,
-						terminalStatus
-					};
-				});
-			}
-			function matchCount(entry) {
-				if (Number.isSafeInteger(entry.matchCount) && entry.matchCount >= 0) return entry.matchCount;
-				if (entry.sectionId) return 1;
-				if (entry.code === "SECTION_NOT_FOUND") return 0;
-				const match = String(entry.message || "").match(/Found (\d+) sections/);
-				return match ? Number(match[1]) : null;
-			}
-			function serializeResult(entry, plan, terminalStatus) {
-				const status = entry.status;
-				const code = resultCode(entry, terminalStatus);
-				const message = resultMessage(entry, terminalStatus);
-				const outcome = discoveryOutcome(entry);
-				const lesson = Object.freeze({
-					lessonId: entry.lessonId ?? null,
-					marathonLessonId: entry.marathonLessonId ?? null,
-					number: entry.number ?? null,
-					name: text(entry.name, "Unnamed lesson", 500)
-				});
-				return Object.freeze({
-					itemId: lesson.lessonId === null ? null : `lesson-${lesson.lessonId}`,
-					label: `${lesson.number ?? "?"}. ${lesson.name}`,
-					status,
-					code,
-					message,
-					attempts: entry.attempts,
-					data: Object.freeze({
-						lesson,
-						section: Object.freeze({
-							requestedName: text(entry.sectionName || plan.sectionName, "Unnamed section", 500),
-							matchedId: entry.sectionId ?? null,
-							supportedType: entry.sectionId ? "normal" : null
-						}),
-						discovery: Object.freeze({
-							outcome,
-							code: outcome === "matched" ? "DISCOVERY_MATCHED" : code,
-							message: outcome === "matched" ? "Exactly one supported normal lesson section matched the requested name." : message,
-							matchCount: matchCount(entry)
-						}),
-						finalOutcome: status,
-						deletionFailure: status === "failed" ? Object.freeze({
-							code,
-							message,
-							attemptCount: entry.attempts
-						}) : null
-					})
-				});
-			}
-			function inferTerminalStatus(explicitStatus, fatalError, results) {
-				if (TERMINAL_STATUSES.has(explicitStatus)) return explicitStatus;
-				if (fatalError) return "interrupted";
-				return results.some((entry) => [
-					"rejected",
-					"failed",
-					"not_attempted"
-				].includes(entry.status)) ? "completed_with_failures" : "completed";
-			}
-			function buildExecutionHistoryInput({ plan, result = {}, startedAt, completedAt, marathonId, marathonName = null, terminalStatus = null, fatalError = null }) {
-				const materializationStatus = TERMINAL_STATUSES.has(terminalStatus) ? terminalStatus : fatalError || result.fatalError ? "interrupted" : null;
-				const results = materializeResults(plan, result, materializationStatus).map((entry) => serializeResult(entry, plan, materializationStatus));
-				const status = inferTerminalStatus(terminalStatus, fatalError || result.fatalError, results);
-				const attempted = results.filter((entry) => ATTEMPTED_STATUSES.has(entry.status)).length;
-				const notAttempted = results.filter((entry) => entry.status === "not_attempted").length;
-				const counts = Object.freeze({
-					requested: results.length,
-					eligible: Math.max(plan.eligible?.length || 0, attempted + notAttempted),
-					attempted,
-					successful: results.filter((entry) => entry.status === "deleted").length,
-					noOp: 0,
-					skipped: results.filter((entry) => entry.status === "rejected").length,
-					failed: results.filter((entry) => entry.status === "failed").length,
-					notAttempted
-				});
-				return Object.freeze({
-					operationType: OPERATION_TYPE,
-					startedAt,
-					completedAt,
-					status,
-					pageContext: Object.freeze({
-						marathonId,
-						marathonName
-					}),
-					counts,
-					results: Object.freeze(results),
-					message: JSON.stringify({
-						sectionName: plan.sectionName,
-						counts
-					})
-				});
-			}
-			function appendStatus(dialog, message) {
-				const current = (dialog.shadowRoot?.querySelector?.(".status"))?.textContent || "";
-				dialog.showStatus?.(`${current}${current ? " " : ""}${message}`);
-			}
-			function addHistoryButton(dialog, executionId, openHistory) {
-				const button = (dialog.ownerDocument || rootObject.document)?.createElement?.("button");
-				if (!button) return;
-				button.type = "button";
-				button.className = "edvibe-batch-section-deletion-history";
-				button.textContent = "Open in history";
-				button.addEventListener("click", () => openHistory?.(executionId));
-				dialog.shadowRoot?.querySelector?.("footer")?.appendChild?.(button);
-			}
-			function createHistoryAwareFeature(options = {}) {
-				const { createFeature = coreApi.createBatchSectionDeletionFeature, createDialog, persistExecution, getLocationHref = () => "", getMarathonName = () => null, now = () => /* @__PURE__ */ new Date(), log = () => {}, ...featureOptions } = options;
-				if (typeof createDialog !== "function") throw new TypeError("createDialog is required");
-				if (typeof persistExecution !== "function") throw new TypeError("persistExecution is required");
-				function createTrackedDialog() {
-					const dialog = createDialog();
-					const originalConfigure = dialog.configure.bind(dialog);
-					let plan = null;
-					let latestResult = null;
-					let startedAt = null;
-					let terminal = false;
-					let sequence = 0;
-					async function persist(result, terminalStatus = null, fatalError = null) {
-						const currentSequence = sequence;
-						try {
-							const completedAt = now().toISOString();
-							const input = buildExecutionHistoryInput({
-								plan,
-								result: result || latestResult || {},
-								startedAt: startedAt || completedAt,
-								completedAt,
-								marathonId: parseMarathonId(getLocationHref()),
-								marathonName: getMarathonName(),
-								terminalStatus,
-								fatalError
-							});
-							const history = await persistExecution(input);
-							return currentSequence === sequence ? history : Object.freeze({
-								stored: false,
-								stale: true
-							});
-						} catch (persistenceError) {
-							log("Batch section deletion history persistence failed:", persistenceError);
-							return Object.freeze({
-								stored: false,
-								persistenceError
-							});
-						}
-					}
-					dialog.configure = (config = {}) => {
-						const originalInspect = config.onInspect;
-						const originalExecute = config.onExecute;
-						const originalClose = config.onClose;
-						const originalOpenHistory = config.onOpenHistory;
-						return originalConfigure({
-							...config,
-							async onInspect(input) {
-								const inspected = await originalInspect(input);
-								sequence += 1;
-								plan = enrichPlan(inspected, input?.selectedLessonIds || []);
-								latestResult = {
-									plan,
-									results: []
-								};
-								startedAt = now().toISOString();
-								terminal = false;
-								if (!plan.eligible.length) {
-									terminal = true;
-									persist(latestResult).then((history) => {
-										if (history?.stored) {
-											appendStatus(dialog, "Result saved to execution history.");
-											if (history.record?.id) addHistoryButton(dialog, history.record.id, originalOpenHistory);
-										} else if (history?.persistenceError) appendStatus(dialog, "The visible preflight is intact, but history could not be saved.");
-									});
-								}
-								return plan;
-							},
-							async onExecute(confirmedPlan, onProgress) {
-								plan = enrichPlan(confirmedPlan, confirmedPlan.selectedLessonIds || []);
-								startedAt = startedAt || now().toISOString();
-								terminal = false;
-								try {
-									const result = await originalExecute(plan, (progress = {}) => {
-										if (Array.isArray(progress.results)) latestResult = {
-											plan,
-											results: [...progress.results],
-											fatalError: progress.fatalError || null
-										};
-										onProgress?.(progress);
-									});
-									latestResult = result;
-									terminal = true;
-									const history = await persist(result, result.fatalError ? "interrupted" : null, result.fatalError || null);
-									return {
-										...result,
-										history
-									};
-								} catch (error) {
-									terminal = true;
-									await persist(latestResult, "interrupted", error);
-									throw error;
-								}
-							},
-							onOpenHistory: originalOpenHistory,
-							onClose() {
-								if (plan && !terminal) {
-									terminal = true;
-									persist(latestResult, "cancelled");
-								}
-								originalClose?.();
-							}
-						});
-					};
-					return dialog;
-				}
-				return createFeature({
-					...featureOptions,
-					createDialog: createTrackedDialog,
-					log
-				});
-			}
-			function installHistoryAwareFeature(baseApi = coreApi) {
-				return Object.freeze({
-					...baseApi,
-					createBatchSectionDeletionFeature(options = {}) {
-						return createHistoryAwareFeature({
-							...options,
-							createFeature: baseApi.createBatchSectionDeletionFeature,
-							getLocationHref: options.getLocationHref || (() => rootObject.location?.href || ""),
-							getMarathonName: options.getMarathonName || (() => rootObject.document?.querySelector?.("h1")?.textContent?.trim() || rootObject.document?.title || null)
-						});
-					}
-				});
-			}
-			return Object.freeze({
-				OPERATION_TYPE,
-				parseMarathonId,
-				discoveryOutcome,
-				enrichPlan,
-				materializeResults,
-				serializeResult,
-				buildExecutionHistoryInput,
-				createHistoryAwareFeature,
-				installHistoryAwareFeature
-			});
-		});
-	}));
-	//#endregion
-	//#region src/features/execution-history.js
-	var require_execution_history = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-		(function initializeExecutionHistoryFeature(root, factory) {
-			if (typeof module === "object" && module.exports) module.exports = factory();
-			else root.EdVibeExecutionHistory = factory();
-		})(typeof globalThis !== "undefined" ? globalThis : window, function createModule() {
-			"use strict";
-			const HISTORY_OVERLAY_ID = "edvibe-toolbox-execution-history";
-			function createExecutionHistoryFeature({ service, canStart, onActiveChange, createDialog, log = () => {} }) {
-				let active = false;
-				function open({ stylesheetUrl = "", executionId = null } = {}) {
-					if (active || document.getElementById(HISTORY_OVERLAY_ID)) return;
-					if (!canStart()) {
-						window.alert("Another Edvibe Toolbox operation is already running.");
-						return;
-					}
-					active = true;
-					onActiveChange(true);
-					try {
-						const dialog = createDialog();
-						dialog.id = HISTORY_OVERLAY_ID;
-						dialog.configure({
-							stylesheetUrl,
-							service,
-							initialExecutionId: executionId,
-							onClose() {
-								dialog.remove();
-								active = false;
-								onActiveChange(false);
-							}
-						});
-						(document.body || document.documentElement).append(dialog);
-					} catch (error) {
-						active = false;
-						onActiveChange(false);
-						log("Failed to open execution history:", error);
-						window.alert(error.message || "Could not open execution history.");
-					}
-				}
-				return Object.freeze({ open });
-			}
-			return Object.freeze({
-				HISTORY_OVERLAY_ID,
-				createExecutionHistoryFeature
-			});
-		});
-	}));
-	require_batch_section_creation();
-	require_batch_section_creation_history_model();
-	require_batch_section_creation_history_record();
-	require_batch_section_creation_history();
-	require_batch_section_image_upload();
-	require_batch_section_deletion();
-	require_batch_section_deletion_history();
-	require_execution_history();
-	var createMainLog = EdVibeLogger.createLoggerFactory("MAIN");
+	//#region src/main.js
+	var createMainLog = createLoggerFactory("MAIN");
 	var log = createMainLog();
 	log("Initializing Toolbox modules...");
-	function requireToolboxModule(name) {
-		const module = window[name];
-		if (!module) throw new Error(`Required module is missing: ${name}`);
-		return module;
-	}
-	var transportApi = requireToolboxModule("EdVibeWebSocketTransport");
-	var operationGuardApi = requireToolboxModule("EdVibeOperationGuard");
-	var indexedDbApi = requireToolboxModule("EdVibeIndexedDb");
-	var historyRepositoryApi = requireToolboxModule("EdVibeExecutionHistoryRepository");
-	var historyRetentionApi = requireToolboxModule("EdVibeExecutionHistoryRetention");
-	var historyExportApi = requireToolboxModule("EdVibeExecutionHistoryExport");
-	var storageBridgeApi = requireToolboxModule("EdVibeChromeStorageBridge");
-	var historyServiceApi = requireToolboxModule("EdVibeExecutionHistoryService");
-	var historyDialogApi = requireToolboxModule("EdVibeExecutionHistoryDialog");
-	var historyFeatureApi = requireToolboxModule("EdVibeExecutionHistory");
-	var exportApi = requireToolboxModule("EdVibeMarathonExport");
-	var resetApi = requireToolboxModule("EdVibeLessonReset");
-	var recorderApi = requireToolboxModule("EdVibeActionRecorder");
-	var recorderDialogApi = requireToolboxModule("EdVibeActionRecorderDialog");
-	var batchAccessApi = requireToolboxModule("EdVibeBatchLessonAccess");
-	var batchAccessHistoryApi = requireToolboxModule("EdVibeBatchLessonAccessHistory");
-	var batchAccessDialogApi = requireToolboxModule("EdVibeBatchAccessDialogComponent");
-	var batchUserManagementApi = requireToolboxModule("EdVibeBatchUserManagement");
-	var batchUserManagementHistoryApi = requireToolboxModule("EdVibeBatchUserManagementHistory");
-	var batchUserManagementDialogApi = requireToolboxModule("EdVibeBatchUserManagementDialog");
-	var batchUserOnboardingApi = requireToolboxModule("EdVibeBatchUserOnboarding");
-	var batchUserOnboardingDialogApi = requireToolboxModule("EdVibeBatchUserOnboardingDialog");
-	var batchSectionCreationApi = requireToolboxModule("EdVibeBatchSectionCreation");
-	var batchSectionCreationHistoryApi = requireToolboxModule("EdVibeBatchSectionCreationHistory");
-	var batchSectionCreationDialogApi = requireToolboxModule("EdVibeBatchSectionCreationDialog");
-	var batchSectionCreationRecipe = requireToolboxModule("EdVibeBatchSectionCreationRecipe");
-	var batchSectionDeletionApi = requireToolboxModule("EdVibeBatchSectionDeletion");
-	var batchSectionDeletionDialogApi = requireToolboxModule("EdVibeBatchSectionDeletionDialog");
-	var transport = transportApi.createWebSocketTransport({
+	var transport = createWebSocketTransport({
 		WebSocketClass: window.WebSocket,
 		cryptoApi: window.crypto,
 		log: createMainLog("Transport")
 	});
 	transport.install(window);
-	var operationGuard = operationGuardApi.createOperationGuard();
+	var operationGuard = createOperationGuard();
 	var wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 	var guardedActiveChange = (key) => (isActive) => {
 		if (isActive) operationGuard.activate(key);
 		else operationGuard.release(key);
 	};
-	var storageBridge = storageBridgeApi.createStorageBridge({
+	var storageBridge = createStorageBridge({
 		window,
 		cryptoApi: window.crypto
 	});
-	var historyRepository = historyRepositoryApi.createExecutionHistoryRepository({
-		indexedDbApi,
-		indexedDB: window.indexedDB
-	});
-	var historyPreferenceStore = historyRetentionApi.createRetentionPreferenceStore(storageBridge);
-	var historyService = historyServiceApi.createExecutionHistoryService({
-		repository: historyRepository,
-		preferenceStore: historyPreferenceStore,
-		downloader: historyExportApi.createJsonDownloader({
+	var historyService = createExecutionHistoryService({
+		repository: createExecutionHistoryRepository({
+			indexedDbApi: indexeddb_exports,
+			indexedDB: window.indexedDB
+		}),
+		preferenceStore: createRetentionPreferenceStore(storageBridge),
+		downloader: createJsonDownloader({
 			document,
 			URL: window.URL,
 			Blob: window.Blob
 		}),
 		cryptoApi: window.crypto
 	});
-	var executionHistoryFeature = historyFeatureApi.createExecutionHistoryFeature({
+	var executionHistoryFeature = createExecutionHistoryFeature({
 		service: historyService,
 		canStart: operationGuard.canStart,
 		onActiveChange: guardedActiveChange("history"),
-		createDialog: () => document.createElement(historyDialogApi.EXECUTION_HISTORY_DIALOG_TAG),
+		createDialog: () => document.createElement(EXECUTION_HISTORY_DIALOG_TAG),
 		log: createMainLog("History")
 	});
 	function notifyExportStatus(state, message = "") {
@@ -15258,19 +14540,19 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			message
 		}, "*");
 	}
-	var marathonExportFeature = exportApi.createMarathonExportFeature({
+	var marathonExportFeature = createMarathonExportFeature({
 		sendRequest: transport.sendRequest,
 		wait,
 		canStart: operationGuard.canStart,
 		onActiveChange: guardedActiveChange("export"),
 		notifyStatus: notifyExportStatus,
 		log: createMainLog("Export"),
-		compileToZip: (backupData, options) => exportApi.compileMarathonToZip(backupData, {
+		compileToZip: (backupData, options) => compileMarathonToZip(backupData, {
 			...options,
 			log: createMainLog("Zip")
 		})
 	});
-	var lessonResetFeature = resetApi.createResetLessonsFeature({
+	var lessonResetFeature = createResetLessonsFeature({
 		sendRequest: transport.sendRequest,
 		sendWithoutResponse: transport.sendWithoutResponse,
 		wait,
@@ -15279,10 +14561,10 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		log: createMainLog("Reset")
 	});
 	var recorderOpen = false;
-	var actionRecorderFeature = recorderApi.createActionRecorderFeature({
+	var actionRecorderFeature = createActionRecorderFeature({
 		subscribeFrames: transport.subscribeFrames,
 		createPanel() {
-			const panel = document.createElement(recorderDialogApi.RECORDER_DIALOG_TAG);
+			const panel = document.createElement(RECORDER_DIALOG_TAG);
 			const configure = panel.configure.bind(panel);
 			panel.configure = (options = {}) => configure({
 				...options,
@@ -15300,14 +14582,14 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		},
 		log: createMainLog("Recorder")
 	});
-	var batchLessonAccessFeature = batchAccessHistoryApi.createHistoryAwareFeature({
-		createFeature: batchAccessApi.createBatchLessonAccessFeature,
+	var batchLessonAccessFeature = createHistoryAwareFeature$1({
+		createFeature: createBatchLessonAccessFeature,
 		sendRequest: transport.sendRequest,
 		getConnectionState: transport.getConnectionState,
 		wait,
 		canStart: operationGuard.canStart,
 		onActiveChange: guardedActiveChange("batch-access"),
-		createDialog: () => document.createElement(batchAccessDialogApi.BATCH_ACCESS_DIALOG_TAG),
+		createDialog: () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
 		copyText: (text) => navigator.clipboard.writeText(text),
 		persistExecution: historyService.persistTerminal,
 		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
@@ -15318,8 +14600,8 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		getMarathonName: () => document.querySelector("h1")?.textContent?.trim() || document.title || null,
 		log: createMainLog("BatchAccessHistory")
 	});
-	var createBatchUserManagementDialog = batchUserManagementHistoryApi.createHistoryAwareDialog({
-		createDialog: () => document.createElement(batchUserManagementDialogApi.USER_MANAGEMENT_DIALOG_TAG),
+	var createBatchUserManagementDialog = createHistoryAwareDialog$1({
+		createDialog: () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
 		persistExecution: historyService.persistTerminal,
 		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
 			stylesheetUrl: new URL("execution-history-dialog.css", sourceStylesheetUrl).href,
@@ -15329,7 +14611,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		getMarathonName: () => document.querySelector("h1")?.textContent?.trim() || document.title || null,
 		log: createMainLog("BatchUserManagementHistory")
 	});
-	var batchUserManagementFeature = batchUserManagementApi.createBatchUserManagementFeature({
+	var batchUserManagementFeature = createBatchUserManagementFeature({
 		sendRequest: transport.sendRequest,
 		getConnectionState: transport.getConnectionState,
 		wait,
@@ -15338,13 +14620,13 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		createDialog: createBatchUserManagementDialog,
 		log: createMainLog("BatchUserManagement")
 	});
-	var batchUserOnboardingFeature = batchUserOnboardingApi.createBatchUserOnboardingFeature({
+	var batchUserOnboardingFeature = createBatchUserOnboardingFeature({
 		sendRequest: transport.sendRequest,
 		getConnectionState: transport.getConnectionState,
 		wait,
 		canStart: operationGuard.canStart,
 		onActiveChange: guardedActiveChange("batch-user-onboarding"),
-		createDialog: () => document.createElement(batchUserOnboardingDialogApi.BATCH_USER_ONBOARDING_DIALOG_TAG),
+		createDialog: () => document.createElement(BATCH_USER_ONBOARDING_DIALOG_TAG),
 		copyText: (text) => navigator.clipboard.writeText(text),
 		persistExecution: historyService.persistTerminal,
 		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
@@ -15356,8 +14638,8 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		getRequestContext: () => ({ host: window.location.hostname }),
 		log: createMainLog("BatchUserOnboarding")
 	});
-	var createBatchSectionCreationDialog = batchSectionCreationHistoryApi.createHistoryAwareDialog({
-		createDialog: () => document.createElement(batchSectionCreationDialogApi.BATCH_SECTION_DIALOG_TAG),
+	var createBatchSectionCreationDialog = createHistoryAwareDialog({
+		createDialog: () => document.createElement(BATCH_SECTION_DIALOG_TAG),
 		persistExecution: historyService.persistTerminal,
 		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
 			stylesheetUrl: new URL("execution-history-dialog.css", sourceStylesheetUrl).href,
@@ -15367,11 +14649,11 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		getMarathonName: () => document.querySelector("h1")?.textContent?.trim() || document.title || null,
 		log: createMainLog("BatchSectionCreationHistory")
 	});
-	var batchSectionCreationAdapter = batchSectionCreationApi.createRecordedCreationAdapter({
-		recipe: batchSectionCreationRecipe,
+	var batchSectionCreationAdapter = createImageUploadCreationAdapter({
+		recipe: dynamicImageRecipe,
 		cryptoApi: window.crypto
 	});
-	var batchSectionCreationFeature = batchSectionCreationApi.createBatchSectionCreationFeature({
+	var batchSectionCreationFeature = createBatchSectionCreationFeature({
 		sendRequest: transport.sendRequest,
 		getConnectionState: transport.getConnectionState,
 		wait,
@@ -15382,13 +14664,13 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		copyText: (text) => navigator.clipboard.writeText(text),
 		log: createMainLog("BatchSectionCreation")
 	});
-	var batchSectionDeletionFeature = batchSectionDeletionApi.createBatchSectionDeletionFeature({
+	var batchSectionDeletionFeature = createBatchSectionDeletionFeature({
 		sendRequest: transport.sendRequest,
 		getConnectionState: transport.getConnectionState,
 		wait,
 		canStart: operationGuard.canStart,
 		onActiveChange: guardedActiveChange("batch-section-deletion"),
-		createDialog: () => document.createElement(batchSectionDeletionDialogApi.BATCH_SECTION_DELETION_DIALOG_TAG),
+		createDialog: () => document.createElement(BATCH_SECTION_DELETION_DIALOG_TAG),
 		copyText: (text) => navigator.clipboard.writeText(text),
 		persistExecution: historyService.persistTerminal,
 		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
