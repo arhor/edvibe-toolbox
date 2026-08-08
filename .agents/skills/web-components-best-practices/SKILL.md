@@ -1,57 +1,73 @@
 ---
 name: web-components-best-practices
-description: Design, implement, optimize, or review standards-based Web Components and custom elements in vanilla JavaScript. Use for component APIs, Shadow DOM, templates, slots, lifecycle callbacks, form-associated custom elements, events, styling, accessibility, testing, performance, or refactoring dynamically created UI into maintainable Web Components.
+description: Design, implement, optimize, or review Edvibe Toolbox Web Components with Lit. Use for component APIs, reactive state, Lit templates, lifecycle, Shadow DOM, events, styling, accessibility, testing, performance, or refactoring dynamic UI into maintainable custom elements.
 ---
 
 # Web Components Best Practices
 
-Build platform-native components that remain understandable, accessible, and efficient. Prefer the simplest standards-based design that satisfies the component's actual encapsulation needs.
+Edvibe Toolbox uses Lit as the standard implementation layer for custom elements. Build components with platform-native semantics and Lit's reactive rendering model rather than maintaining parallel imperative DOM synchronization code.
 
 ## Workflow
 
-1. Inspect repository conventions, target browsers, existing component APIs, and surrounding ownership of markup and CSS.
-2. Define the public contract before implementation: element name, attributes, properties, methods, events, slots, parts, states, and form behavior.
-3. Decide whether Shadow DOM adds useful encapsulation. Use light DOM when global styling, semantics, or content integration matters more.
-4. Choose lifecycle callbacks deliberately. Read [lifecycle-and-patterns.md](references/lifecycle-and-patterns.md) whenever creating or reviewing lifecycle behavior, form association, rendering, events, or performance.
-5. Implement one-time setup separately from repeatable connection and update work.
-6. Validate lifecycle symmetry, accessibility, keyboard behavior, disconnect/reconnect behavior, attribute/property reflection, and representative performance.
+1. Inspect the existing component, its feature/service owner, stylesheet, browser tests, and public integration contract.
+2. Define or preserve the public contract before implementation: element name, properties, methods, events, states, and externally observable behavior.
+3. Model UI state with Lit reactive properties/state and derive markup declaratively in `render()`.
+4. Decide whether the existing integration needs Shadow DOM or light DOM. Preserve the current choice during unrelated refactors.
+5. Use Lit lifecycle hooks for rendering-related work and standard custom-element callbacks only for resources that genuinely follow connection/disconnection.
+6. Keep network, persistence, and feature orchestration outside the component when those responsibilities already belong to a feature or service layer.
+7. Validate representative user flows in `src/component-tests/` using the real Chrome/Chromium harness.
+
+Read [lifecycle-and-patterns.md](references/lifecycle-and-patterns.md) when lifecycle symmetry, native custom-element behavior, form association, events, Shadow DOM, or accessibility details matter. Treat it as platform background; Lit remains the repository's rendering convention.
 
 ## Non-negotiable Practices
 
-- Use a lowercase hyphenated custom-element name and guard registration when duplicate evaluation is possible.
-- Keep the constructor cheap and synchronous. Initialize internal state, attach an allowed shadow root, and create `ElementInternals` there; do not inspect children, attributes, or parent context.
-- Make connection and disconnection idempotent. Assume an instance can connect, disconnect, move, adopt, and reconnect repeatedly.
-- Observe only attributes that affect behavior or rendering. Parse at the boundary, compare normalized values, and prevent reflection loops.
-- Expose rich JavaScript values through properties; use attributes for declarative string/boolean/number configuration and reflect only when useful.
-- Preserve consumer-owned light-DOM children. Prefer slots over cloning or rewriting them.
-- Dispatch semantic `CustomEvent`s from the host. Choose `bubbles`, `composed`, and `cancelable` intentionally; do not expose private shadow nodes as the public contract.
-- Keep component CSS in a dedicated `.css` file when repository policy requires it. Use custom properties for theming and `::part()` only for deliberate styling hooks.
-- Preserve native semantics whenever possible. Supply an accessible name, keyboard operation, focus behavior, states, and reduced-motion behavior appropriate to the control.
-- Avoid customized built-in elements unless browser targets explicitly support them and their interoperability tradeoff is accepted.
-- Do not optimize by sacrificing clarity. Measure first, then reduce repeated DOM work, layout churn, listeners, observers, allocations, or scheduling.
+- Extend `LitElement` for Toolbox UI custom elements unless the task has a concrete reason to use another base.
+- Use lowercase hyphenated custom-element names and guard registration when duplicate evaluation is possible.
+- Keep constructors cheap. Initialize state and stable dependencies; do not perform network work or depend on connection/layout there.
+- Represent externally visible state as reactive data and let `render()` produce the corresponding markup.
+- Do not build a second rendering system with `innerHTML`, template cloning, cached query-selector maps, or manual show/hide synchronization when Lit can express the state directly.
+- Preserve component public methods/events while refactoring unless the task explicitly changes the integration contract.
+- Dispatch semantic `CustomEvent`s from the host. Choose `bubbles` and `composed` according to consumers, not convenience.
+- Keep component presentation in dedicated `.css` files according to repository policy. Source styles are build inputs; never edit their generated `dist/` copies.
+- Preserve native semantics, accessible names, keyboard behavior, focus behavior, and disabled states.
+- Clean up timers, observers, object URLs, document/window listeners, and other external resources when ownership ends or the element disconnects.
+- Avoid changing Shadow DOM versus light DOM solely as part of a rendering refactor. Styling/integration compatibility is part of the component contract.
 
-## Rendering Rules
+## Lit Rendering Rules
 
-- Render only when externally visible state changes.
-- Prefer a small, readable render method with stable node references. For substantial templates, clone a cached `template` once per instance and patch changing fields afterward.
-- Avoid replacing the entire shadow tree on every change; it can discard focus, selection, media state, element identity, and listeners.
-- Batch multiple synchronous updates into one microtask when that preserves observable behavior. Use `requestAnimationFrame` only for visual work that should align with paint.
-- Separate reads from writes when layout measurements are necessary. Avoid forced synchronous layout inside loops.
-- Use event delegation where it simplifies repeated-child handling. Use an `AbortController` to make listener cleanup obvious and reliable.
-- Prefer CSS for visual state and animations; use JavaScript only when behavior or measurement requires it.
+- Keep `render()` declarative and side-effect free. Compute view output from component state.
+- Update arrays, objects, `Set`s, and other collection state in ways that give Lit a new observable value when an update is required.
+- Use event bindings such as `@click`, property bindings such as `.value`, boolean bindings such as `?disabled`, and conditional templates instead of post-render DOM patching.
+- Use `nothing` for absent template regions rather than creating hidden placeholder DOM solely for imperative toggling.
+- Await `updateComplete` in browser tests when an interaction schedules Lit rendering before asserting on the DOM.
+- Use `firstUpdated`, `updated`, or `willUpdate` only when the work genuinely depends on rendered DOM or changed-property information. Prefer derived values in ordinary methods/getters when no lifecycle hook is required.
+- Preserve user-managed browser state such as focus and text selection. Avoid unnecessary wholesale state resets that cause Lit to recreate controls.
+- Version or cancel asynchronous work so stale results cannot overwrite newer reactive state.
+
+## Component Boundaries
+
+A component should primarily own presentation and interaction state. Keep these concerns behind existing non-UI boundaries when available:
+
+- Edvibe WebSocket/HTTP transport and request validation
+- execution-history repositories/services
+- IndexedDB and Chrome storage
+- batch-operation planning/execution
+- file upload transport and reusable registries/controllers
+
+Pass those capabilities into components through established configuration callbacks, controllers, services, or feature-level coordination. Do not make a Lit migration an excuse to collapse architectural layers.
 
 ## Review Checklist
 
-- Confirm every implemented callback has a clear responsibility and repeated invocation is safe.
-- Confirm `observedAttributes` and `attributeChangedCallback` agree, including removal, invalid input, and initial upgrade values.
-- Confirm resources started while connected are stopped while disconnected, unless ownership intentionally outlives connection.
-- Confirm moves use `Element.moveBefore()` plus `connectedMoveCallback()` only when target-browser support and state-preserving semantics are intentional; otherwise tolerate disconnect/reconnect.
-- Confirm form-associated elements implement the relevant form callbacks and use `ElementInternals` correctly.
-- Confirm public events cross the shadow boundary only when consumers need them.
-- Confirm no render path destroys consumer state unnecessarily.
-- Confirm accessible semantics and keyboard flows in both light and shadow DOM.
-- Confirm code remains direct enough for the next maintainer to modify safely.
+- Public tag/method/property/event contracts remain intentional and covered.
+- Reactive state represents every user-visible mode without parallel DOM bookkeeping.
+- `render()` has no network/persistence side effects.
+- Listeners and external resources have symmetric cleanup.
+- Shadow/light DOM choice and stylesheet loading preserve existing visual integration.
+- Native controls and accessibility semantics are retained.
+- Collection updates trigger Lit updates reliably.
+- Browser tests cover meaningful transitions, events, cleanup, and rendered output.
+- No generated file under `dist/` was manually edited.
 
 ## Validation
 
-Exercise the component through creation before and after definition, initial connection, removal, reconnection, attribute addition/change/removal, property updates, document adoption when relevant, and state-preserving movement when supported. For form-associated controls, also test association changes, disabled inheritance, reset, submission, validation, and state restoration. Use browser performance tooling only for a representative workload; report measured bottlenecks rather than speculative micro-optimizations.
+Use the real-browser component harness for component behavior. Exercise creation/configuration, relevant state transitions, user events, asynchronous updates, cleanup/disconnection, and public custom events. Run the repository's complete CI validation and production build before merging.
