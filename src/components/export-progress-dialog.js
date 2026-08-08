@@ -1,125 +1,124 @@
-(function initializeExportProgressDialog(root, factory) {
-    if (typeof module === 'object' && module.exports) {
-        module.exports = factory(root);
-    } else {
-        root.EdVibeExportProgressDialog = factory(root);
-    }
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createExportProgressDialog(root) {
-    'use strict';
-    const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';
-    const HTMLElementBase = root.HTMLElement || class {};
-    const exportProgressTemplate = root.document?.createElement?.('template') || null;
+import { LitElement, html, nothing } from 'lit';
 
-    if (exportProgressTemplate) {
-        exportProgressTemplate.innerHTML = `
-            <link rel="stylesheet">
+const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';
+
+class ExportProgressDialog extends LitElement {
+    static properties = {
+        stylesheetUrl: { state: true },
+        statusText: { state: true },
+        loadedSections: { state: true },
+        totalSections: { state: true },
+        countText: { state: true },
+        progressState: { state: true }
+    };
+
+    constructor() {
+        super();
+        this.stylesheetUrl = '';
+        this.statusText = 'Preparing export...';
+        this.loadedSections = 0;
+        this.totalSections = 0;
+        this.countText = undefined;
+        this.progressState = 'loading';
+    }
+
+    configure(options = {}) {
+        const stylesheetUrl = options && typeof options === 'object'
+            ? options.stylesheetUrl
+            : '';
+        this.stylesheetUrl = String(stylesheetUrl || '');
+        return this;
+    }
+
+    update(options = new Map()) {
+        if (options instanceof Map) {
+            super.update(options);
+            return;
+        }
+
+        options = options && typeof options === 'object' ? options : {};
+        const {
+            statusText = '',
+            loadedSections = 0,
+            totalSections = 0,
+            countText,
+            state = 'loading'
+        } = options;
+
+        this.statusText = String(statusText || '');
+        this.loadedSections = Number(loadedSections) || 0;
+        this.totalSections = Number(totalSections) || 0;
+        this.countText = countText;
+        this.progressState = String(state || 'loading');
+        this.syncHostState();
+        return this;
+    }
+
+    syncHostState() {
+        const hasTotal = this.totalSections > 0;
+        this.toggleAttribute('indeterminate', !hasTotal && this.progressState === 'loading');
+        this.toggleAttribute('complete', this.progressState === 'complete');
+        this.toggleAttribute('error', this.progressState === 'error');
+    }
+
+    complete(statusText, totalSections) {
+        return this.update({
+            statusText,
+            loadedSections: totalSections,
+            totalSections,
+            state: 'complete'
+        });
+    }
+
+    error(statusText) {
+        return this.update({statusText, state: 'error'});
+    }
+
+    dismissAfter(ms) {
+        const delay = Number.isFinite(Number(ms)) ? Math.max(0, Number(ms)) : 0;
+        setTimeout(() => this.remove(), delay);
+    }
+
+    render() {
+        const hasTotal = this.totalSections > 0;
+        const progressPercent = this.progressState === 'complete'
+            ? 100
+            : hasTotal
+                ? Math.min(100, Math.round((this.loadedSections / this.totalSections) * 100))
+                : 0;
+        const count = this.countText ?? (hasTotal
+            ? `${this.loadedSections} / ${this.totalSections} sections loaded`
+            : this.progressState === 'complete'
+                ? 'Export complete'
+                : 'Discovering sections...');
+        const progressValue = hasTotal || this.progressState === 'complete'
+            ? progressPercent
+            : nothing;
+
+        return html`
+            <link rel="stylesheet" href=${this.stylesheetUrl || nothing}>
             <div class="overlay">
                 <section class="card" role="dialog" aria-modal="true"
                     aria-labelledby="export-progress-title">
                     <h2 id="export-progress-title">Exporting marathon</h2>
-                    <p class="status">Preparing export...</p>
-                    <progress class="progress" max="100"></progress>
+                    <p class="status">${this.statusText}</p>
+                    <progress class="progress" max="100" value=${progressValue}></progress>
                     <div class="meta">
-                        <span class="count">Discovering sections...</span>
-                        <span class="percent">0%</span>
+                        <span class="count">${count}</span>
+                        <span class="percent">${progressPercent}%</span>
                     </div>
-                    <button class="close" type="button">Close</button>
+                    <button class="close" type="button" @click=${() => this.remove()}>Close</button>
                 </section>
             </div>
         `;
     }
+}
 
-    class ExportProgressDialog extends HTMLElementBase {
-        constructor() {
-            super();
-            this.stylesheetUrl = '';
-            this.rendered = false;
-            this.elements = null;
-            if (typeof this.attachShadow !== 'function' || !exportProgressTemplate) {
-                return;
-            }
-            const shadowRoot = this.attachShadow({ mode: 'open' });
-            shadowRoot.append(exportProgressTemplate.content.cloneNode(true));
-            this.elements = {
-                stylesheet: shadowRoot.querySelector('link'),
-                status: shadowRoot.querySelector('.status'),
-                progress: shadowRoot.querySelector('.progress'),
-                count: shadowRoot.querySelector('.count'),
-                percent: shadowRoot.querySelector('.percent'),
-                close: shadowRoot.querySelector('.close')
-            };
-            this.elements.close?.addEventListener('click', () => this.remove());
-            this.rendered = true;
-        }
+if (!customElements.get(EXPORT_PROGRESS_TAG)) {
+    customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
+}
 
-        configure(options = {}) {
-            const stylesheetUrl = options && typeof options === 'object'
-                ? options.stylesheetUrl
-                : '';
-            this.stylesheetUrl = String(stylesheetUrl || '');
-            if (this.elements?.stylesheet) {
-                this.elements.stylesheet.href = this.stylesheetUrl;
-            }
-            return this;
-        }
+const exportProgressDialogApi = {EXPORT_PROGRESS_TAG, ExportProgressDialog};
+globalThis.EdVibeExportProgressDialog = exportProgressDialogApi;
 
-        connectedCallback() {
-            this.render();
-        }
-
-        render() {
-            return this.rendered;
-        }
-
-        update(options = {}) {
-            if (!this.elements) {
-                return this;
-            }
-            options = options && typeof options === 'object' ? options : {};
-            const {
-                statusText = '',
-                loadedSections = 0,
-                totalSections = 0,
-                countText,
-                state = 'loading'
-            } = options;
-            const hasTotal = totalSections > 0;
-            const progressPercent = state === 'complete' ? 100
-                : hasTotal ? Math.min(100, Math.round((loadedSections / totalSections) * 100)) : 0;
-            this.toggleAttribute('indeterminate', !hasTotal && state === 'loading');
-            this.toggleAttribute('complete', state === 'complete');
-            this.toggleAttribute('error', state === 'error');
-            this.elements.status.textContent = statusText;
-            this.elements.count.textContent = countText ?? (hasTotal
-                ? `${loadedSections} / ${totalSections} sections loaded`
-                : state === 'complete' ? 'Export complete' : 'Discovering sections...');
-            this.elements.percent.textContent = `${progressPercent}%`;
-            if (hasTotal || state === 'complete') {
-                this.elements.progress.value = progressPercent;
-            } else {
-                this.elements.progress.removeAttribute('value');
-            }
-            return this;
-        }
-
-        complete(statusText, totalSections) {
-            this.update({ statusText, loadedSections: totalSections, totalSections,
-                state: 'complete' });
-        }
-
-        error(statusText) {
-            this.update({ statusText, state: 'error' });
-        }
-
-        dismissAfter(ms) {
-            const delay = Number.isFinite(Number(ms)) ? Math.max(0, Number(ms)) : 0;
-            setTimeout(() => this.remove?.(), delay);
-        }
-    }
-
-    if (root.customElements && root.HTMLElement
-        && !root.customElements.get(EXPORT_PROGRESS_TAG)) {
-        root.customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
-    }
-    return { EXPORT_PROGRESS_TAG, ExportProgressDialog };
-});
+export { EXPORT_PROGRESS_TAG, ExportProgressDialog };
