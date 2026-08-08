@@ -6,7 +6,7 @@ const {
     createActionRecorderFeature,
     makeRecipe,
     safePageContext
-} = require('../src/features/action-recorder.js');
+} = require('./action-recorder.js');
 
 function createHarness(options = {}) {
     let observer;
