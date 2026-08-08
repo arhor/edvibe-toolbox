@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { createLoggerFactory } = require('../src/shared/logger.js');
+const { createLoggerFactory } = require('./logger.js');
 
 function captureConsole(t) {
     const calls = [];
