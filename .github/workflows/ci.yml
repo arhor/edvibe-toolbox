@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - 'dist/**'
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -24,3 +26,48 @@ jobs:
         run: npm ci
       - name: Run test suite
         run: npm run test:ci
+      - name: Build production extension
+        run: npm run build
+
+  sync-dist:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: dist-sync-master
+      cancel-in-progress: false
+    steps:
+      - name: Check out latest master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build production extension
+        run: npm run build
+      - name: Detect generated distribution changes
+        id: dist
+        shell: bash
+        run: |
+          git add -A dist
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit synchronized distribution
+        if: steps.dist.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: synchronize generated extension distribution [skip ci]"
+          git push origin HEAD:master
