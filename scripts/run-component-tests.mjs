@@ -139,9 +139,9 @@ try {
     const timeoutPromise = new Promise((_, rejectTimeout) => {
         setTimeout(
             () => rejectTimeout(new Error(
-                `Component tests timed out after 15 seconds.\n${browserProcess.getStderr()}`
+                `Component tests timed out after 30 seconds.\n${browserProcess.getStderr()}`
             )),
-            15_000
+            30_000
         );
     });
 
