@@ -36,6 +36,7 @@ test('popup, isolated bridge, main coordinator, and representative batch results
     const popup = read('popup.js');
     const isolated = read('src/isolated.js');
     const main = read('src/main.js');
+    const protocol = read('src/shared/message-protocol.js');
     const onboardingFeature = read('src/features/batch-user-onboarding.js');
     const onboardingDialog = read('src/components/batch-user-onboarding-dialog.js');
     const batchDeletionFeature = read('src/features/batch-section-deletion.js');
@@ -45,11 +46,13 @@ test('popup, isolated bridge, main coordinator, and representative batch results
     const batchAccessHistoryRecord = read('src/features/batch-lesson-access-history-record.js');
     const batchSectionCreationHistory = read('src/features/batch-section-creation-history.js');
 
-    assert.match(popup, /id: 'execution-history'.*command: 'OPEN_EXECUTION_HISTORY'.*requirement: 'edvibe'/s);
-    assert.match(popup, /id: 'batch-user-onboarding'.*command: 'OPEN_BATCH_USER_ONBOARDING'.*requirement: 'marathon'/s);
-    assert.match(isolated, /OPEN_EXECUTION_HISTORY: \['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY'/);
-    assert.match(isolated, /OPEN_BATCH_USER_ONBOARDING: \['EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING'/);
-    assert.match(isolated, /ALLOWED_STORAGE_KEYS = new Set\(\['executionHistoryPreferences'\]\)/);
+    assert.match(popup, /id: 'execution-history'.*command: POPUP_COMMANDS\.OPEN_EXECUTION_HISTORY.*requirement: 'edvibe'/s);
+    assert.match(popup, /id: 'batch-user-onboarding'.*command: POPUP_COMMANDS\.OPEN_BATCH_USER_ONBOARDING.*requirement: 'marathon'/s);
+    assert.match(isolated, /createMainCommandMessage\(message\.action\)/);
+    assert.match(isolated, /isStorageRequestMessage\(event\.data\)/);
+    assert.match(protocol, /OPEN_EXECUTION_HISTORY: 'OPEN_EXECUTION_HISTORY'/);
+    assert.match(protocol, /OPEN_BATCH_USER_ONBOARDING: 'OPEN_BATCH_USER_ONBOARDING'/);
+    assert.match(protocol, /EXECUTION_HISTORY_PREFERENCES: 'executionHistoryPreferences'/);
     assert.match(main, /batchAccessHistoryApi\.createHistoryAwareFeature/);
     assert.match(main, /batchUserOnboardingApi\.createBatchUserOnboardingFeature/);
     assert.match(main, /batchSectionCreationHistoryApi\.createHistoryAwareDialog/);
