@@ -1,4 +1,9 @@
 import { createLoggerFactory } from './shared/logger.js';
+import {
+    WINDOW_MESSAGE_TYPES,
+    createExportStatusMessage,
+    isMainCommandMessage
+} from './shared/message-protocol.js';
 import * as transportApi from './shared/websocket-transport.js';
 import * as operationGuardApi from './shared/operation-guard.js';
 import * as indexedDbApi from './shared/indexeddb.js';
@@ -75,7 +80,7 @@ const executionHistoryFeature = historyFeatureApi.createExecutionHistoryFeature(
 });
 
 function notifyExportStatus(state, message = '') {
-    window.postMessage({ type: 'EDVIBE_TOOLBOX_EXPORT_STATUS', state, message }, '*');
+    window.postMessage(createExportStatusMessage(state, message), '*');
 }
 
 const marathonExportFeature = exportApi.createMarathonExportFeature({
@@ -218,47 +223,38 @@ const batchSectionDeletionFeature = batchSectionDeletionApi.createBatchSectionDe
     log: createMainLog('BatchSectionDeletion')
 });
 
-window.addEventListener('message', (event) => {
-    if (event.source !== window) return;
-    const data = event.data || {};
-    if (data.type === 'EDVIBE_TOOLBOX_START_ALL') {
-        marathonExportFeature.start();
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_RESET') {
-        lessonResetFeature.open();
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS') {
-        batchLessonAccessFeature.open();
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING') {
-        batchUserOnboardingFeature.open();
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT') {
-        batchUserManagementFeature.open();
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION') {
-        batchSectionCreationFeature.open();
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION') {
-        batchSectionDeletionFeature.open();
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY') {
-        executionHistoryFeature.open({ executionId: data.executionId || null });
-    }
-    if (data.type === 'EDVIBE_TOOLBOX_OPEN_RECORDER') {
-        if (recorderOpen) {
+function openActionRecorder() {
+    if (recorderOpen) {
+        actionRecorderFeature.open();
+    } else if (operationGuard.activate('recording')) {
+        try {
             actionRecorderFeature.open();
-        } else if (operationGuard.activate('recording')) {
-            try {
-                actionRecorderFeature.open();
-            } catch (error) {
-                operationGuard.release('recording');
-                throw error;
-            }
-        } else {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+        } catch (error) {
+            operationGuard.release('recording');
+            throw error;
         }
+    } else {
+        window.alert('Another Edvibe Toolbox operation is already running.');
     }
+}
+
+const mainCommandHandlers = new Map([
+    [WINDOW_MESSAGE_TYPES.START_EXPORT, () => marathonExportFeature.start()],
+    [WINDOW_MESSAGE_TYPES.OPEN_LESSON_RESET, () => lessonResetFeature.open()],
+    [WINDOW_MESSAGE_TYPES.OPEN_BATCH_LESSON_ACCESS, () => batchLessonAccessFeature.open()],
+    [WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_ONBOARDING, () => batchUserOnboardingFeature.open()],
+    [WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT, () => batchUserManagementFeature.open()],
+    [WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_CREATION, () => batchSectionCreationFeature.open()],
+    [WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_DELETION, () => batchSectionDeletionFeature.open()],
+    [WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY, (data) => executionHistoryFeature.open({
+        executionId: data.executionId || null
+    })],
+    [WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER, openActionRecorder]
+]);
+
+window.addEventListener('message', (event) => {
+    if (event.source !== window || !isMainCommandMessage(event.data)) return;
+    mainCommandHandlers.get(event.data.type)?.(event.data);
 });
 
 log('Toolbox modules ready.');
