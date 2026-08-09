@@ -88,7 +88,19 @@ jobs:
       - name: Lint
         run: npm run lint
       - run: npm run typecheck
-      - run: npm run test:ci
+      - name: Run tests with failure diagnostics
+        run: |
+          set +e
+          npm run test:ci > /tmp/test-output.txt 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo '===== FAILURES ====='
+            grep -n -B 12 -A 30 -E 'not ok|AssertionError|ERR_ASSERTION|Error:|failed|FAIL' /tmp/test-output.txt || true
+            echo '===== TAIL ====='
+            tail -n 180 /tmp/test-output.txt
+            exit "$status"
+          fi
+          cat /tmp/test-output.txt
       - run: npm run build
       - name: Commit cleanup and remove temporary workflows
         run: |
