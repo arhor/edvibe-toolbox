@@ -61,20 +61,21 @@ test('popup uses a CSP-safe data-driven tool catalog', () => {
     assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
 });
 
-test('isolated bridge exposes management commands with stylesheet-only metadata', () => {
+test('isolated bridge exposes management commands without presentation metadata', () => {
     const expectedCommands = [
-        ['OPEN_BATCH_LESSON_ACCESS', 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS', 'batch-lesson-access-dialog.css'],
-        ['OPEN_BATCH_USER_ONBOARDING', 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING', 'batch-user-onboarding-dialog.css'],
-        ['OPEN_BATCH_USER_MANAGEMENT', 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT', 'batch-user-management-dialog.css'],
-        ['OPEN_BATCH_SECTION_CREATION', 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION', 'batch-section-creation-dialog.css'],
-        ['OPEN_BATCH_SECTION_DELETION', 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'batch-section-deletion-dialog.css']
+        ['OPEN_BATCH_LESSON_ACCESS', 'EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS'],
+        ['OPEN_BATCH_USER_ONBOARDING', 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING'],
+        ['OPEN_BATCH_USER_MANAGEMENT', 'EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT'],
+        ['OPEN_BATCH_SECTION_CREATION', 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION'],
+        ['OPEN_BATCH_SECTION_DELETION', 'EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION']
     ];
 
-    for (const [command, messageType, stylesheet] of expectedCommands) {
+    for (const [command, messageType] of expectedCommands) {
         assert.match(isolatedScript, new RegExp(`${command}: \\['${messageType}'`));
-        assert.match(isolatedScript, new RegExp(stylesheet.replace('.', '\\.')));
     }
+    assert.match(isolatedScript, /const \[type, info\] = commands\[message\.action\]/);
     assert.match(isolatedScript, /window\.postMessage\(\{ type \}, '\*'\)/);
+    assert.doesNotMatch(isolatedScript, /stylesheetUrl|sourceStylesheetUrl|dialog\.css/);
 });
 
 test('popup presents separate groups and preserves command requirements', () => {
