@@ -10,6 +10,7 @@
     "dev": "vite build --watch --mode development",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "test": "node --test \"src/**/*.test.js\"",
     "test:components": "node scripts/run-component-tests.mjs",
     "test:ci": "npm test && npm run test:components"
