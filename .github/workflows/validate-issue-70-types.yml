@@ -1,0 +1,33 @@
+name: Validate issue 70 types
+
+on:
+  push:
+    branches:
+      - issue-70-typescript-boundaries
+    paths:
+      - .github/workflows/validate-issue-70-types.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-70-typescript-boundaries
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Remove validation helper
+        run: |
+          git rm .github/workflows/validate-issue-70-types.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Remove temporary TypeScript validation workflow"
+          git push origin HEAD:issue-70-typescript-boundaries
