@@ -1,19 +1,62 @@
+// @ts-check
+
 import { appendPage, createFeatureError } from './batch-workflow-primitives.js';
 
+/** @typedef {import('./edvibe-marathon-api.types.js').EdvibeSendRequest} EdvibeSendRequest */
+/** @typedef {import('./edvibe-marathon-api.types.js').EdvibeMarathonApi} EdvibeMarathonApi */
+/** @typedef {import('./edvibe-marathon-api.types.js').MarathonLesson} MarathonLesson */
+/** @typedef {import('./edvibe-marathon-api.types.js').MarathonPupil} MarathonPupil */
+
+/**
+ * @param {unknown} value
+ * @returns {value is Record<string, unknown>}
+ */
+function isRecord(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * @param {unknown} sendRequest
+ * @returns {EdvibeSendRequest}
+ */
 function requireRequest(sendRequest) {
     if (typeof sendRequest !== 'function') throw new TypeError('sendRequest is required');
-    return sendRequest;
+    return /** @type {EdvibeSendRequest} */ (sendRequest);
 }
 
+/**
+ * @param {unknown} response
+ * @param {string} label
+ * @returns {{ items: Record<string, unknown>[], total: number }}
+ */
 function readPage(response, label) {
-    const value = response?.Value ?? response?.value;
-    if (!value) throw createFeatureError('INVALID_RESPONSE', `${label} returned no value.`);
-    return { items: value.Items, total: value.Page?.Count };
+    if (!isRecord(response)) {
+        throw createFeatureError('INVALID_RESPONSE', `${label} returned an invalid response.`);
+    }
+    const value = isRecord(response.Value)
+        ? response.Value
+        : isRecord(response.value)
+            ? response.value
+            : null;
+    if (!value || !Array.isArray(value.Items) || !value.Items.every(isRecord)) {
+        throw createFeatureError('INVALID_RESPONSE', `${label} returned invalid items.`);
+    }
+    const page = isRecord(value.Page) ? value.Page : null;
+    if (!page || !Number.isSafeInteger(page.Count) || Number(page.Count) < 0) {
+        throw createFeatureError('INVALID_RESPONSE', `${label} returned an invalid page count.`);
+    }
+    return { items: value.Items, total: Number(page.Count) };
 }
 
+/**
+ * @param {{ sendRequest: EdvibeSendRequest, marathonId: number, pageSize?: number }} options
+ * @returns {Promise<MarathonPupil[]>}
+ */
 async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
     const request = requireRequest(sendRequest);
+    /** @type {Record<string, unknown>[]} */
     let items = [];
+    /** @type {number | null} */
     let total = null;
 
     while (total === null || items.length < total) {
@@ -29,12 +72,18 @@ async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
         total = page.total;
     }
 
-    return items;
+    return /** @type {MarathonPupil[]} */ (items);
 }
 
+/**
+ * @param {{ sendRequest: EdvibeSendRequest, marathonId: number, pupilId: number, pageSize?: number }} options
+ * @returns {Promise<MarathonLesson[]>}
+ */
 async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize = 20 }) {
     const request = requireRequest(sendRequest);
+    /** @type {Record<string, unknown>[]} */
     let items = [];
+    /** @type {number | null} */
     let total = null;
 
     while (total === null || items.length < total) {
@@ -61,12 +110,18 @@ async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize 
         total = page.total;
     }
 
-    return items;
+    return /** @type {MarathonLesson[]} */ (items);
 }
 
+/**
+ * @param {{ sendRequest: EdvibeSendRequest, marathonId: number, pageSize?: number }} options
+ * @returns {Promise<MarathonLesson[]>}
+ */
 async function loadAllMarathonLessons({ sendRequest, marathonId, pageSize = 100 }) {
     const request = requireRequest(sendRequest);
+    /** @type {Record<string, unknown>[]} */
     let items = [];
+    /** @type {number | null} */
     let total = null;
 
     while (total === null || items.length < total) {
@@ -92,9 +147,13 @@ async function loadAllMarathonLessons({ sendRequest, marathonId, pageSize = 100 
         total = page.total;
     }
 
-    return items;
+    return /** @type {MarathonLesson[]} */ (items);
 }
 
+/**
+ * @param {{ sendRequest: EdvibeSendRequest, lessonId: number }} options
+ * @returns {Promise<Record<string, unknown>>}
+ */
 async function getLessonById({ sendRequest, lessonId }) {
     const request = requireRequest(sendRequest);
     const response = await request(
@@ -103,12 +162,16 @@ async function getLessonById({ sendRequest, lessonId }) {
         'Books',
         { LessonId: lessonId }
     );
-    if (response == null || typeof response !== 'object') {
+    if (!isRecord(response)) {
         throw createFeatureError('INVALID_RESPONSE', 'GetLessonWithId returned an invalid response.');
     }
     return response;
 }
 
+/**
+ * @param {{ sendRequest: EdvibeSendRequest }} options
+ * @returns {EdvibeMarathonApi}
+ */
 function createEdvibeMarathonApi({ sendRequest }) {
     const request = requireRequest(sendRequest);
     return Object.freeze({
