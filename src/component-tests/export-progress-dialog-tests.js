@@ -10,14 +10,15 @@ import {
 
 export async function runExportProgressDialogTests() {
     const dialog = await fixture('<edvibe-toolbox-export-progress></edvibe-toolbox-export-progress>');
-    dialog.configure();
     await elementUpdated(dialog);
 
     equal(shadowQuery(dialog, '.status').textContent, 'Preparing export...');
     equal(shadowQuery(dialog, '.count').textContent, 'Discovering sections...');
     equal(shadowQuery(dialog, '.percent').textContent, '0%');
     equal(shadowQuery(dialog, '.progress').hasAttribute('value'), false);
-    equal(shadowQuery(dialog, 'link').getAttribute('href'), '/src/components/export-progress-dialog.css');
+    equal(shadowQuery(dialog, 'link'), null);
+    equal(getComputedStyle(dialog).position, 'fixed');
+    equal(getComputedStyle(shadowQuery(dialog, '.overlay')).display, 'flex');
 
     equal(dialog.update({
         statusText: 'Loading sections',
