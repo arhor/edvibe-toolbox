@@ -1,0 +1,116 @@
+name: Migrate issue 71 runtime layout
+
+on:
+  push:
+    branches:
+      - issue-71-runtime-layout
+    paths:
+      - .github/workflows/migrate-issue-71-runtime-layout.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-71-runtime-layout
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Move runtime implementation under src/runtime
+        run: |
+          mkdir -p src/runtime
+          git mv popup.js src/runtime/popup.js
+          git mv popup.css src/runtime/popup.css
+          git mv src/isolated.js src/runtime/isolated.js
+          git mv src/main.js src/runtime/main.js
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              Path('src/runtime/popup.js'): [
+                  ("from './src/shared/logger.js'", "from '../shared/logger.js'"),
+                  ("from './src/shared/message-protocol.js'", "from '../shared/message-protocol.js'")
+              ],
+              Path('src/runtime/isolated.js'): [
+                  ("from './shared/logger.js'", "from '../shared/logger.js'"),
+                  ("from './shared/message-protocol.js'", "from '../shared/message-protocol.js'")
+              ],
+              Path('src/runtime/main.js'): [
+                  ("from './shared/", "from '../shared/"),
+                  ("from './components/", "from '../components/"),
+                  ("from './features/", "from '../features/")
+              ],
+              Path('src/entrypoints/popup.js'): [
+                  ("import '../../popup.js';", "import '../runtime/popup.js';")
+              ],
+              Path('src/entrypoints/isolated.js'): [
+                  ("import '../isolated.js';", "import '../runtime/isolated.js';")
+              ],
+              Path('src/entrypoints/main.js'): [
+                  ("import '../main.js';", "import '../runtime/main.js';")
+              ],
+              Path('popup.html'): [
+                  ('href="popup.css"', 'href="src/runtime/popup.css"')
+              ]
+          }
+          for path, pairs in replacements.items():
+              text = path.read_text()
+              for old, new in pairs:
+                  if old not in text:
+                      raise SystemExit(f'{path}: missing {old!r}')
+                  text = text.replace(old, new)
+              path.write_text(text)
+
+          test_pairs = [
+              ("'popup.js'", "'src/runtime/popup.js'"),
+              ('"popup.js"', '"src/runtime/popup.js"'),
+              ("'popup.css'", "'src/runtime/popup.css'"),
+              ('"popup.css"', '"src/runtime/popup.css"'),
+              ("'src/isolated.js'", "'src/runtime/isolated.js'"),
+              ('"src/isolated.js"', '"src/runtime/isolated.js"'),
+              ("'src/main.js'", "'src/runtime/main.js'"),
+              ('"src/main.js"', '"src/runtime/main.js"')
+          ]
+          for path in Path('src').rglob('*.test.js'):
+              text = path.read_text()
+              updated = text
+              for old, new in test_pairs:
+                  updated = updated.replace(old, new)
+              if updated != text:
+                  path.write_text(updated)
+
+          agents = Path('AGENTS.md')
+          text = agents.read_text()
+          text = text.replace(
+              '- `src/entrypoints/`: explicit Vite/CRXJS runtime entry points and package-runtime bridges.',
+              '- `src/entrypoints/`: small Vite/CRXJS composition roots for popup, ISOLATED, and MAIN runtimes.\n- `src/runtime/`: runtime coordinators and popup-owned global presentation; application runtime code belongs here rather than at repository root.'
+          )
+          text = text.replace('`src/main.js`', '`src/runtime/main.js`')
+          text = text.replace('`src/isolated.js`', '`src/runtime/isolated.js`')
+          text = text.replace('`popup.js`', '`src/runtime/popup.js`')
+          text = text.replace('`popup.css`', '`src/runtime/popup.css`')
+          agents.write_text(text)
+          PY
+      - name: Reject stale active runtime paths
+        run: |
+          if grep -R -n --exclude-dir=dist --exclude-dir=.git --exclude='*.md' -E "(['\"]popup\.js['\"]|['\"]popup\.css['\"]|['\"]src/(main|isolated)\.js['\"])" src popup.html manifest.json vite.config.mjs; then
+            echo 'Found stale runtime path references'
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Commit verified layout and remove helper
+        run: |
+          git rm .github/workflows/migrate-issue-71-runtime-layout.yml
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Simplify runtime source layout"
+          git push origin HEAD:issue-71-runtime-layout
