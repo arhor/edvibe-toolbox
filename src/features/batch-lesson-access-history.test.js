@@ -261,7 +261,7 @@ test('history-aware feature persists terminal output without replacing the visib
     try {
         const feature = createHistoryAwareFeature({
             createFeature: (value) => value,
-            sendRequest: async (controller, method, projectName, value) => {
+            sendRequest: async (controller, method, _projectName, _value) => {
                 if (method === 'GetMarathonPupils') return { Value: { Items: [{ Email: 'first@example.com', PupilId: 1, MarathonPupilId: 101 }] } };
                 if (method === 'GetMarathonLessonsForPupilPagination') return { Value: { Items: [{ MarathonLessonId: 10, Number: 0, Name: 'Intro', IsOpen: false }] } };
                 return { Value: true };

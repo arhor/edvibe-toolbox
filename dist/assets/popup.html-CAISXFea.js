@@ -715,27 +715,6 @@ var PopupToolGroup = class extends i {
 if (!customElements.get("popup-tool-card")) customElements.define("popup-tool-card", PopupToolCard);
 if (!customElements.get("popup-tool-group")) customElements.define("popup-tool-group", PopupToolGroup);
 //#endregion
-//#region src/shared/logger.js
-var SUPPORTED_WORLDS = /* @__PURE__ */ new Set([
-	"POPUP",
-	"MAIN",
-	"ISOLATED"
-]);
-/**
-* Creates component-scoped loggers for one explicit execution world.
-*
-* @param {string} world The execution world.
-* @returns {(module: string | null | undefined) => (...args: any[]) => void} A function that creates a logger function.
-*/
-function createLoggerFactory(world) {
-	if (!SUPPORTED_WORLDS.has(world)) throw new Error(`Unsupported logging world: ${world}`);
-	return function createLogger(component) {
-		if (component !== void 0 && (typeof component !== "string" || !component.trim())) throw new Error("Component must be a non-empty string.");
-		const namespace = `[Edvibe Toolbox][${world}]${component ? `[${component.trim()}]` : ""}`;
-		return (...args) => console.log(namespace, ...args);
-	};
-}
-//#endregion
 //#region src/shared/message-protocol.js
 var POPUP_COMMANDS = Object.freeze({
 	START_EXPORT: "START_FULL_AUTOMATION",
@@ -836,7 +815,6 @@ function isRuntimeExportStatusMessage(value) {
 }
 //#endregion
 //#region src/runtime/popup.js
-createLoggerFactory("POPUP")();
 var TOOL_GROUPS = Object.freeze({
 	history: "История",
 	export: "Экспорт",

@@ -314,7 +314,7 @@ function createMarathonExportFeature({
             notifyStatus('started');
             log('Starting marathon export...');
             progressOverlay = createProgressOverlay();
-            progressOverlay.update({ statusText: 'Finding marathon lessons...', loadedSections: 0, totalSections: 0 });
+            progressOverlay.setProgress({ statusText: 'Finding marathon lessons...', loadedSections: 0, totalSections: 0 });
             const marathonId = parseMarathonId(getCurrentUrl());
             if (!marathonId) {
                 progressOverlay.error('Failed to find a valid MarathonId in the current page URL.');
@@ -330,7 +330,7 @@ function createMarathonExportFeature({
             );
             const marathonLessons = paginationData.Value?.Items || [];
             backupBundle.totalLessons = marathonLessons.length;
-            progressOverlay.update({
+            progressOverlay.setProgress({
                 statusText: `Found ${marathonLessons.length} lessons. Loading lesson sections...`,
                 loadedSections: 0,
                 totalSections: 0
@@ -338,7 +338,7 @@ function createMarathonExportFeature({
             const lessonQueue = [];
             let totalSections = 0;
             for (const [lessonIndex, lessonNode] of marathonLessons.entries()) {
-                progressOverlay.update({
+                progressOverlay.setProgress({
                     statusText: `Loading sections for lesson ${lessonIndex + 1} of ${marathonLessons.length}: ${lessonNode.Name}`,
                     loadedSections: 0,
                     totalSections: 0
@@ -349,7 +349,7 @@ function createMarathonExportFeature({
                 totalSections += sections.length;
                 lessonQueue.push({ lessonNode, lessonStructure, sections });
             }
-            progressOverlay.update({
+            progressOverlay.setProgress({
                 statusText: `Found ${totalSections} sections. Loading exercise assets...`,
                 loadedSections: 0,
                 totalSections
@@ -364,7 +364,7 @@ function createMarathonExportFeature({
                     sections: []
                 };
                 for (const section of sections) {
-                    progressOverlay.update({
+                    progressOverlay.setProgress({
                         statusText: `Lesson: ${lessonNode.Name}\nSection: ${section.Name}`,
                         loadedSections,
                         totalSections
@@ -386,7 +386,7 @@ function createMarathonExportFeature({
                         items: parsedValue?.Items || []
                     });
                     loadedSections += 1;
-                    progressOverlay.update({
+                    progressOverlay.setProgress({
                         statusText: `Loaded "${section.Name}" from "${lessonNode.Name}".`,
                         loadedSections,
                         totalSections
@@ -394,7 +394,7 @@ function createMarathonExportFeature({
                 }
                 backupBundle.lessons.push(lessonEntry);
             }
-            progressOverlay.update({
+            progressOverlay.setProgress({
                 statusText: 'All sections loaded.\nProcessing lesson content and archiving workspace...\nDownloading images — this may take a few minutes.',
                 loadedSections: 0,
                 totalSections: 0
@@ -402,7 +402,7 @@ function createMarathonExportFeature({
             await compileToZip(backupBundle, {
                 onProgress({ message, current, total }) {
                     const isCompressing = message === 'Compressing archive...';
-                    progressOverlay.update({
+                    progressOverlay.setProgress({
                         statusText: isCompressing
                             ? 'Processing lesson content and archiving workspace...\nCompressing archive...'
                             : `Processing lesson content and archiving workspace...\n${message}`,

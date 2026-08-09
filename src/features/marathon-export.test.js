@@ -12,8 +12,8 @@ function createOverlaySpy() {
 
     return {
         calls,
-        update(detail) {
-            calls.push(['update', detail]);
+        setProgress(detail) {
+            calls.push(['setProgress', detail]);
         },
         complete(message, total) {
             calls.push(['complete', message, total]);

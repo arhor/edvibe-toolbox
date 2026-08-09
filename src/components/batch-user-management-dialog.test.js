@@ -6,7 +6,7 @@ const path = require('node:path');
 const source = fs.readFileSync(path.resolve(__dirname, 'batch-user-management-dialog.js'), 'utf8');
 
 test('batch user management dialog uses Lit for all workflow states', () => {
-    assert.match(source, /import \{ LitElement, html, nothing \} from 'lit';/);
+    assert.match(source, /import \{ LitElement, html \} from 'lit';/);
     assert.match(source, /class BatchUserManagementDialog extends LitElement/);
     for (const method of ['showConfigure', 'showChecking', 'showValidationErrors', 'showReview', 'showExecution', 'showComplete', 'showFatalError']) {
         assert.match(source, new RegExp(`${method}\\(`));

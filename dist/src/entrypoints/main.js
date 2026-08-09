@@ -751,11 +751,7 @@ h2 { margin: 0 0 8px; color: #111827; font-size: 20px; line-height: 1.3; }
 			this.countText = void 0;
 			this.progressState = "loading";
 		}
-		update(options = /* @__PURE__ */ new Map()) {
-			if (options instanceof Map) {
-				super.update(options);
-				return;
-			}
+		setProgress(options = {}) {
 			options = options && typeof options === "object" ? options : {};
 			const { statusText = "", loadedSections = 0, totalSections = 0, countText, state = "loading" } = options;
 			this.statusText = String(statusText || "");
@@ -773,7 +769,7 @@ h2 { margin: 0 0 8px; color: #111827; font-size: 20px; line-height: 1.3; }
 			this.toggleAttribute("error", this.progressState === "error");
 		}
 		complete(statusText, totalSections) {
-			return this.update({
+			return this.setProgress({
 				statusText,
 				loadedSections: totalSections,
 				totalSections,
@@ -781,7 +777,7 @@ h2 { margin: 0 0 8px; color: #111827; font-size: 20px; line-height: 1.3; }
 			});
 		}
 		error(statusText) {
-			return this.update({
+			return this.setProgress({
 				statusText,
 				state: "error"
 			});
@@ -7480,7 +7476,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				notifyStatus("started");
 				log("Starting marathon export...");
 				progressOverlay = createProgressOverlay();
-				progressOverlay.update({
+				progressOverlay.setProgress({
 					statusText: "Finding marathon lessons...",
 					loadedSections: 0,
 					totalSections: 0
@@ -7506,7 +7502,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					}
 				})).Value?.Items || [];
 				backupBundle.totalLessons = marathonLessons.length;
-				progressOverlay.update({
+				progressOverlay.setProgress({
 					statusText: `Found ${marathonLessons.length} lessons. Loading lesson sections...`,
 					loadedSections: 0,
 					totalSections: 0
@@ -7514,7 +7510,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				const lessonQueue = [];
 				let totalSections = 0;
 				for (const [lessonIndex, lessonNode] of marathonLessons.entries()) {
-					progressOverlay.update({
+					progressOverlay.setProgress({
 						statusText: `Loading sections for lesson ${lessonIndex + 1} of ${marathonLessons.length}: ${lessonNode.Name}`,
 						loadedSections: 0,
 						totalSections: 0
@@ -7529,7 +7525,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 						sections
 					});
 				}
-				progressOverlay.update({
+				progressOverlay.setProgress({
 					statusText: `Found ${totalSections} sections. Loading exercise assets...`,
 					loadedSections: 0,
 					totalSections
@@ -7544,7 +7540,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 						sections: []
 					};
 					for (const section of sections) {
-						progressOverlay.update({
+						progressOverlay.setProgress({
 							statusText: `Lesson: ${lessonNode.Name}\nSection: ${section.Name}`,
 							loadedSections,
 							totalSections
@@ -7564,7 +7560,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 							items: parsedValue?.Items || []
 						});
 						loadedSections += 1;
-						progressOverlay.update({
+						progressOverlay.setProgress({
 							statusText: `Loaded "${section.Name}" from "${lessonNode.Name}".`,
 							loadedSections,
 							totalSections
@@ -7572,14 +7568,14 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					}
 					backupBundle.lessons.push(lessonEntry);
 				}
-				progressOverlay.update({
+				progressOverlay.setProgress({
 					statusText: "All sections loaded.\nProcessing lesson content and archiving workspace...\nDownloading images — this may take a few minutes.",
 					loadedSections: 0,
 					totalSections: 0
 				});
 				await compileToZip(backupBundle, { onProgress({ message, current, total }) {
 					const isCompressing = message === "Compressing archive...";
-					progressOverlay.update({
+					progressOverlay.setProgress({
 						statusText: isCompressing ? "Processing lesson content and archiving workspace...\nCompressing archive..." : `Processing lesson content and archiving workspace...\n${message}`,
 						loadedSections: isCompressing ? 0 : current || 0,
 						totalSections: isCompressing ? 0 : total || 0,
@@ -7740,7 +7736,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 						ExerciseId: exercise.id
 					})).Value !== true) throw new Error("server did not confirm the reset");
 				} catch (error) {
-					throw new Error(`Failed in "${item.lesson.Name}", exercise ${exercise.id}: ${error.message}`);
+					throw new Error(`Failed in "${item.lesson.Name}", exercise ${exercise.id}: ${error.message}`, { cause: error });
 				}
 				completed += 1;
 				onProgress({
@@ -11867,8 +11863,7 @@ textarea {
 			this.ownerDocument?.removeEventListener("keydown", this.handleKeydownBound);
 			super.disconnectedCallback();
 		}
-		configure(options = {}) {
-			options = options && typeof options === "object" ? options : {};
+		configure() {
 			return this;
 		}
 		setEmailState(state = {}) {

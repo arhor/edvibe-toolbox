@@ -20,7 +20,7 @@ export async function runExportProgressDialogTests() {
     equal(getComputedStyle(dialog).position, 'fixed');
     equal(getComputedStyle(shadowQuery(dialog, '.overlay')).display, 'flex');
 
-    equal(dialog.update({
+    equal(dialog.setProgress({
         statusText: 'Loading sections',
         loadedSections: 2,
         totalSections: 4
@@ -32,7 +32,7 @@ export async function runExportProgressDialogTests() {
     equal(shadowQuery(dialog, '.progress').value, 50);
     equal(dialog.hasAttribute('indeterminate'), false);
 
-    dialog.update({statusText: 'Discovering'});
+    dialog.setProgress({statusText: 'Discovering'});
     await elementUpdated(dialog);
     equal(dialog.hasAttribute('indeterminate'), true);
     equal(shadowQuery(dialog, '.progress').hasAttribute('value'), false);

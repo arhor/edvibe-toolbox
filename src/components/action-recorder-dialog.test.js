@@ -7,7 +7,7 @@ const componentPath = path.resolve(__dirname, 'action-recorder-dialog.js');
 const source = fs.readFileSync(componentPath, 'utf8');
 
 test('action recorder dialog uses Lit for recorder state and operation rendering', () => {
-    assert.match(source, /import \{ LitElement, html, nothing \} from 'lit';/);
+    assert.match(source, /import \{ LitElement, html \} from 'lit';/);
     assert.match(source, /class ActionRecorderDialog extends LitElement/);
     assert.match(source, /renderOperation\(operation\)/);
     assert.match(source, /visibleOperations\(\)/);

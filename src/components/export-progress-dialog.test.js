@@ -12,7 +12,7 @@ test('export progress dialog is a Lit component with an ESM integration contract
     assert.match(source, /from '\.\/export-progress-dialog\.styles\.js';/);
     assert.match(source, /class ExportProgressDialog extends LitElement/);
     assert.match(source, /static styles = \[componentFoundationStyles, dialogFoundationStyles, exportProgressDialogStyles\]/);
-    assert.match(source, /update\(options = new Map\(\)\)/);
+    assert.match(source, /setProgress\(options = \{\}\)/);
     assert.match(source, /complete\(statusText, totalSections\)/);
     assert.match(source, /error\(statusText\)/);
     assert.match(source, /dismissAfter\(ms\)/);
