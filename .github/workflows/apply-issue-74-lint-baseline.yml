@@ -85,28 +85,25 @@ jobs:
 
           p = Path('src/runtime/popup.js'); text = p.read_text(); text = text.replace("import { createLoggerFactory } from '../shared/logger.js';\n", ''); text = text.replace("const createPopupLog = createLoggerFactory('POPUP');\nconst log = createPopupLog();\n\n", ''); p.write_text(text)
           PY
-      - name: Lint
-        run: npm run lint
+      - run: npm run lint
       - run: npm run typecheck
-      - name: Run tests with failure diagnostics
+      - name: Capture failing test excerpts
         run: |
           set +e
           npm run test:ci > /tmp/test-output.txt 2>&1
           status=$?
-          if [ "$status" -ne 0 ]; then
-            echo '===== FAILURES ====='
+          {
+            echo "TEST_EXIT=$status"
+            echo "===== FAILURES ====="
             grep -n -B 12 -A 30 -E 'not ok|AssertionError|ERR_ASSERTION|Error:|failed|FAIL' /tmp/test-output.txt || true
-            echo '===== TAIL ====='
-            tail -n 180 /tmp/test-output.txt
-            exit "$status"
-          fi
-          cat /tmp/test-output.txt
-      - run: npm run build
-      - name: Commit cleanup and remove temporary workflows
+            echo "===== TAIL ====="
+            tail -n 120 /tmp/test-output.txt
+          } > issue-74-test-failures.txt
+          exit 0
+      - name: Commit diagnostic excerpt
         run: |
-          git rm .github/workflows/apply-issue-74-lint-baseline.yml .github/workflows/finish-issue-74-lint-baseline.yml .github/workflows/fix-issue-74-lint-baseline.yml .github/workflows/bootstrap-issue-74-eslint.yml
-          git add -A
+          git add issue-74-test-failures.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Establish zero-error ESLint baseline"
+          git commit -m "Add temporary issue 74 test diagnostic"
           git push origin HEAD:issue-74-eslint-quality-gate
