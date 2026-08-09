@@ -1,0 +1,38 @@
+name: Measure issue 75 build output
+
+on:
+  push:
+    branches:
+      - issue-75-build-output-policy
+    paths:
+      - .github/workflows/measure-issue-75-build.yml
+      - vite.config.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-75-build-output-policy
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Report generated files
+        run: |
+          echo '===== FILE SIZES ====='
+          find dist -type f -printf '%s %p\n' | sort -nr
+          echo '===== JAVASCRIPT TOTAL ====='
+          find dist -type f -name '*.js' -printf '%s\n' | awk '{ total += $1 } END { print total }'
+      - name: Verify repeat build determinism
+        run: |
+          find dist -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/first-build.sha256
+          npm run build >/tmp/second-build.log
+          find dist -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/second-build.sha256
+          diff -u /tmp/first-build.sha256 /tmp/second-build.sha256
