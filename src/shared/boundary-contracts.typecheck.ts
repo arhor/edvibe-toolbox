@@ -45,12 +45,12 @@ const storageRequest: StorageRequestMessage = {
     key: 'executionHistoryPreferences'
 };
 void storageRequest;
-// @ts-expect-error storage get requests cannot smuggle a value payload
 const invalidStorageRequest: StorageRequestMessage = {
     type: 'EDVIBE_TOOLBOX_STORAGE_REQUEST',
     requestId: 'request-2',
     action: 'get',
     key: 'executionHistoryPreferences',
+    // @ts-expect-error storage get requests cannot smuggle a value payload
     value: { maxCount: 1 }
 };
 void invalidStorageRequest;
@@ -76,7 +76,6 @@ const historyInput: ExecutionRecordInput = {
     }]
 };
 void historyInput;
-// @ts-expect-error untrusted/raw transport material is not part of the persisted JSON contract
 const invalidHistoryInput: ExecutionRecordInput = {
     operationType: 'example',
     startedAt: new Date(),
@@ -85,7 +84,10 @@ const invalidHistoryInput: ExecutionRecordInput = {
         status: 'completed',
         code: 'OK',
         message: 'done',
-        data: { socket: new WebSocket('wss://example.invalid') }
+        data: {
+            // @ts-expect-error untrusted/raw transport material is not persisted JSON
+            socket: new WebSocket('wss://example.invalid')
+        }
     }]
 };
 void invalidHistoryInput;
