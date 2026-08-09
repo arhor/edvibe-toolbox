@@ -1,9 +1,9 @@
-import { createLoggerFactory } from './src/shared/logger.js';
+import { createLoggerFactory } from '../shared/logger.js';
 import {
     POPUP_COMMANDS,
     isPopupCommandMessage,
     isRuntimeExportStatusMessage
-} from './src/shared/message-protocol.js';
+} from '../shared/message-protocol.js';
 
 const createPopupLog = createLoggerFactory('POPUP');
 const log = createPopupLog();

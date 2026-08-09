@@ -6,10 +6,10 @@ const test = require('node:test');
 const projectRoot = path.resolve(__dirname, '..');
 const popupHtml = fs.readFileSync(path.join(projectRoot, 'popup.html'), 'utf8');
 const popupEntrypoint = fs.readFileSync(path.join(projectRoot, 'src/entrypoints/popup.js'), 'utf8');
-const popupScript = fs.readFileSync(path.join(projectRoot, 'popup.js'), 'utf8');
-const popupStyles = fs.readFileSync(path.join(projectRoot, 'popup.css'), 'utf8');
+const popupScript = fs.readFileSync(path.join(projectRoot, 'src/runtime/popup.js'), 'utf8');
+const popupStyles = fs.readFileSync(path.join(projectRoot, 'src/runtime/popup.css'), 'utf8');
 const popupComponents = fs.readFileSync(path.join(projectRoot, 'src/components/popup-tool-list.js'), 'utf8');
-const isolatedScript = fs.readFileSync(path.join(projectRoot, 'src/isolated.js'), 'utf8');
+const isolatedScript = fs.readFileSync(path.join(projectRoot, 'src/runtime/isolated.js'), 'utf8');
 
 test('popup uses a CSP-safe data-driven tool catalog', () => {
     assert.doesNotMatch(popupHtml, /\sonclick=/);
@@ -32,14 +32,14 @@ test('popup uses a CSP-safe data-driven tool catalog', () => {
 });
 
 test('popup and isolated bridge share one validated command protocol', () => {
-    assert.match(popupScript, /from '\.\/src\/shared\/message-protocol\.js';/);
+    assert.match(popupScript, /from '\.\.\/shared\/message-protocol\.js';/);
     assert.match(popupScript, /POPUP_COMMANDS\.OPEN_BATCH_LESSON_ACCESS/);
     assert.match(popupScript, /POPUP_COMMANDS\.OPEN_BATCH_USER_ONBOARDING/);
     assert.match(popupScript, /POPUP_COMMANDS\.OPEN_BATCH_USER_MANAGEMENT/);
     assert.match(popupScript, /POPUP_COMMANDS\.OPEN_BATCH_SECTION_CREATION/);
     assert.match(popupScript, /POPUP_COMMANDS\.OPEN_BATCH_SECTION_DELETION/);
     assert.match(popupScript, /isPopupCommandMessage\(message\)/);
-    assert.match(isolatedScript, /from '\.\/shared\/message-protocol\.js';/);
+    assert.match(isolatedScript, /from '\.\.\/shared\/message-protocol\.js';/);
     assert.match(isolatedScript, /isPopupCommandMessage\(message\)/);
     assert.match(isolatedScript, /createMainCommandMessage\(message\.action\)/);
     assert.doesNotMatch(isolatedScript, /stylesheetUrl|sourceStylesheetUrl|dialog\.css/);
@@ -57,11 +57,11 @@ test('popup presents separate groups and preserves command requirements', () => 
 });
 
 test('popup styling and script loading remain component-oriented', () => {
-    assert.match(popupHtml, /<link rel="stylesheet" href="popup\.css">/);
+    assert.match(popupHtml, /<link rel="stylesheet" href="src\/runtime\/popup\.css">/);
     assert.match(popupHtml, /<script type="module" src="src\/entrypoints\/popup\.js"><\/script>/);
     assert.doesNotMatch(popupHtml, /src\/components\/popup-tool-list\.js/);
     assert.match(popupEntrypoint, /import '\.\.\/components\/popup-tool-list\.js';/);
-    assert.match(popupEntrypoint, /import '\.\.\/\.\.\/popup\.js';/);
+    assert.match(popupEntrypoint, /import '\.\.\/runtime\/popup\.js';/);
     assert.match(popupStyles, /popup-tool-card:focus-visible/);
     assert.match(popupStyles, /popup-tool-card\.is-danger/);
     assert.doesNotMatch(popupStyles, /\.tool-action/);

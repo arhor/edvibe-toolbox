@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { initializeIsolatedBridge } = require('./isolated.js');
+const { initializeIsolatedBridge } = require('./runtime/isolated.js');
 const {
     EXPORT_STATES,
     POPUP_COMMANDS,

@@ -8,8 +8,8 @@ Edvibe Toolbox is a Manifest V3 Chrome extension for automating workflows on `ed
 
 The extension has two content-script contexts:
 
-- `src/entrypoints/isolated.js` runs in the extension isolated world. It initializes isolated-world dependencies and then loads the command bridge in `src/isolated.js`.
-- `src/entrypoints/main.js` runs in the page `MAIN` world. It initializes package-managed runtime libraries and shared infrastructure before components, features, and the coordinator in `src/main.js`.
+- `src/entrypoints/isolated.js` runs in the extension isolated world. It initializes isolated-world dependencies and then loads the command bridge in `src/runtime/isolated.js`.
+- `src/entrypoints/main.js` runs in the page `MAIN` world. It initializes package-managed runtime libraries and shared infrastructure before components, features, and the coordinator in `src/runtime/main.js`.
 
 Keep these runtime worlds separate and preserve `document_start` behavior for timing-sensitive interception.
 
@@ -17,7 +17,8 @@ Keep these runtime worlds separate and preserve `document_start` behavior for ti
 
 - `manifest.json`: source Manifest V3 configuration consumed by CRXJS.
 - `popup.html`: source popup document. Its module entry point is `src/entrypoints/popup.js`.
-- `src/entrypoints/`: explicit Vite/CRXJS runtime entry points and package-runtime bridges.
+- `src/entrypoints/`: small Vite/CRXJS composition roots for popup, ISOLATED, and MAIN runtimes.
+- `src/runtime/`: runtime coordinators and popup-owned global presentation; application runtime code belongs here rather than at repository root.
 - `src/components/`: Lit custom elements, component-specific Lit style modules, and reusable style foundations.
 - `src/features/`: feature workflows that coordinate transport, data, components, and persistence.
 - `src/shared/`: shared infrastructure such as logging, WebSocket transport, IndexedDB, operation guards, and execution history.

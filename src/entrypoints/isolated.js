@@ -1,1 +1,1 @@
-import '../isolated.js';
+import '../runtime/isolated.js';

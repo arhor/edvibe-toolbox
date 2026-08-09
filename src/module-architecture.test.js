@@ -18,20 +18,20 @@ test('runtime entry points preserve execution worlds and compose through ESM', (
     const mainEntrypoint = read('src/entrypoints/main.js');
     assert.match(mainEntrypoint, /import ['"]\.\.\/components\/export-progress-dialog\.js['"];?/);
     assert.match(mainEntrypoint, /import ['"]\.\.\/components\/reset-lessons-dialog\.js['"];?/);
-    assert.match(mainEntrypoint, /import ['"]\.\.\/main\.js['"];?/);
+    assert.match(mainEntrypoint, /import ['"]\.\.\/runtime\/main\.js['"];?/);
     assert.equal(fs.existsSync(path.join(root, 'src/entrypoints/runtime-dependencies.js')), false);
 
-    const mainSource = read('src/main.js');
+    const mainSource = read('src/runtime/main.js');
     assert.match(mainSource, /^import .* from ['"].+['"];$/m);
     assert.doesNotMatch(mainSource, /requireToolboxModule|window\.EdVibe|globalThis\.EdVibe/);
-    assert.match(mainSource, /from ['"]\.\/features\/marathon-export\.js['"]/);
-    assert.match(mainSource, /from ['"]\.\/shared\/websocket-transport\.js['"]/);
+    assert.match(mainSource, /from ['"]\.\.\/features\/marathon-export\.js['"]/);
+    assert.match(mainSource, /from ['"]\.\.\/shared\/websocket-transport\.js['"]/);
 });
 
 test('dynamic UI and presentation stay in Lit components and reusable style modules', () => {
     const coordinatorFiles = [
-        'popup.js',
-        'src/main.js',
+        'src/runtime/popup.js',
+        'src/runtime/main.js',
         'src/features/marathon-export.js',
         'src/features/reset-lessons.js',
         'src/features/action-recorder.js',
@@ -55,7 +55,7 @@ test('dynamic UI and presentation stay in Lit components and reusable style modu
 });
 
 test('main creates and installs shared transport and operation guard', () => {
-    const mainSource = read('src/main.js');
+    const mainSource = read('src/runtime/main.js');
 
     assert.match(mainSource, /createLoggerFactory\('MAIN'\)/);
     assert.match(mainSource, /createWebSocketTransport\(\{/);
@@ -65,7 +65,7 @@ test('main creates and installs shared transport and operation guard', () => {
 });
 
 test('main remains a coordinator for feature modules', () => {
-    const source = read('src/main.js');
+    const source = read('src/runtime/main.js');
 
     for (const factory of [
         'createMarathonExportFeature',
@@ -84,12 +84,12 @@ test('main remains a coordinator for feature modules', () => {
 });
 
 test('cross-world routing uses the shared validated protocol and minimal metadata', () => {
-    const isolatedSource = read('src/isolated.js');
-    const mainSource = read('src/main.js');
+    const isolatedSource = read('src/runtime/isolated.js');
+    const mainSource = read('src/runtime/main.js');
     const protocolSource = read('src/shared/message-protocol.js');
     const protocolTypes = read('src/shared/message-protocol.types.ts');
 
-    assert.match(isolatedSource, /from '\.\/shared\/message-protocol\.js';/);
+    assert.match(isolatedSource, /from '\.\.\/shared\/message-protocol\.js';/);
     assert.match(isolatedSource, /isPopupCommandMessage\(message\)/);
     assert.match(isolatedSource, /isExportStatusMessage\(event\.data\)/);
     assert.match(isolatedSource, /isStorageRequestMessage\(event\.data\)/);
@@ -110,7 +110,7 @@ test('cross-world routing uses the shared validated protocol and minimal metadat
 });
 
 test('batch features use imported APIs instead of global module lookups', () => {
-    const mainSource = read('src/main.js');
+    const mainSource = read('src/runtime/main.js');
     const expected = [
         ['batchAccessApi', 'batchLessonAccessFeature'],
         ['batchUserManagementApi', 'batchUserManagementFeature'],

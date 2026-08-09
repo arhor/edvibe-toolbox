@@ -183,7 +183,7 @@
 		return isNonEmptyString(value.error) && !Object.prototype.hasOwnProperty.call(value, "value");
 	}
 	//#endregion
-	//#region src/isolated.js
+	//#region src/runtime/isolated.js
 	function initializeIsolatedBridge(options = {}) {
 		const windowApi = options.windowApi || globalThis.window;
 		const chromeApi = options.chromeApi || globalThis.chrome;

@@ -1,2 +1,2 @@
 import '../components/popup-tool-list.js';
-import '../../popup.js';
+import '../runtime/popup.js';

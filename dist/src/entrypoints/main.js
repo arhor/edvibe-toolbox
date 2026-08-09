@@ -1681,7 +1681,7 @@ input:disabled {
 	var EXPORT_STATE_VALUES = new Set(Object.values(EXPORT_STATES));
 	var STORAGE_ACTION_VALUES = new Set(Object.values(STORAGE_ACTIONS));
 	var STORAGE_KEY_VALUES = new Set(Object.values(STORAGE_KEYS));
-	function isRecord(value) {
+	function isRecord$1(value) {
 		return value !== null && typeof value === "object" && !Array.isArray(value);
 	}
 	function hasOnlyKeys(value, allowedKeys) {
@@ -1691,7 +1691,7 @@ input:disabled {
 		return typeof value === "string" && value.length > 0;
 	}
 	function isMainCommandMessage(value) {
-		if (!isRecord(value) || !MAIN_COMMAND_TYPES.has(value.type)) return false;
+		if (!isRecord$1(value) || !MAIN_COMMAND_TYPES.has(value.type)) return false;
 		if (value.type === WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY) return hasOnlyKeys(value, /* @__PURE__ */ new Set(["type", "executionId"])) && (value.executionId === void 0 || value.executionId === null || isNonEmptyString(value.executionId));
 		return hasOnlyKeys(value, /* @__PURE__ */ new Set(["type"]));
 	}
@@ -1716,7 +1716,7 @@ input:disabled {
 		return Object.freeze(candidate);
 	}
 	function isStorageRequestMessage(value) {
-		if (!isRecord(value) || value.type !== WINDOW_MESSAGE_TYPES.STORAGE_REQUEST || !isNonEmptyString(value.requestId) || !STORAGE_ACTION_VALUES.has(value.action) || !STORAGE_KEY_VALUES.has(value.key) || !hasOnlyKeys(value, /* @__PURE__ */ new Set([
+		if (!isRecord$1(value) || value.type !== WINDOW_MESSAGE_TYPES.STORAGE_REQUEST || !isNonEmptyString(value.requestId) || !STORAGE_ACTION_VALUES.has(value.action) || !STORAGE_KEY_VALUES.has(value.key) || !hasOnlyKeys(value, /* @__PURE__ */ new Set([
 			"type",
 			"requestId",
 			"action",
@@ -1727,7 +1727,7 @@ input:disabled {
 		return Object.prototype.hasOwnProperty.call(value, "value") && value.value !== void 0;
 	}
 	function isStorageResponseMessage(value) {
-		if (!isRecord(value) || value.type !== WINDOW_MESSAGE_TYPES.STORAGE_RESPONSE || !isNonEmptyString(value.requestId) || typeof value.ok !== "boolean" || !hasOnlyKeys(value, /* @__PURE__ */ new Set([
+		if (!isRecord$1(value) || value.type !== WINDOW_MESSAGE_TYPES.STORAGE_RESPONSE || !isNonEmptyString(value.requestId) || typeof value.ok !== "boolean" || !hasOnlyKeys(value, /* @__PURE__ */ new Set([
 			"type",
 			"requestId",
 			"ok",
@@ -8932,37 +8932,78 @@ textarea {
 	}
 	//#endregion
 	//#region src/shared/edvibe-marathon-api.js
+	/** @typedef {import('./edvibe-marathon-api.types.js').EdvibeSendRequest} EdvibeSendRequest */
+	/** @typedef {import('./edvibe-marathon-api.types.js').EdvibeMarathonApi} EdvibeMarathonApi */
+	/** @typedef {import('./edvibe-marathon-api.types.js').MarathonLesson} MarathonLesson */
+	/** @typedef {import('./edvibe-marathon-api.types.js').MarathonPupil} MarathonPupil */
+	/**
+	* @param {unknown} value
+	* @returns {value is Record<string, unknown>}
+	*/
+	function isRecord(value) {
+		return value !== null && typeof value === "object" && !Array.isArray(value);
+	}
+	/**
+	* @param {unknown} sendRequest
+	* @returns {EdvibeSendRequest}
+	*/
 	function requireRequest(sendRequest) {
 		if (typeof sendRequest !== "function") throw new TypeError("sendRequest is required");
 		return sendRequest;
 	}
-	function readPage(response, label) {
-		const value = response?.Value ?? response?.value;
-		if (!value) throw createFeatureError("INVALID_RESPONSE", `${label} returned no value.`);
+	/**
+	* Decode the transport envelope without changing pagination failure semantics.
+	* The shared appendPage validator remains authoritative for Items and Count.
+	* @param {unknown} response
+	* @returns {{ items: unknown, total: unknown }}
+	*/
+	function readPage(response) {
+		if (!isRecord(response)) return {
+			items: void 0,
+			total: void 0
+		};
+		const value = isRecord(response.Value) ? response.Value : isRecord(response.value) ? response.value : null;
+		if (!value) return {
+			items: void 0,
+			total: void 0
+		};
+		const page = isRecord(value.Page) ? value.Page : null;
 		return {
 			items: value.Items,
-			total: value.Page?.Count
+			total: page?.Count
 		};
 	}
+	/**
+	* @param {{ sendRequest: EdvibeSendRequest, marathonId: number, pageSize?: number }} options
+	* @returns {Promise<MarathonPupil[]>}
+	*/
 	async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
 		const request = requireRequest(sendRequest);
+		/** @type {Record<string, unknown>[]} */
 		let items = [];
+		/** @type {number | null} */
 		let total = null;
 		while (total === null || items.length < total) {
 			const pageData = readPage(await request("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
 				MarathonId: marathonId,
 				Skip: items.length,
 				Take: pageSize
-			}), "GetMarathonPupils");
+			}));
 			const page = appendPage(items, total, pageData.items, pageData.total, "GetMarathonPupils");
 			items = page.items;
 			total = page.total;
 		}
 		return items;
 	}
+	/**
+	* @param {{ sendRequest: EdvibeSendRequest, marathonId: number, pupilId: number, pageSize?: number }} options
+	* @returns {Promise<MarathonLesson[]>}
+	*/
 	async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize = 20 }) {
 		const request = requireRequest(sendRequest);
+		/** @type {Record<string, unknown>[]} */
 		let items = [];
+		/** @type {number | null} */
 		let total = null;
 		while (total === null || items.length < total) {
 			const pageData = readPage(await request("MarathonLessonWsController", "GetMarathonLessonsForPupilPagination", "Marathons", {
@@ -8973,16 +9014,22 @@ textarea {
 					Skip: items.length,
 					Take: pageSize
 				}
-			}), "GetMarathonLessonsForPupilPagination");
+			}));
 			const page = appendPage(items, total, pageData.items, pageData.total, "GetMarathonLessonsForPupilPagination");
 			items = page.items;
 			total = page.total;
 		}
 		return items;
 	}
+	/**
+	* @param {{ sendRequest: EdvibeSendRequest, marathonId: number, pageSize?: number }} options
+	* @returns {Promise<MarathonLesson[]>}
+	*/
 	async function loadAllMarathonLessons({ sendRequest, marathonId, pageSize = 100 }) {
 		const request = requireRequest(sendRequest);
+		/** @type {Record<string, unknown>[]} */
 		let items = [];
+		/** @type {number | null} */
 		let total = null;
 		while (total === null || items.length < total) {
 			const pageData = readPage(await request("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
@@ -8992,16 +9039,20 @@ textarea {
 					Skip: items.length,
 					Take: pageSize
 				}
-			}), "GetMarathonLessonsPagination");
+			}));
 			const page = appendPage(items, total, pageData.items, pageData.total, "GetMarathonLessonsPagination");
 			items = page.items;
 			total = page.total;
 		}
 		return items;
 	}
+	/**
+	* @param {{ sendRequest: EdvibeSendRequest, lessonId: number }} options
+	* @returns {Promise<Record<string, unknown>>}
+	*/
 	async function getLessonById({ sendRequest, lessonId }) {
 		const response = await requireRequest(sendRequest)("LessonWsController", "GetLessonWithId", "Books", { LessonId: lessonId });
-		if (response == null || typeof response !== "object") throw createFeatureError("INVALID_RESPONSE", "GetLessonWithId returned an invalid response.");
+		if (!isRecord(response)) throw createFeatureError("INVALID_RESPONSE", "GetLessonWithId returned an invalid response.");
 		return response;
 	}
 	//#endregion
@@ -17128,7 +17179,7 @@ input:focus-visible {
 	});
 	globalThis.EdVibeBatchSectionDeletionDialog = batchSectionDeletionDialogApi;
 	//#endregion
-	//#region src/main.js
+	//#region src/runtime/main.js
 	var createMainLog = createLoggerFactory("MAIN");
 	var log = createMainLog();
 	log("Initializing Toolbox modules...");
