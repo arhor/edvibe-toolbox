@@ -6,19 +6,23 @@ const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
 const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
 
 class ActionRecorderDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, actionRecorderDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        actionRecorderDialogStyles,
+    ];
 
     static properties = {
-        state: {state: true},
-        minimized: {state: true},
-        showToolbox: {state: true},
-        elapsedLabel: {state: true}
+        state: { state: true },
+        minimized: { state: true },
+        showToolbox: { state: true },
+        elapsedLabel: { state: true }
     };
 
     constructor() {
         super();
         this.callbacks = {};
-        this.state = {status: 'idle', session: null};
+        this.state = { status: 'idle', session: null };
         this.minimized = false;
         this.showToolbox = false;
         this.elapsedLabel = '';
@@ -40,7 +44,7 @@ class ActionRecorderDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-for (const name of [
+        for (const name of [
             'onStart', 'onStop', 'onClear', 'onExport',
             'onCopyRequest', 'onCopyRecipe', 'onClose'
         ]) {
@@ -62,9 +66,10 @@ for (const name of [
     }
 
     setState(state) {
-        this.state = state && typeof state === 'object'
-            ? state
-            : {status: 'idle', session: null};
+        this.state =
+            (state && typeof state === 'object')
+                ? state
+                : { status: 'idle', session: null };
         this.elapsedLabel = this.calculateElapsed();
         this.syncElapsedTimer();
         return this;
@@ -148,9 +153,8 @@ for (const name of [
     }
 
     renderOperation(operation) {
-        const resultClass = `operation-result is-${
-            operation.response?.isSuccess === false ? 'error' : 'normal'
-        }`;
+        const resultClass = `operation-result is-${operation.response?.isSuccess === false ? 'error' : 'normal'
+            }`;
         return html`
             <details class="operation">
                 <summary>
@@ -161,10 +165,10 @@ for (const name of [
                 </summary>
                 <div class="operation-content">
                     <p>${[
-                        `Project: ${operation.projectName || '—'}`,
-                        `RequestId: ${operation.requestId}`,
-                        `Origin: ${operation.origin}`
-                    ].join(' · ')}</p>
+                `Project: ${operation.projectName || '—'}`,
+                `RequestId: ${operation.requestId}`,
+                `Origin: ${operation.origin}`
+            ].join(' · ')}</p>
                     ${this.renderJsonBlock('Запрос Value', operation.requestValue)}
                     ${this.renderJsonBlock('Ответ', operation.response)}
                     <button type="button" class="button copy-request"
@@ -192,8 +196,8 @@ for (const name of [
         const copyFallback = String(this.state.copyFallback || '');
 
         return html`
-<button class=${indicatorClass} type="button" ?hidden=${!this.minimized}
-                aria-label="Открыть запись WebSocket" @click=${() => this.restore()}>
+            <button class=${indicatorClass} type="button" ?hidden=${!this.minimized}
+                aria-label="Открыть запись WebSocket" title="Открыть запись WebSocket" @click=${() => this.restore()}>
                 <span></span><strong>REC</strong>
                 <span class="indicator-count">${visibleOperations.length}</span>
             </button>
@@ -205,10 +209,12 @@ for (const name of [
                             <p class="recorder-subtitle">Выполните одно действие в Edvibe и изучите обмен сообщениями.</p>
                         </div>
                         <div class="header-actions">
-                            <button class="icon-button recorder-minimize" type="button" aria-label="Свернуть"
-                                @click=${() => { this.minimized = true; }}>−</button>
-                            <button class="icon-button recorder-close" type="button" aria-label="Закрыть"
-                                @click=${() => this.handleClose()}>&times;</button>
+                            <button class="icon-button recorder-minimize" type="button" aria-label="Свернуть" @click=${() => { this.minimized = true; }}>
+                                -
+                            </button>
+                            <button class="icon-button recorder-close" type="button" aria-label="Закрыть" @click=${() => this.handleClose()}>
+                                &times;
+                            </button>
                         </div>
                     </header>
                     <div class="recorder-toolbar">
@@ -218,17 +224,21 @@ for (const name of [
                             <span class="elapsed">${this.elapsedLabel}</span>
                         </div>
                         <div class="toolbar-actions">
-                            <button class="button primary recorder-start" type="button" ?hidden=${recording}
-                                @click=${() => this.handleStart()}>Начать запись</button>
-                            <button class="button danger recorder-stop" type="button" ?hidden=${!recording}
-                                @click=${() => this.callbacks.onStop?.()}>Остановить</button>
-                            <button class="button recorder-clear" type="button" ?disabled=${!hasSession}
-                                @click=${() => this.handleClear()}>Очистить</button>
-                            <button class="button recorder-copy" type="button"
-                                ?disabled=${!hasSession || operations.length === 0}
-                                @click=${() => this.callbacks.onCopyRecipe?.()}>Копировать рецепт</button>
-                            <button class="button recorder-export" type="button" ?disabled=${!hasSession}
-                                @click=${() => this.callbacks.onExport?.()}>Экспорт JSON</button>
+                            <button class="button primary recorder-start" type="button" ?hidden=${recording} @click=${() => this.handleStart()}>
+                                Начать запись
+                            </button>
+                            <button class="button danger recorder-stop" type="button" ?hidden=${!recording} @click=${() => this.callbacks.onStop?.()}>
+                                Остановить
+                            </button>
+                            <button class="button recorder-clear" type="button" ?disabled=${!hasSession} @click=${() => this.handleClear()}>
+                                Очистить
+                            </button>
+                            <button class="button recorder-copy" type="button" ?disabled=${!hasSession || operations.length === 0} @click=${() => this.callbacks.onCopyRecipe?.()}>
+                                Копировать рецепт
+                            </button>
+                            <button class="button recorder-export" type="button" ?disabled=${!hasSession} @click=${() => this.callbacks.onExport?.()}>
+                                Экспорт JSON
+                            </button>
                         </div>
                     </div>
                     <div class="recorder-body">
@@ -240,17 +250,16 @@ for (const name of [
                             <span><strong class="operation-count">${visibleOperations.length}</strong> операций</span>
                             <span><strong class="frame-count">${this.state.session?.frameCount || 0}</strong> кадров</span>
                             <span><strong class="byte-count">${this.formatBytes(this.state.session?.storedBytes || 0)}</strong> текста</span>
-                            <label><input class="show-toolbox" type="checkbox" .checked=${this.showToolbox}
-                                @change=${(event) => { this.showToolbox = event.currentTarget.checked; }}>
-                                Показать трафик Toolbox</label>
+                            <label>
+                                <input class="show-toolbox" type="checkbox" .checked=${this.showToolbox} @change=${(event) => { this.showToolbox = event.currentTarget.checked; }}>
+                                Показать трафик Toolbox
+                            </label>
                         </div>
                         <p class="recorder-notice" role="status" ?hidden=${!this.state.notice}>${this.state.notice || ''}</p>
                         <section>
                             <h3>Операции</h3>
                             <div class="operation-list">${visibleOperations.map((operation) => this.renderOperation(operation))}</div>
-                            <p class="empty-operations" ?hidden=${visibleOperations.length > 0}>
-                                Запустите запись и выполните действие в Edvibe.
-                            </p>
+                            <p class="empty-operations" ?hidden=${visibleOperations.length > 0}> Запустите запись и выполните действие в Edvibe.</p>
                         </section>
                         <details class="other-section">
                             <summary>Другие кадры (<span class="other-count">${otherFrames.length}</span>)</summary>
