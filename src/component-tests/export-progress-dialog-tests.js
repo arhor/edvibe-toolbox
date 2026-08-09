@@ -16,7 +16,7 @@ export async function runExportProgressDialogTests() {
     equal(shadowQuery(dialog, '.count').textContent, 'Discovering sections...');
     equal(shadowQuery(dialog, '.percent').textContent, '0%');
     equal(shadowQuery(dialog, '.progress').hasAttribute('value'), false);
-    equal(shadowQuery(dialog, 'link'), null);
+    equal(dialog.shadowRoot.querySelector('link'), null);
     equal(getComputedStyle(dialog).position, 'fixed');
     equal(getComputedStyle(shadowQuery(dialog, '.overlay')).display, 'flex');
 
