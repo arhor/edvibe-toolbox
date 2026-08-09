@@ -65,6 +65,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 
 - Preserve the Manifest V3 architecture and keep isolated-world and MAIN-world responsibilities separate.
 - Use source entry points to express runtime dependency evaluation order. Keep manifest content-script entries focused on the standalone runtime entry files expected by CRXJS.
+- Keep the MAIN runtime eagerly composed at `document_start` while transport interception, operation guards, and command routing depend on deterministic startup. Introduce lazy feature loading only when its boundary is proven safe and does not change page-timing behavior.
 - Use Lit as the standard implementation for Web Components. Prefer `LitElement`, reactive properties/state, declarative `html` templates, and Lit lifecycle/update APIs over manual DOM construction and synchronization.
 - Preserve existing custom-element public contracts when migrating or refactoring: tag names, methods, properties, events, and integration callbacks should remain stable unless the task explicitly changes them.
 - Choose Shadow DOM or light DOM according to the existing component styling/integration contract. Do not switch encapsulation casually during unrelated work.
