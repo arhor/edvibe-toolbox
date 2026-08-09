@@ -1,9 +1,13 @@
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const TRANSIENT_CODES = new Set([
-    'WS_UNAVAILABLE',
-    'REQUEST_TIMEOUT',
-    'SEND_FAILED'
-]);
+import {
+    TRANSIENT_CODES,
+    appendPage,
+    createFeatureError,
+    parseEmailInput,
+    parseMarathonId,
+    runWithRetry
+} from '../shared/batch-workflow-primitives.js';
+import { loadAllPupilLessons, loadAllPupils } from '../shared/edvibe-marathon-api.js';
+
 const OPERATIONAL_WRITE_CODES = new Set([
     ...TRANSIENT_CODES,
     'SERVER_REJECTED',
@@ -12,157 +16,12 @@ const OPERATIONAL_WRITE_CODES = new Set([
 const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
 const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
 
-function createFeatureError(code, message, details = {}) {
-    const error = new Error(message);
-    error.code = code;
-    Object.assign(error, details);
-    return error;
-}
-
 function getPupilId(pupil) {
     return pupil.PupilId === undefined ? pupil.Id : pupil.PupilId;
 }
 
 function getMarathonPupilId(pupil) {
     return pupil.MarathonPupilId === undefined ? pupil.Id : pupil.MarathonPupilId;
-}
-
-function isTransientError(error, getConnectionState) {
-    if (!TRANSIENT_CODES.has(error?.code)) {
-        return false;
-    }
-    if (error.code !== 'SEND_FAILED') {
-        return true;
-    }
-    return Boolean(error.cause) && !getConnectionState().isOpen;
-}
-
-async function runWithRetry(operation, {
-    wait,
-    getConnectionState,
-    retryDelays = [1000, 3000]
-}) {
-    let attempts = 0;
-    while (attempts <= retryDelays.length) {
-        attempts += 1;
-        try {
-            if (attempts > 1 && !getConnectionState().isOpen) {
-                throw createFeatureError(
-                    'WS_UNAVAILABLE',
-                    'The Edvibe connection is unavailable.'
-                );
-            }
-            return { value: await operation(), attempts };
-        } catch (error) {
-            if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
-                error.attempts = attempts;
-                throw error;
-            }
-            await wait(retryDelays[attempts - 1]);
-        }
-    }
-}
-
-function parseMarathonId(url) {
-    const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
-    return match ? Number(match[1]) : null;
-}
-
-function parseEmailInput(value) {
-    const entries = [];
-    const malformed = [];
-    const seen = new Set();
-    for (const token of String(value || '').split(/[,;\r\n]+/)) {
-        const input = token.trim();
-        if (!input) {
-            continue;
-        }
-        const normalized = input.toLowerCase();
-        if (seen.has(normalized)) {
-            continue;
-        }
-        seen.add(normalized);
-        if (!EMAIL_PATTERN.test(input)) {
-            malformed.push(input);
-            continue;
-        }
-        entries.push({ input, normalized });
-    }
-    return { entries, malformed };
-}
-
-function appendPage(items, total, nextItems, nextTotal, label) {
-    if (
-        !Array.isArray(nextItems)
-        || !Number.isInteger(nextTotal)
-        || nextTotal < 0
-        || (total !== null && nextTotal !== total)
-        || (nextItems.length === 0 && items.length < nextTotal)
-        || items.length + nextItems.length > nextTotal
-    ) {
-        const error = new Error(`${label} returned invalid pagination data.`);
-        error.code = 'INVALID_RESPONSE';
-        throw error;
-    }
-    return {
-        items: items.concat(nextItems),
-        total: nextTotal
-    };
-}
-
-async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
-    let items = [];
-    let total = null;
-
-    while (total === null || items.length < total) {
-        const response = await sendRequest(
-            'MarathonPupilsWsController',
-            'GetMarathonPupils',
-            'Marathons',
-            { MarathonId: marathonId, Skip: items.length, Take: pageSize }
-        );
-        const page = appendPage(
-            items,
-            total,
-            response?.Value?.Items,
-            response?.Value?.Page?.Count,
-            'GetMarathonPupils'
-        );
-        items = page.items;
-        total = page.total;
-    }
-
-    return items;
-}
-
-async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize = 20 }) {
-    let items = [];
-    let total = null;
-
-    while (total === null || items.length < total) {
-        const response = await sendRequest(
-            'MarathonLessonWsController',
-            'GetMarathonLessonsForPupilPagination',
-            'Marathons',
-            {
-                PupilId: pupilId,
-                MarathonId: marathonId,
-                SearchTerm: '',
-                Page: { Skip: items.length, Take: pageSize }
-            }
-        );
-        const page = appendPage(
-            items,
-            total,
-            response?.Value?.Items,
-            response?.Value?.Page?.Count,
-            'GetMarathonLessonsForPupilPagination'
-        );
-        items = page.items;
-        total = page.total;
-    }
-
-    return items;
 }
 
 function resolvePupilsByEmail(entries, pupils) {

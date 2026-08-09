@@ -1,84 +1,17 @@
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const TRANSIENT_CODES = new Set([
-    'WS_UNAVAILABLE',
-    'REQUEST_TIMEOUT',
-    'SEND_FAILED'
-]);
+import {
+    appendPage,
+    createFeatureError,
+    parseEmailInput as parseSharedEmailInput,
+    parseMarathonId,
+    runWithRetry
+} from '../shared/batch-workflow-primitives.js';
+import { loadAllPupils } from '../shared/edvibe-marathon-api.js';
+
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
 const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
 
-function createFeatureError(code, message, details = {}) {
-    const error = new Error(message);
-    error.code = code;
-    Object.assign(error, details);
-    return error;
-}
-
-function parseMarathonId(url) {
-    const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
-    return match ? Number(match[1]) : null;
-}
-
 function parseEmailInput(value) {
-    const entries = [];
-    const malformed = [];
-    const items = [];
-    const seen = new Set();
-
-    for (const token of String(value || '').split(/[,;\r\n]+/)) {
-        const input = token.trim();
-        if (!input) continue;
-        const normalized = input.toLowerCase();
-        if (seen.has(normalized)) continue;
-        seen.add(normalized);
-
-        if (!EMAIL_PATTERN.test(input)) {
-            malformed.push(input);
-            items.push({ input, normalized, isValid: false });
-            continue;
-        }
-        entries.push({ input, normalized });
-        items.push({ input, normalized, isValid: true });
-    }
-
-    return { entries, malformed, items };
-}
-
-function appendPage(items, total, nextItems, nextTotal, label) {
-    if (
-        !Array.isArray(nextItems)
-        || !Number.isInteger(nextTotal)
-        || nextTotal < 0
-        || (total !== null && nextTotal !== total)
-        || (nextItems.length === 0 && items.length < nextTotal)
-        || items.length + nextItems.length > nextTotal
-    ) {
-        throw createFeatureError('INVALID_RESPONSE', `${label} returned invalid pagination data.`);
-    }
-    return { items: items.concat(nextItems), total: nextTotal };
-}
-
-async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
-    let items = [];
-    let total = null;
-    while (total === null || items.length < total) {
-        const response = await sendRequest(
-            'MarathonPupilsWsController',
-            'GetMarathonPupils',
-            'Marathons',
-            { MarathonId: marathonId, Skip: items.length, Take: pageSize }
-        );
-        const page = appendPage(
-            items,
-            total,
-            response?.Value?.Items,
-            response?.Value?.Page?.Count,
-            'GetMarathonPupils'
-        );
-        items = page.items;
-        total = page.total;
-    }
-    return items;
+    return parseSharedEmailInput(value, { includeItems: true });
 }
 
 function resolveUsersByEmail(entries, pupils) {
@@ -145,36 +78,6 @@ function buildUserPlan({ rows }) {
             }
         };
     });
-}
-
-function isTransientError(error, getConnectionState) {
-    if (!TRANSIENT_CODES.has(error?.code)) return false;
-    if (error.code !== 'SEND_FAILED') return true;
-    return Boolean(error.cause) && !getConnectionState().isOpen;
-}
-
-async function runWithRetry(operation, {
-    wait,
-    getConnectionState,
-    retryDelays = [1000, 3000]
-}) {
-    let attempts = 0;
-    while (attempts <= retryDelays.length) {
-        attempts += 1;
-        try {
-            if (attempts > 1 && !getConnectionState().isOpen) {
-                throw createFeatureError('WS_UNAVAILABLE', 'The Edvibe connection is unavailable.');
-            }
-            return { value: await operation(), attempts };
-        } catch (error) {
-            if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
-                error.attempts = attempts;
-                throw error;
-            }
-            await wait(retryDelays[attempts - 1]);
-        }
-    }
-    throw createFeatureError('INTERNAL_ERROR', 'Retry loop ended unexpectedly.');
 }
 
 function cloneUserRow(row) {
