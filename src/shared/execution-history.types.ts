@@ -1,13 +1,21 @@
-import {
-    COUNT_KEYS,
-    EXECUTION_RECORD_SCHEMA_VERSION,
-    TERMINAL_STATUSES
-} from './execution-history-record.js';
+import { EXECUTION_RECORD_SCHEMA_VERSION } from './execution-history-record.js';
 
-type ValueOfArray<T extends readonly unknown[]> = T[number];
+export type ExecutionTerminalStatus =
+    | 'completed'
+    | 'completed_with_failures'
+    | 'cancelled'
+    | 'interrupted';
 
-export type ExecutionTerminalStatus = ValueOfArray<typeof TERMINAL_STATUSES>;
-export type ExecutionCountKey = ValueOfArray<typeof COUNT_KEYS>;
+export type ExecutionCountKey =
+    | 'requested'
+    | 'eligible'
+    | 'attempted'
+    | 'successful'
+    | 'noOp'
+    | 'skipped'
+    | 'failed'
+    | 'notAttempted';
+
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
