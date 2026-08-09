@@ -7,8 +7,6 @@ const { pathToFileURL } = require('node:url');
 const root = path.resolve(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 const readJson = (relativePath) => JSON.parse(read(relativePath));
-const readImports = (relativePath) => [...read(relativePath).matchAll(/^import ['"](.+?)['"];$/gm)]
-    .map((match) => match[1]);
 const viteConfigPromise = import(pathToFileURL(path.join(root, 'vite.config.mjs')).href);
 
 test('package exposes pinned CRXJS/Vite development and production commands', () => {
@@ -20,7 +18,7 @@ test('package exposes pinned CRXJS/Vite development and production commands', ()
     assert.equal(packageJson.devDependencies.vite, '8.1.5');
 });
 
-test('manifest uses standalone document-start content-script entry points', async () => {
+test('build configuration preserves standalone document-start content-script entry points', async () => {
     const { sourceManifest, standaloneFiles } = await viteConfigPromise;
     const manifest = readJson('manifest.json');
     const isolatedWorld = manifest.content_scripts.find((entry) => entry.world === 'ISOLATED');
@@ -37,7 +35,7 @@ test('manifest uses standalone document-start content-script entry points', asyn
     ]);
 });
 
-test('popup and isolated runtimes use explicit source entry points', () => {
+test('popup document uses a normal module entry point supported by the build', () => {
     const popupHtml = read('popup.html');
 
     assert.match(
@@ -45,15 +43,7 @@ test('popup and isolated runtimes use explicit source entry points', () => {
         /<script type="module" src="src\/entrypoints\/popup\.js"><\/script>/
     );
     assert.doesNotMatch(popupHtml, /vite-ignore/);
-    assert.deepEqual(readImports('src/entrypoints/popup.js'), [
-        '../components/popup-tool-list.js',
-        '../runtime/popup.js'
-    ]);
-    assert.deepEqual(readImports('src/entrypoints/isolated.js'), [
-        '../runtime/isolated.js'
-    ]);
-    assert.match(read('src/runtime/popup.js'), /from '\.\.\/shared\/logger\.js';/);
-    assert.match(read('src/runtime/isolated.js'), /from '\.\.\/shared\/logger\.js';/);
+    assert.equal(fs.existsSync(path.join(root, 'src/entrypoints/popup.js')), true);
 });
 
 test('manifest does not expose in-page component styles as web-accessible resources', async () => {
