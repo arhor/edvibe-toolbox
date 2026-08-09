@@ -100,6 +100,7 @@ test('isolated routing uses a command table and forwards only minimal metadata',
     assert.match(isolatedSource, /const \[type, info\] = commands\[message\.action\]/);
     assert.match(isolatedSource, /window\.postMessage\(\{ type \}, '\*'\)/);
     assert.doesNotMatch(isolatedSource, /stylesheetUrl|sourceStylesheetUrl|recordedFrames|operations|otherFrames/);
+    assert.doesNotMatch(isolatedSource, /\.css['"]/);
 });
 
 test('batch features use imported APIs instead of global module lookups', () => {
