@@ -1602,6 +1602,142 @@ input:disabled {
 		};
 	}
 	//#endregion
+	//#region src/shared/message-protocol.js
+	var POPUP_COMMANDS = Object.freeze({
+		START_EXPORT: "START_FULL_AUTOMATION",
+		OPEN_LESSON_RESET: "OPEN_LESSON_RESET",
+		OPEN_ACTION_RECORDER: "OPEN_ACTION_RECORDER",
+		OPEN_BATCH_LESSON_ACCESS: "OPEN_BATCH_LESSON_ACCESS",
+		OPEN_BATCH_USER_ONBOARDING: "OPEN_BATCH_USER_ONBOARDING",
+		OPEN_BATCH_USER_MANAGEMENT: "OPEN_BATCH_USER_MANAGEMENT",
+		OPEN_BATCH_SECTION_CREATION: "OPEN_BATCH_SECTION_CREATION",
+		OPEN_BATCH_SECTION_DELETION: "OPEN_BATCH_SECTION_DELETION",
+		OPEN_EXECUTION_HISTORY: "OPEN_EXECUTION_HISTORY"
+	});
+	var WINDOW_MESSAGE_TYPES = Object.freeze({
+		START_EXPORT: "EDVIBE_TOOLBOX_START_ALL",
+		OPEN_LESSON_RESET: "EDVIBE_TOOLBOX_OPEN_RESET",
+		OPEN_ACTION_RECORDER: "EDVIBE_TOOLBOX_OPEN_RECORDER",
+		OPEN_BATCH_LESSON_ACCESS: "EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS",
+		OPEN_BATCH_USER_ONBOARDING: "EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING",
+		OPEN_BATCH_USER_MANAGEMENT: "EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT",
+		OPEN_BATCH_SECTION_CREATION: "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION",
+		OPEN_BATCH_SECTION_DELETION: "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION",
+		OPEN_EXECUTION_HISTORY: "EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY",
+		EXPORT_STATUS: "EDVIBE_TOOLBOX_EXPORT_STATUS",
+		STORAGE_REQUEST: "EDVIBE_TOOLBOX_STORAGE_REQUEST",
+		STORAGE_RESPONSE: "EDVIBE_TOOLBOX_STORAGE_RESPONSE"
+	});
+	Object.freeze({ EXPORT_STATUS: "EXPORT_STATUS" });
+	var EXPORT_STATES = Object.freeze({
+		STARTED: "started",
+		COMPLETE: "complete",
+		ERROR: "error"
+	});
+	var STORAGE_ACTIONS = Object.freeze({
+		GET: "get",
+		SET: "set"
+	});
+	var STORAGE_KEYS = Object.freeze({ EXECUTION_HISTORY_PREFERENCES: "executionHistoryPreferences" });
+	var COMMAND_ROUTES = Object.freeze({
+		[POPUP_COMMANDS.START_EXPORT]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.START_EXPORT,
+			info: "Automation sequence channeled to page engine."
+		}),
+		[POPUP_COMMANDS.OPEN_LESSON_RESET]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_LESSON_RESET,
+			info: "Lesson reset workflow opened."
+		}),
+		[POPUP_COMMANDS.OPEN_ACTION_RECORDER]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+			info: "Action recorder opened."
+		}),
+		[POPUP_COMMANDS.OPEN_BATCH_LESSON_ACCESS]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_LESSON_ACCESS,
+			info: "Batch lesson access opened."
+		}),
+		[POPUP_COMMANDS.OPEN_BATCH_USER_ONBOARDING]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_ONBOARDING,
+			info: "Batch user onboarding opened."
+		}),
+		[POPUP_COMMANDS.OPEN_BATCH_USER_MANAGEMENT]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT,
+			info: "Batch user management opened."
+		}),
+		[POPUP_COMMANDS.OPEN_BATCH_SECTION_CREATION]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_CREATION,
+			info: "Batch section creation opened."
+		}),
+		[POPUP_COMMANDS.OPEN_BATCH_SECTION_DELETION]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_DELETION,
+			info: "Batch section deletion opened."
+		}),
+		[POPUP_COMMANDS.OPEN_EXECUTION_HISTORY]: Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+			info: "Execution history opened."
+		})
+	});
+	var MAIN_COMMAND_TYPES = new Set(Object.values(COMMAND_ROUTES).map(({ type }) => type));
+	var EXPORT_STATE_VALUES = new Set(Object.values(EXPORT_STATES));
+	var STORAGE_ACTION_VALUES = new Set(Object.values(STORAGE_ACTIONS));
+	var STORAGE_KEY_VALUES = new Set(Object.values(STORAGE_KEYS));
+	function isRecord(value) {
+		return value !== null && typeof value === "object" && !Array.isArray(value);
+	}
+	function hasOnlyKeys(value, allowedKeys) {
+		return Object.keys(value).every((key) => allowedKeys.has(key));
+	}
+	function isNonEmptyString(value) {
+		return typeof value === "string" && value.length > 0;
+	}
+	function isMainCommandMessage(value) {
+		if (!isRecord(value) || !MAIN_COMMAND_TYPES.has(value.type)) return false;
+		if (value.type === WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY) return hasOnlyKeys(value, /* @__PURE__ */ new Set(["type", "executionId"])) && (value.executionId === void 0 || value.executionId === null || isNonEmptyString(value.executionId));
+		return hasOnlyKeys(value, /* @__PURE__ */ new Set(["type"]));
+	}
+	function createExportStatusMessage(state, message = "") {
+		if (!EXPORT_STATE_VALUES.has(state)) throw new TypeError(`Unsupported export state: ${String(state)}`);
+		if (typeof message !== "string") throw new TypeError("Export status message must be a string");
+		return Object.freeze({
+			type: WINDOW_MESSAGE_TYPES.EXPORT_STATUS,
+			state,
+			message
+		});
+	}
+	function createStorageRequest({ requestId, action, key, value }) {
+		const candidate = {
+			type: WINDOW_MESSAGE_TYPES.STORAGE_REQUEST,
+			requestId,
+			action,
+			key
+		};
+		if (action === STORAGE_ACTIONS.SET) candidate.value = value;
+		if (!isStorageRequestMessage(candidate)) throw new TypeError("Invalid storage request");
+		return Object.freeze(candidate);
+	}
+	function isStorageRequestMessage(value) {
+		if (!isRecord(value) || value.type !== WINDOW_MESSAGE_TYPES.STORAGE_REQUEST || !isNonEmptyString(value.requestId) || !STORAGE_ACTION_VALUES.has(value.action) || !STORAGE_KEY_VALUES.has(value.key) || !hasOnlyKeys(value, /* @__PURE__ */ new Set([
+			"type",
+			"requestId",
+			"action",
+			"key",
+			"value"
+		]))) return false;
+		if (value.action === STORAGE_ACTIONS.GET) return !Object.prototype.hasOwnProperty.call(value, "value");
+		return Object.prototype.hasOwnProperty.call(value, "value") && value.value !== void 0;
+	}
+	function isStorageResponseMessage(value) {
+		if (!isRecord(value) || value.type !== WINDOW_MESSAGE_TYPES.STORAGE_RESPONSE || !isNonEmptyString(value.requestId) || typeof value.ok !== "boolean" || !hasOnlyKeys(value, /* @__PURE__ */ new Set([
+			"type",
+			"requestId",
+			"ok",
+			"value",
+			"error"
+		]))) return false;
+		if (value.ok) return !Object.prototype.hasOwnProperty.call(value, "error");
+		return isNonEmptyString(value.error) && !Object.prototype.hasOwnProperty.call(value, "value");
+	}
+	//#endregion
 	//#region src/shared/websocket-transport.js
 	var REQUEST_TIMEOUT_MS = 15e3;
 	function createTransportError(code, message, details = {}) {
@@ -2562,9 +2698,8 @@ input:disabled {
 			}
 		} });
 	}
-	//#endregion
-	//#region src/shared/chrome-storage-bridge.js
-	var REQUEST_TYPE = "EDVIBE_TOOLBOX_STORAGE_REQUEST";
+	WINDOW_MESSAGE_TYPES.STORAGE_REQUEST;
+	WINDOW_MESSAGE_TYPES.STORAGE_RESPONSE;
 	function createStorageBridge(options = {}) {
 		const windowApi = options.window || globalThis.window;
 		const cryptoApi = options.cryptoApi || globalThis.crypto;
@@ -2572,7 +2707,7 @@ input:disabled {
 		if (!windowApi?.postMessage || !windowApi?.addEventListener) throw new TypeError("Window messaging APIs are required");
 		const pending = /* @__PURE__ */ new Map();
 		const onMessage = (event) => {
-			if (event.source !== windowApi || event.data?.type !== "EDVIBE_TOOLBOX_STORAGE_RESPONSE") return;
+			if (event.source !== windowApi || !isStorageResponseMessage(event.data)) return;
 			const request = pending.get(event.data.requestId);
 			if (!request) return;
 			pending.delete(event.data.requestId);
@@ -2583,6 +2718,17 @@ input:disabled {
 		windowApi.addEventListener("message", onMessage);
 		function request(action, key, value) {
 			const requestId = typeof cryptoApi?.randomUUID === "function" ? cryptoApi.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+			let message;
+			try {
+				message = createStorageRequest({
+					requestId,
+					action,
+					key,
+					value
+				});
+			} catch (error) {
+				return Promise.reject(error);
+			}
 			return new Promise((resolve, reject) => {
 				const timer = setTimeout(() => {
 					pending.delete(requestId);
@@ -2593,21 +2739,15 @@ input:disabled {
 					reject,
 					timer
 				});
-				windowApi.postMessage({
-					type: REQUEST_TYPE,
-					requestId,
-					action,
-					key,
-					value
-				}, "*");
+				windowApi.postMessage(message, "*");
 			});
 		}
 		return Object.freeze({
 			get(key) {
-				return request("get", key);
+				return request(STORAGE_ACTIONS.GET, key);
 			},
 			set(key, value) {
-				return request("set", key, value);
+				return request(STORAGE_ACTIONS.SET, key, value);
 			},
 			dispose() {
 				windowApi.removeEventListener("message", onMessage);
@@ -17119,11 +17259,7 @@ input:focus-visible {
 		log: createMainLog("History")
 	});
 	function notifyExportStatus(state, message = "") {
-		window.postMessage({
-			type: "EDVIBE_TOOLBOX_EXPORT_STATUS",
-			state,
-			message
-		}, "*");
+		window.postMessage(createExportStatusMessage(state, message), "*");
 	}
 	var marathonExportFeature = createMarathonExportFeature({
 		sendRequest: transport.sendRequest,
@@ -17249,18 +17385,8 @@ input:focus-visible {
 		openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
 		log: createMainLog("BatchSectionDeletion")
 	});
-	window.addEventListener("message", (event) => {
-		if (event.source !== window) return;
-		const data = event.data || {};
-		if (data.type === "EDVIBE_TOOLBOX_START_ALL") marathonExportFeature.start();
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_RESET") lessonResetFeature.open();
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS") batchLessonAccessFeature.open();
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING") batchUserOnboardingFeature.open();
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT") batchUserManagementFeature.open();
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION") batchSectionCreationFeature.open();
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION") batchSectionDeletionFeature.open();
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY") executionHistoryFeature.open({ executionId: data.executionId || null });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_RECORDER") if (recorderOpen) actionRecorderFeature.open();
+	function openActionRecorder() {
+		if (recorderOpen) actionRecorderFeature.open();
 		else if (operationGuard.activate("recording")) try {
 			actionRecorderFeature.open();
 		} catch (error) {
@@ -17268,6 +17394,21 @@ input:focus-visible {
 			throw error;
 		}
 		else window.alert("Another Edvibe Toolbox operation is already running.");
+	}
+	var mainCommandHandlers = /* @__PURE__ */ new Map([
+		[WINDOW_MESSAGE_TYPES.START_EXPORT, () => marathonExportFeature.start()],
+		[WINDOW_MESSAGE_TYPES.OPEN_LESSON_RESET, () => lessonResetFeature.open()],
+		[WINDOW_MESSAGE_TYPES.OPEN_BATCH_LESSON_ACCESS, () => batchLessonAccessFeature.open()],
+		[WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_ONBOARDING, () => batchUserOnboardingFeature.open()],
+		[WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT, () => batchUserManagementFeature.open()],
+		[WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_CREATION, () => batchSectionCreationFeature.open()],
+		[WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_DELETION, () => batchSectionDeletionFeature.open()],
+		[WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY, (data) => executionHistoryFeature.open({ executionId: data.executionId || null })],
+		[WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER, openActionRecorder]
+	]);
+	window.addEventListener("message", (event) => {
+		if (event.source !== window || !isMainCommandMessage(event.data)) return;
+		mainCommandHandlers.get(event.data.type)?.(event.data);
 	});
 	log("Toolbox modules ready.");
 	//#endregion

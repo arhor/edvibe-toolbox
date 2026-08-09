@@ -715,8 +715,128 @@ var PopupToolGroup = class extends i {
 if (!customElements.get("popup-tool-card")) customElements.define("popup-tool-card", PopupToolCard);
 if (!customElements.get("popup-tool-group")) customElements.define("popup-tool-group", PopupToolGroup);
 //#endregion
+//#region src/shared/logger.js
+var SUPPORTED_WORLDS = /* @__PURE__ */ new Set([
+	"POPUP",
+	"MAIN",
+	"ISOLATED"
+]);
+/**
+* Creates component-scoped loggers for one explicit execution world.
+*
+* @param {string} world The execution world.
+* @returns {(module: string | null | undefined) => (...args: any[]) => void} A function that creates a logger function.
+*/
+function createLoggerFactory(world) {
+	if (!SUPPORTED_WORLDS.has(world)) throw new Error(`Unsupported logging world: ${world}`);
+	return function createLogger(component) {
+		if (component !== void 0 && (typeof component !== "string" || !component.trim())) throw new Error("Component must be a non-empty string.");
+		const namespace = `[Edvibe Toolbox][${world}]${component ? `[${component.trim()}]` : ""}`;
+		return (...args) => console.log(namespace, ...args);
+	};
+}
+//#endregion
+//#region src/shared/message-protocol.js
+var POPUP_COMMANDS = Object.freeze({
+	START_EXPORT: "START_FULL_AUTOMATION",
+	OPEN_LESSON_RESET: "OPEN_LESSON_RESET",
+	OPEN_ACTION_RECORDER: "OPEN_ACTION_RECORDER",
+	OPEN_BATCH_LESSON_ACCESS: "OPEN_BATCH_LESSON_ACCESS",
+	OPEN_BATCH_USER_ONBOARDING: "OPEN_BATCH_USER_ONBOARDING",
+	OPEN_BATCH_USER_MANAGEMENT: "OPEN_BATCH_USER_MANAGEMENT",
+	OPEN_BATCH_SECTION_CREATION: "OPEN_BATCH_SECTION_CREATION",
+	OPEN_BATCH_SECTION_DELETION: "OPEN_BATCH_SECTION_DELETION",
+	OPEN_EXECUTION_HISTORY: "OPEN_EXECUTION_HISTORY"
+});
+var WINDOW_MESSAGE_TYPES = Object.freeze({
+	START_EXPORT: "EDVIBE_TOOLBOX_START_ALL",
+	OPEN_LESSON_RESET: "EDVIBE_TOOLBOX_OPEN_RESET",
+	OPEN_ACTION_RECORDER: "EDVIBE_TOOLBOX_OPEN_RECORDER",
+	OPEN_BATCH_LESSON_ACCESS: "EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS",
+	OPEN_BATCH_USER_ONBOARDING: "EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING",
+	OPEN_BATCH_USER_MANAGEMENT: "EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT",
+	OPEN_BATCH_SECTION_CREATION: "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION",
+	OPEN_BATCH_SECTION_DELETION: "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION",
+	OPEN_EXECUTION_HISTORY: "EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY",
+	EXPORT_STATUS: "EDVIBE_TOOLBOX_EXPORT_STATUS",
+	STORAGE_REQUEST: "EDVIBE_TOOLBOX_STORAGE_REQUEST",
+	STORAGE_RESPONSE: "EDVIBE_TOOLBOX_STORAGE_RESPONSE"
+});
+var RUNTIME_MESSAGE_ACTIONS = Object.freeze({ EXPORT_STATUS: "EXPORT_STATUS" });
+var EXPORT_STATES = Object.freeze({
+	STARTED: "started",
+	COMPLETE: "complete",
+	ERROR: "error"
+});
+var STORAGE_ACTIONS = Object.freeze({
+	GET: "get",
+	SET: "set"
+});
+var STORAGE_KEYS = Object.freeze({ EXECUTION_HISTORY_PREFERENCES: "executionHistoryPreferences" });
+var COMMAND_ROUTES = Object.freeze({
+	[POPUP_COMMANDS.START_EXPORT]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.START_EXPORT,
+		info: "Automation sequence channeled to page engine."
+	}),
+	[POPUP_COMMANDS.OPEN_LESSON_RESET]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_LESSON_RESET,
+		info: "Lesson reset workflow opened."
+	}),
+	[POPUP_COMMANDS.OPEN_ACTION_RECORDER]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+		info: "Action recorder opened."
+	}),
+	[POPUP_COMMANDS.OPEN_BATCH_LESSON_ACCESS]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_LESSON_ACCESS,
+		info: "Batch lesson access opened."
+	}),
+	[POPUP_COMMANDS.OPEN_BATCH_USER_ONBOARDING]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_ONBOARDING,
+		info: "Batch user onboarding opened."
+	}),
+	[POPUP_COMMANDS.OPEN_BATCH_USER_MANAGEMENT]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT,
+		info: "Batch user management opened."
+	}),
+	[POPUP_COMMANDS.OPEN_BATCH_SECTION_CREATION]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_CREATION,
+		info: "Batch section creation opened."
+	}),
+	[POPUP_COMMANDS.OPEN_BATCH_SECTION_DELETION]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_DELETION,
+		info: "Batch section deletion opened."
+	}),
+	[POPUP_COMMANDS.OPEN_EXECUTION_HISTORY]: Object.freeze({
+		type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+		info: "Execution history opened."
+	})
+});
+new Set(Object.values(COMMAND_ROUTES).map(({ type }) => type));
+var EXPORT_STATE_VALUES = new Set(Object.values(EXPORT_STATES));
+new Set(Object.values(STORAGE_ACTIONS));
+new Set(Object.values(STORAGE_KEYS));
+function isRecord(value) {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function hasOnlyKeys(value, allowedKeys) {
+	return Object.keys(value).every((key) => allowedKeys.has(key));
+}
+function getCommandRoute(action) {
+	return typeof action === "string" && Object.prototype.hasOwnProperty.call(COMMAND_ROUTES, action) ? COMMAND_ROUTES[action] : null;
+}
+function isPopupCommandMessage(value) {
+	return isRecord(value) && hasOnlyKeys(value, /* @__PURE__ */ new Set(["action"])) && getCommandRoute(value.action) !== null;
+}
+function isRuntimeExportStatusMessage(value) {
+	return isRecord(value) && hasOnlyKeys(value, /* @__PURE__ */ new Set([
+		"action",
+		"state",
+		"message"
+	])) && value.action === RUNTIME_MESSAGE_ACTIONS.EXPORT_STATUS && EXPORT_STATE_VALUES.has(value.state) && (value.message === void 0 || typeof value.message === "string");
+}
+//#endregion
 //#region popup.js
-EdVibeLogger.createLoggerFactory("POPUP")();
+createLoggerFactory("POPUP")();
 var TOOL_GROUPS = Object.freeze({
 	history: "История",
 	export: "Экспорт",
@@ -729,7 +849,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "history",
 		title: "История операций",
 		description: "Просмотреть, отфильтровать и скачать сохранённые отчёты.",
-		command: "OPEN_EXECUTION_HISTORY",
+		command: POPUP_COMMANDS.OPEN_EXECUTION_HISTORY,
 		requirement: "edvibe",
 		busyLabel: "Открывается…",
 		closeOnSuccess: true
@@ -739,7 +859,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "export",
 		title: "Экспорт марафона",
 		description: "Скачать уроки, материалы и резервный JSON.",
-		command: "START_FULL_AUTOMATION",
+		command: POPUP_COMMANDS.START_EXPORT,
 		requirement: "marathon",
 		busyLabel: "Экспортируется…"
 	},
@@ -748,7 +868,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "management",
 		title: "Сброс прогресса учеников",
 		description: "Очистить сохранённые ответы в выбранных уроках.",
-		command: "OPEN_LESSON_RESET",
+		command: POPUP_COMMANDS.OPEN_LESSON_RESET,
 		requirement: "marathon",
 		busyLabel: "Открывается…",
 		appearance: "danger",
@@ -759,7 +879,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "management",
 		title: "Открыть доступ к урокам",
 		description: "Открыть выбранные уроки для списка учеников.",
-		command: "OPEN_BATCH_LESSON_ACCESS",
+		command: POPUP_COMMANDS.OPEN_BATCH_LESSON_ACCESS,
 		requirement: "marathon",
 		busyLabel: "Открывается…",
 		closeOnSuccess: true
@@ -769,7 +889,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "management",
 		title: "Добавить пользователей",
 		description: "Добавить пользователей и назначить выбранного куратора по списку email.",
-		command: "OPEN_BATCH_USER_ONBOARDING",
+		command: POPUP_COMMANDS.OPEN_BATCH_USER_ONBOARDING,
 		requirement: "marathon",
 		busyLabel: "Открывается…",
 		closeOnSuccess: true
@@ -779,7 +899,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "management",
 		title: "Создать раздел в уроках",
 		description: "Добавить один раздел в несколько выбранных уроков.",
-		command: "OPEN_BATCH_SECTION_CREATION",
+		command: POPUP_COMMANDS.OPEN_BATCH_SECTION_CREATION,
 		requirement: "marathon",
 		busyLabel: "Открывается…",
 		closeOnSuccess: true
@@ -789,7 +909,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "management",
 		title: "Удалить раздел из уроков",
 		description: "Безопасно удалить раздел с точным именем из выбранных уроков.",
-		command: "OPEN_BATCH_SECTION_DELETION",
+		command: POPUP_COMMANDS.OPEN_BATCH_SECTION_DELETION,
 		requirement: "marathon",
 		busyLabel: "Открывается…",
 		appearance: "danger",
@@ -800,7 +920,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "management",
 		title: "Управление пользователями",
 		description: "Снять кураторов и удалить пользователей по списку email.",
-		command: "OPEN_BATCH_USER_MANAGEMENT",
+		command: POPUP_COMMANDS.OPEN_BATCH_USER_MANAGEMENT,
 		requirement: "marathon",
 		busyLabel: "Открывается…",
 		appearance: "danger",
@@ -811,7 +931,7 @@ var TOOL_DEFINITIONS = Object.freeze([
 		group: "development",
 		title: "Запись действий WebSocket",
 		description: "Записать запросы и ответы выполненного действия.",
-		command: "OPEN_ACTION_RECORDER",
+		command: POPUP_COMMANDS.OPEN_ACTION_RECORDER,
 		requirement: "edvibe",
 		busyLabel: "Открывается…",
 		closeOnSuccess: true
@@ -827,7 +947,7 @@ var pageContext = { type: "loading" };
 var exportInProgress = false;
 var pendingToolId = null;
 chrome.runtime.onMessage.addListener((message) => {
-	if (message?.action !== "EXPORT_STATUS") return;
+	if (!isRuntimeExportStatusMessage(message)) return;
 	exportInProgress = message.state === "started";
 	renderTools();
 	if (message.state === "complete") showStatus("Экспорт завершён.");
@@ -949,7 +1069,9 @@ async function executeTool(toolId) {
 	}
 }
 function sendTabCommand(tabId, action) {
-	return new Promise((resolve, reject) => chrome.tabs.sendMessage(tabId, { action }, (response) => {
+	const message = { action };
+	if (!isPopupCommandMessage(message)) return Promise.reject(/* @__PURE__ */ new Error("Unsupported Toolbox command."));
+	return new Promise((resolve, reject) => chrome.tabs.sendMessage(tabId, message, (response) => {
 		if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
 		else resolve(response);
 	}));
