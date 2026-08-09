@@ -1,0 +1,52 @@
+name: Fix issue 70 type contracts
+
+on:
+  push:
+    branches:
+      - issue-70-typescript-boundaries
+    paths:
+      - .github/workflows/fix-issue-70-types.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-70-typescript-boundaries
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Add bound API method parameter types
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/shared/edvibe-marathon-api.js')
+          text = path.read_text()
+          replacements = {
+              "        loadAllPupils(options) {": "        /** @param {{ marathonId: number, pageSize?: number }} options */\n        loadAllPupils(options) {",
+              "        loadAllPupilLessons(options) {": "        /** @param {{ marathonId: number, pupilId: number, pageSize?: number }} options */\n        loadAllPupilLessons(options) {",
+              "        loadAllMarathonLessons(options) {": "        /** @param {{ marathonId: number, pageSize?: number }} options */\n        loadAllMarathonLessons(options) {",
+              "        getLessonById(options) {": "        /** @param {{ lessonId: number }} options */\n        getLessonById(options) {"
+          }
+          for old, new in replacements.items():
+              if text.count(old) != 1:
+                  raise SystemExit(f'Expected one occurrence of {old!r}')
+              text = text.replace(old, new, 1)
+          path.write_text(text)
+          PY
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Commit verified fix and remove helpers
+        run: |
+          git rm .github/workflows/fix-issue-70-types.yml .github/workflows/validate-issue-70-types.yml
+          git add src/shared/edvibe-marathon-api.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Validate typed application boundaries"
+          git push origin HEAD:issue-70-typescript-boundaries
