@@ -58,14 +58,13 @@ jobs:
           update('src/entrypoints/main.js', [("import '../main.js';", "import '../runtime/main.js';")])
           update('popup.html', [('href="popup.css"', 'href="src/runtime/popup.css"')])
 
-          # Only contracts whose referenced runtime files actually moved are rewritten.
           update('src/build-foundation.test.js', [
               ("'../../popup.js'", "'../runtime/popup.js'"),
               ("'../isolated.js'", "'../runtime/isolated.js'"),
               ("read('popup.js')", "read('src/runtime/popup.js')"),
               ("read('src/isolated.js')", "read('src/runtime/isolated.js')"),
-              (r"/from '\.\/src\/shared\/logger\.js';/", r"/from '\.\.\/shared\/logger\.js';/"),
-              (r"/from '\.\/shared\/logger\.js';/", r"/from '\.\.\/shared\/logger\.js';/")
+              (r"\.\/src\/shared\/logger\.js", r"\.\.\/shared\/logger\.js"),
+              (r"\.\/shared\/logger\.js", r"\.\.\/shared\/logger\.js")
           ])
 
           update('src/isolated.test.js', [
@@ -73,21 +72,21 @@ jobs:
           ])
 
           update('src/module-architecture.test.js', [
-              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
+              (r"\.\.\/main\.js", r"\.\.\/runtime\/main\.js"),
               ("read('src/main.js')", "read('src/runtime/main.js')"),
               ("'popup.js'", "'src/runtime/popup.js'"),
               ("'src/main.js'", "'src/runtime/main.js'"),
               ("read('src/isolated.js')", "read('src/runtime/isolated.js')"),
-              (r"/from ['\"]\.\/features\/marathon-export\.js['\"]/", r"/from ['\"]\.\.\/features\/marathon-export\.js['\"]/"),
-              (r"/from ['\"]\.\/shared\/websocket-transport\.js['\"]/", r"/from ['\"]\.\.\/shared\/websocket-transport\.js['\"]/"),
-              (r"/from '\.\/shared\/message-protocol\.js';/", r"/from '\.\.\/shared\/message-protocol\.js';/")
+              (r"\.\/features\/marathon-export\.js", r"\.\.\/features\/marathon-export\.js"),
+              (r"\.\/shared\/websocket-transport\.js", r"\.\.\/shared\/websocket-transport\.js"),
+              (r"\.\/shared\/message-protocol\.js", r"\.\.\/shared\/message-protocol\.js")
           ])
 
           update('src/execution-history-wiring.test.js', [
               ("read('src/main.js')", "read('src/runtime/main.js')"),
               ("read('popup.js')", "read('src/runtime/popup.js')"),
               ("read('src/isolated.js')", "read('src/runtime/isolated.js')"),
-              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
+              (r"\.\.\/main\.js", r"\.\.\/runtime\/main\.js"),
               ("'./shared/", "'../shared/"),
               ("'./components/", "'../components/"),
               ("'./features/", "'../features/")
@@ -97,25 +96,25 @@ jobs:
               ("path.join(root, 'popup.js')", "path.join(root, 'src/runtime/popup.js')"),
               ("path.join(root, 'src/isolated.js')", "path.join(root, 'src/runtime/isolated.js')"),
               ("path.join(root, 'src/main.js')", "path.join(root, 'src/runtime/main.js')"),
-              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
-              (r"/from ['\"]\.\/components\/batch-section-creation-dialog\.js['\"]/", r"/from ['\"]\.\.\/components\/batch-section-creation-dialog\.js['\"]/"),
-              (r"/from ['\"]\.\/features\/batch-section-creation\.js['\"]/", r"/from ['\"]\.\.\/features\/batch-section-creation\.js['\"]/"),
+              (r"\.\.\/main\.js", r"\.\.\/runtime\/main\.js"),
+              (r"\.\/components\/batch-section-creation-dialog\.js", r"\.\.\/components\/batch-section-creation-dialog\.js"),
+              (r"\.\/features\/batch-section-creation\.js", r"\.\.\/features\/batch-section-creation\.js")
           ])
 
           update('src/features/batch-section-image-upload.integration.test.js', [
               ("path.join(root, 'src/main.js')", "path.join(root, 'src/runtime/main.js')"),
-              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
-              (r"/from ['\"]\.\/features\/batch-section-image-upload\.js['\"]/", r"/from ['\"]\.\.\/features\/batch-section-image-upload\.js['\"]/"),
+              (r"\.\.\/main\.js", r"\.\.\/runtime\/main\.js"),
+              (r"\.\/features\/batch-section-image-upload\.js", r"\.\.\/features\/batch-section-image-upload\.js")
           ])
 
           update('src/popup-handlers.test.js', [
               ("path.join(projectRoot, 'popup.js')", "path.join(projectRoot, 'src/runtime/popup.js')"),
               ("path.join(projectRoot, 'popup.css')", "path.join(projectRoot, 'src/runtime/popup.css')"),
               ("path.join(projectRoot, 'src/isolated.js')", "path.join(projectRoot, 'src/runtime/isolated.js')"),
-              (r"/from '\.\/src\/shared\/message-protocol\.js';/", r"/from '\.\.\/shared\/message-protocol\.js';/"),
-              (r"/from '\.\/shared\/message-protocol\.js';/", r"/from '\.\.\/shared\/message-protocol\.js';/"),
-              (r'/<link rel="stylesheet" href="popup\.css">/', r'/<link rel="stylesheet" href="src\/runtime\/popup\.css">/'),
-              (r"/import '\.\.\/\.\.\/popup\.js';/", r"/import '\.\.\/runtime\/popup\.js';/")
+              (r"\.\/src\/shared\/message-protocol\.js", r"\.\.\/shared\/message-protocol\.js"),
+              (r"\.\/shared\/message-protocol\.js", r"\.\.\/shared\/message-protocol\.js"),
+              (r'href="popup\.css"', r'href="src\/runtime\/popup\.css"'),
+              (r"\.\.\/\.\.\/popup\.js", r"\.\.\/runtime\/popup\.js")
           ])
 
           agents = Path('AGENTS.md')
