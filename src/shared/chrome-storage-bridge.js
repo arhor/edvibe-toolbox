@@ -1,5 +1,12 @@
-const REQUEST_TYPE = 'EDVIBE_TOOLBOX_STORAGE_REQUEST';
-const RESPONSE_TYPE = 'EDVIBE_TOOLBOX_STORAGE_RESPONSE';
+import {
+    STORAGE_ACTIONS,
+    WINDOW_MESSAGE_TYPES,
+    createStorageRequest,
+    isStorageResponseMessage
+} from './message-protocol.js';
+
+const REQUEST_TYPE = WINDOW_MESSAGE_TYPES.STORAGE_REQUEST;
+const RESPONSE_TYPE = WINDOW_MESSAGE_TYPES.STORAGE_RESPONSE;
 
 function createStorageBridge(options = {}) {
     const windowApi = options.window || globalThis.window;
@@ -8,7 +15,7 @@ function createStorageBridge(options = {}) {
     if (!windowApi?.postMessage || !windowApi?.addEventListener) throw new TypeError('Window messaging APIs are required');
     const pending = new Map();
     const onMessage = (event) => {
-        if (event.source !== windowApi || event.data?.type !== RESPONSE_TYPE) return;
+        if (event.source !== windowApi || !isStorageResponseMessage(event.data)) return;
         const request = pending.get(event.data.requestId);
         if (!request) return;
         pending.delete(event.data.requestId);
@@ -22,19 +29,25 @@ function createStorageBridge(options = {}) {
         const requestId = typeof cryptoApi?.randomUUID === 'function'
             ? cryptoApi.randomUUID()
             : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        let message;
+        try {
+            message = createStorageRequest({ requestId, action, key, value });
+        } catch (error) {
+            return Promise.reject(error);
+        }
         return new Promise((resolve, reject) => {
             const timer = setTimeout(() => {
                 pending.delete(requestId);
                 reject(new Error('Storage request timed out'));
             }, timeoutMs);
             pending.set(requestId, { resolve, reject, timer });
-            windowApi.postMessage({ type: REQUEST_TYPE, requestId, action, key, value }, '*');
+            windowApi.postMessage(message, '*');
         });
     }
 
     return Object.freeze({
-        get(key) { return request('get', key); },
-        set(key, value) { return request('set', key, value); },
+        get(key) { return request(STORAGE_ACTIONS.GET, key); },
+        set(key, value) { return request(STORAGE_ACTIONS.SET, key, value); },
         dispose() {
             windowApi.removeEventListener('message', onMessage);
             for (const value of pending.values()) {

@@ -83,24 +83,30 @@ test('main remains a coordinator for feature modules', () => {
     assert.doesNotMatch(source, /GetMarathonLessonsPagination/);
 });
 
-test('isolated routing uses a command table and forwards only minimal metadata', () => {
+test('cross-world routing uses the shared validated protocol and minimal metadata', () => {
     const isolatedSource = read('src/isolated.js');
+    const mainSource = read('src/main.js');
+    const protocolSource = read('src/shared/message-protocol.js');
+    const protocolTypes = read('src/shared/message-protocol.types.ts');
 
-    const commands = [
-        'OPEN_ACTION_RECORDER',
-        'OPEN_BATCH_LESSON_ACCESS',
-        'OPEN_BATCH_USER_ONBOARDING',
-        'OPEN_BATCH_USER_MANAGEMENT',
-        'OPEN_BATCH_SECTION_CREATION',
-        'OPEN_BATCH_SECTION_DELETION'
-    ];
-    for (const command of commands) {
-        assert.match(isolatedSource, new RegExp(`${command}: \\[`));
-    }
-    assert.match(isolatedSource, /const \[type, info\] = commands\[message\.action\]/);
-    assert.match(isolatedSource, /window\.postMessage\(\{ type \}, '\*'\)/);
+    assert.match(isolatedSource, /from '\.\/shared\/message-protocol\.js';/);
+    assert.match(isolatedSource, /isPopupCommandMessage\(message\)/);
+    assert.match(isolatedSource, /isExportStatusMessage\(event\.data\)/);
+    assert.match(isolatedSource, /isStorageRequestMessage\(event\.data\)/);
+    assert.match(isolatedSource, /createMainCommandMessage\(message\.action\)/);
     assert.doesNotMatch(isolatedSource, /stylesheetUrl|sourceStylesheetUrl|recordedFrames|operations|otherFrames/);
     assert.doesNotMatch(isolatedSource, /\.css['"]/);
+
+    assert.match(mainSource, /isMainCommandMessage\(event\.data\)/);
+    assert.match(mainSource, /const mainCommandHandlers = new Map\(\[/);
+    assert.match(mainSource, /mainCommandHandlers\.get\(event\.data\.type\)/);
+    assert.doesNotMatch(mainSource, /data\.type === 'EDVIBE_TOOLBOX_/);
+
+    assert.match(protocolSource, /const COMMAND_ROUTES = Object\.freeze/);
+    assert.match(protocolSource, /function isMainCommandMessage/);
+    assert.match(protocolSource, /function isStorageRequestMessage/);
+    assert.match(protocolTypes, /export type MainCommandMessage/);
+    assert.match(protocolTypes, /export type StorageRequestMessage/);
 });
 
 test('batch features use imported APIs instead of global module lookups', () => {

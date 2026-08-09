@@ -1,17 +1,24 @@
-const createPopupLog = EdVibeLogger.createLoggerFactory('POPUP');
+import { createLoggerFactory } from './src/shared/logger.js';
+import {
+    POPUP_COMMANDS,
+    isPopupCommandMessage,
+    isRuntimeExportStatusMessage
+} from './src/shared/message-protocol.js';
+
+const createPopupLog = createLoggerFactory('POPUP');
 const log = createPopupLog();
 
 const TOOL_GROUPS = Object.freeze({ history: 'История', export: 'Экспорт', management: 'Управление', development: 'Разработка' });
 const TOOL_DEFINITIONS = Object.freeze([
-    { id: 'execution-history', group: 'history', title: 'История операций', description: 'Просмотреть, отфильтровать и скачать сохранённые отчёты.', command: 'OPEN_EXECUTION_HISTORY', requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'marathon-export', group: 'export', title: 'Экспорт марафона', description: 'Скачать уроки, материалы и резервный JSON.', command: 'START_FULL_AUTOMATION', requirement: 'marathon', busyLabel: 'Экспортируется…' },
-    { id: 'lesson-reset', group: 'management', title: 'Сброс прогресса учеников', description: 'Очистить сохранённые ответы в выбранных уроках.', command: 'OPEN_LESSON_RESET', requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
-    { id: 'batch-lesson-access', group: 'management', title: 'Открыть доступ к урокам', description: 'Открыть выбранные уроки для списка учеников.', command: 'OPEN_BATCH_LESSON_ACCESS', requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'batch-user-onboarding', group: 'management', title: 'Добавить пользователей', description: 'Добавить пользователей и назначить выбранного куратора по списку email.', command: 'OPEN_BATCH_USER_ONBOARDING', requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'batch-section-creation', group: 'management', title: 'Создать раздел в уроках', description: 'Добавить один раздел в несколько выбранных уроков.', command: 'OPEN_BATCH_SECTION_CREATION', requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'batch-section-deletion', group: 'management', title: 'Удалить раздел из уроков', description: 'Безопасно удалить раздел с точным именем из выбранных уроков.', command: 'OPEN_BATCH_SECTION_DELETION', requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
-    { id: 'batch-user-management', group: 'management', title: 'Управление пользователями', description: 'Снять кураторов и удалить пользователей по списку email.', command: 'OPEN_BATCH_USER_MANAGEMENT', requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
-    { id: 'action-recorder', group: 'development', title: 'Запись действий WebSocket', description: 'Записать запросы и ответы выполненного действия.', command: 'OPEN_ACTION_RECORDER', requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true }
+    { id: 'execution-history', group: 'history', title: 'История операций', description: 'Просмотреть, отфильтровать и скачать сохранённые отчёты.', command: POPUP_COMMANDS.OPEN_EXECUTION_HISTORY, requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true },
+    { id: 'marathon-export', group: 'export', title: 'Экспорт марафона', description: 'Скачать уроки, материалы и резервный JSON.', command: POPUP_COMMANDS.START_EXPORT, requirement: 'marathon', busyLabel: 'Экспортируется…' },
+    { id: 'lesson-reset', group: 'management', title: 'Сброс прогресса учеников', description: 'Очистить сохранённые ответы в выбранных уроках.', command: POPUP_COMMANDS.OPEN_LESSON_RESET, requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
+    { id: 'batch-lesson-access', group: 'management', title: 'Открыть доступ к урокам', description: 'Открыть выбранные уроки для списка учеников.', command: POPUP_COMMANDS.OPEN_BATCH_LESSON_ACCESS, requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
+    { id: 'batch-user-onboarding', group: 'management', title: 'Добавить пользователей', description: 'Добавить пользователей и назначить выбранного куратора по списку email.', command: POPUP_COMMANDS.OPEN_BATCH_USER_ONBOARDING, requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
+    { id: 'batch-section-creation', group: 'management', title: 'Создать раздел в уроках', description: 'Добавить один раздел в несколько выбранных уроков.', command: POPUP_COMMANDS.OPEN_BATCH_SECTION_CREATION, requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
+    { id: 'batch-section-deletion', group: 'management', title: 'Удалить раздел из уроков', description: 'Безопасно удалить раздел с точным именем из выбранных уроков.', command: POPUP_COMMANDS.OPEN_BATCH_SECTION_DELETION, requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
+    { id: 'batch-user-management', group: 'management', title: 'Управление пользователями', description: 'Снять кураторов и удалить пользователей по списку email.', command: POPUP_COMMANDS.OPEN_BATCH_USER_MANAGEMENT, requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
+    { id: 'action-recorder', group: 'development', title: 'Запись действий WebSocket', description: 'Записать запросы и ответы выполненного действия.', command: POPUP_COMMANDS.OPEN_ACTION_RECORDER, requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true }
 ].map(Object.freeze));
 
 const pageContextElement = document.getElementById('pageContext');
@@ -25,7 +32,7 @@ let exportInProgress = false;
 let pendingToolId = null;
 
 chrome.runtime.onMessage.addListener((message) => {
-    if (message?.action !== 'EXPORT_STATUS') return;
+    if (!isRuntimeExportStatusMessage(message)) return;
     exportInProgress = message.state === 'started';
     renderTools();
     if (message.state === 'complete') showStatus('Экспорт завершён.');
@@ -107,7 +114,9 @@ async function executeTool(toolId) {
 }
 
 function sendTabCommand(tabId, action) {
-    return new Promise((resolve, reject) => chrome.tabs.sendMessage(tabId, { action }, (response) => {
+    const message = { action };
+    if (!isPopupCommandMessage(message)) return Promise.reject(new Error('Unsupported Toolbox command.'));
+    return new Promise((resolve, reject) => chrome.tabs.sendMessage(tabId, message, (response) => {
         if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
         else resolve(response);
     }));

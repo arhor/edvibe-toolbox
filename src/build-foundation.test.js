@@ -46,14 +46,14 @@ test('popup and isolated runtimes use explicit source entry points', () => {
     );
     assert.doesNotMatch(popupHtml, /vite-ignore/);
     assert.deepEqual(readImports('src/entrypoints/popup.js'), [
-        '../shared/logger.js',
         '../components/popup-tool-list.js',
         '../../popup.js'
     ]);
     assert.deepEqual(readImports('src/entrypoints/isolated.js'), [
-        '../shared/logger.js',
         '../isolated.js'
     ]);
+    assert.match(read('popup.js'), /from '\.\/src\/shared\/logger\.js';/);
+    assert.match(read('src/isolated.js'), /from '\.\/shared\/logger\.js';/);
 });
 
 test('manifest does not expose in-page component styles as web-accessible resources', async () => {
