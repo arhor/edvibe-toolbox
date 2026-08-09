@@ -1,0 +1,589 @@
+TEST_EXIT=1
+===== FAILURES =====
+23-ok 3 - popup document uses a normal module entry point supported by the build
+24-  ---
+25-  duration_ms: 0.636338
+26-  type: 'test'
+27-  ...
+28-# Subtest: manifest does not expose in-page component styles as web-accessible resources
+29-ok 4 - manifest does not expose in-page component styles as web-accessible resources
+30-  ---
+31-  duration_ms: 0.196556
+32-  type: 'test'
+33-  ...
+34-# Subtest: action recorder dialog uses Lit for recorder state and operation rendering
+35:not ok 5 - action recorder dialog uses Lit for recorder state and operation rendering
+36-  ---
+37-  duration_ms: 6.882745
+38-  type: 'test'
+39-  location: '/home/runner/work/edvibe-toolbox/edvibe-toolbox/src/components/action-recorder-dialog.test.js:9:1'
+40-  failureType: 'testCodeFailure'
+41-  error: |-
+42-    The input did not match the regular expression /import \{ LitElement, html, nothing \} from 'lit';/. Input:
+43-    
+44-    "import { LitElement, html } from 'lit';\n" +
+45-      "import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';\n" +
+46-      "import { actionRecorderDialogStyles } from './action-recorder-dialog.styles.js';\n" +
+47-      '\n' +
+48-      "const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';\n" +
+49-      "const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';\n" +
+50-      '\n' +
+51-      'class ActionRecorderDialog extends LitElement {\n' +
+52-      '    static styles = [componentFoundationStyles, dialogFoundationStyles, actionRecorderDialogStyles];\n' +
+53-      '\n' +
+54-      '    static properties = {\n' +
+55-      '        state: {state: true},\n' +
+56-      '        minimized: {state: true},\n' +
+57-      '        showToolbox: {state: true},\n' +
+58-      '        elapsedLabel: {state: true}\n' +
+59-      '    };\n' +
+60-      '\n' +
+61-      '    constructor() {\n' +
+62-      '        super();\n' +
+63-      '        this.callbacks = {};\n' +
+64-      "        this.state = {status: 'idle', session: null};\n" +
+65-      '        this.minimized = false;\n' +
+--
+273-      '                            <button class="button recorder-export" type="button" ?disabled=${!hasSession}\n' +
+274-      '                                @click=${() => this.callbacks.onExport?.()}>Экспорт JSON</button>\n' +
+275-      '                        </div>\n' +
+276-      '                    </div>\n' +
+277-      '                    <div class="recorder-body">\n' +
+278-      '                        <aside class="privacy-warning">\n' +
+279-      '                            Запись может содержать данные учеников, уроки, ответы и идентификаторы.\n' +
+280-      '                            Проверьте файл перед отправкой или коммитом.\n' +
+281-      '                        </aside>\n' +
+282-      '                        <div class="recorder-summary">\n' +
+283-      '                            <span><strong class="operatio'... 2284 more characters
+284-    
+285:  code: 'ERR_ASSERTION'
+286:  name: 'AssertionError'
+287-  expected:
+288-  actual: |-
+289-    import { LitElement, html } from 'lit';
+290-    import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+291-    import { actionRecorderDialogStyles } from './action-recorder-dialog.styles.js';
+292-    
+293-    const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
+294-    const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
+295-    
+296-    class ActionRecorderDialog extends LitElement {
+297-        static styles = [componentFoundationStyles, dialogFoundationStyles, actionRecorderDialogStyles];
+298-    
+299-        static properties = {
+300-            state: {state: true},
+301-            minimized: {state: true},
+302-            showToolbox: {state: true},
+303-            elapsedLabel: {state: true}
+304-        };
+305-    
+306-        constructor() {
+307-            super();
+308-            this.callbacks = {};
+309-            this.state = {status: 'idle', session: null};
+310-            this.minimized = false;
+311-            this.showToolbox = false;
+312-            this.elapsedLabel = '';
+313-            this.elapsedTimer = null;
+314-        }
+315-    
+316-        connectedCallback() {
+--
+634-ok 15 - section image upload no longer patches dialog prototypes or DOM rendering hooks
+635-  ---
+636-  duration_ms: 0.296256
+637-  type: 'test'
+638-  ...
+639-# Subtest: section image upload keeps placeholder and file metadata helpers for feature compatibility
+640-ok 16 - section image upload keeps placeholder and file metadata helpers for feature compatibility
+641-  ---
+642-  duration_ms: 0.24618
+643-  type: 'test'
+644-  ...
+645-# Subtest: batch user management dialog uses Lit for all workflow states
+646:not ok 17 - batch user management dialog uses Lit for all workflow states
+647-  ---
+648-  duration_ms: 5.059109
+649-  type: 'test'
+650-  location: '/home/runner/work/edvibe-toolbox/edvibe-toolbox/src/components/batch-user-management-dialog.test.js:8:1'
+651-  failureType: 'testCodeFailure'
+652-  error: |-
+653-    The input did not match the regular expression /import \{ LitElement, html, nothing \} from 'lit';/. Input:
+654-    
+655-    "import { LitElement, html } from 'lit';\n" +
+656-      "import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';\n" +
+657-      "import { batchUserManagementDialogStyles } from './batch-user-management-dialog.styles.js';\n" +
+658-      '\n' +
+659-      "const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';\n" +
+660-      "const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';\n" +
+661-      '\n' +
+662-      'class BatchUserManagementDialog extends LitElement {\n' +
+663-      '    static styles = [componentFoundationStyles, dialogFoundationStyles, batchUserManagementDialogStyles];\n' +
+664-      '\n' +
+665-      '    static properties = {\n' +
+666-      '        rows: {state: true},\n' +
+667-      '        emailState: {state: true},\n' +
+668-      '        emailInput: {state: true},\n' +
+669-      '        mode: {state: true},\n' +
+670-      '        errors: {state: true},\n' +
+671-      '        statusMessage: {state: true},\n' +
+672:      '        statusError: {state: true},\n' +
+673-      '        progress: {state: true}\n' +
+674-      '    };\n' +
+675-      '\n' +
+676-      '    constructor() {\n' +
+677-      '        super();\n' +
+678-      '        this.rows = [];\n' +
+679-      '        this.emailState = {validCount: 0, malformedCount: 0};\n' +
+680-      "        this.emailInput = '';\n" +
+681-      "        this.mode = 'configure';\n" +
+682-      '        this.errors = [];\n' +
+683-      "        this.statusMessage = '';\n" +
+684-      '        this.statusError = false;\n' +
+685-      '        this.progress = {visible: false, completed: 0, total: 0};\n' +
+686-      '        this.handleKeydownBound = (event) => this.handleKeydown(event);\n' +
+687-      '    }\n' +
+688-      '\n' +
+689-      '    connectedCallback() {\n' +
+690-      '        super.connectedCallback();\n' +
+691-      '        if (!this.id) this.id = USER_MANAGEMENT_OVERLAY_ID;\n' +
+692-      "        this.ownerDocument?.addEventListener('keydown', this.handleKeydownBound);\n" +
+693-      '    }\n' +
+694-      '\n' +
+695-      '    disconnectedCallback() {\n' +
+696-      "        this.ownerDocument?.removeEventListener('keydown', this.handleKeydownBound);\n" +
+697-      '        super.disconnectedCallback();\n' +
+698-      '    }\n' +
+699-      '\n' +
+700-      '    configure() {\n' +
+701-      '        return this;\n' +
+702-      '    }\n' +
+--
+910-      '    render() {\n' +
+911-      "        const completed = ['complete', 'partial-complete'].includes(this.mode);\n" +
+912-      '        const locked = this.isLocked();\n' +
+913-      "        const statusClass = `edvibe-batch-user-management-status${this.statusError ? ' is-error' : ''}`;\n" +
+914-      '        return html`\n' +
+915-      '<div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>\n' +
+916-      '                <section class="edvibe-batch-user-management-card" role="dialog" aria-modal="true"\n' +
+917-      '                    aria-labelledby="edvibe-batch-user-management-title">\n' +
+918-      '                    <header class="edvibe-batch-user-management-header">\n' +
+919-      '                        <div><h2 id="edvibe-batch-user-management-title">Управление пользователями</h2>\n' +
+920-      '                            <p class="edvibe-batch-user-management-description">Снимите кураторов и удалите пользователей '... 4688 more characters
+921-    
+922:  code: 'ERR_ASSERTION'
+923:  name: 'AssertionError'
+924-  expected:
+925-  actual: |-
+926-    import { LitElement, html } from 'lit';
+927-    import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+928-    import { batchUserManagementDialogStyles } from './batch-user-management-dialog.styles.js';
+929-    
+930-    const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
+931-    const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
+932-    
+933-    class BatchUserManagementDialog extends LitElement {
+934-        static styles = [componentFoundationStyles, dialogFoundationStyles, batchUserManagementDialogStyles];
+935-    
+936-        static properties = {
+937-            rows: {state: true},
+938-            emailState: {state: true},
+939-            emailInput: {state: true},
+940-            mode: {state: true},
+941-            errors: {state: true},
+942-            statusMessage: {state: true},
+943:            statusError: {state: true},
+944-            progress: {state: true}
+945-        };
+946-    
+947-        constructor() {
+948-            super();
+949-            this.rows = [];
+950-            this.emailState = {validCount: 0, malformedCount: 0};
+951-            this.emailInput = '';
+952-            this.mode = 'configure';
+953-            this.errors = [];
+954-            this.statusMessage = '';
+955-            this.statusError = false;
+956-            this.progress = {visible: false, completed: 0, total: 0};
+957-            this.handleKeydownBound = (event) => this.handleKeydown(event);
+958-        }
+959-    
+960-        connectedCallback() {
+961-            super.connectedCallback();
+962-            if (!this.id) this.id = USER_MANAGEMENT_OVERLAY_ID;
+963-            this.ownerDocument?.addEventListener('keydown', this.handleKeydownBound);
+964-        }
+965-    
+966-        disconnectedCallback() {
+967-            this.ownerDocument?.removeEventListener('keydown', this.handleKeydownBound);
+968-            super.disconnectedCallback();
+969-        }
+970-    
+971-        configure() {
+972-            return this;
+973-        }
+--
+1362-  type: 'test'
+1363-  ...
+1364-# (node:2629) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/edvibe-toolbox/edvibe-toolbox/src/features/batch-lesson-access.js is not specified and it doesn't parse as CommonJS.
+1365-# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+1366-# To eliminate this warning, add "type": "module" to /home/runner/work/edvibe-toolbox/edvibe-toolbox/package.json.
+1367-# (Use `node --trace-warnings ...` to show where the warning was created)
+1368-# Subtest: serializes successful, retried, and already-open combinations with stable matrix data
+1369-ok 35 - serializes successful, retried, and already-open combinations with stable matrix data
+1370-  ---
+1371-  duration_ms: 4.285262
+1372-  type: 'test'
+1373-  ...
+1374:# Subtest: distinguishes rejected lesson responses from failed writes
+1375:ok 36 - distinguishes rejected lesson responses from failed writes
+1376-  ---
+1377-  duration_ms: 0.715937
+1378-  type: 'test'
+1379-  ...
+1380-# Subtest: preserves malformed, missing, and ambiguous user inputs
+1381-ok 37 - preserves malformed, missing, and ambiguous user inputs
+1382-  ---
+1383-  duration_ms: 0.711451
+1384-  type: 'test'
+1385-  ...
+1386-# Subtest: preserves discovery failures, missing selected lessons, and invalid access states
+1387-ok 38 - preserves discovery failures, missing selected lessons, and invalid access states
+1388-  ---
+1389-  duration_ms: 1.825608
+1390-  type: 'test'
+1391-  ...
+1392-# Subtest: marks the untouched remainder of an interrupted confirmed matrix as not attempted
+1393-ok 39 - marks the untouched remainder of an interrupted confirmed matrix as not attempted
+1394-  ---
+1395-  duration_ms: 2.255756
+1396-  type: 'test'
+1397-  ...
+1398-# Subtest: supports cancellation and keeps records free from unsafe transport fields
+1399-ok 40 - supports cancellation and keeps records free from unsafe transport fields
+1400-  ---
+1401-  duration_ms: 0.58413
+1402-  type: 'test'
+1403-  ...
+1404-# Subtest: history-aware feature persists terminal output without replacing the visible result
+1405-ok 41 - history-aware feature persists terminal output without replacing the visible result
+--
+1540-# Subtest: runWithRetry records unavailable connection before retrying without another operation call
+1541-ok 63 - runWithRetry records unavailable connection before retrying without another operation call
+1542-  ---
+1543-  duration_ms: 0.419752
+1544-  type: 'test'
+1545-  ...
+1546-# Subtest: runWithRetry rejects the third transient failure with three attempts
+1547-ok 64 - runWithRetry rejects the third transient failure with three attempts
+1548-  ---
+1549-  duration_ms: 0.504429
+1550-  type: 'test'
+1551-  ...
+1552:# Subtest: runWithRetry retries SEND_FAILED with a cause after a closed connection
+1553:ok 65 - runWithRetry retries SEND_FAILED with a cause after a closed connection
+1554-  ---
+1555-  duration_ms: 0.32598
+1556-  type: 'test'
+1557-  ...
+1558:# Subtest: runWithRetry does not retry SEND_FAILED without a cause
+1559:ok 66 - runWithRetry does not retry SEND_FAILED without a cause
+1560-  ---
+1561-  duration_ms: 0.299772
+1562-  type: 'test'
+1563-  ...
+1564:# Subtest: runWithRetry does not retry SEND_FAILED while the connection is open
+1565:ok 67 - runWithRetry does not retry SEND_FAILED while the connection is open
+1566-  ---
+1567-  duration_ms: 0.291269
+1568-  type: 'test'
+1569-  ...
+1570-# Subtest: executeAccessPlan serializes mutations, validates responses, and aggregates results
+1571-ok 68 - executeAccessPlan serializes mutations, validates responses, and aggregates results
+1572-  ---
+1573-  duration_ms: 0.941898
+1574-  type: 'test'
+1575-  ...
+1576-# Subtest: executeAccessPlan treats a successful transport response without Value true as invalid
+1577-ok 69 - executeAccessPlan treats a successful transport response without Value true as invalid
+1578-  ---
+1579-  duration_ms: 0.286071
+1580-  type: 'test'
+1581-  ...
+1582-# Subtest: executeAccessPlan stops after an internal mutation error and carries a safe partial result
+1583-ok 70 - executeAccessPlan stops after an internal mutation error and carries a safe partial result
+1584-  ---
+1585-  duration_ms: 1.913231
+1586-  type: 'test'
+1587-  ...
+1588-# Subtest: executeAccessPlan preserves a successful write when completion progress rendering throws
+1589-ok 71 - executeAccessPlan preserves a successful write when completion progress rendering throws
+1590-  ---
+1591-  duration_ms: 0.548446
+1592-  type: 'test'
+1593-  ...
+1594-# Subtest: formatBatchReport includes actionable failures without internal IDs or payloads
+1595-ok 72 - formatBatchReport includes actionable failures without internal IDs or payloads
+--
+1710-# Subtest: records per-lesson creation failure with stable code, message, and attempts
+1711-ok 90 - records per-lesson creation failure with stable code, message, and attempts
+1712-  ---
+1713-  duration_ms: 0.898863
+1714-  type: 'test'
+1715-  ...
+1716-# Subtest: keeps partial creation distinct when cleanup succeeds
+1717-ok 91 - keeps partial creation distinct when cleanup succeeds
+1718-  ---
+1719-  duration_ms: 0.526483
+1720-  type: 'test'
+1721-  ...
+1722:# Subtest: preserves failed and unavailable cleanup outcomes
+1723:ok 92 - preserves failed and unavailable cleanup outcomes
+1724-  ---
+1725-  duration_ms: 0.368986
+1726-  type: 'test'
+1727-  ...
+1728-# Subtest: fills unfinished confirmed lessons as not attempted after fatal interruption
+1729-ok 93 - fills unfinished confirmed lessons as not attempted after fatal interruption
+1730-  ---
+1731-  duration_ms: 0.660224
+1732-  type: 'test'
+1733-  ...
+1734-# Subtest: marks the entire remaining confirmed plan not attempted after cancellation
+1735-ok 94 - marks the entire remaining confirmed plan not attempted after cancellation
+1736-  ---
+1737-  duration_ms: 0.421965
+1738-  type: 'test'
+1739-  ...
+1740-# (node:2661) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/edvibe-toolbox/edvibe-toolbox/src/features/batch-section-creation-history-model.js is not specified and it doesn't parse as CommonJS.
+1741-# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+1742-# To eliminate this warning, add "type": "module" to /home/runner/work/edvibe-toolbox/edvibe-toolbox/package.json.
+1743-# (Use `node --trace-warnings ...` to show where the warning was created)
+1744-# Subtest: history-aware dialog preserves the visible result when persistence rejects
+1745-ok 95 - history-aware dialog preserves the visible result when persistence rejects
+1746-  ---
+1747-  duration_ms: 8.103269
+1748-  type: 'test'
+1749-  ...
+1750-# Subtest: history-aware dialog persists an all-rejected preflight
+1751-ok 96 - history-aware dialog persists an all-rejected preflight
+1752-  ---
+1753-  duration_ms: 2.157708
+--
+2128-# Subtest: executeUserPlan rejects invalid mutation responses as row failures
+2129-ok 155 - executeUserPlan rejects invalid mutation responses as row failures
+2130-  ---
+2131-  duration_ms: 0.563078
+2132-  type: 'test'
+2133-  ...
+2134-# Subtest: unassign without a curator is a successful no-op and still permits deletion
+2135-ok 156 - unassign without a curator is a successful no-op and still permits deletion
+2136-  ---
+2137-  duration_ms: 0.365751
+2138-  type: 'test'
+2139-  ...
+2140:# Subtest: failed curator removal skips deletion for that row
+2141:ok 157 - failed curator removal skips deletion for that row
+2142-  ---
+2143-  duration_ms: 0.666303
+2144-  type: 'test'
+2145-  ...
+2146:# Subtest: a failed row does not stop a later row
+2147:ok 158 - a failed row does not stop a later row
+2148-  ---
+2149-  duration_ms: 0.413362
+2150-  type: 'test'
+2151-  ...
+2152-# Subtest: progress reports current operation and completed row counts
+2153-ok 159 - progress reports current operation and completed row counts
+2154-  ---
+2155-  duration_ms: 0.488906
+2156-  type: 'test'
+2157-  ...
+2158-# Subtest: batch user feature refuses duplicate overlays and unavailable operation slots
+2159-ok 160 - batch user feature refuses duplicate overlays and unavailable operation slots
+2160-  ---
+2161-  duration_ms: 0.63761
+2162-  type: 'test'
+2163-  ...
+2164-# Subtest: batch user feature loads the roster once and resolves visible rows on check
+2165-ok 161 - batch user feature loads the roster once and resolves visible rows on check
+2166-  ---
+2167-  duration_ms: 1.030241
+2168-  type: 'test'
+2169-  ...
+2170-# Subtest: batch user feature preserves malformed rows in submitted order
+2171-ok 162 - batch user feature preserves malformed rows in submitted order
+2172-  ---
+2173-  duration_ms: 0.620274
+2174-  type: 'test'
+2175-  ...
+2176-# Subtest: batch user feature updates its cached roster after successful mutations
+2177-ok 163 - batch user feature updates its cached roster after successful mutations
+--
+2262-# Subtest: executePlan batches additions by curator requirement and verifies every row from one refreshed roster
+2263-ok 176 - executePlan batches additions by curator requirement and verifies every row from one refreshed roster
+2264-  ---
+2265-  duration_ms: 4.113463
+2266-  type: 'test'
+2267-  ...
+2268-# Subtest: existing-user assignment uses the complete preserved moderator list
+2269-ok 177 - existing-user assignment uses the complete preserved moderator list
+2270-  ---
+2271-  duration_ms: 1.35472
+2272-  type: 'test'
+2273-  ...
+2274:# Subtest: failed bulk addition blocks only dependent curator assignment
+2275:ok 178 - failed bulk addition blocks only dependent curator assignment
+2276-  ---
+2277-  duration_ms: 1.35514
+2278-  type: 'test'
+2279-  ...
+2280-# Subtest: history keeps independent operation outcomes without transport payloads
+2281-ok 179 - history keeps independent operation outcomes without transport payloads
+2282-  ---
+2283-  duration_ms: 1.00343
+2284-  type: 'test'
+2285-  ...
+2286-# (node:2745) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/runner/work/edvibe-toolbox/edvibe-toolbox/src/components/export-progress-dialog.js is not specified and it doesn't parse as CommonJS.
+2287-# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+2288-# To eliminate this warning, add "type": "module" to /home/runner/work/edvibe-toolbox/edvibe-toolbox/package.json.
+2289-# (Use `node --trace-warnings ...` to show where the warning was created)
+2290-# Subtest: export builds the backup, throttles sections, and compiles the ZIP
+2291-ok 180 - export builds the backup, throttles sections, and compiles the ZIP
+2292-  ---
+2293-  duration_ms: 2.454726
+2294-  type: 'test'
+2295-  ...
+2296-# Subtest: export reports invalid marathon URLs and releases the operation
+2297-ok 181 - export reports invalid marathon URLs and releases the operation
+2298-  ---
+2299-  duration_ms: 0.367463
+2300-  type: 'test'
+2301-  ...
+2302-# Subtest: export reports request failures and releases the operation
+2303-ok 182 - export reports request failures and releases the operation
+2304-  ---
+2305-  duration_ms: 0.594755
+===== TAIL =====
+  duration_ms: 0.308254
+  type: 'test'
+  ...
+# Subtest: command routes provide one authoritative popup-to-MAIN mapping
+ok 259 - command routes provide one authoritative popup-to-MAIN mapping
+  ---
+  duration_ms: 1.12212
+  type: 'test'
+  ...
+# Subtest: MAIN command validation rejects unknown and over-shared boundary data
+ok 260 - MAIN command validation rejects unknown and over-shared boundary data
+  ---
+  duration_ms: 0.688887
+  type: 'test'
+  ...
+# Subtest: export status protocols validate both cross-world and runtime envelopes
+ok 261 - export status protocols validate both cross-world and runtime envelopes
+  ---
+  duration_ms: 0.307483
+  type: 'test'
+  ...
+# Subtest: storage protocol accepts only explicit operations, keys, and correlated envelopes
+ok 262 - storage protocol accepts only explicit operations, keys, and correlated envelopes
+  ---
+  duration_ms: 0.352
+  type: 'test'
+  ...
+# Subtest: operation guard activates one named operation
+ok 263 - operation guard activates one named operation
+  ---
+  duration_ms: 0.861467
+  type: 'test'
+  ...
+# Subtest: operation guard only releases the matching operation
+ok 264 - operation guard only releases the matching operation
+  ---
+  duration_ms: 0.194553
+  type: 'test'
+  ...
+# Subtest: transport intercepts a socket and resolves its correlated response
+ok 265 - transport intercepts a socket and resolves its correlated response
+  ---
+  duration_ms: 2.062255
+  type: 'test'
+  ...
+# Subtest: transport rejects when no intercepted socket is open
+ok 266 - transport rejects when no intercepted socket is open
+  ---
+  duration_ms: 1.374569
+  type: 'test'
+  ...
+# Subtest: transport exposes connection state and typed unavailable errors
+ok 267 - transport exposes connection state and typed unavailable errors
+  ---
+  duration_ms: 0.304298
+  type: 'test'
+  ...
+# Subtest: transport rejects timed out requests with typed request metadata
+ok 268 - transport rejects timed out requests with typed request metadata
+  ---
+  duration_ms: 0.36529
+  type: 'test'
+  ...
+# Subtest: transport rejects server errors with typed request and server metadata
+ok 269 - transport rejects server errors with typed request and server metadata
+  ---
+  duration_ms: 0.425481
+  type: 'test'
+  ...
+# Subtest: transport rejects send failures with typed request metadata and cause
+ok 270 - transport rejects send failures with typed request metadata and cause
+  ---
+  duration_ms: 0.440033
+  type: 'test'
+  ...
+# Subtest: transport sends fire-and-forget packets through the active socket
+ok 271 - transport sends fire-and-forget packets through the active socket
+  ---
+  duration_ms: 0.215294
+  type: 'test'
+  ...
+# Subtest: transport writes messages through its injected log function
+ok 272 - transport writes messages through its injected log function
+  ---
+  duration_ms: 0.290698
+  type: 'test'
+  ...
+# Subtest: transport observes page frames and correlates socket IDs
+ok 273 - transport observes page frames and correlates socket IDs
+  ---
+  duration_ms: 0.729468
+  type: 'test'
+  ...
+# Subtest: transport labels its own request and response frames
+ok 274 - transport labels its own request and response frames
+  ---
+  duration_ms: 0.621866
+  type: 'test'
+  ...
+# Subtest: transport isolates observer failures and supports unsubscribe
+ok 275 - transport isolates observer failures and supports unsubscribe
+  ---
+  duration_ms: 0.384629
+  type: 'test'
+  ...
+# Subtest: transport preserves send results and reports binary metadata only
+ok 276 - transport preserves send results and reports binary metadata only
+  ---
+  duration_ms: 0.249285
+  type: 'test'
+  ...
+1..276
+# tests 276
+# suites 0
+# pass 274
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1486.662733
