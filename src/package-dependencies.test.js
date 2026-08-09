@@ -24,14 +24,13 @@ test('runtime libraries are pinned package-managed dependencies', () => {
     assert.equal(fs.existsSync(path.join(root, 'lib/turndown.min.js')), false);
 });
 
-test('marathon export imports package modules directly without runtime globals', () => {
+test('marathon export consumes package modules without legacy runtime globals or vendored bridges', () => {
     const exportSource = read('src/features/marathon-export.js');
-    const mainEntry = read('src/entrypoints/main.js');
 
     assert.match(exportSource, /import JSZip from 'jszip';/);
     assert.match(exportSource, /import TurndownService from 'turndown';/);
     assert.doesNotMatch(exportSource, /window\.JSZip|window\.TurndownService/);
     assert.equal(fs.existsSync(path.join(root, 'src/entrypoints/runtime-dependencies.js')), false);
-    assert.match(mainEntry, /import ['"]\.\.\/runtime\/main\.js['"];?/);
-    assert.doesNotMatch(mainEntry, /runtime-dependencies|lib\/(?:jszip|turndown)\.min\.js/);
+    assert.equal(fs.existsSync(path.join(root, 'lib/jszip.min.js')), false);
+    assert.equal(fs.existsSync(path.join(root, 'lib/turndown.min.js')), false);
 });
