@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const history = require('./batch-section-creation-history.js');
 const recordApi = require('../shared/execution-history-record.js');
-const { sectionDefinition, lessons, plan, build } = require('./batch-section-creation-history-test-fixtures.js');
+const { sectionDefinition, lessons, build } = require('./batch-section-creation-history-test-fixtures.js');
 
 test('builds a canonical successful record with lesson, section, order, and generated IDs', () => {
     const input = build(history, {

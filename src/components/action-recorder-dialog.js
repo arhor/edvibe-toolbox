@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html } from 'lit';
 import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
 import { actionRecorderDialogStyles } from './action-recorder-dialog.styles.js';
 

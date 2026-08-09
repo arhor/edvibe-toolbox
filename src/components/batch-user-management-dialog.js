@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, html } from 'lit';
 import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
 import { batchUserManagementDialogStyles } from './batch-user-management-dialog.styles.js';
 
@@ -43,9 +43,8 @@ class BatchUserManagementDialog extends LitElement {
         super.disconnectedCallback();
     }
 
-    configure(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
-return this;
+    configure() {
+        return this;
     }
 
     setEmailState(state = {}) {

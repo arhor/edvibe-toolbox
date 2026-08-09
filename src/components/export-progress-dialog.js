@@ -24,31 +24,19 @@ class ExportProgressDialog extends LitElement {
         this.progressState = 'loading';
     }
 
-    update(options = new Map()) {
-        if (options instanceof Map) {
-            super.update(options);
-            return;
-        }
+    setProgress(options = {}) {
+    options = options && typeof options === 'object' ? options : {};
+    const { statusText = '', loadedSections = 0, totalSections = 0, countText, state = 'loading' } = options;
+    this.statusText = String(statusText || '');
+    this.loadedSections = Number(loadedSections) || 0;
+    this.totalSections = Number(totalSections) || 0;
+    this.countText = countText;
+    this.progressState = String(state || 'loading');
+    this.syncHostState();
+    return this;
+}
 
-        options = options && typeof options === 'object' ? options : {};
-        const {
-            statusText = '',
-            loadedSections = 0,
-            totalSections = 0,
-            countText,
-            state = 'loading'
-        } = options;
-
-        this.statusText = String(statusText || '');
-        this.loadedSections = Number(loadedSections) || 0;
-        this.totalSections = Number(totalSections) || 0;
-        this.countText = countText;
-        this.progressState = String(state || 'loading');
-        this.syncHostState();
-        return this;
-    }
-
-    syncHostState() {
+syncHostState() {
         const hasTotal = this.totalSections > 0;
         this.toggleAttribute('indeterminate', !hasTotal && this.progressState === 'loading');
         this.toggleAttribute('complete', this.progressState === 'complete');
@@ -56,7 +44,7 @@ class ExportProgressDialog extends LitElement {
     }
 
     complete(statusText, totalSections) {
-        return this.update({
+        return this.setProgress({
             statusText,
             loadedSections: totalSections,
             totalSections,
@@ -65,7 +53,7 @@ class ExportProgressDialog extends LitElement {
     }
 
     error(statusText) {
-        return this.update({statusText, state: 'error'});
+        return this.setProgress({statusText, state: 'error'});
     }
 
     dismissAfter(ms) {

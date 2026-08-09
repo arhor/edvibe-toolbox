@@ -1,12 +1,8 @@
-import { createLoggerFactory } from '../shared/logger.js';
 import {
     POPUP_COMMANDS,
     isPopupCommandMessage,
     isRuntimeExportStatusMessage
 } from '../shared/message-protocol.js';
-
-const createPopupLog = createLoggerFactory('POPUP');
-const log = createPopupLog();
 
 const TOOL_GROUPS = Object.freeze({ history: 'История', export: 'Экспорт', management: 'Управление', development: 'Разработка' });
 const TOOL_DEFINITIONS = Object.freeze([

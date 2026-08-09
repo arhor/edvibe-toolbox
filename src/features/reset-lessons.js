@@ -264,7 +264,8 @@ async function executeResetWork({
             } catch (error) {
                 throw new Error(
                     `Failed in "${item.lesson.Name}", `
-                    + `exercise ${exercise.id}: ${error.message}`
+                    + `exercise ${exercise.id}: ${error.message}`,
+                    { cause: error }
                 );
             }
 
