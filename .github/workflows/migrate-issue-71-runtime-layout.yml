@@ -31,34 +31,8 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          replacements = {
-              Path('src/runtime/popup.js'): [
-                  ("from './src/shared/logger.js'", "from '../shared/logger.js'"),
-                  ("from './src/shared/message-protocol.js'", "from '../shared/message-protocol.js'")
-              ],
-              Path('src/runtime/isolated.js'): [
-                  ("from './shared/logger.js'", "from '../shared/logger.js'"),
-                  ("from './shared/message-protocol.js'", "from '../shared/message-protocol.js'")
-              ],
-              Path('src/runtime/main.js'): [
-                  ("from './shared/", "from '../shared/"),
-                  ("from './components/", "from '../components/"),
-                  ("from './features/", "from '../features/")
-              ],
-              Path('src/entrypoints/popup.js'): [
-                  ("import '../../popup.js';", "import '../runtime/popup.js';")
-              ],
-              Path('src/entrypoints/isolated.js'): [
-                  ("import '../isolated.js';", "import '../runtime/isolated.js';")
-              ],
-              Path('src/entrypoints/main.js'): [
-                  ("import '../main.js';", "import '../runtime/main.js';")
-              ],
-              Path('popup.html'): [
-                  ('href="popup.css"', 'href="src/runtime/popup.css"')
-              ]
-          }
-          for path, pairs in replacements.items():
+          def update(path_name, pairs):
+              path = Path(path_name)
               text = path.read_text()
               for old, new in pairs:
                   if old not in text:
@@ -66,43 +40,83 @@ jobs:
                   text = text.replace(old, new)
               path.write_text(text)
 
-          test_pairs = [
-              ("'popup.js'", "'src/runtime/popup.js'"),
-              ('"popup.js"', '"src/runtime/popup.js"'),
-              ("'popup.css'", "'src/runtime/popup.css'"),
-              ('"popup.css"', '"src/runtime/popup.css"'),
-              ("'src/isolated.js'", "'src/runtime/isolated.js'"),
-              ('"src/isolated.js"', '"src/runtime/isolated.js"'),
-              ("'src/main.js'", "'src/runtime/main.js'"),
-              ('"src/main.js"', '"src/runtime/main.js"'),
+          update('src/runtime/popup.js', [
+              ("from './src/shared/logger.js'", "from '../shared/logger.js'"),
+              ("from './src/shared/message-protocol.js'", "from '../shared/message-protocol.js'")
+          ])
+          update('src/runtime/isolated.js', [
+              ("from './shared/logger.js'", "from '../shared/logger.js'"),
+              ("from './shared/message-protocol.js'", "from '../shared/message-protocol.js'")
+          ])
+          update('src/runtime/main.js', [
+              ("from './shared/", "from '../shared/"),
+              ("from './components/", "from '../components/"),
+              ("from './features/", "from '../features/")
+          ])
+          update('src/entrypoints/popup.js', [("import '../../popup.js';", "import '../runtime/popup.js';")])
+          update('src/entrypoints/isolated.js', [("import '../isolated.js';", "import '../runtime/isolated.js';")])
+          update('src/entrypoints/main.js', [("import '../main.js';", "import '../runtime/main.js';")])
+          update('popup.html', [('href="popup.css"', 'href="src/runtime/popup.css"')])
+
+          # Only contracts whose referenced runtime files actually moved are rewritten.
+          update('src/build-foundation.test.js', [
               ("'../../popup.js'", "'../runtime/popup.js'"),
-              ('"../../popup.js"', '"../runtime/popup.js"'),
               ("'../isolated.js'", "'../runtime/isolated.js'"),
-              ('"../isolated.js"', '"../runtime/isolated.js"'),
-              ("'../main.js'", "'../runtime/main.js'"),
-              ('"../main.js"', '"../runtime/main.js"'),
-              (r"\.\.\/\.\.\/popup\.js", r"\.\.\/runtime\/popup\.js"),
-              (r"\.\.\/isolated\.js", r"\.\.\/runtime\/isolated\.js"),
-              (r"\.\.\/main\.js", r"\.\.\/runtime\/main\.js"),
-              (r'href="popup\.css"', r'href="src\/runtime\/popup\.css"'),
-              (r"\.\/src\/shared\/", r"\.\.\/shared\/"),
-              (r"\.\/shared\/", r"\.\.\/shared\/"),
-              (r"\.\/components\/", r"\.\.\/components\/"),
-              (r"\.\/features\/", r"\.\.\/features\/"),
+              ("read('popup.js')", "read('src/runtime/popup.js')"),
+              ("read('src/isolated.js')", "read('src/runtime/isolated.js')"),
+              (r"/from '\.\/src\/shared\/logger\.js';/", r"/from '\.\.\/shared\/logger\.js';/"),
+              (r"/from '\.\/shared\/logger\.js';/", r"/from '\.\.\/shared\/logger\.js';/")
+          ])
+
+          update('src/isolated.test.js', [
+              ("require('./isolated.js')", "require('./runtime/isolated.js')")
+          ])
+
+          update('src/module-architecture.test.js', [
+              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
+              ("read('src/main.js')", "read('src/runtime/main.js')"),
+              ("'popup.js'", "'src/runtime/popup.js'"),
+              ("'src/main.js'", "'src/runtime/main.js'"),
+              ("read('src/isolated.js')", "read('src/runtime/isolated.js')"),
+              (r"/from ['\"]\.\/features\/marathon-export\.js['\"]/", r"/from ['\"]\.\.\/features\/marathon-export\.js['\"]/"),
+              (r"/from ['\"]\.\/shared\/websocket-transport\.js['\"]/", r"/from ['\"]\.\.\/shared\/websocket-transport\.js['\"]/"),
+              (r"/from '\.\/shared\/message-protocol\.js';/", r"/from '\.\.\/shared\/message-protocol\.js';/")
+          ])
+
+          update('src/execution-history-wiring.test.js', [
+              ("read('src/main.js')", "read('src/runtime/main.js')"),
+              ("read('popup.js')", "read('src/runtime/popup.js')"),
+              ("read('src/isolated.js')", "read('src/runtime/isolated.js')"),
+              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
               ("'./shared/", "'../shared/"),
-              ('"./shared/', '"../shared/'),
               ("'./components/", "'../components/"),
-              ('"./components/', '"../components/'),
-              ("'./features/", "'../features/"),
-              ('"./features/', '"../features/')
-          ]
-          for path in Path('src').rglob('*.test.js'):
-              text = path.read_text()
-              updated = text
-              for old, new in test_pairs:
-                  updated = updated.replace(old, new)
-              if updated != text:
-                  path.write_text(updated)
+              ("'./features/", "'../features/")
+          ])
+
+          update('src/features/batch-section-creation.integration.test.js', [
+              ("path.join(root, 'popup.js')", "path.join(root, 'src/runtime/popup.js')"),
+              ("path.join(root, 'src/isolated.js')", "path.join(root, 'src/runtime/isolated.js')"),
+              ("path.join(root, 'src/main.js')", "path.join(root, 'src/runtime/main.js')"),
+              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
+              (r"/from ['\"]\.\/components\/batch-section-creation-dialog\.js['\"]/", r"/from ['\"]\.\.\/components\/batch-section-creation-dialog\.js['\"]/"),
+              (r"/from ['\"]\.\/features\/batch-section-creation\.js['\"]/", r"/from ['\"]\.\.\/features\/batch-section-creation\.js['\"]/"),
+          ])
+
+          update('src/features/batch-section-image-upload.integration.test.js', [
+              ("path.join(root, 'src/main.js')", "path.join(root, 'src/runtime/main.js')"),
+              (r"/import ['\"]\.\.\/main\.js['\"];?/", r"/import ['\"]\.\.\/runtime\/main\.js['\"];?/"),
+              (r"/from ['\"]\.\/features\/batch-section-image-upload\.js['\"]/", r"/from ['\"]\.\.\/features\/batch-section-image-upload\.js['\"]/"),
+          ])
+
+          update('src/popup-handlers.test.js', [
+              ("path.join(projectRoot, 'popup.js')", "path.join(projectRoot, 'src/runtime/popup.js')"),
+              ("path.join(projectRoot, 'popup.css')", "path.join(projectRoot, 'src/runtime/popup.css')"),
+              ("path.join(projectRoot, 'src/isolated.js')", "path.join(projectRoot, 'src/runtime/isolated.js')"),
+              (r"/from '\.\/src\/shared\/message-protocol\.js';/", r"/from '\.\.\/shared\/message-protocol\.js';/"),
+              (r"/from '\.\/shared\/message-protocol\.js';/", r"/from '\.\.\/shared\/message-protocol\.js';/"),
+              (r'/<link rel="stylesheet" href="popup\.css">/', r'/<link rel="stylesheet" href="src\/runtime\/popup\.css">/'),
+              (r"/import '\.\.\/\.\.\/popup\.js';/", r"/import '\.\.\/runtime\/popup\.js';/")
+          ])
 
           agents = Path('AGENTS.md')
           text = agents.read_text()
@@ -137,7 +151,7 @@ jobs:
           PY
       - name: Reject stale active runtime paths
         run: |
-          if grep -R -n --exclude-dir=dist --exclude-dir=.git --exclude-dir=docs -E "(['\"]popup\.js['\"]|['\"]popup\.css['\"]|['\"]src/(main|isolated)\.js['\"])" src popup.html manifest.json vite.config.mjs AGENTS.md .agents; then
+          if grep -R -n --exclude-dir=dist --exclude-dir=.git --exclude-dir=docs -E "(['\"]popup\.js['\"]|['\"]popup\.css['\"]|['\"]src/(main|isolated)\.js['\"]|require\(['\"]\./isolated\.js['\"]\))" src popup.html manifest.json vite.config.mjs AGENTS.md .agents; then
             echo 'Found stale active runtime path references'
             exit 1
           fi
@@ -160,6 +174,6 @@ jobs:
           git rm .github/workflows/migrate-issue-71-runtime-layout.yml
           git add -A
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+arhor@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Simplify runtime source layout"
           git push origin HEAD:issue-71-runtime-layout
