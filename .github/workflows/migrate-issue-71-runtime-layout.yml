@@ -63,8 +63,8 @@ jobs:
               ("'../isolated.js'", "'../runtime/isolated.js'"),
               ("read('popup.js')", "read('src/runtime/popup.js')"),
               ("read('src/isolated.js')", "read('src/runtime/isolated.js')"),
-              (r"\.\/src\/shared\/logger\.js", r"\.\.\/shared\/logger\.js"),
-              (r"\.\/shared\/logger\.js", r"\.\.\/shared\/logger\.js")
+              (r"\.\/shared\/logger\.js", r"\.\.\/shared\/logger\.js"),
+              (r"\.\/src\/shared\/logger\.js", r"\.\.\/shared\/logger\.js")
           ])
 
           update('src/isolated.test.js', [
@@ -107,12 +107,16 @@ jobs:
               (r"\.\/features\/batch-section-image-upload\.js", r"\.\.\/features\/batch-section-image-upload\.js")
           ])
 
+          update('src/package-dependencies.test.js', [
+              (r"\.\.\/main\.js", r"\.\.\/runtime\/main\.js")
+          ])
+
           update('src/popup-handlers.test.js', [
               ("path.join(projectRoot, 'popup.js')", "path.join(projectRoot, 'src/runtime/popup.js')"),
               ("path.join(projectRoot, 'popup.css')", "path.join(projectRoot, 'src/runtime/popup.css')"),
               ("path.join(projectRoot, 'src/isolated.js')", "path.join(projectRoot, 'src/runtime/isolated.js')"),
-              (r"\.\/src\/shared\/message-protocol\.js", r"\.\.\/shared\/message-protocol\.js"),
               (r"\.\/shared\/message-protocol\.js", r"\.\.\/shared\/message-protocol\.js"),
+              (r"\.\/src\/shared\/message-protocol\.js", r"\.\.\/shared\/message-protocol\.js"),
               (r'href="popup\.css"', r'href="src\/runtime\/popup\.css"'),
               (r"\.\.\/\.\.\/popup\.js", r"\.\.\/runtime\/popup\.js")
           ])
