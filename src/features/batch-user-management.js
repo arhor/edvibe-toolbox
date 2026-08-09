@@ -540,7 +540,7 @@ function createBatchUserManagementFeature({
         running = false;
     }
 
-    async function open({ stylesheetUrl = '' } = {}) {
+    async function open() {
         if (active || document.getElementById(USER_MANAGEMENT_OVERLAY_ID)) return;
         if (!canStart()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
@@ -562,7 +562,7 @@ function createBatchUserManagementFeature({
             dialog.addEventListener('edvibe-batch-user-management-selection-change', handleSelectionChange);
             dialog.addEventListener('edvibe-batch-user-management-start', handleStart);
             dialog.addEventListener('edvibe-batch-user-management-restart', handleRestart);
-            dialog.configure({ stylesheetUrl });
+            dialog.configure();
             (document.body || document.documentElement).appendChild(dialog);
             dialog.showChecking('Загружаем пользователей…');
 

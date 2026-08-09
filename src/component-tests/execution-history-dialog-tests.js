@@ -75,7 +75,6 @@ export async function runExecutionHistoryDialogTests() {
     let closeCalls = 0;
     const dialog = await fixture('<edvibe-toolbox-execution-history-dialog></edvibe-toolbox-execution-history-dialog>');
     dialog.configure({
-        stylesheetUrl: '/src/components/execution-history-dialog.css',
         service,
         onClose: () => { closeCalls += 1; }
     });

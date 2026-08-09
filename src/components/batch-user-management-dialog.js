@@ -1,11 +1,14 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { batchUserManagementDialogStyles } from './batch-user-management-dialog.styles.js';
 
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
 const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
 
 class BatchUserManagementDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, batchUserManagementDialogStyles];
+
     static properties = {
-        stylesheetUrl: {state: true},
         rows: {state: true},
         emailState: {state: true},
         emailInput: {state: true},
@@ -18,7 +21,6 @@ class BatchUserManagementDialog extends LitElement {
 
     constructor() {
         super();
-        this.stylesheetUrl = '';
         this.rows = [];
         this.emailState = {validCount: 0, malformedCount: 0};
         this.emailInput = '';
@@ -43,10 +45,7 @@ class BatchUserManagementDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-        if (options.stylesheetUrl !== undefined) {
-            this.stylesheetUrl = String(options.stylesheetUrl || '');
-        }
-        return this;
+return this;
     }
 
     setEmailState(state = {}) {
@@ -260,8 +259,7 @@ class BatchUserManagementDialog extends LitElement {
         const locked = this.isLocked();
         const statusClass = `edvibe-batch-user-management-status${this.statusError ? ' is-error' : ''}`;
         return html`
-            <link class="edvibe-batch-user-management-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || nothing}>
-            <div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>
+<div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>
                 <section class="edvibe-batch-user-management-card" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-user-management-title">
                     <header class="edvibe-batch-user-management-header">

@@ -15,7 +15,6 @@ export async function runResetLessonsDialogTests() {
     ];
     const dialog = await fixture('<edvibe-toolbox-reset-dialog></edvibe-toolbox-reset-dialog>');
     dialog.configure({
-        stylesheetUrl: '/src/components/reset-lessons-dialog.css',
         searchDelay: 0,
         loadLessons: async () => lessons
     });

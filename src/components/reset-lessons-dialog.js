@@ -1,11 +1,14 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { resetLessonsDialogStyles } from './reset-lessons-dialog.styles.js';
 
 const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
 
 class ResetLessonsDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, resetLessonsDialogStyles];
+
     static properties = {
-        stylesheetUrl: {state: true},
         currentStep: {state: true},
         allPupils: {state: true},
         pupilTotal: {state: true},
@@ -29,7 +32,6 @@ class ResetLessonsDialog extends LitElement {
 
     constructor() {
         super();
-        this.stylesheetUrl = '';
         this.searchDelay = 1000;
         this.log = () => {};
         this.loadLessons = null;
@@ -76,8 +78,7 @@ class ResetLessonsDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-        const { stylesheetUrl = '', searchDelay = 1000, loadLessons, loadNextPupils, log = () => {} } = options;
-        this.stylesheetUrl = String(stylesheetUrl || '');
+        const { searchDelay = 1000, loadLessons, loadNextPupils, log = () => {} } = options;
         this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1000;
         this.loadLessons = typeof loadLessons === 'function' ? loadLessons : null;
         this.loadNextPupils = typeof loadNextPupils === 'function' ? loadNextPupils : null;
@@ -91,7 +92,7 @@ class ResetLessonsDialog extends LitElement {
         if (!this.shadowRoot) { this.elements = null; return; }
         const find = (selector) => this.shadowRoot.querySelector(selector);
         this.elements = {
-            stylesheet: find('.edvibe-reset-stylesheet'), backdrop: find('.edvibe-reset-overlay'), search: find('.edvibe-reset-search'),
+backdrop: find('.edvibe-reset-overlay'), search: find('.edvibe-reset-search'),
             userStep: find('.edvibe-reset-user-step'), lessonStep: find('.edvibe-reset-lesson-step'), pupilsShell: find('.edvibe-reset-pupils-shell'),
             pupilsList: find('.edvibe-reset-pupils'), pupilsLoading: find('.edvibe-reset-pupils-loading'), lessonsList: find('.edvibe-reset-lessons'),
             selectAll: find('.edvibe-reset-select-all-input'), status: find('.edvibe-reset-status'), progress: find('.edvibe-reset-progress'),
@@ -296,8 +297,7 @@ class ResetLessonsDialog extends LitElement {
         const progressValue = this.progressIndeterminate ? nothing : this.progressValue;
         const selectedPupilLabel = this.selectedPupil ? `${this.selectedPupil.Name || 'Без имени'} — ${this.selectedPupil.Email || ''}` : '';
         return html`
-            <link class="edvibe-reset-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || nothing}>
-            <div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
+<div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
                 <div class="edvibe-reset-card" role="dialog" aria-modal="true" aria-labelledby="edvibe-reset-title">
                     <div class="edvibe-reset-header"><div><h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2><p class="edvibe-reset-subtitle"><span class="edvibe-reset-step-indicator">${view.showingUsers ? 'Шаг 1 из 2' : 'Шаг 2 из 2'}</span><span class="edvibe-reset-step-description">${view.showingUsers ? 'Выберите пользователя.' : 'Выберите уроки для сброса прогресса.'}</span></p></div><button class="edvibe-reset-close" type="button" aria-label="Закрыть" ?disabled=${view.closeDisabled} @click=${() => this.close()}>&times;</button></div>
                     <div class="edvibe-reset-body">

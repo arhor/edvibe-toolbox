@@ -10,6 +10,7 @@ test('MAIN coordinator composes the image picker and upload adapter through ESM'
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
     const mainEntrypoint = fs.readFileSync(path.join(root, 'src/entrypoints/main.js'), 'utf8');
     const main = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
+    const dialog = fs.readFileSync(path.join(root, 'src/components/batch-section-creation-dialog.js'), 'utf8');
     const upload = fs.readFileSync(path.join(root, 'src/features/batch-section-image-upload.js'), 'utf8');
 
     assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
@@ -21,7 +22,8 @@ test('MAIN coordinator composes the image picker and upload adapter through ESM'
     assert.match(upload, /from ['"]\.\.\/components\/batch-section-image-upload\.js['"]/);
     assert.match(upload, /from ['"]\.\/batch-section-creation\.js['"]/);
     assert.doesNotMatch(upload, /globalThis\.EdVibeBatchSectionCreation\s*=/);
+    assert.match(dialog, /from '\.\/batch-section-image-upload\.styles\.js';/);
 
-    const resources = manifest.web_accessible_resources.flatMap((entry) => entry.resources || []);
-    assert.ok(resources.includes('src/components/batch-section-image-upload.css'));
+    const resources = (manifest.web_accessible_resources ?? []).flatMap((entry) => entry.resources || []);
+    assert.equal(resources.includes('src/components/batch-section-image-upload.css'), false);
 });

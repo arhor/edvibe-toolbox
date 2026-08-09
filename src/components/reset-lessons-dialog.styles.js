@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const resetLessonsDialogStyles = css`
 :host {
     position: fixed;
     inset: 0;
@@ -337,3 +340,5 @@ input:disabled {
         animation: none;
     }
 }
+
+`;

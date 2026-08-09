@@ -1,8 +1,12 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { batchUserOnboardingDialogStyles } from './batch-user-onboarding-dialog.styles.js';
 
 const BATCH_USER_ONBOARDING_DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 
 class BatchUserOnboardingDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, batchUserOnboardingDialogStyles];
+
     static properties = {
         options: {state: true},
         rows: {state: true},
@@ -273,8 +277,7 @@ class BatchUserOnboardingDialog extends LitElement {
         const reviewVisible = ['review', 'preflight', 'executing', 'complete', 'partial-complete'].includes(this.mode) && this.rows.length > 0;
         const completed = ['complete', 'partial-complete'].includes(this.mode);
         return html`
-            <link class="stylesheet" rel="stylesheet" href=${String(this.options?.stylesheetUrl || '')}>
-            <div class="overlay" @click=${(event) => { if (event.target === event.currentTarget) this.close(); }}>
+<div class="overlay" @click=${(event) => { if (event.target === event.currentTarget) this.close(); }}>
                 <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="batch-user-onboarding-title">
                     <header class="header"><div><p class="eyebrow">Edvibe Toolbox</p><h2 id="batch-user-onboarding-title">Добавить пользователей и назначить куратора</h2><p class="description">Проверьте весь список, подготовьте неизменяемый план и только потом подтвердите запись.</p></div>
                         <button class="icon close" type="button" aria-label="Закрыть" ?disabled=${['loading', 'executing'].includes(this.mode)} @click=${() => this.close()}>×</button></header>

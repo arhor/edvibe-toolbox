@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const executionHistoryDialogStyles = css`
 :host {
     all: initial;
     --history-accent: #5267e8;
@@ -129,3 +132,5 @@ time { margin-top: 2px; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+
+`;

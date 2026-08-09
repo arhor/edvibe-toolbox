@@ -1,4 +1,6 @@
 import { LitElement, html } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { executionHistoryDialogStyles } from './execution-history-dialog.styles.js';
 
 const EXECUTION_HISTORY_DIALOG_TAG = 'edvibe-toolbox-execution-history-dialog';
 const STATUS_LABELS = Object.freeze({
@@ -32,6 +34,8 @@ function createSummary(record) {
 }
 
 class ExecutionHistoryDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, executionHistoryDialogStyles];
+
     static properties = {
         options: {state: true},
         records: {state: true},
@@ -356,8 +360,7 @@ class ExecutionHistoryDialog extends LitElement {
         const toastClass = `toast${this.toastError ? ' is-error' : ''}`;
 
         return html`
-            <link rel="stylesheet" href=${String(this.options?.stylesheetUrl || '')}>
-            <div class="overlay">
+<div class="overlay">
                 <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
                     <header class="dialog-header">
                         <div><p class="eyebrow">Edvibe Toolbox</p><h2 id="history-title">Execution history</h2><p class="header-copy">Browse terminal operation reports stored in this browser.</p></div>

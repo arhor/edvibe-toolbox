@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const batchSectionCreationDialogStyles = css`
 :host {
     all: initial;
 }
@@ -555,3 +558,5 @@
         grid-template-columns: 1fr;
     }
 }
+
+`;

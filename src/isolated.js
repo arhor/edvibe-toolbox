@@ -19,23 +19,23 @@ window.addEventListener('message', (event) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     log('Incoming message received:', message);
     const commands = {
-        OPEN_LESSON_RESET: ['EDVIBE_TOOLBOX_OPEN_RESET', 'src/components/reset-lessons-dialog.css', 'Lesson reset workflow opened.'],
-        OPEN_ACTION_RECORDER: ['EDVIBE_TOOLBOX_OPEN_RECORDER', 'src/components/action-recorder-dialog.css', 'Action recorder opened.'],
-        OPEN_BATCH_LESSON_ACCESS: ['EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS', 'src/components/batch-lesson-access-dialog.css', 'Batch lesson access opened.'],
-        OPEN_BATCH_USER_ONBOARDING: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING', 'src/components/batch-user-onboarding-dialog.css', 'Batch user onboarding opened.'],
-        OPEN_BATCH_USER_MANAGEMENT: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT', 'src/components/batch-user-management-dialog.css', 'Batch user management opened.'],
-        OPEN_BATCH_SECTION_CREATION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION', 'src/components/batch-section-creation-dialog.css', 'Batch section creation opened.'],
-        OPEN_BATCH_SECTION_DELETION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'src/components/batch-section-deletion-dialog.css', 'Batch section deletion opened.'],
-        OPEN_EXECUTION_HISTORY: ['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY', 'src/components/execution-history-dialog.css', 'Execution history opened.']
+        OPEN_LESSON_RESET: ['EDVIBE_TOOLBOX_OPEN_RESET', 'Lesson reset workflow opened.'],
+        OPEN_ACTION_RECORDER: ['EDVIBE_TOOLBOX_OPEN_RECORDER', 'Action recorder opened.'],
+        OPEN_BATCH_LESSON_ACCESS: ['EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS', 'Batch lesson access opened.'],
+        OPEN_BATCH_USER_ONBOARDING: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING', 'Batch user onboarding opened.'],
+        OPEN_BATCH_USER_MANAGEMENT: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT', 'Batch user management opened.'],
+        OPEN_BATCH_SECTION_CREATION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION', 'Batch section creation opened.'],
+        OPEN_BATCH_SECTION_DELETION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'Batch section deletion opened.'],
+        OPEN_EXECUTION_HISTORY: ['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY', 'Execution history opened.']
     };
 
     if (message.action === 'START_FULL_AUTOMATION') {
         relayExportStatus({ state: 'started' });
-        window.postMessage({ type: 'EDVIBE_TOOLBOX_START_ALL', stylesheetUrl: chrome.runtime.getURL('src/components/export-progress-dialog.css') }, '*');
+        window.postMessage({ type: 'EDVIBE_TOOLBOX_START_ALL' }, '*');
         sendResponse({ status: 'success', info: 'Automation sequence channeled to page engine.' });
     } else if (commands[message.action]) {
-        const [type, stylesheet, info] = commands[message.action];
-        window.postMessage({ type, stylesheetUrl: chrome.runtime.getURL(stylesheet) }, '*');
+        const [type, info] = commands[message.action];
+        window.postMessage({ type }, '*');
         sendResponse({ status: 'success', info });
     } else {
         sendResponse({ status: 'ignored' });

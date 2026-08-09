@@ -81,7 +81,6 @@ function createCapture() {
         lessonsByPupilId: new Map(),
         lessonCatalogue: [],
         writeAttempts: new Map(),
-        stylesheetUrl: '',
         attempt: null,
         sequence: 0
     };

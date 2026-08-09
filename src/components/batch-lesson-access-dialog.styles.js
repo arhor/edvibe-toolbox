@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const batchLessonAccessDialogStyles = css`
 :host {
     all: initial;
 }
@@ -364,3 +367,5 @@
         flex: 1 1 180px;
     }
 }
+
+`;

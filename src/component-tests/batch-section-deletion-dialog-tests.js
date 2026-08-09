@@ -17,7 +17,6 @@ export async function runBatchSectionDeletionDialogTests() {
     };
     const dialog = await fixture('<edvibe-toolbox-batch-section-deletion-dialog></edvibe-toolbox-batch-section-deletion-dialog>');
     dialog.configure({
-        stylesheetUrl: '/src/components/batch-section-deletion-dialog.css',
         lessons: [
             {lessonId: 10, number: 1, name: 'Welcome'},
             {lessonId: 11, number: 2, name: 'Practice <safe>'}

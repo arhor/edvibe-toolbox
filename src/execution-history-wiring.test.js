@@ -55,7 +55,8 @@ test('popup, isolated bridge, main coordinator, and representative batch results
     assert.match(main, /batchSectionCreationHistoryApi\.createHistoryAwareDialog/);
     assert.match(main, /batchSectionDeletionApi\.createBatchSectionDeletionFeature/);
     assert.match(main, /persistExecution: historyService\.persistTerminal/);
-    assert.match(main, /openHistory: \(executionId, sourceStylesheetUrl\)/);
+    assert.match(main, /openHistory: \(executionId\) => executionHistoryFeature\.open\(\{ executionId \}\)/);
+    assert.doesNotMatch(main, /sourceStylesheetUrl|stylesheetUrl/);
     assert.match(onboardingFeature, /operationType: OPERATION_TYPE/);
     assert.match(onboardingFeature, /buildExecutionHistoryInput/);
     assert.match(onboardingFeature, /history = await persistExecution/);

@@ -8,14 +8,16 @@ const source = fs.readFileSync(componentPath, 'utf8');
 
 test('export progress dialog is a Lit component with an ESM integration contract', () => {
     assert.match(source, /import \{ LitElement, html, nothing \} from 'lit';/);
+    assert.match(source, /from '\.\/styles\/foundations\.js';/);
+    assert.match(source, /from '\.\/export-progress-dialog\.styles\.js';/);
     assert.match(source, /class ExportProgressDialog extends LitElement/);
-    assert.match(source, /configure\(options = \{\}\)/);
+    assert.match(source, /static styles = \[componentFoundationStyles, dialogFoundationStyles, exportProgressDialogStyles\]/);
     assert.match(source, /update\(options = new Map\(\)\)/);
     assert.match(source, /complete\(statusText, totalSections\)/);
     assert.match(source, /error\(statusText\)/);
     assert.match(source, /dismissAfter\(ms\)/);
     assert.match(source, /export \{ EXPORT_PROGRESS_TAG, ExportProgressDialog \};/);
-    assert.doesNotMatch(source, /globalThis\.EdVibe/);
+    assert.doesNotMatch(source, /globalThis\.EdVibe|stylesheetUrl/);
 });
 
 test('export progress dialog uses declarative Lit markup without legacy template cloning', () => {

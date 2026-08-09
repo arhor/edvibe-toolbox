@@ -278,7 +278,7 @@ test('history-aware feature persists terminal output without replacing the visib
             })()
         });
         const dialog = feature.createDialog();
-        dialog.configure({ stylesheetUrl: 'chrome-extension://id/batch.css' });
+        dialog.configure();
         await feature.sendRequest('', 'GetMarathonPupils', '', { Skip: 0 });
         await feature.sendRequest('', 'GetMarathonLessonsForPupilPagination', '', { PupilId: 1, Page: { Skip: 0 } });
         dialog.showConfigure({ lessons: [{ MarathonLessonId: 10, Number: 0, Name: 'Intro', IsOpen: false }] });

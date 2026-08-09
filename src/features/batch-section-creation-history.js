@@ -9,7 +9,7 @@ function appendStatus(dialog, message, isError = false) {
     );
 }
 
-function addHistoryButton(dialog, executionId, stylesheetUrl, openHistory) {
+function addHistoryButton(dialog, executionId, openHistory) {
     dialog.shadowRoot?.querySelector?.('.edvibe-batch-section-history')?.remove?.();
     const documentApi = dialog.ownerDocument || globalThis.document;
     const button = documentApi?.createElement?.('button');
@@ -19,7 +19,7 @@ function addHistoryButton(dialog, executionId, stylesheetUrl, openHistory) {
     button.textContent = 'Открыть в истории';
     button.addEventListener('click', () => {
         dialog.close?.();
-        openHistory(executionId, stylesheetUrl);
+        openHistory(executionId);
     });
     const footer = dialog.elements?.footer
         || dialog.shadowRoot?.querySelector?.('.edvibe-batch-section-footer');
@@ -44,10 +44,8 @@ function createHistoryAwareDialog({
         let latestResult = null;
         let startedAt = null;
         let terminal = false;
-        let stylesheetUrl = '';
         let sequence = 0;
 
-        const originalConfigure = dialog.configure.bind(dialog);
         const originalShowConfigure = dialog.showConfigure.bind(dialog);
         const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
         const originalShowExecution = dialog.showExecution.bind(dialog);
@@ -96,7 +94,7 @@ function createHistoryAwareDialog({
                     if (history?.stored) {
                         appendStatus(dialog, 'Результат сохранён в истории.');
                         if (history.record?.id) {
-                            addHistoryButton(dialog, history.record.id, stylesheetUrl, openHistory);
+                            addHistoryButton(dialog, history.record.id, openHistory);
                         }
                     } else {
                         appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
@@ -111,11 +109,6 @@ function createHistoryAwareDialog({
                     log('Batch section creation history persistence failed:', error);
                 });
         }
-
-        dialog.configure = (options = {}) => {
-            stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || '');
-            return originalConfigure(options);
-        };
         dialog.showConfigure = (...args) => {
             resetAttempt();
             return originalShowConfigure(...args);

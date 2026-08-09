@@ -282,10 +282,9 @@ function parseMarathonId(url) {
     return match ? Number(match[1]) : null;
 }
 
-function createExportProgressOverlay({ stylesheetUrl = '' } = {}) {
+function createExportProgressOverlay() {
     document.querySelector(EXPORT_PROGRESS_TAG)?.remove();
     const dialog = document.createElement(EXPORT_PROGRESS_TAG);
-    dialog.configure({ stylesheetUrl });
     (document.body || document.documentElement).appendChild(dialog);
     return dialog;
 }
@@ -302,7 +301,7 @@ function createMarathonExportFeature({
     now = () => new Date().toISOString(),
     log = () => {}
 }) {
-    async function start({ stylesheetUrl = '' } = {}) {
+    async function start() {
         if (!canStart()) {
             const message = 'Cannot start export while another operation is active.';
             log(message);
@@ -314,7 +313,7 @@ function createMarathonExportFeature({
         try {
             notifyStatus('started');
             log('Starting marathon export...');
-            progressOverlay = createProgressOverlay({ stylesheetUrl });
+            progressOverlay = createProgressOverlay();
             progressOverlay.update({ statusText: 'Finding marathon lessons...', loadedSections: 0, totalSections: 0 });
             const marathonId = parseMarathonId(getCurrentUrl());
             if (!marathonId) {

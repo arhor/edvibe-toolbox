@@ -741,7 +741,7 @@ function createBatchLessonAccessFeature({
         running = false;
     }
 
-    async function open({ stylesheetUrl = '' } = {}) {
+    async function open() {
         if (
             active
             || document.getElementById(BATCH_ACCESS_OVERLAY_ID)
@@ -777,7 +777,7 @@ function createBatchLessonAccessFeature({
             dialog.addEventListener('edvibe-batch-access-copy-report', handleCopyReport);
             dialog.addEventListener('edvibe-batch-access-restart', handleRestart);
 
-            dialog.configure({ stylesheetUrl });
+            dialog.configure();
             (document.body || document.documentElement).appendChild(dialog);
             dialog.showLoading();
 

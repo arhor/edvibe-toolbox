@@ -18,7 +18,7 @@ Keep these runtime worlds separate and preserve `document_start` behavior for ti
 - `manifest.json`: source Manifest V3 configuration consumed by CRXJS.
 - `popup.html`: source popup document. Its module entry point is `src/entrypoints/popup.js`.
 - `src/entrypoints/`: explicit Vite/CRXJS runtime entry points and package-runtime bridges.
-- `src/components/`: Lit custom elements and their dedicated stylesheets.
+- `src/components/`: Lit custom elements, component-specific Lit style modules, and reusable style foundations.
 - `src/features/`: feature workflows that coordinate transport, data, components, and persistence.
 - `src/shared/`: shared infrastructure such as logging, WebSocket transport, IndexedDB, operation guards, and execution history.
 - `src/component-tests/`: real-browser component tests and their browser harness.
@@ -67,7 +67,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 - Use Lit as the standard implementation for Web Components. Prefer `LitElement`, reactive properties/state, declarative `html` templates, and Lit lifecycle/update APIs over manual DOM construction and synchronization.
 - Preserve existing custom-element public contracts when migrating or refactoring: tag names, methods, properties, events, and integration callbacks should remain stable unless the task explicitly changes them.
 - Choose Shadow DOM or light DOM according to the existing component styling/integration contract. Do not switch encapsulation casually during unrelated work.
-- Keep component presentation in dedicated `.css` files. Do not embed large style strings or imperatively assign presentation styles from JavaScript.
+- Keep in-page Lit component presentation in Lit `css` template modules composed through `static styles`. Put reusable design tokens and visual foundations under `src/components/styles/`, keep component-specific rules beside their component, and leave popup page CSS global unless a separate migration intentionally changes its light-DOM styling model.
 - Keep feature/network/persistence logic outside UI components where an existing service or feature boundary already owns it. Components should primarily own presentation and interaction state.
 - Use clear console log prefixes consistent with the existing `[Edvibe Toolbox][Area]` style.
 - Avoid broad permissions in `manifest.json`; add only the minimum Chrome permissions needed for a feature.

@@ -314,7 +314,7 @@ function createResetLessonsFeature({
         onActiveChange(false);
     }
 
-    async function open({ stylesheetUrl = '' } = {}) {
+    async function open() {
         if (document.getElementById(RESET_OVERLAY_ID)) {
             return;
         }
@@ -393,7 +393,6 @@ function createResetLessonsFeature({
         try {
             const pupilPager = createPupilPager(sendRequest, marathonId);
             dialog.configure({
-                stylesheetUrl,
                 loadNextPupils: () => pupilPager.loadNext(),
                 loadLessons: async (pupil) => {
                     log(`Loading lessons for PupilId ${pupil.PupilId}.`);

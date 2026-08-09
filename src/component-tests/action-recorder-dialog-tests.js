@@ -12,7 +12,6 @@ export async function runActionRecorderDialogTests() {
     const calls = {start: 0, stop: 0, clear: 0, export: 0, copyRecipe: 0, close: 0, requests: []};
     const dialog = await fixture('<edvibe-toolbox-action-recorder></edvibe-toolbox-action-recorder>');
     dialog.configure({
-        stylesheetUrl: '/src/components/action-recorder-dialog.css',
         onStart: () => { calls.start += 1; },
         onStop: () => { calls.stop += 1; },
         onClear: () => { calls.clear += 1; },

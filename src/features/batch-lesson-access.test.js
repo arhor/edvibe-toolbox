@@ -869,7 +869,7 @@ test('batch feature initializes from the marathon URL, complete roster, and firs
             log: () => {}
         });
 
-        await feature.open({ stylesheetUrl: 'chrome-extension://id/batch.css' });
+        await feature.open();
 
         assert.equal(createCount, 1);
         assert.deepEqual(activeChanges, [true]);
@@ -882,9 +882,7 @@ test('batch feature initializes from the marathon URL, complete roster, and firs
         );
         assert.equal(requests[0].value.MarathonId, 18508);
         assert.equal(requests[2].value.PupilId, roster[0].PupilId);
-        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, [{
-            stylesheetUrl: 'chrome-extension://id/batch.css'
-        }]);
+        assert.deepEqual(findDialogCalls(dialog, 'configure')[0].args, []);
         assert.deepEqual(findDialogCalls(dialog, 'showConfigure')[0].args, [{
             lessons: catalogue
         }]);

@@ -1,8 +1,12 @@
 import { LitElement, html, nothing } from 'lit';
+import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { batchSectionDeletionDialogStyles } from './batch-section-deletion-dialog.styles.js';
 
 const BATCH_SECTION_DELETION_DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
 
 class BatchSectionDeletionDialog extends LitElement {
+    static styles = [componentFoundationStyles, dialogFoundationStyles, batchSectionDeletionDialogStyles];
+
     static properties = {
         options: {state: true},
         sectionName: {state: true},
@@ -164,8 +168,7 @@ class BatchSectionDeletionDialog extends LitElement {
         const lessons = this.options?.lessons || [];
         const canExecute = Boolean(this.plan?.eligible?.length) && !this.resultVisible;
         return html`
-            <link rel="stylesheet" href=${String(this.options?.stylesheetUrl || '')}>
-            <div class="overlay">
+<div class="overlay">
                 <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="title">
                     <header>
                         <div><h2 id="title">Delete section from lessons</h2><p>Every lesson is inspected before any deletion.</p></div>

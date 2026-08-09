@@ -1,3 +1,6 @@
+import { css } from 'lit';
+
+export const exportProgressDialogStyles = css`
 :host {
     position: fixed;
     inset: 0;
@@ -72,3 +75,5 @@ h2 { margin: 0 0 8px; color: #111827; font-size: 20px; line-height: 1.3; }
 }
 :host([complete]) .close,
 :host([error]) .close { display: block; }
+
+`;

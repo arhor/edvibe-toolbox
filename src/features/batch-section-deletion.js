@@ -232,7 +232,7 @@ function createBatchSectionDeletionFeature({
     log = () => {}
 }) {
     let active = false;
-    async function open({ stylesheetUrl } = {}) {
+    async function open() {
         if (active || !canStart()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
@@ -253,7 +253,6 @@ function createBatchSectionDeletionFeature({
         try {
             const lessons = await loadLessonCatalogue({ sendRequest, marathonId });
             dialog.configure({
-                stylesheetUrl,
                 marathonId,
                 lessons,
                 async onInspect(input) {
@@ -284,7 +283,7 @@ function createBatchSectionDeletionFeature({
                     dialog.remove();
                     active = false;
                     onActiveChange(false);
-                    openHistory(executionId, stylesheetUrl);
+                    openHistory(executionId);
                 },
                 onClose() {
                     dialog.remove();
