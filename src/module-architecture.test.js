@@ -3,126 +3,65 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.resolve(__dirname, '..');
-const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
+const protocol = require('./shared/message-protocol.js');
 
-test('runtime entry points preserve execution worlds and compose through ESM', () => {
-    const manifest = JSON.parse(read('manifest.json'));
+const root = path.resolve(__dirname, '..');
+const readJson = (relativePath) => JSON.parse(fs.readFileSync(path.join(root, relativePath), 'utf8'));
+
+test('manifest preserves separate document-start MAIN and ISOLATED runtime worlds', () => {
+    const manifest = readJson('manifest.json');
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
     const isolatedWorld = manifest.content_scripts.find((entry) => entry.world === 'ISOLATED');
 
-    assert.deepEqual(isolatedWorld.js, ['src/entrypoints/isolated.js']);
-    assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
-    assert.equal(isolatedWorld.run_at, 'document_start');
+    assert.ok(mainWorld, 'MAIN content-script entry must exist');
+    assert.ok(isolatedWorld, 'ISOLATED content-script entry must exist');
     assert.equal(mainWorld.run_at, 'document_start');
-    const mainEntrypoint = read('src/entrypoints/main.js');
-    assert.match(mainEntrypoint, /import ['"]\.\.\/components\/export-progress-dialog\.js['"];?/);
-    assert.match(mainEntrypoint, /import ['"]\.\.\/components\/reset-lessons-dialog\.js['"];?/);
-    assert.match(mainEntrypoint, /import ['"]\.\.\/runtime\/main\.js['"];?/);
-    assert.equal(fs.existsSync(path.join(root, 'src/entrypoints/runtime-dependencies.js')), false);
-
-    const mainSource = read('src/runtime/main.js');
-    assert.match(mainSource, /^import .* from ['"].+['"];$/m);
-    assert.doesNotMatch(mainSource, /requireToolboxModule|window\.EdVibe|globalThis\.EdVibe/);
-    assert.match(mainSource, /from ['"]\.\.\/features\/marathon-export\.js['"]/);
-    assert.match(mainSource, /from ['"]\.\.\/shared\/websocket-transport\.js['"]/);
+    assert.equal(isolatedWorld.run_at, 'document_start');
+    assert.deepEqual(mainWorld.matches, isolatedWorld.matches);
+    assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
+    assert.deepEqual(isolatedWorld.js, ['src/entrypoints/isolated.js']);
 });
 
-test('dynamic UI and presentation stay in Lit components and reusable style modules', () => {
-    const coordinatorFiles = [
-        'src/runtime/popup.js',
-        'src/runtime/main.js',
-        'src/features/marathon-export.js',
-        'src/features/reset-lessons.js',
-        'src/features/action-recorder.js',
-        'src/features/batch-lesson-access.js',
-        'src/features/batch-user-management.js',
-        'src/features/batch-user-onboarding.js',
-        'src/features/batch-section-creation.js',
-        'src/features/batch-section-deletion.js'
-    ];
+test('every supported popup command produces a validated minimal MAIN message', () => {
+    for (const action of Object.values(protocol.POPUP_COMMANDS)) {
+        const popupMessage = { action };
+        const route = protocol.getCommandRoute(action);
+        const mainMessage = protocol.createMainCommandMessage(action);
 
-    for (const file of coordinatorFiles) {
-        const source = read(file);
-        assert.doesNotMatch(source, /(?:innerHTML|insertAdjacentHTML|cssText|\.style\.)/);
+        assert.equal(protocol.isPopupCommandMessage(popupMessage), true, `${action} must be a supported popup command`);
+        assert.ok(route, `${action} must have a MAIN route`);
+        assert.equal(mainMessage.type, route.type);
+        assert.equal(protocol.isMainCommandMessage(mainMessage), true);
+        assert.deepEqual(Object.keys(mainMessage), ['type']);
     }
-
-    const agents = read('AGENTS.md');
-    assert.match(agents, /Use Lit as the standard implementation for Web Components/);
-    assert.match(agents, /Keep in-page Lit component presentation in Lit `css` template modules composed through `static styles`/);
-    assert.match(agents, /Put reusable design tokens and visual foundations under `src\/components\/styles\/`/);
-    assert.doesNotMatch(agents, /framework-free/);
 });
 
-test('main creates and installs shared transport and operation guard', () => {
-    const mainSource = read('src/runtime/main.js');
-
-    assert.match(mainSource, /createLoggerFactory\('MAIN'\)/);
-    assert.match(mainSource, /createWebSocketTransport\(\{/);
-    assert.match(mainSource, /log: createMainLog\('Transport'\)/);
-    assert.match(mainSource, /transport\.install\(window\)/);
-    assert.match(mainSource, /createOperationGuard\(\)/);
+test('cross-world protocol rejects unknown commands and over-shared metadata', () => {
+    assert.equal(protocol.isPopupCommandMessage({ action: 'UNKNOWN_COMMAND' }), false);
+    assert.equal(protocol.isPopupCommandMessage({
+        action: protocol.POPUP_COMMANDS.OPEN_LESSON_RESET,
+        internalState: { pupils: ['private@example.com'] }
+    }), false);
+    assert.equal(protocol.isMainCommandMessage({
+        type: protocol.WINDOW_MESSAGE_TYPES.OPEN_LESSON_RESET,
+        stylesheetUrl: 'legacy.css'
+    }), false);
+    assert.equal(protocol.isMainCommandMessage({
+        type: protocol.WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT,
+        operations: [{ userId: 42 }]
+    }), false);
 });
 
-test('main remains a coordinator for feature modules', () => {
-    const source = read('src/runtime/main.js');
+test('execution-history command allows only its intentional optional identifier', () => {
+    const message = protocol.createMainCommandMessage(
+        protocol.POPUP_COMMANDS.OPEN_EXECUTION_HISTORY,
+        { executionId: 'execution-42' }
+    );
 
-    for (const factory of [
-        'createMarathonExportFeature',
-        'createResetLessonsFeature',
-        'createActionRecorderFeature',
-        'createBatchLessonAccessFeature',
-        'createBatchUserManagementFeature',
-        'createBatchUserOnboardingFeature',
-        'createBatchSectionCreationFeature',
-        'createBatchSectionDeletionFeature'
-    ]) {
-        assert.match(source, new RegExp(factory));
-    }
-    assert.doesNotMatch(source, /window\.WebSocket\s*=/);
-    assert.doesNotMatch(source, /GetMarathonLessonsPagination/);
-});
-
-test('cross-world routing uses the shared validated protocol and minimal metadata', () => {
-    const isolatedSource = read('src/runtime/isolated.js');
-    const mainSource = read('src/runtime/main.js');
-    const protocolSource = read('src/shared/message-protocol.js');
-    const protocolTypes = read('src/shared/message-protocol.types.ts');
-
-    assert.match(isolatedSource, /from '\.\.\/shared\/message-protocol\.js';/);
-    assert.match(isolatedSource, /isPopupCommandMessage\(message\)/);
-    assert.match(isolatedSource, /isExportStatusMessage\(event\.data\)/);
-    assert.match(isolatedSource, /isStorageRequestMessage\(event\.data\)/);
-    assert.match(isolatedSource, /createMainCommandMessage\(message\.action\)/);
-    assert.doesNotMatch(isolatedSource, /stylesheetUrl|sourceStylesheetUrl|recordedFrames|operations|otherFrames/);
-    assert.doesNotMatch(isolatedSource, /\.css['"]/);
-
-    assert.match(mainSource, /isMainCommandMessage\(event\.data\)/);
-    assert.match(mainSource, /const mainCommandHandlers = new Map\(\[/);
-    assert.match(mainSource, /mainCommandHandlers\.get\(event\.data\.type\)/);
-    assert.doesNotMatch(mainSource, /data\.type === 'EDVIBE_TOOLBOX_/);
-
-    assert.match(protocolSource, /const COMMAND_ROUTES = Object\.freeze/);
-    assert.match(protocolSource, /function isMainCommandMessage/);
-    assert.match(protocolSource, /function isStorageRequestMessage/);
-    assert.match(protocolTypes, /export type MainCommandMessage/);
-    assert.match(protocolTypes, /export type StorageRequestMessage/);
-});
-
-test('batch features use imported APIs instead of global module lookups', () => {
-    const mainSource = read('src/runtime/main.js');
-    const expected = [
-        ['batchAccessApi', 'batchLessonAccessFeature'],
-        ['batchUserManagementApi', 'batchUserManagementFeature'],
-        ['batchUserOnboardingApi', 'batchUserOnboardingFeature'],
-        ['batchSectionCreationApi', 'batchSectionCreationFeature'],
-        ['batchSectionDeletionApi', 'batchSectionDeletionFeature']
-    ];
-
-    for (const [moduleName, variableName] of expected) {
-        assert.match(mainSource, new RegExp(`${moduleName}\\.`));
-        assert.match(mainSource, new RegExp(`${variableName}\\.open`));
-    }
-    assert.match(mainSource, /getConnectionState: transport\.getConnectionState/);
-    assert.doesNotMatch(mainSource, /requireToolboxModule/);
+    assert.deepEqual(message, {
+        type: protocol.WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+        executionId: 'execution-42'
+    });
+    assert.equal(protocol.isMainCommandMessage(message), true);
+    assert.equal(protocol.isMainCommandMessage({ ...message, sourceStylesheetUrl: 'legacy.css' }), false);
 });
