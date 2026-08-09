@@ -24,6 +24,7 @@ Keep these runtime worlds separate and preserve `document_start` behavior for ti
 - `src/shared/`: shared infrastructure such as logging, WebSocket transport, IndexedDB, operation guards, and execution history.
 - `src/component-tests/`: real-browser component tests and their browser harness.
 - `scripts/run-component-tests.mjs`: Chrome/Chromium component-test runner.
+- `scripts/check-build-output.mjs`: production bundle-shape and regression-budget checker.
 - `package.json` and `package-lock.json`: pinned npm dependency and command configuration.
 - `vite.config.mjs`: CRXJS/Vite build configuration.
 - `.github/workflows/ci.yml`: pull-request validation and `master` distribution synchronization.
@@ -38,11 +39,12 @@ Use Node.js 22, as pinned by `.nvmrc` and `package.json`.
 npm ci
 npm run dev
 npm run build
+npm run check:build-output
 npm run typecheck
 npm run lint
 ```
 
-`npm run dev` runs the Vite build in watch mode. `npm run build` creates the production extension in `dist/`. `npm run typecheck` validates TypeScript contracts, and `npm run lint` enforces the repository's JavaScript/TypeScript, Lit, and Web Component quality rules.
+`npm run dev` runs the Vite build in watch mode. `npm run build` creates the production extension in `dist/`. `npm run check:build-output` validates the generated production bundle shape and regression budgets. `npm run typecheck` validates TypeScript contracts, and `npm run lint` enforces the repository's JavaScript/TypeScript, Lit, and Web Component quality rules.
 
 Testing commands are intentionally separated:
 
@@ -57,9 +59,11 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 ## Build And Generated Files
 
 - Source files are authoritative. Never hand-edit files under `dist/`.
-- Pull requests are validated with `npm ci`, `npm run typecheck`, `npm run lint`, `npm run test:ci`, and `npm run build`.
+- Pull requests are validated with `npm ci`, `npm run typecheck`, `npm run lint`, `npm run test:ci`, `npm run build`, and `npm run check:build-output`.
+- Production bundles are explicitly minified with Vite's Oxc minifier. MAIN and ISOLATED content scripts remain standalone eager bundles to preserve CRXJS and `document_start` behavior; do not introduce chunking purely to reduce reported byte counts.
+- Review `docs/build-output-policy.md` before changing production minification, bundle shape, or bundle regression budgets.
 - PR authors do not need to commit generated `dist/` updates.
-- After a successful source change reaches `master`, the CI `sync-dist` job rebuilds and commits `dist/` only when generated output changed.
+- After a successful source change reaches `master`, the CI `sync-dist` job rebuilds, validates, and commits `dist/` only when generated output changed.
 - Keep write permissions scoped to the distribution synchronization job. Validation jobs remain read-only.
 - Runtime libraries are npm dependencies imported through source modules and bundled by Vite. Do not add copied/minified library files to the repository as an alternative dependency mechanism.
 
@@ -83,7 +87,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 
 GitHub Actions is the authoritative validation environment for repository changes.
 
-- Source or build changes: require linting, type checking, the full CI test suite, and a successful production build.
+- Source or build changes: require linting, type checking, the full CI test suite, a successful production build, and the production bundle output check.
 - Component changes: cover important reactive state, user events, Shadow/light DOM behavior, cleanup, and public integration contracts in the real-browser component suite.
 - Popup changes: verify relevant button state, labels, command availability, and error handling.
 - Messaging changes: confirm popup/isolated/MAIN routing forwards only expected commands and minimal metadata.
