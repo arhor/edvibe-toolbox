@@ -28,7 +28,7 @@ test('runtime entry points preserve execution worlds and compose through ESM', (
     assert.match(mainSource, /from ['"]\.\/shared\/websocket-transport\.js['"]/);
 });
 
-test('dynamic UI and presentation stay in Lit components and stylesheets', () => {
+test('dynamic UI and presentation stay in Lit components and reusable style modules', () => {
     const coordinatorFiles = [
         'popup.js',
         'src/main.js',
@@ -49,7 +49,8 @@ test('dynamic UI and presentation stay in Lit components and stylesheets', () =>
 
     const agents = read('AGENTS.md');
     assert.match(agents, /Use Lit as the standard implementation for Web Components/);
-    assert.match(agents, /Keep component presentation in dedicated `\.css` files/);
+    assert.match(agents, /Keep in-page Lit component presentation in Lit `css` template modules composed through `static styles`/);
+    assert.match(agents, /Put reusable design tokens and visual foundations under `src\/components\/styles\/`/);
     assert.doesNotMatch(agents, /framework-free/);
 });
 
@@ -96,9 +97,9 @@ test('isolated routing uses a command table and forwards only minimal metadata',
     for (const command of commands) {
         assert.match(isolatedSource, new RegExp(`${command}: \\[`));
     }
-    assert.match(isolatedSource, /const \[type, stylesheet, info\] = commands\[message\.action\]/);
+    assert.match(isolatedSource, /const \[type, info\] = commands\[message\.action\]/);
     assert.match(isolatedSource, /window\.postMessage\(\{ type \}, '\*'\)/);
-    assert.doesNotMatch(isolatedSource, /recordedFrames|operations|otherFrames/);
+    assert.doesNotMatch(isolatedSource, /stylesheetUrl|sourceStylesheetUrl|recordedFrames|operations|otherFrames/);
 });
 
 test('batch features use imported APIs instead of global module lookups', () => {
