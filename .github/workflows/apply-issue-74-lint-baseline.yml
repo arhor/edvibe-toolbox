@@ -87,23 +87,13 @@ jobs:
           PY
       - run: npm run lint
       - run: npm run typecheck
-      - name: Capture failing test excerpts
+      - run: npm run test:ci
+      - run: npm run build
+      - name: Commit verified lint baseline and remove temporary diagnostics
         run: |
-          set +e
-          npm run test:ci > /tmp/test-output.txt 2>&1
-          status=$?
-          {
-            echo "TEST_EXIT=$status"
-            echo "===== FAILURES ====="
-            grep -n -B 12 -A 30 -E 'not ok|AssertionError|ERR_ASSERTION|Error:|failed|FAIL' /tmp/test-output.txt || true
-            echo "===== TAIL ====="
-            tail -n 120 /tmp/test-output.txt
-          } > issue-74-test-failures.txt
-          exit 0
-      - name: Commit diagnostic excerpt
-        run: |
-          git add issue-74-test-failures.txt
+          git rm .github/workflows/apply-issue-74-lint-baseline.yml .github/workflows/finish-issue-74-lint-baseline.yml .github/workflows/fix-issue-74-lint-baseline.yml .github/workflows/bootstrap-issue-74-eslint.yml issue-74-test-failures.txt
+          git add -A
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Add temporary issue 74 test diagnostic"
+          git commit -m "Establish zero-error ESLint baseline"
           git push origin HEAD:issue-74-eslint-quality-gate
