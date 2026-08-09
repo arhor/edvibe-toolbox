@@ -1,90 +1,130 @@
-const createIsolatedLog = EdVibeLogger.createLoggerFactory('ISOLATED');
-const log = createIsolatedLog();
-const STORAGE_REQUEST_TYPE = 'EDVIBE_TOOLBOX_STORAGE_REQUEST';
-const STORAGE_RESPONSE_TYPE = 'EDVIBE_TOOLBOX_STORAGE_RESPONSE';
-const ALLOWED_STORAGE_KEYS = new Set(['executionHistoryPreferences']);
+import { createLoggerFactory } from './shared/logger.js';
+import {
+    EXPORT_STATES,
+    POPUP_COMMANDS,
+    STORAGE_ACTIONS,
+    createExportStatusMessage,
+    createMainCommandMessage,
+    createRuntimeExportStatusMessage,
+    createStorageResponse,
+    getCommandRoute,
+    isExportStatusMessage,
+    isPopupCommandMessage,
+    isStorageRequestMessage
+} from './shared/message-protocol.js';
 
-log('Script successfully injected and initialized.');
+function initializeIsolatedBridge(options = {}) {
+    const windowApi = options.windowApi || globalThis.window;
+    const chromeApi = options.chromeApi || globalThis.chrome;
+    const log = options.log || (() => {});
+    if (!windowApi?.addEventListener || !windowApi?.postMessage) {
+        throw new TypeError('Window messaging APIs are required');
+    }
+    if (!chromeApi?.runtime?.onMessage || !chromeApi?.storage?.local) {
+        throw new TypeError('Chrome runtime and storage APIs are required');
+    }
 
-chrome.storage.local.set({ exportInProgress: false }, () => {
-    log('Reset stale export state for the loaded page.');
-});
+    log('Script successfully injected and initialized.');
 
-window.addEventListener('message', (event) => {
-    if (event.source !== window || !event.data?.type) return;
-    if (event.data.type === 'EDVIBE_TOOLBOX_EXPORT_STATUS') relayExportStatus(event.data);
-    if (event.data.type === STORAGE_REQUEST_TYPE) handleStorageRequest(event.data);
-});
+    chromeApi.storage.local.set({ exportInProgress: false }, () => {
+        log('Reset stale export state for the loaded page.');
+    });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    log('Incoming message received:', message);
-    const commands = {
-        OPEN_LESSON_RESET: ['EDVIBE_TOOLBOX_OPEN_RESET', 'Lesson reset workflow opened.'],
-        OPEN_ACTION_RECORDER: ['EDVIBE_TOOLBOX_OPEN_RECORDER', 'Action recorder opened.'],
-        OPEN_BATCH_LESSON_ACCESS: ['EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS', 'Batch lesson access opened.'],
-        OPEN_BATCH_USER_ONBOARDING: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING', 'Batch user onboarding opened.'],
-        OPEN_BATCH_USER_MANAGEMENT: ['EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT', 'Batch user management opened.'],
-        OPEN_BATCH_SECTION_CREATION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION', 'Batch section creation opened.'],
-        OPEN_BATCH_SECTION_DELETION: ['EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION', 'Batch section deletion opened.'],
-        OPEN_EXECUTION_HISTORY: ['EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY', 'Execution history opened.']
+    const onWindowMessage = (event) => {
+        if (event.source !== windowApi) return;
+        if (isExportStatusMessage(event.data)) {
+            relayExportStatus(event.data);
+        } else if (isStorageRequestMessage(event.data)) {
+            void handleStorageRequest(event.data);
+        }
     };
 
-    if (message.action === 'START_FULL_AUTOMATION') {
-        relayExportStatus({ state: 'started' });
-        window.postMessage({ type: 'EDVIBE_TOOLBOX_START_ALL' }, '*');
-        sendResponse({ status: 'success', info: 'Automation sequence channeled to page engine.' });
-    } else if (commands[message.action]) {
-        const [type, info] = commands[message.action];
-        window.postMessage({ type }, '*');
-        sendResponse({ status: 'success', info });
-    } else {
-        sendResponse({ status: 'ignored' });
-    }
-    return true;
-});
-
-function relayExportStatus(payload) {
-    const isActive = payload.state === 'started';
-    chrome.storage.local.set({ exportInProgress: isActive }, () => {
-        chrome.runtime.sendMessage({ action: 'EXPORT_STATUS', state: payload.state, message: payload.message || '' });
-    });
-}
-
-async function handleStorageRequest(request) {
-    const response = { type: STORAGE_RESPONSE_TYPE, requestId: request.requestId };
-    try {
-        if (!ALLOWED_STORAGE_KEYS.has(request.key)) throw new Error('Storage key is not allowed');
-        if (request.action === 'get') {
-            const values = await getLocalStorage(request.key);
-            response.value = values[request.key];
-        } else if (request.action === 'set') {
-            await setLocalStorage({ [request.key]: request.value });
-            response.value = request.value;
-        } else {
-            throw new Error('Storage action is not supported');
+    const onRuntimeMessage = (message, _sender, sendResponse) => {
+        log('Incoming message received:', message);
+        if (!isPopupCommandMessage(message)) {
+            sendResponse({ status: 'ignored' });
+            return true;
         }
-        response.ok = true;
-    } catch (error) {
-        response.ok = false;
-        response.error = error.message || 'Storage request failed';
+
+        const route = getCommandRoute(message.action);
+        if (message.action === POPUP_COMMANDS.START_EXPORT) {
+            relayExportStatus(createExportStatusMessage(EXPORT_STATES.STARTED));
+        }
+        windowApi.postMessage(createMainCommandMessage(message.action), '*');
+        sendResponse({ status: 'success', info: route.info });
+        return true;
+    };
+
+    windowApi.addEventListener('message', onWindowMessage);
+    chromeApi.runtime.onMessage.addListener(onRuntimeMessage);
+
+    function relayExportStatus(payload) {
+        if (!isExportStatusMessage(payload)) return;
+        const isActive = payload.state === EXPORT_STATES.STARTED;
+        chromeApi.storage.local.set({ exportInProgress: isActive }, () => {
+            chromeApi.runtime.sendMessage(createRuntimeExportStatusMessage(
+                payload.state,
+                payload.message || ''
+            ));
+        });
     }
-    window.postMessage(response, '*');
-}
 
-function getLocalStorage(key) {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get(key, (values) => {
-            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-            else resolve(values || {});
+    async function handleStorageRequest(request) {
+        try {
+            let value;
+            if (request.action === STORAGE_ACTIONS.GET) {
+                const values = await getLocalStorage(request.key);
+                value = values[request.key];
+            } else {
+                await setLocalStorage({ [request.key]: request.value });
+                value = request.value;
+            }
+            windowApi.postMessage(createStorageResponse({
+                requestId: request.requestId,
+                ok: true,
+                value
+            }), '*');
+        } catch (error) {
+            windowApi.postMessage(createStorageResponse({
+                requestId: request.requestId,
+                ok: false,
+                error: error.message || 'Storage request failed'
+            }), '*');
+        }
+    }
+
+    function getLocalStorage(key) {
+        return new Promise((resolve, reject) => {
+            chromeApi.storage.local.get(key, (values) => {
+                if (chromeApi.runtime.lastError) reject(new Error(chromeApi.runtime.lastError.message));
+                else resolve(values || {});
+            });
         });
+    }
+
+    function setLocalStorage(values) {
+        return new Promise((resolve, reject) => {
+            chromeApi.storage.local.set(values, () => {
+                if (chromeApi.runtime.lastError) reject(new Error(chromeApi.runtime.lastError.message));
+                else resolve();
+            });
+        });
+    }
+
+    return Object.freeze({
+        dispose() {
+            windowApi.removeEventListener?.('message', onWindowMessage);
+            chromeApi.runtime.onMessage.removeListener?.(onRuntimeMessage);
+        }
     });
 }
 
-function setLocalStorage(values) {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.set(values, () => {
-            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-            else resolve();
-        });
+if (typeof window !== 'undefined' && typeof chrome !== 'undefined') {
+    initializeIsolatedBridge({
+        windowApi: window,
+        chromeApi: chrome,
+        log: createLoggerFactory('ISOLATED')()
     });
 }
+
+export { initializeIsolatedBridge };
