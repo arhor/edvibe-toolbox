@@ -56,13 +56,13 @@ test('popup and isolated runtimes use explicit source entry points', () => {
     ]);
 });
 
-test('build covers exact web-accessible stylesheet paths through the manifest', async () => {
+test('manifest does not expose in-page component styles as web-accessible resources', async () => {
     const { sourceManifest } = await viteConfigPromise;
-    const stylesheets = sourceManifest.web_accessible_resources
+    const resources = (sourceManifest.web_accessible_resources ?? [])
         .flatMap(({ resources = [] }) => resources);
 
-    assert.ok(stylesheets.length > 0);
-    for (const file of stylesheets) {
-        assert.ok(fs.existsSync(path.join(root, file)), `${file} should exist`);
-    }
+    assert.equal(
+        resources.some((file) => file.startsWith('src/components/') && file.endsWith('.css')),
+        false
+    );
 });
