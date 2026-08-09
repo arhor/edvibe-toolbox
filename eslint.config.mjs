@@ -15,6 +15,11 @@ const componentFiles = [
     'src/components/**/*.js',
     'src/component-tests/**/*.js'
 ];
+const unusedOptions = {
+    argsIgnorePattern: '^_',
+    caughtErrorsIgnorePattern: '^_',
+    varsIgnorePattern: '^_'
+};
 
 export default defineConfig([
     globalIgnores(['dist/']),
@@ -31,16 +36,14 @@ export default defineConfig([
             reportUnusedDisableDirectives: 'error'
         },
         rules: {
-            'no-unused-vars': ['error', {
-                argsIgnorePattern: '^_',
-                caughtErrorsIgnorePattern: '^_'
-            }]
+            'no-unused-vars': ['error', unusedOptions]
         }
     },
     {
         name: 'node scripts and tests',
         files: [
             '**/*.test.js',
+            '**/*test-fixtures.js',
             'scripts/**/*.{js,mjs,cjs}',
             'vite.config.mjs',
             'eslint.config.mjs'
@@ -63,10 +66,7 @@ export default defineConfig([
             }
         },
         rules: {
-            '@typescript-eslint/no-unused-vars': ['error', {
-                argsIgnorePattern: '^_',
-                caughtErrorsIgnorePattern: '^_'
-            }]
+            '@typescript-eslint/no-unused-vars': ['error', unusedOptions]
         }
     },
     {
