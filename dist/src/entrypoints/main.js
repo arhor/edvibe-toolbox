@@ -60,6 +60,13 @@
 		}
 	};
 	var r$2 = (t) => new n$2("string" == typeof t ? t : t + "", void 0, s$2);
+	var i$3 = (t, ...e) => {
+		return new n$2(1 === t.length ? t[0] : e.reduce((e, s, o) => e + ((t) => {
+			if (!0 === t._$cssResult$) return t.cssText;
+			if ("number" == typeof t) return t;
+			throw Error("Value passed to 'css' function must be a 'css' function result: " + t + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
+		})(s) + t[o + 1], t[0]), t, s$2);
+	};
 	var S$1 = (s, o) => {
 		if (e$2) s.adoptedStyleSheets = o.map((t) => t instanceof CSSStyleSheet ? t : t.styleSheet);
 		else for (const e of o) {
@@ -614,11 +621,122 @@
 	o?.({ LitElement: i });
 	(s.litElementVersions ??= []).push("4.2.2");
 	//#endregion
+	//#region src/components/styles/foundations.js
+	var componentFoundationStyles = i$3`
+    :host {
+        --edvibe-font-family: "Segoe UI", Inter, Arial, system-ui, sans-serif;
+        --edvibe-dialog-z-index: 2147483647;
+        --edvibe-overlay-background: rgba(15, 23, 42, 0.6);
+        --edvibe-surface: #fff;
+        --edvibe-text: #1f2937;
+        --edvibe-muted-text: #6b7280;
+        --edvibe-border: #d9dfe9;
+        --edvibe-primary: #4055d3;
+        --edvibe-danger: #c93a3a;
+        --edvibe-radius: 14px;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+        font: inherit;
+    }
+`;
+	var dialogFoundationStyles = i$3`
+    :host {
+        font-family: var(--edvibe-font-family);
+    }
+`;
+	//#endregion
+	//#region src/components/export-progress-dialog.styles.js
+	var exportProgressDialogStyles = i$3`
+:host {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.overlay {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.card {
+    width: min(630px, calc(100vw - 32px));
+    padding: 24px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+    color: #1f2937;
+}
+
+h2 { margin: 0 0 8px; color: #111827; font-size: 20px; line-height: 1.3; }
+.status {
+    min-height: 40px;
+    margin: 0 0 16px;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre-line;
+}
+.progress {
+    display: block;
+    width: 100%;
+    height: 12px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 999px;
+    background: #e5e7eb;
+    appearance: none;
+}
+.progress::-webkit-progress-bar { background: #e5e7eb; }
+.progress::-webkit-progress-value {
+    border-radius: 999px;
+    background: linear-gradient(90deg, #3498db, #22c55e);
+    transition: width 0.25s ease;
+}
+:host([error]) .progress::-webkit-progress-value { background: #e74c3c; }
+.meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 10px;
+    color: #6b7280;
+    font-size: 12px;
+}
+.close {
+    display: none;
+    width: 100%;
+    margin-top: 18px;
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: #3498db;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+:host([complete]) .close,
+:host([error]) .close { display: block; }
+
+`;
+	//#endregion
 	//#region src/components/export-progress-dialog.js
 	var EXPORT_PROGRESS_TAG = "edvibe-toolbox-export-progress";
 	var ExportProgressDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			exportProgressDialogStyles
+		];
 		static properties = {
-			stylesheetUrl: { state: true },
 			statusText: { state: true },
 			loadedSections: { state: true },
 			totalSections: { state: true },
@@ -627,17 +745,11 @@
 		};
 		constructor() {
 			super();
-			this.stylesheetUrl = "";
 			this.statusText = "Preparing export...";
 			this.loadedSections = 0;
 			this.totalSections = 0;
 			this.countText = void 0;
 			this.progressState = "loading";
-		}
-		configure(options = {}) {
-			const stylesheetUrl = options && typeof options === "object" ? options.stylesheetUrl : "";
-			this.stylesheetUrl = String(stylesheetUrl || "");
-			return this;
 		}
 		update(options = /* @__PURE__ */ new Map()) {
 			if (options instanceof Map) {
@@ -684,8 +796,7 @@
 			const count = this.countText ?? (hasTotal ? `${this.loadedSections} / ${this.totalSections} sections loaded` : this.progressState === "complete" ? "Export complete" : "Discovering sections...");
 			const progressValue = hasTotal || this.progressState === "complete" ? progressPercent : A;
 			return b`
-            <link rel="stylesheet" href=${this.stylesheetUrl || A}>
-            <div class="overlay">
+<div class="overlay">
                 <section class="card" role="dialog" aria-modal="true"
                     aria-labelledby="export-progress-title">
                     <h2 id="export-progress-title">Exporting marathon</h2>
@@ -703,12 +814,360 @@
 	};
 	if (!customElements.get("edvibe-toolbox-export-progress")) customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
 	//#endregion
+	//#region src/components/reset-lessons-dialog.styles.js
+	var resetLessonsDialogStyles = i$3`
+:host {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: block;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+:host([hidden]) {
+    display: none !important;
+}
+
+:host(.is-running) .edvibe-reset-body {
+    display: none;
+}
+
+.edvibe-reset-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, .6);
+    box-sizing: border-box;
+}
+
+.edvibe-reset-overlay *,
+.edvibe-reset-overlay {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.edvibe-reset-card {
+    display: flex;
+    flex-direction: column;
+    width: min(760px, calc(100vw - 32px));
+    max-height: min(820px, calc(100vh - 32px));
+    padding: 24px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, .38);
+    color: #1f2937;
+}
+
+.edvibe-reset-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.edvibe-reset-title {
+    margin: 0;
+    color: #111827;
+    font-size: 21px;
+    line-height: 1.3;
+}
+
+.edvibe-reset-subtitle {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.edvibe-reset-step-indicator {
+    margin-right: 8px;
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.edvibe-reset-close {
+    border: 0;
+    padding: 4px 8px;
+    background: transparent;
+    color: #6b7280;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.edvibe-reset-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    min-height: 0;
+    margin-top: 18px;
+}
+
+.edvibe-reset-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.edvibe-reset-search {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+    font: inherit;
+}
+
+.edvibe-reset-search:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, .15);
+}
+
+.edvibe-reset-list {
+    overflow: auto;
+    max-height: 250px;
+    margin-top: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.edvibe-reset-pupils-shell {
+    position: relative;
+}
+
+.edvibe-reset-pupils-shell.is-loading {
+    min-height: 96px;
+}
+
+.edvibe-reset-pupils-shell.is-loading .edvibe-reset-pupils {
+    opacity: .45;
+    pointer-events: none;
+}
+
+.edvibe-reset-pupils-loading {
+    position: absolute;
+    inset: 10px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .48);
+    color: #374151;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.edvibe-reset-spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #bfdbfe;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: edvibe-reset-spinner-rotate .8s linear infinite;
+}
+
+.edvibe-reset-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border: 0;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fff;
+    color: #1f2937;
+    text-align: left;
+    cursor: pointer;
+}
+
+.edvibe-reset-row:last-child {
+    border-bottom: 0;
+}
+
+.edvibe-reset-row:hover,
+.edvibe-reset-row.is-selected {
+    background: #eff6ff;
+}
+
+.edvibe-reset-row-copy {
+    min-width: 0;
+}
+
+.edvibe-reset-row-name,
+.edvibe-reset-row-email {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.edvibe-reset-row-name {
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.edvibe-reset-row-email {
+    margin-top: 2px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.edvibe-reset-select-all {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.edvibe-reset-lesson {
+    align-items: flex-start;
+    cursor: default;
+}
+
+.edvibe-reset-lesson input {
+    margin-top: 3px;
+}
+
+.edvibe-reset-empty {
+    margin: 0;
+    padding: 22px;
+    color: #6b7280;
+    text-align: center;
+    font-size: 13px;
+}
+
+.edvibe-reset-status {
+    min-height: 38px;
+    margin: 0;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-line;
+}
+
+.edvibe-reset-live-region {
+    flex: 0 0 auto;
+    padding-top: 16px;
+}
+
+.edvibe-reset-status.is-error {
+    color: #b91c1c;
+}
+
+.edvibe-reset-status.is-success {
+    color: #15803d;
+}
+
+.edvibe-reset-progress {
+    display: none;
+    width: 100%;
+    overflow: hidden;
+    height: 11px;
+    border: 0;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    appearance: none;
+}
+
+.edvibe-reset-progress.is-visible {
+    display: block;
+}
+
+.edvibe-reset-progress::-webkit-progress-bar {
+    background: #e5e7eb;
+}
+
+.edvibe-reset-progress::-webkit-progress-value {
+    border-radius: 999px;
+    background: linear-gradient(90deg, #e74c3c, #f59e0b);
+    transition: width .2s ease;
+}
+
+.edvibe-reset-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.edvibe-reset-button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.edvibe-reset-button:disabled,
+button:disabled,
+input:disabled {
+    cursor: not-allowed;
+    opacity: .58;
+}
+
+.edvibe-reset-cancel,
+.edvibe-reset-back {
+    background: #64748b;
+}
+
+.edvibe-reset-next {
+    background: #2563eb;
+}
+
+.edvibe-reset-submit {
+    background: #e74c3c;
+}
+
+@keyframes edvibe-reset-progress-slide {
+    0% {
+        transform: translateX(-120%)
+    }
+
+    50% {
+        transform: translateX(90%)
+    }
+
+    100% {
+        transform: translateX(270%)
+    }
+}
+
+@keyframes edvibe-reset-spinner-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    .edvibe-reset-spinner {
+        animation: none;
+    }
+}
+
+`;
+	//#endregion
 	//#region src/components/reset-lessons-dialog.js
 	var RESET_DIALOG_TAG$1 = "edvibe-toolbox-reset-dialog";
 	var RESET_OVERLAY_ID$1 = "edvibe-toolbox-reset-overlay";
 	var ResetLessonsDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			resetLessonsDialogStyles
+		];
 		static properties = {
-			stylesheetUrl: { state: true },
 			currentStep: { state: true },
 			allPupils: { state: true },
 			pupilTotal: { state: true },
@@ -731,7 +1190,6 @@
 		};
 		constructor() {
 			super();
-			this.stylesheetUrl = "";
 			this.searchDelay = 1e3;
 			this.log = () => {};
 			this.loadLessons = null;
@@ -775,8 +1233,7 @@
 		}
 		configure(options = {}) {
 			options = options && typeof options === "object" ? options : {};
-			const { stylesheetUrl = "", searchDelay = 1e3, loadLessons, loadNextPupils, log = () => {} } = options;
-			this.stylesheetUrl = String(stylesheetUrl || "");
+			const { searchDelay = 1e3, loadLessons, loadNextPupils, log = () => {} } = options;
 			this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1e3;
 			this.loadLessons = typeof loadLessons === "function" ? loadLessons : null;
 			this.loadNextPupils = typeof loadNextPupils === "function" ? loadNextPupils : null;
@@ -793,7 +1250,6 @@
 			}
 			const find = (selector) => this.shadowRoot.querySelector(selector);
 			this.elements = {
-				stylesheet: find(".edvibe-reset-stylesheet"),
 				backdrop: find(".edvibe-reset-overlay"),
 				search: find(".edvibe-reset-search"),
 				userStep: find(".edvibe-reset-user-step"),
@@ -1110,8 +1566,7 @@
 			const progressValue = this.progressIndeterminate ? A : this.progressValue;
 			const selectedPupilLabel = this.selectedPupil ? `${this.selectedPupil.Name || "Без имени"} — ${this.selectedPupil.Email || ""}` : "";
 			return b`
-            <link class="edvibe-reset-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || A}>
-            <div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
+<div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
                 <div class="edvibe-reset-card" role="dialog" aria-modal="true" aria-labelledby="edvibe-reset-title">
                     <div class="edvibe-reset-header"><div><h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2><p class="edvibe-reset-subtitle"><span class="edvibe-reset-step-indicator">${view.showingUsers ? "Шаг 1 из 2" : "Шаг 2 из 2"}</span><span class="edvibe-reset-step-description">${view.showingUsers ? "Выберите пользователя." : "Выберите уроки для сброса прогресса."}</span></p></div><button class="edvibe-reset-close" type="button" aria-label="Закрыть" ?disabled=${view.closeDisabled} @click=${() => this.close()}>&times;</button></div>
                     <div class="edvibe-reset-body">
@@ -2246,6 +2701,142 @@
 		});
 	}
 	//#endregion
+	//#region src/components/execution-history-dialog.styles.js
+	var executionHistoryDialogStyles = i$3`
+:host {
+    all: initial;
+    --history-accent: #5267e8;
+    --history-text: #172033;
+    --history-muted: #697386;
+    --history-border: #dfe4ee;
+    --history-surface: #ffffff;
+    color: var(--history-text);
+    font-family: Inter, "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(17, 24, 39, 0.62);
+    backdrop-filter: blur(5px);
+}
+
+.dialog {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    width: min(1180px, 96vw);
+    height: min(820px, 94vh);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 22px;
+    background: #f6f8fc;
+    box-shadow: 0 28px 80px rgba(0,0,0,.28);
+}
+
+.dialog-header, .dialog-footer {
+    padding: 20px 24px;
+    background: var(--history-surface);
+}
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--history-border);
+}
+.eyebrow { margin: 0 0 4px; color: var(--history-accent); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+h2, h3, h4, p { margin: 0; }
+h2 { font-size: 24px; letter-spacing: -.025em; }
+.header-copy { margin-top: 5px; color: var(--history-muted); font-size: 13px; }
+.icon-button { width: 38px; height: 38px; border: 0; border-radius: 12px; color: var(--history-muted); background: #f2f4f8; font-size: 25px; line-height: 1; }
+.icon-button:hover { color: var(--history-text); background: #e9edf5; }
+
+.workspace { display: grid; grid-template-columns: minmax(340px, 40%) minmax(0, 1fr); min-height: 0; }
+.browser-panel { display: flex; min-height: 0; flex-direction: column; padding: 18px; border-right: 1px solid var(--history-border); }
+.filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px; border: 1px solid var(--history-border); border-radius: 15px; background: var(--history-surface); }
+.filters label, .settings-grid label { display: grid; gap: 5px; color: var(--history-muted); font-size: 11px; font-weight: 700; }
+.filters input, .filters select, .settings-grid input { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid #d7ddea; border-radius: 9px; color: var(--history-text); background: #fff; }
+.date-fields { display: grid; grid-column: 1 / -1; grid-template-columns: 1fr 1fr; gap: 10px; }
+.filter-actions { display: flex; grid-column: 1 / -1; gap: 8px; }
+button { padding: 9px 13px; border: 1px solid var(--history-accent); border-radius: 9px; color: #fff; background: var(--history-accent); font-weight: 700; }
+button:hover { filter: brightness(.97); }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid rgba(82, 103, 232, .25); outline-offset: 2px; }
+button.secondary { border-color: #d7ddea; color: #344054; background: #fff; }
+button.danger { border-color: #efcaca; color: #a33c3c; }
+button.compact { padding: 7px 9px; font-size: 11px; }
+.list-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 15px 2px 9px; }
+.list-toolbar strong { font-size: 12px; }
+.state-card { padding: 22px; border: 1px dashed #cfd6e4; border-radius: 14px; color: var(--history-muted); text-align: center; }
+.state-card.is-error, .toast.is-error { color: #9b3030; background: #fff0f0; }
+.record-list { min-height: 0; overflow: auto; padding-right: 4px; }
+.record-card { display: grid; width: 100%; gap: 5px; margin-bottom: 8px; padding: 13px; border: 1px solid var(--history-border); border-radius: 13px; color: var(--history-text); background: var(--history-surface); text-align: left; }
+.record-card:hover, .record-card[aria-pressed="true"] { border-color: #aeb9ee; box-shadow: 0 6px 20px rgba(42, 59, 130, .08); }
+.record-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.record-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.status-chip { display: inline-flex; flex: none; padding: 3px 7px; border-radius: 999px; color: #475467; background: #eef1f6; font-size: 10px; font-weight: 800; }
+.record-card[data-status="completed"] .status-chip { color: #196b4a; background: #ddf5e9; }
+.record-card[data-status="completed_with_failures"] .status-chip { color: #8b5b13; background: #fff0cf; }
+.record-card[data-status="interrupted"] .status-chip, .record-card[data-status="cancelled"] .status-chip { color: #943c3c; background: #fde7e7; }
+.record-context, .record-outcome, time { color: var(--history-muted); font-size: 11px; }
+time { margin-top: 2px; }
+
+.detail-panel { min-width: 0; overflow: auto; padding: 24px; background: #fff; }
+.detail-placeholder { display: grid; height: 100%; place-content: center; justify-items: center; color: var(--history-muted); text-align: center; }
+.detail-placeholder span { display: grid; width: 52px; height: 52px; place-items: center; margin-bottom: 12px; border-radius: 16px; color: var(--history-accent); background: #eef0ff; font-size: 24px; }
+.detail-placeholder h3 { color: var(--history-text); }
+.detail-placeholder p { margin-top: 5px; font-size: 12px; }
+.detail-header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.detail-header h3 { font-size: 20px; }
+.detail-header p { margin-top: 4px; color: var(--history-muted); font-size: 12px; }
+.detail-actions { display: flex; gap: 7px; }
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+.summary-grid div { min-width: 0; padding: 12px; border: 1px solid var(--history-border); border-radius: 12px; background: #f9fafc; }
+.summary-grid dt { color: var(--history-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.summary-grid dd { overflow-wrap: anywhere; margin: 5px 0 0; font-size: 12px; }
+.counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.counts div { display: grid; gap: 2px; padding: 11px; border-radius: 11px; background: #f1f3f8; }
+.counts strong { font-size: 18px; }
+.counts span { color: var(--history-muted); font-size: 10px; text-transform: capitalize; }
+.outcomes { margin-top: 22px; }
+.outcomes h4 { margin-bottom: 10px; }
+.outcome-card { margin-bottom: 8px; padding: 12px; border: 1px solid var(--history-border); border-radius: 12px; }
+.outcome-card > div { display: flex; justify-content: space-between; gap: 10px; }
+.outcome-card p { margin-top: 5px; color: #475467; font-size: 12px; line-height: 1.45; }
+.outcome-card small { display: block; margin-top: 6px; color: var(--history-muted); }
+.outcome-card details { margin-top: 9px; color: var(--history-muted); font-size: 11px; }
+.outcome-card pre { overflow: auto; margin: 7px 0 0; padding: 10px; border-radius: 9px; color: #344054; background: #f5f7fa; font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; }
+.muted { color: var(--history-muted); font-size: 12px; }
+
+.dialog-footer { border-top: 1px solid var(--history-border); }
+.retention-settings summary { cursor: pointer; color: #475467; font-size: 12px; font-weight: 800; }
+.settings-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.5fr auto; gap: 10px; align-items: end; margin-top: 12px; }
+.settings-grid label.checkbox { display: flex; align-items: center; gap: 7px; padding-bottom: 9px; }
+.settings-grid label.checkbox input { width: auto; }
+.footer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.toast { margin-top: 10px; padding: 8px 10px; border-radius: 9px; color: #196b4a; background: #e7f6ee; font-size: 11px; }
+
+@media (max-width: 840px) {
+    .overlay { padding: 0; }
+    .dialog { width: 100vw; height: 100vh; border-radius: 0; }
+    .workspace { grid-template-columns: 1fr; overflow: auto; }
+    .browser-panel { min-height: 450px; border-right: 0; border-bottom: 1px solid var(--history-border); }
+    .detail-panel { min-height: 500px; }
+    .settings-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+`;
+	//#endregion
 	//#region src/components/execution-history-dialog.js
 	var EXECUTION_HISTORY_DIALOG_TAG = "edvibe-toolbox-execution-history-dialog";
 	var STATUS_LABELS = Object.freeze({
@@ -2272,6 +2863,11 @@
 		});
 	}
 	var ExecutionHistoryDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			executionHistoryDialogStyles
+		];
 		static properties = {
 			options: { state: true },
 			records: { state: true },
@@ -2536,8 +3132,7 @@
 			const indefinite = this.preferences.mode === "indefinite";
 			const toastClass = `toast${this.toastError ? " is-error" : ""}`;
 			return b`
-            <link rel="stylesheet" href=${String(this.options?.stylesheetUrl || "")}>
-            <div class="overlay">
+<div class="overlay">
                 <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
                     <header class="dialog-header">
                         <div><p class="eyebrow">Edvibe Toolbox</p><h2 id="history-title">Execution history</h2><p class="header-copy">Browse terminal operation reports stored in this browser.</p></div>
@@ -2599,7 +3194,7 @@
 	var HISTORY_OVERLAY_ID = "edvibe-toolbox-execution-history";
 	function createExecutionHistoryFeature({ service, canStart, onActiveChange, createDialog, log = () => {} }) {
 		let active = false;
-		function open({ stylesheetUrl = "", executionId = null } = {}) {
+		function open({ executionId = null } = {}) {
 			if (active || document.getElementById("edvibe-toolbox-execution-history")) return;
 			if (!canStart()) {
 				window.alert("Another Edvibe Toolbox operation is already running.");
@@ -2611,7 +3206,6 @@
 				const dialog = createDialog();
 				dialog.id = HISTORY_OVERLAY_ID;
 				dialog.configure({
-					stylesheetUrl,
 					service,
 					initialExecutionId: executionId,
 					onClose() {
@@ -6726,15 +7320,14 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		const match = String(url || "").match(/marathon\/(\d+)/);
 		return match ? Number(match[1]) : null;
 	}
-	function createExportProgressOverlay({ stylesheetUrl = "" } = {}) {
+	function createExportProgressOverlay() {
 		document.querySelector(EXPORT_PROGRESS_TAG)?.remove();
 		const dialog = document.createElement(EXPORT_PROGRESS_TAG);
-		dialog.configure({ stylesheetUrl });
 		(document.body || document.documentElement).appendChild(dialog);
 		return dialog;
 	}
 	function createMarathonExportFeature({ sendRequest, wait, canStart, onActiveChange, compileToZip = compileMarathonToZip, notifyStatus, createProgressOverlay = createExportProgressOverlay, getCurrentUrl = () => window.location.href, now = () => (/* @__PURE__ */ new Date()).toISOString(), log = () => {} }) {
-		async function start({ stylesheetUrl = "" } = {}) {
+		async function start() {
 			if (!canStart()) {
 				const message = "Cannot start export while another operation is active.";
 				log(message);
@@ -6746,7 +7339,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			try {
 				notifyStatus("started");
 				log("Starting marathon export...");
-				progressOverlay = createProgressOverlay({ stylesheetUrl });
+				progressOverlay = createProgressOverlay();
 				progressOverlay.update({
 					statusText: "Finding marathon lessons...",
 					loadedSections: 0,
@@ -7032,7 +7625,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			active = false;
 			onActiveChange(false);
 		}
-		async function open({ stylesheetUrl = "" } = {}) {
+		async function open() {
 			if (document.getElementById(RESET_OVERLAY_ID)) return;
 			if (!canStart()) {
 				window.alert("Another Edvibe Toolbox operation is already running.");
@@ -7089,7 +7682,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			try {
 				const pupilPager = createPupilPager(sendRequest, marathonId);
 				dialog.configure({
-					stylesheetUrl,
 					loadNextPupils: () => pupilPager.loadNext(),
 					loadLessons: async (pupil) => {
 						log(`Loading lessons for PupilId ${pupil.PupilId}.`);
@@ -7259,7 +7851,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		let pendingOperations = /* @__PURE__ */ new Map();
 		let durationTimer = null;
 		let panel = null;
-		let stylesheetUrl = "";
 		let copyFallback = "";
 		let notice = "";
 		function getState() {
@@ -7493,12 +8084,10 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			panel?.remove?.();
 			panel = null;
 		}
-		function open(options = {}) {
-			stylesheetUrl = options.stylesheetUrl || stylesheetUrl;
+		function open() {
 			if (!panel) {
 				panel = createPanel();
 				panel.configure?.({
-					stylesheetUrl,
 					onStart: start,
 					onStop: stop,
 					onClear: clear,
@@ -7509,7 +8098,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				});
 				panel.mount?.();
 			} else {
-				panel.configure?.({ stylesheetUrl });
+				panel.configure?.();
 				panel.restore?.();
 			}
 			render();
@@ -7528,12 +8117,362 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		};
 	}
 	//#endregion
+	//#region src/components/action-recorder-dialog.styles.js
+	var actionRecorderDialogStyles = i$3`
+:host {
+    color: #172033;
+    font: 13px/1.45 Inter, "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+button,
+textarea,
+input {
+    font: inherit;
+}
+
+.recorder-overlay {
+    position: fixed;
+    z-index: 2147483646;
+    inset: 0;
+    padding: 28px;
+    background: rgba(19, 27, 45, 0.52);
+}
+
+.recorder-overlay[hidden],
+.recorder-indicator[hidden] {
+    display: none;
+}
+
+.recorder-panel {
+    display: flex;
+    width: min(920px, 100%);
+    max-height: calc(100vh - 56px);
+    margin: 0 auto;
+    overflow: hidden;
+    flex-direction: column;
+    border: 1px solid #dce2ec;
+    border-radius: 14px;
+    background: #f5f7fb;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+}
+
+.recorder-header,
+.recorder-toolbar {
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e0e5ee;
+    background: #fff;
+}
+
+.recorder-header h2,
+.recorder-header p,
+.recorder-body h3,
+.recorder-notice {
+    margin: 0;
+}
+
+.recorder-header h2 {
+    font-size: 17px;
+}
+
+.recorder-subtitle {
+    margin-top: 3px !important;
+    color: #687386;
+    font-size: 12px;
+}
+
+.header-actions,
+.toolbar-actions,
+.recorder-state,
+.recorder-summary {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.icon-button {
+    width: 31px;
+    height: 31px;
+    border: 1px solid #d9dfe9;
+    border-radius: 7px;
+    color: #4e596b;
+    background: #fff;
+    cursor: pointer;
+}
+
+.recorder-toolbar {
+    padding-block: 11px;
+    background: #fbfcfe;
+}
+
+.state-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #9da5b4;
+}
+
+.recorder-state[data-status="recording"] .state-dot {
+    background: #df3636;
+    box-shadow: 0 0 0 4px #fde4e4;
+}
+
+.recorder-state[data-status="limit-reached"] .state-dot {
+    background: #d58a14;
+}
+
+.elapsed {
+    min-width: 34px;
+    color: #687386;
+    font-variant-numeric: tabular-nums;
+}
+
+.button {
+    padding: 7px 10px;
+    border: 1px solid #d5dbe6;
+    border-radius: 7px;
+    color: #263248;
+    background: #fff;
+    cursor: pointer;
+}
+
+.button.primary {
+    border-color: #4055d3;
+    color: #fff;
+    background: #4055d3;
+}
+
+.button.danger {
+    border-color: #c93a3a;
+    color: #fff;
+    background: #c93a3a;
+}
+
+.button:disabled {
+    color: #9299a7;
+    background: #edf0f4;
+    cursor: not-allowed;
+}
+
+.recorder-body {
+    overflow: auto;
+    padding: 16px 18px 20px;
+}
+
+.privacy-warning {
+    padding: 10px 12px;
+    border: 1px solid #ecd292;
+    border-radius: 8px;
+    color: #765313;
+    background: #fff8e6;
+}
+
+.recorder-summary {
+    margin: 13px 0;
+    flex-wrap: wrap;
+    color: #596579;
+}
+
+.recorder-summary > span {
+    padding-right: 10px;
+    border-right: 1px solid #d9dfe8;
+}
+
+.recorder-summary label {
+    margin-left: auto;
+}
+
+.recorder-notice {
+    margin-bottom: 12px;
+    padding: 9px 10px;
+    border-radius: 7px;
+    color: #34503e;
+    background: #e6f4eb;
+}
+
+.recorder-body h3 {
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.operation-list {
+    display: grid;
+    gap: 7px;
+}
+
+.operation {
+    border: 1px solid #dbe1eb;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.operation > summary {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 76px 92px;
+    gap: 9px;
+    align-items: center;
+    padding: 11px 12px;
+    cursor: pointer;
+}
+
+.operation-sequence,
+.operation-duration {
+    color: #778195;
+    font-variant-numeric: tabular-nums;
+}
+
+.operation-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.operation-result {
+    text-align: right;
+    color: #28805a;
+}
+
+.operation-result.is-error {
+    color: #b42f2f;
+}
+
+.operation-content {
+    padding: 0 12px 12px;
+    border-top: 1px solid #e6eaf1;
+}
+
+.operation-content > p {
+    color: #697487;
+    word-break: break-all;
+}
+
+.operation-content strong {
+    display: block;
+    margin: 10px 0 4px;
+}
+
+pre,
+textarea {
+    width: 100%;
+    overflow: auto;
+    padding: 10px;
+    border: 1px solid #dce2eb;
+    border-radius: 7px;
+    color: #233048;
+    background: #f7f9fc;
+    font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.empty-operations {
+    padding: 28px;
+    border: 1px dashed #ccd3df;
+    border-radius: 9px;
+    color: #788397;
+    text-align: center;
+    background: #fafbfc;
+}
+
+.empty-operations[hidden],
+.copy-fallback[hidden],
+.recorder-notice[hidden] {
+    display: none;
+}
+
+.other-section {
+    margin-top: 14px;
+}
+
+.other-section > summary {
+    color: #596579;
+    cursor: pointer;
+}
+
+.copy-fallback {
+    display: block;
+    margin-top: 14px;
+    color: #765313;
+}
+
+.copy-fallback textarea {
+    min-height: 150px;
+    margin-top: 5px;
+}
+
+.recorder-indicator {
+    position: fixed;
+    z-index: 2147483646;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    padding: 9px 12px;
+    border: 1px solid #ccd3df;
+    border-radius: 999px;
+    color: #38445a;
+    background: #fff;
+    box-shadow: 0 8px 28px rgba(23, 32, 51, 0.2);
+    cursor: pointer;
+}
+
+.recorder-indicator > span:first-child {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #9da5b4;
+}
+
+.recorder-indicator.is-recording > span:first-child {
+    background: #df3636;
+    box-shadow: 0 0 0 3px #fde4e4;
+}
+
+@media (max-width: 720px) {
+    .recorder-overlay {
+        padding: 8px;
+    }
+
+    .recorder-header,
+    .recorder-toolbar {
+        align-items: flex-start;
+    }
+
+    .recorder-toolbar,
+    .toolbar-actions {
+        flex-wrap: wrap;
+    }
+
+    .operation > summary {
+        grid-template-columns: 28px minmax(0, 1fr);
+    }
+
+    .operation-duration,
+    .operation-result {
+        text-align: left;
+    }
+}
+
+`;
+	//#endregion
 	//#region src/components/action-recorder-dialog.js
 	var RECORDER_DIALOG_TAG = "edvibe-toolbox-action-recorder";
 	var RECORDER_DIALOG_ID = "edvibe-toolbox-action-recorder";
 	var ActionRecorderDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			actionRecorderDialogStyles
+		];
 		static properties = {
-			stylesheetUrl: { state: true },
 			state: { state: true },
 			minimized: { state: true },
 			showToolbox: { state: true },
@@ -7541,7 +8480,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		};
 		constructor() {
 			super();
-			this.stylesheetUrl = "";
 			this.callbacks = {};
 			this.state = {
 				status: "idle",
@@ -7563,7 +8501,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 		configure(options = {}) {
 			options = options && typeof options === "object" ? options : {};
-			if (options.stylesheetUrl !== void 0) this.stylesheetUrl = String(options.stylesheetUrl || "");
 			for (const name of [
 				"onStart",
 				"onStop",
@@ -7687,9 +8624,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			const indicatorClass = `recorder-indicator${recording ? " is-recording" : ""}`;
 			const copyFallback = String(this.state.copyFallback || "");
 			return b`
-            <link class="recorder-stylesheet" rel="stylesheet"
-                href=${this.stylesheetUrl || A}>
-            <button class=${indicatorClass} type="button" ?hidden=${!this.minimized}
+<button class=${indicatorClass} type="button" ?hidden=${!this.minimized}
                 aria-label="Открыть запись WebSocket" @click=${() => this.restore()}>
                 <span></span><strong>REC</strong>
                 <span class="indicator-count">${visibleOperations.length}</span>
@@ -8295,7 +9230,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			completedResult = null;
 			running = false;
 		}
-		async function open({ stylesheetUrl = "" } = {}) {
+		async function open() {
 			if (active || document.getElementById(BATCH_ACCESS_OVERLAY_ID$1)) return;
 			if (!canStart()) {
 				window.alert("Another Edvibe Toolbox operation is already running.");
@@ -8322,7 +9257,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				dialog.addEventListener("edvibe-batch-access-confirm", handleConfirm);
 				dialog.addEventListener("edvibe-batch-access-copy-report", handleCopyReport);
 				dialog.addEventListener("edvibe-batch-access-restart", handleRestart);
-				dialog.configure({ stylesheetUrl });
+				dialog.configure();
 				(document.body || document.documentElement).appendChild(dialog);
 				dialog.showLoading();
 				log(`Initializing batch access for MarathonId ${marathonId}.`);
@@ -8442,7 +9377,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			lessonsByPupilId: /* @__PURE__ */ new Map(),
 			lessonCatalogue: [],
 			writeAttempts: /* @__PURE__ */ new Map(),
-			stylesheetUrl: "",
 			attempt: null,
 			sequence: 0
 		};
@@ -8803,7 +9737,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		const current = dialog.elements?.status?.textContent || "";
 		dialog.setStatus?.(`${current}${current ? " " : ""}${message}`, isError ? "error" : "");
 	}
-	function addHistoryButton$2(dialog, executionId, stylesheetUrl, openHistory) {
+	function addHistoryButton$2(dialog, executionId, openHistory) {
 		dialog.shadowRoot?.querySelector?.(".edvibe-batch-access-history")?.remove?.();
 		const button = (dialog.ownerDocument || globalThis.document)?.createElement?.("button");
 		if (!button) return;
@@ -8812,7 +9746,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		button.textContent = "Открыть в истории";
 		button.addEventListener("click", () => {
 			dialog.close?.();
-			openHistory(executionId, stylesheetUrl);
+			openHistory(executionId);
 		});
 		dialog.elements?.footer?.appendChild?.(button);
 	}
@@ -8834,7 +9768,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			const dialog = createDialog();
 			const current = createCapture();
 			capture = current;
-			const originalConfigure = dialog.configure.bind(dialog);
 			const originalShowConfigure = dialog.showConfigure.bind(dialog);
 			const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
 			const originalShowValidationErrors = dialog.showValidationErrors.bind(dialog);
@@ -8894,7 +9827,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					if (sequence !== current.sequence) return;
 					if (history?.stored) {
 						appendStatus$2(dialog, "Результат сохранён в истории.");
-						if (history.record?.id) addHistoryButton$2(dialog, history.record.id, current.stylesheetUrl, openHistory);
+						if (history.record?.id) addHistoryButton$2(dialog, history.record.id, openHistory);
 					} else {
 						appendStatus$2(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
 						if (history?.persistenceError) log("Batch lesson access history persistence failed:", history.persistenceError);
@@ -8905,10 +9838,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					log("Batch lesson access history persistence failed:", error);
 				});
 			}
-			dialog.configure = (value = {}) => {
-				current.stylesheetUrl = String(value.stylesheetUrl || current.stylesheetUrl || "");
-				return originalConfigure(value);
-			};
 			dialog.showConfigure = (value = {}) => {
 				current.lessonCatalogue = Array.isArray(value.lessons) ? value.lessons.map(sanitizeLesson) : [];
 				current.attempt = null;
@@ -8956,12 +9885,387 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		});
 	}
 	//#endregion
+	//#region src/components/batch-lesson-access-dialog.styles.js
+	var batchLessonAccessDialogStyles = i$3`
+:host {
+    all: initial;
+}
+
+.edvibe-batch-access-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, .6);
+    color: #1f2937;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.edvibe-batch-access-overlay *,
+.edvibe-batch-access-overlay *::before,
+.edvibe-batch-access-overlay *::after {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.edvibe-batch-access-card {
+    display: flex;
+    flex-direction: column;
+    width: min(760px, calc(100vw - 32px));
+    max-height: min(820px, calc(100vh - 32px));
+    padding: 24px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, .38);
+}
+
+.edvibe-batch-access-header,
+.edvibe-batch-access-lesson-heading,
+.edvibe-batch-access-selection-actions,
+.edvibe-batch-access-email-state,
+.edvibe-batch-access-footer {
+    display: flex;
+    align-items: center;
+}
+
+.edvibe-batch-access-header,
+.edvibe-batch-access-lesson-heading {
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.edvibe-batch-access-header h2,
+.edvibe-batch-access-lesson-heading h3 {
+    margin: 0;
+    color: #111827;
+}
+
+.edvibe-batch-access-header h2 {
+    font-size: 21px;
+    line-height: 1.3;
+}
+
+.edvibe-batch-access-description {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-access-close {
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    color: #6b7280;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.edvibe-batch-access-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    margin-top: 18px;
+}
+
+.edvibe-batch-access-configure > label,
+.edvibe-batch-access-lesson-heading h3 {
+    display: block;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.edvibe-batch-access-emails {
+    display: block;
+    width: 100%;
+    min-height: 112px;
+    margin-top: 7px;
+    padding: 10px 12px;
+    resize: vertical;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    color: #111827;
+    font: inherit;
+    line-height: 1.45;
+    outline: none;
+}
+
+.edvibe-batch-access-emails:focus,
+.edvibe-batch-access-lesson:focus-within,
+.edvibe-batch-access-selection-actions button:focus,
+.edvibe-batch-access-footer button:focus,
+.edvibe-batch-access-close:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, .15);
+    outline: none;
+}
+
+.edvibe-batch-access-email-state {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 7px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.edvibe-batch-access-lesson-heading {
+    margin-top: 20px;
+}
+
+.edvibe-batch-access-selection-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px 12px;
+    color: #374151;
+    font-size: 13px;
+}
+
+.edvibe-batch-access-selection-actions label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.edvibe-batch-access-selection-actions button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2563eb;
+    font: inherit;
+    cursor: pointer;
+}
+
+.edvibe-batch-access-lessons,
+.edvibe-batch-access-errors,
+.edvibe-batch-access-summary,
+.edvibe-batch-access-failures {
+    overflow: auto;
+    max-height: 248px;
+    margin-top: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.edvibe-batch-access-lesson {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1f2937;
+    font-size: 14px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.edvibe-batch-access-lesson:last-child {
+    border-bottom: 0;
+}
+
+.edvibe-batch-access-lesson:hover {
+    background: #eff6ff;
+}
+
+.edvibe-batch-access-lesson input {
+    flex: 0 0 auto;
+    margin-top: 3px;
+}
+
+.edvibe-batch-access-empty,
+.edvibe-batch-access-error {
+    margin: 0;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-access-empty {
+    color: #6b7280;
+    text-align: center;
+}
+
+.edvibe-batch-access-errors {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.edvibe-batch-access-error {
+    border-bottom: 1px solid #fee2e2;
+    color: #b91c1c;
+}
+
+.edvibe-batch-access-error:last-child {
+    border-bottom: 0;
+}
+
+.edvibe-batch-access-failures {
+    border-color: #fed7aa;
+    background: #fff7ed;
+}
+
+.edvibe-batch-access-failure {
+    margin: 0;
+    padding: 12px;
+    border-bottom: 1px solid #ffedd5;
+    color: #9a3412;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.edvibe-batch-access-failure:last-child {
+    border-bottom: 0;
+}
+
+.edvibe-batch-access-summary {
+    padding: 12px;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-line;
+}
+
+.edvibe-batch-access-live-region {
+    flex: 0 0 auto;
+    padding-top: 16px;
+}
+
+.edvibe-batch-access-loading-indicator {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 7px;
+    border: 2px solid #bfdbfe;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    vertical-align: -3px;
+    animation: edvibe-batch-access-spin .8s linear infinite;
+}
+
+@keyframes edvibe-batch-access-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.edvibe-batch-access-status {
+    min-height: 20px;
+    margin: 0;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-access-status.is-error {
+    color: #b91c1c;
+}
+
+.edvibe-batch-access-progress {
+    display: block;
+    width: 100%;
+    height: 11px;
+    margin-top: 10px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 999px;
+    background: #e5e7eb;
+    appearance: none;
+}
+
+.edvibe-batch-access-progress::-webkit-progress-bar {
+    background: #e5e7eb;
+}
+
+.edvibe-batch-access-progress::-webkit-progress-value {
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2563eb, #16a34a);
+}
+
+.edvibe-batch-access-footer {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.edvibe-batch-access-footer button {
+    padding: 10px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #374151;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.edvibe-batch-access-submit,
+.edvibe-batch-access-confirm {
+    border-color: #2563eb !important;
+    background: #2563eb !important;
+    color: #fff !important;
+}
+
+.edvibe-batch-access-footer button:disabled,
+.edvibe-batch-access-close:disabled,
+.edvibe-batch-access-emails:disabled,
+.edvibe-batch-access-selection-actions input:disabled {
+    cursor: not-allowed;
+    opacity: .58;
+}
+
+@media (max-width: 560px) {
+    .edvibe-batch-access-card {
+        width: 100%;
+        max-height: calc(100vh - 16px);
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .edvibe-batch-access-overlay {
+        padding: 8px;
+    }
+
+    .edvibe-batch-access-lesson-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .edvibe-batch-access-selection-actions {
+        justify-content: flex-start;
+    }
+
+    .edvibe-batch-access-footer button {
+        flex: 1 1 180px;
+    }
+}
+
+`;
+	//#endregion
 	//#region src/components/batch-lesson-access-dialog.js
 	var BATCH_ACCESS_DIALOG_TAG = "edvibe-toolbox-batch-access-dialog";
 	var BATCH_ACCESS_OVERLAY_ID = "edvibe-toolbox-batch-access-overlay";
 	var BatchLessonAccessDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			batchLessonAccessDialogStyles
+		];
 		static properties = {
-			stylesheetUrl: { state: true },
 			lessons: { state: true },
 			selectedLessonIds: { state: true },
 			emailState: { state: true },
@@ -8976,7 +10280,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		};
 		constructor() {
 			super();
-			this.stylesheetUrl = "";
 			this.lessons = [];
 			this.selectedLessonIds = /* @__PURE__ */ new Set();
 			this.emailState = {
@@ -9009,7 +10312,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 		configure(options = {}) {
 			options = options && typeof options === "object" ? options : {};
-			if (options.stylesheetUrl !== void 0) this.stylesheetUrl = String(options.stylesheetUrl || "");
 			if (options.lessons !== void 0 || options.emailState !== void 0) this.showConfigure(options);
 			return this;
 		}
@@ -9276,9 +10578,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			const progressValue = this.progress.indeterminate ? A : this.progress.completed;
 			const statusClass = `edvibe-batch-access-status${this.statusError ? " is-error" : ""}`;
 			return b`
-            <link class="edvibe-batch-access-stylesheet" rel="stylesheet"
-                href=${this.stylesheetUrl || A}>
-            <div class="edvibe-batch-access-overlay" @click=${this.handleBackdropClick}>
+<div class="edvibe-batch-access-overlay" @click=${this.handleBackdropClick}>
                 <section class="edvibe-batch-access-card" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-access-title">
                     <header class="edvibe-batch-access-header">
@@ -9795,7 +11095,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			currentRows = [];
 			running = false;
 		}
-		async function open({ stylesheetUrl = "" } = {}) {
+		async function open() {
 			if (active || document.getElementById("edvibe-toolbox-batch-user-management-overlay")) return;
 			if (!canStart()) {
 				window.alert("Another Edvibe Toolbox operation is already running.");
@@ -9816,7 +11116,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				dialog.addEventListener("edvibe-batch-user-management-selection-change", handleSelectionChange);
 				dialog.addEventListener("edvibe-batch-user-management-start", handleStart);
 				dialog.addEventListener("edvibe-batch-user-management-restart", handleRestart);
-				dialog.configure({ stylesheetUrl });
+				dialog.configure();
 				(document.body || document.documentElement).appendChild(dialog);
 				dialog.showChecking("Загружаем пользователей…");
 				log(`Initializing batch user management for MarathonId ${marathonId}.`);
@@ -10012,9 +11312,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		return function createPatchedDialog() {
 			const dialog = createDialog();
 			let startedAt = null;
-			let stylesheetUrl = "";
 			let persistenceSequence = 0;
-			const originalConfigure = dialog.configure.bind(dialog);
 			const originalShowComplete = dialog.showComplete.bind(dialog);
 			const originalShowReview = dialog.showReview.bind(dialog);
 			const originalShowConfigure = dialog.showConfigure.bind(dialog);
@@ -10034,15 +11332,11 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				button.textContent = "Открыть в истории";
 				button.addEventListener("click", () => {
 					dialog.close?.();
-					openHistory(executionId, stylesheetUrl);
+					openHistory(executionId);
 				});
 				dialog.elements?.footer?.appendChild?.(button);
 				if (!dialog.elements?.footer) dialog.shadowRoot?.querySelector?.(".edvibe-batch-user-management-footer")?.appendChild?.(button);
 			}
-			dialog.configure = (options = {}) => {
-				stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || "");
-				return originalConfigure(options);
-			};
 			dialog.showReview = (value) => {
 				startedAt = null;
 				persistenceSequence += 1;
@@ -10092,12 +11386,308 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		};
 	}
 	//#endregion
+	//#region src/components/batch-user-management-dialog.styles.js
+	var batchUserManagementDialogStyles = i$3`
+:host {
+    all: initial;
+}
+
+.edvibe-batch-user-management-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, .6);
+    color: #1f2937;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.edvibe-batch-user-management-overlay *,
+.edvibe-batch-user-management-overlay *::before,
+.edvibe-batch-user-management-overlay *::after {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.edvibe-batch-user-management-card {
+    display: flex;
+    flex-direction: column;
+    width: min(980px, calc(100vw - 32px));
+    max-height: min(820px, calc(100vh - 32px));
+    padding: 24px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, .38);
+}
+
+.edvibe-batch-user-management-header,
+.edvibe-batch-user-management-email-state,
+.edvibe-batch-user-management-footer {
+    display: flex;
+    align-items: center;
+}
+
+.edvibe-batch-user-management-header {
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.edvibe-batch-user-management-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 21px;
+    line-height: 1.3;
+}
+
+.edvibe-batch-user-management-description {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-user-management-close {
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    color: #6b7280;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.edvibe-batch-user-management-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    margin-top: 18px;
+}
+
+.edvibe-batch-user-management-configure > label {
+    display: block;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.edvibe-batch-user-management-emails {
+    display: block;
+    width: 100%;
+    min-height: 112px;
+    margin-top: 7px;
+    padding: 10px 12px;
+    resize: vertical;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    color: #111827;
+    font: inherit;
+    line-height: 1.45;
+    outline: none;
+}
+
+.edvibe-batch-user-management-email-state {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 7px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.edvibe-batch-user-management-table-wrap,
+.edvibe-batch-user-management-errors {
+    overflow: auto;
+    max-height: 350px;
+    margin-top: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.edvibe-batch-user-management-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #1f2937;
+    font-size: 13px;
+}
+
+.edvibe-batch-user-management-table th,
+.edvibe-batch-user-management-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    vertical-align: top;
+}
+
+.edvibe-batch-user-management-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    color: #374151;
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.edvibe-batch-user-management-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.edvibe-batch-user-management-table th:nth-child(2),
+.edvibe-batch-user-management-table th:nth-child(3),
+.edvibe-batch-user-management-table td:nth-child(2),
+.edvibe-batch-user-management-table td:nth-child(3) {
+    width: 150px;
+    text-align: center;
+}
+
+.edvibe-batch-user-management-table th button {
+    display: block;
+    margin: 5px auto 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2563eb;
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.edvibe-batch-user-management-user {
+    min-width: 220px;
+    overflow-wrap: anywhere;
+}
+
+.edvibe-batch-user-management-result {
+    min-width: 220px;
+    color: #4b5563;
+    overflow-wrap: anywhere;
+}
+
+.edvibe-batch-user-management-errors {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.edvibe-batch-user-management-error {
+    margin: 0;
+    padding: 11px 12px;
+    border-bottom: 1px solid #fee2e2;
+    color: #b91c1c;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-user-management-error:last-child {
+    border-bottom: 0;
+}
+
+.edvibe-batch-user-management-live-region {
+    flex: 0 0 auto;
+    padding-top: 16px;
+}
+
+.edvibe-batch-user-management-status {
+    min-height: 20px;
+    margin: 0;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-user-management-status.is-error {
+    color: #b91c1c;
+}
+
+.edvibe-batch-user-management-progress {
+    display: block;
+    width: 100%;
+    height: 11px;
+    margin-top: 10px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 999px;
+    background: #e5e7eb;
+    appearance: none;
+}
+
+.edvibe-batch-user-management-progress::-webkit-progress-bar {
+    background: #e5e7eb;
+}
+
+.edvibe-batch-user-management-progress::-webkit-progress-value {
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2563eb, #dc2626);
+}
+
+.edvibe-batch-user-management-footer {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.edvibe-batch-user-management-footer button {
+    padding: 10px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #374151;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.edvibe-batch-user-management-check,
+.edvibe-batch-user-management-start {
+    border-color: #2563eb !important;
+    background: #2563eb !important;
+    color: #fff !important;
+}
+
+.edvibe-batch-user-management-footer button:disabled,
+.edvibe-batch-user-management-close:disabled,
+.edvibe-batch-user-management-emails:disabled {
+    cursor: not-allowed;
+    opacity: .58;
+}
+
+@media (max-width: 680px) {
+    .edvibe-batch-user-management-card {
+        width: 100%;
+        max-height: calc(100vh - 16px);
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .edvibe-batch-user-management-overlay {
+        padding: 8px;
+    }
+
+    .edvibe-batch-user-management-table {
+        min-width: 760px;
+    }
+}
+
+`;
+	//#endregion
 	//#region src/components/batch-user-management-dialog.js
 	var USER_MANAGEMENT_DIALOG_TAG = "edvibe-toolbox-batch-user-management-dialog";
 	var USER_MANAGEMENT_OVERLAY_ID = "edvibe-toolbox-batch-user-management-overlay";
 	var BatchUserManagementDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			batchUserManagementDialogStyles
+		];
 		static properties = {
-			stylesheetUrl: { state: true },
 			rows: { state: true },
 			emailState: { state: true },
 			emailInput: { state: true },
@@ -10109,7 +11699,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		};
 		constructor() {
 			super();
-			this.stylesheetUrl = "";
 			this.rows = [];
 			this.emailState = {
 				validCount: 0,
@@ -10138,7 +11727,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 		configure(options = {}) {
 			options = options && typeof options === "object" ? options : {};
-			if (options.stylesheetUrl !== void 0) this.stylesheetUrl = String(options.stylesheetUrl || "");
 			return this;
 		}
 		setEmailState(state = {}) {
@@ -10345,8 +11933,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			const locked = this.isLocked();
 			const statusClass = `edvibe-batch-user-management-status${this.statusError ? " is-error" : ""}`;
 			return b`
-            <link class="edvibe-batch-user-management-stylesheet" rel="stylesheet" href=${this.stylesheetUrl || A}>
-            <div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>
+<div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>
                 <section class="edvibe-batch-user-management-card" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-user-management-title">
                     <header class="edvibe-batch-user-management-header">
@@ -11120,7 +12707,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			active = false;
 			onActiveChange(false);
 		}
-		async function open({ stylesheetUrl = "" } = {}) {
+		async function open() {
 			if (active || !canStart()) {
 				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
@@ -11145,7 +12732,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				})]);
 				let discoveryRows = [];
 				dialog.configure({
-					stylesheetUrl,
 					moderators,
 					parseEmailInput,
 					onDiscover({ emailInput }) {
@@ -11213,7 +12799,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					onOpenHistory(executionId) {
 						dialog.remove();
 						release();
-						openHistory(executionId, stylesheetUrl);
+						openHistory(executionId);
 					},
 					onClose() {
 						dialog.remove();
@@ -11232,9 +12818,409 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		return Object.freeze({ open });
 	}
 	//#endregion
+	//#region src/components/batch-user-onboarding-dialog.styles.js
+	var batchUserOnboardingDialogStyles = i$3`
+:host {
+    all: initial;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, .62);
+    color: #1f2937;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.overlay *,
+.overlay *::before,
+.overlay *::after {
+    box-sizing: border-box;
+}
+
+.dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(1180px, calc(100vw - 32px));
+    max-height: min(880px, calc(100vh - 32px));
+    padding: 24px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, .38);
+}
+
+.header,
+.footer,
+.email-state,
+.review-toolbar,
+.result-actions {
+    display: flex;
+    align-items: center;
+}
+
+.header {
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.eyebrow {
+    margin: 0 0 4px;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 21px;
+    line-height: 1.3;
+}
+
+.description {
+    margin: 5px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.icon {
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    color: #6b7280;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    margin-top: 18px;
+}
+
+.configure {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+    gap: 14px 18px;
+}
+
+.field {
+    display: block;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.field > span {
+    display: block;
+    margin-bottom: 7px;
+}
+
+.field small {
+    display: block;
+    margin-top: 5px;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.emails,
+.curator,
+.report {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #111827;
+    font: inherit;
+    line-height: 1.45;
+    outline: none;
+}
+
+.emails,
+.report {
+    resize: vertical;
+}
+
+.emails {
+    min-height: 112px;
+}
+
+.report {
+    min-height: 190px;
+    white-space: pre;
+}
+
+.email-state {
+    grid-column: 1;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: -8px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.curator-field {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+}
+
+.errors {
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.errors p {
+    margin: 0;
+}
+
+.review {
+    margin-top: 18px;
+}
+
+.review-toolbar {
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.review-toolbar strong {
+    color: #374151;
+}
+
+.table-wrap {
+    overflow: auto;
+    max-height: 390px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    min-width: 1020px;
+    border-collapse: collapse;
+    color: #1f2937;
+    font-size: 12px;
+}
+
+th,
+td {
+    padding: 10px 11px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f8fafc;
+    color: #374151;
+    font-weight: 700;
+}
+
+th:nth-child(4),
+th:nth-child(5),
+td:nth-child(4),
+td:nth-child(5) {
+    width: 110px;
+    text-align: center;
+}
+
+th button {
+    display: block;
+    margin: 5px auto 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2563eb;
+    font: inherit;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+td strong,
+td small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+td small {
+    margin-top: 3px;
+    color: #6b7280;
+}
+
+.is-error,
+.row-status {
+    overflow-wrap: anywhere;
+}
+
+.is-error {
+    color: #b91c1c;
+}
+
+.row-status {
+    min-width: 190px;
+    color: #4b5563;
+}
+
+.preflight,
+.result {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    background: #f8fbff;
+}
+
+.preflight h3 {
+    margin: 0 0 7px;
+    color: #111827;
+    font-size: 15px;
+}
+
+.preflight p,
+.preflight ul {
+    margin: 7px 0 0;
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.preflight ul {
+    max-height: 190px;
+    overflow: auto;
+    padding-left: 20px;
+}
+
+.result-actions {
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.live-region {
+    flex: 0 0 auto;
+    padding-top: 14px;
+}
+
+.status {
+    min-height: 20px;
+    margin: 0;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.progress {
+    display: block;
+    width: 100%;
+    height: 10px;
+    margin-top: 9px;
+}
+
+.footer {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 18px;
+}
+
+.footer button,
+.result-actions button {
+    padding: 9px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.primary {
+    border-color: #2563eb !important;
+    background: #2563eb;
+    color: #fff;
+}
+
+.secondary {
+    background: #fff;
+    color: #374151;
+}
+
+button:disabled,
+textarea:disabled,
+select:disabled,
+input:disabled {
+    cursor: not-allowed;
+    opacity: .58;
+}
+
+button:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+    .overlay {
+        padding: 8px;
+    }
+
+    .dialog {
+        width: 100%;
+        max-height: calc(100vh - 16px);
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .configure {
+        grid-template-columns: 1fr;
+    }
+
+    .email-state,
+    .curator-field {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}
+`;
+	//#endregion
 	//#region src/components/batch-user-onboarding-dialog.js
 	var BATCH_USER_ONBOARDING_DIALOG_TAG = "edvibe-toolbox-batch-user-onboarding-dialog";
 	var BatchUserOnboardingDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			batchUserOnboardingDialogStyles
+		];
 		static properties = {
 			options: { state: true },
 			rows: { state: true },
@@ -11509,8 +13495,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			].includes(this.mode) && this.rows.length > 0;
 			const completed = ["complete", "partial-complete"].includes(this.mode);
 			return b`
-            <link class="stylesheet" rel="stylesheet" href=${String(this.options?.stylesheetUrl || "")}>
-            <div class="overlay" @click=${(event) => {
+<div class="overlay" @click=${(event) => {
 				if (event.target === event.currentTarget) this.close();
 			}}>
                 <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="batch-user-onboarding-title">
@@ -12086,7 +14071,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				recipeErrors: adapter?.errors || []
 			});
 		}
-		async function open({ stylesheetUrl = "" } = {}) {
+		async function open() {
 			if (active || document.getElementById("edvibe-toolbox-batch-section-creation-overlay")) return;
 			if (!canStart()) {
 				window.alert("Another Edvibe Toolbox operation is already running.");
@@ -12106,7 +14091,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				dialog.addEventListener("edvibe-batch-section-confirm", confirm);
 				dialog.addEventListener("edvibe-batch-section-copy", copyReport);
 				dialog.addEventListener("edvibe-batch-section-restart", restart);
-				dialog.configure({ stylesheetUrl });
+				dialog.configure();
 				(document.body || document.documentElement).appendChild(dialog);
 				dialog.showLoading("Загружаем уроки марафона…");
 				lessons = await loadLessonCatalogue$1({
@@ -12484,7 +14469,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		const current = dialog.elements?.status?.textContent || "";
 		dialog.setStatus?.(`${current}${current ? " " : ""}${message}`, isError ? "error" : "");
 	}
-	function addHistoryButton$1(dialog, executionId, stylesheetUrl, openHistory) {
+	function addHistoryButton$1(dialog, executionId, openHistory) {
 		dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-history")?.remove?.();
 		const button = (dialog.ownerDocument || globalThis.document)?.createElement?.("button");
 		if (!button) return;
@@ -12493,7 +14478,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		button.textContent = "Открыть в истории";
 		button.addEventListener("click", () => {
 			dialog.close?.();
-			openHistory(executionId, stylesheetUrl);
+			openHistory(executionId);
 		});
 		(dialog.elements?.footer || dialog.shadowRoot?.querySelector?.(".edvibe-batch-section-footer"))?.appendChild?.(button);
 	}
@@ -12506,9 +14491,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			let latestResult = null;
 			let startedAt = null;
 			let terminal = false;
-			let stylesheetUrl = "";
 			let sequence = 0;
-			const originalConfigure = dialog.configure.bind(dialog);
 			const originalShowConfigure = dialog.showConfigure.bind(dialog);
 			const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
 			const originalShowExecution = dialog.showExecution.bind(dialog);
@@ -12551,7 +14534,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					if (currentSequence !== sequence) return;
 					if (history?.stored) {
 						appendStatus$1(dialog, "Результат сохранён в истории.");
-						if (history.record?.id) addHistoryButton$1(dialog, history.record.id, stylesheetUrl, openHistory);
+						if (history.record?.id) addHistoryButton$1(dialog, history.record.id, openHistory);
 					} else {
 						appendStatus$1(dialog, "Экранный результат сохранён, но записать историю не удалось.", true);
 						if (history?.persistenceError) log("Batch section creation history persistence failed:", history.persistenceError);
@@ -12562,10 +14545,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					log("Batch section creation history persistence failed:", error);
 				});
 			}
-			dialog.configure = (options = {}) => {
-				stylesheetUrl = String(options?.stylesheetUrl || stylesheetUrl || "");
-				return originalConfigure(options);
-			};
 			dialog.showConfigure = (...args) => {
 				resetAttempt();
 				return originalShowConfigure(...args);
@@ -12609,6 +14588,616 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			return dialog;
 		};
 	}
+	//#endregion
+	//#region src/components/batch-section-creation-dialog.styles.js
+	var batchSectionCreationDialogStyles = i$3`
+:host {
+    all: initial;
+}
+
+.edvibe-batch-section-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, .68);
+    color: #1f2937;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.edvibe-batch-section-overlay *,
+.edvibe-batch-section-overlay *::before,
+.edvibe-batch-section-overlay *::after {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.edvibe-batch-section-card {
+    display: flex;
+    flex-direction: column;
+    width: min(1120px, calc(100vw - 36px));
+    max-height: min(900px, calc(100vh - 36px));
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, .32);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 30px 100px rgba(15, 23, 42, .46);
+}
+
+.edvibe-batch-section-header,
+.edvibe-batch-section-footer,
+.edvibe-batch-section-heading-row,
+.edvibe-batch-section-selection-actions,
+.edvibe-batch-section-block header,
+.edvibe-batch-section-block-actions,
+.edvibe-batch-section-add-actions {
+    display: flex;
+    align-items: center;
+}
+
+.edvibe-batch-section-header {
+    flex: 0 0 auto;
+    justify-content: space-between;
+    gap: 22px;
+    padding: 22px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f8fafc, #eff6ff);
+}
+
+.edvibe-batch-section-eyebrow {
+    margin: 0 0 4px;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+.edvibe-batch-section-header h2,
+.edvibe-batch-section-heading-row h3,
+.edvibe-batch-section-preview h3,
+.edvibe-batch-section-summary h3,
+.edvibe-batch-section-results h3,
+.edvibe-batch-section-errors h3 {
+    margin: 0;
+    color: #111827;
+}
+
+.edvibe-batch-section-header h2 {
+    font-size: 22px;
+    line-height: 1.25;
+}
+
+.edvibe-batch-section-description,
+.edvibe-batch-section-heading-row p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.edvibe-batch-section-close {
+    flex: 0 0 auto;
+    padding: 4px 9px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.edvibe-batch-section-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 22px 24px 0;
+}
+
+.edvibe-batch-section-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, .82fr) minmax(380px, 1.18fr);
+    gap: 22px;
+}
+
+.edvibe-batch-section-column {
+    min-width: 0;
+}
+
+.edvibe-batch-section-field {
+    display: grid;
+    gap: 7px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.edvibe-batch-section-field input,
+.edvibe-batch-section-field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #fff;
+    color: #111827;
+    font: 400 14px/1.45 "Segoe UI", Arial, sans-serif;
+    outline: none;
+}
+
+.edvibe-batch-section-field textarea {
+    resize: vertical;
+    min-height: 92px;
+}
+
+.edvibe-batch-section-field input:focus,
+.edvibe-batch-section-field textarea:focus,
+.edvibe-batch-section-lesson:focus-within,
+.edvibe-batch-section-overlay button:focus-visible {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    outline: none;
+}
+
+.edvibe-batch-section-heading-row {
+    justify-content: space-between;
+    gap: 14px;
+    margin: 20px 0 10px;
+}
+
+.edvibe-batch-section-heading-row h3,
+.edvibe-batch-section-preview h3 {
+    font-size: 14px;
+}
+
+.edvibe-batch-section-selection-actions,
+.edvibe-batch-section-add-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.edvibe-batch-section-selection-actions button,
+.edvibe-batch-section-add-actions button,
+.edvibe-batch-section-block-actions button {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    font: 650 12px/1.2 "Segoe UI", Arial, sans-serif;
+    cursor: pointer;
+}
+
+.edvibe-batch-section-selection-actions button,
+.edvibe-batch-section-add-actions button {
+    padding: 8px 10px;
+}
+
+.edvibe-batch-section-add-actions {
+    justify-content: flex-start;
+    margin-bottom: 10px;
+}
+
+.edvibe-batch-section-add-actions button {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.edvibe-batch-section-lessons {
+    overflow: auto;
+    max-height: 390px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.edvibe-batch-section-lesson {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1f2937;
+    font-size: 13px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.edvibe-batch-section-lesson:last-child {
+    border-bottom: 0;
+}
+
+.edvibe-batch-section-lesson:hover {
+    background: #f8fafc;
+}
+
+.edvibe-batch-section-lesson input {
+    flex: 0 0 auto;
+    margin-top: 2px;
+}
+
+.edvibe-batch-section-blocks {
+    display: grid;
+    gap: 10px;
+}
+
+.edvibe-batch-section-block {
+    padding: 13px;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+    background: #f8fbff;
+}
+
+.edvibe-batch-section-block header {
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 11px;
+}
+
+.edvibe-batch-section-block strong {
+    color: #1e3a8a;
+    font-size: 13px;
+}
+
+.edvibe-batch-section-block > .edvibe-batch-section-field + .edvibe-batch-section-field {
+    margin-top: 10px;
+}
+
+.edvibe-batch-section-block-actions {
+    gap: 5px;
+}
+
+.edvibe-batch-section-block-actions button {
+    min-width: 31px;
+    padding: 6px 8px;
+}
+
+.edvibe-batch-section-block-actions button[data-block-action="remove"] {
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.edvibe-batch-section-preview {
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px dashed #94a3b8;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.edvibe-batch-section-preview-name {
+    margin: 8px 0;
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.edvibe-batch-section-preview ol,
+.edvibe-batch-section-summary ul,
+.edvibe-batch-section-errors ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
+}
+
+.edvibe-batch-section-preview li,
+.edvibe-batch-section-summary li,
+.edvibe-batch-section-errors li {
+    margin: 4px 0;
+    overflow-wrap: anywhere;
+}
+
+.edvibe-batch-section-protocol,
+.edvibe-batch-section-errors,
+.edvibe-batch-section-summary,
+.edvibe-batch-section-results {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.48;
+}
+
+.edvibe-batch-section-protocol {
+    border-color: #fcd34d;
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.edvibe-batch-section-protocol p {
+    margin: 5px 0 0;
+}
+
+.edvibe-batch-section-errors {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.edvibe-batch-section-summary {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+}
+
+.edvibe-batch-section-summary-group {
+    margin-top: 13px;
+    padding-top: 11px;
+    border-top: 1px solid rgba(37, 99, 235, .18);
+}
+
+.edvibe-batch-section-summary-group h4 {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 13px;
+}
+
+.edvibe-batch-section-result-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.edvibe-batch-section-result {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) auto;
+    gap: 4px 12px;
+    padding: 11px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.edvibe-batch-section-result strong {
+    color: #111827;
+}
+
+.edvibe-batch-section-result > span {
+    color: #475569;
+    font-weight: 700;
+}
+
+.edvibe-batch-section-result p,
+.edvibe-batch-section-result small {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #64748b;
+    overflow-wrap: anywhere;
+}
+
+.edvibe-batch-section-result.is-created {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+.edvibe-batch-section-result.is-failed,
+.edvibe-batch-section-result.is-partially_created {
+    border-color: #fed7aa;
+    background: #fff7ed;
+}
+
+.edvibe-batch-section-result.is-rejected,
+.edvibe-batch-section-result.is-not_attempted {
+    background: #f8fafc;
+}
+
+.edvibe-batch-section-fatal-note {
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: #fef2f2;
+    color: #991b1b;
+    font-weight: 650;
+}
+
+.edvibe-batch-section-empty {
+    margin: 0;
+    padding: 14px;
+    color: #64748b;
+    font-size: 13px;
+    text-align: center;
+}
+
+.edvibe-batch-section-live-region {
+    flex: 0 0 auto;
+    padding: 14px 24px 0;
+}
+
+.edvibe-batch-section-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 7px;
+    border: 2px solid #bfdbfe;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    vertical-align: -3px;
+    animation: edvibe-batch-section-spin .8s linear infinite;
+}
+
+@keyframes edvibe-batch-section-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.edvibe-batch-section-status {
+    min-height: 19px;
+    margin: 0;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-section-status[data-state="error"] {
+    color: #b91c1c;
+}
+
+.edvibe-batch-section-status[data-state="warning"] {
+    color: #a16207;
+}
+
+.edvibe-batch-section-progress {
+    display: block;
+    width: 100%;
+    height: 10px;
+    margin-top: 9px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 999px;
+    background: #e5e7eb;
+    appearance: none;
+}
+
+.edvibe-batch-section-progress::-webkit-progress-bar {
+    background: #e5e7eb;
+}
+
+.edvibe-batch-section-progress::-webkit-progress-value {
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2563eb, #16a34a);
+}
+
+.edvibe-batch-section-footer {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 18px 24px 22px;
+}
+
+.edvibe-batch-section-footer button {
+    padding: 10px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #fff;
+    color: #334155;
+    font: 650 13px/1.2 "Segoe UI", Arial, sans-serif;
+    cursor: pointer;
+}
+
+.edvibe-batch-section-preflight,
+.edvibe-batch-section-confirm {
+    border-color: #2563eb !important;
+    background: #2563eb !important;
+    color: #fff !important;
+}
+
+.edvibe-batch-section-overlay button:hover:not(:disabled) {
+    filter: brightness(.97);
+}
+
+.edvibe-batch-section-overlay button:disabled,
+.edvibe-batch-section-overlay input:disabled,
+.edvibe-batch-section-overlay textarea:disabled {
+    cursor: not-allowed;
+    opacity: .56;
+}
+
+@media (max-width: 820px) {
+    .edvibe-batch-section-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edvibe-batch-section-lessons {
+        max-height: 260px;
+    }
+}
+
+@media (max-width: 560px) {
+    .edvibe-batch-section-overlay {
+        padding: 8px;
+    }
+
+    .edvibe-batch-section-card {
+        width: 100%;
+        max-height: calc(100vh - 16px);
+        border-radius: 13px;
+    }
+
+    .edvibe-batch-section-header,
+    .edvibe-batch-section-body,
+    .edvibe-batch-section-live-region,
+    .edvibe-batch-section-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .edvibe-batch-section-heading-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .edvibe-batch-section-selection-actions {
+        justify-content: flex-start;
+    }
+
+    .edvibe-batch-section-footer button {
+        flex: 1 1 170px;
+    }
+
+    .edvibe-batch-section-result {
+        grid-template-columns: 1fr;
+    }
+}
+
+`;
+	//#endregion
+	//#region src/components/batch-section-image-upload.styles.js
+	var batchSectionImageUploadStyles = i$3`
+.edvibe-batch-section-file-input {
+    cursor: pointer;
+}
+
+.edvibe-batch-section-file-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-section-file-details button {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    font: 650 12px/1.2 "Segoe UI", Arial, sans-serif;
+    cursor: pointer;
+}
+
+.edvibe-batch-section-file-error {
+    margin: 8px 0 0;
+    color: #b91c1c;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.edvibe-batch-section-image-preview {
+    display: block;
+    width: 100%;
+    max-height: 240px;
+    margin-top: 10px;
+    object-fit: contain;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+`;
 	//#endregion
 	//#region src/components/batch-section-image-upload.js
 	var IMAGE_PLACEHOLDER_PREFIX$1 = "https://media-files-y.edvibe.com/local-upload/";
@@ -12666,13 +15255,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			previewUrl: String(block?.previewUrl || ""),
 			fileError: String(block?.fileError || "")
 		};
-	}
-	function resolveEnhancementStylesheet(stylesheetUrl) {
-		try {
-			return new URL("./batch-section-image-upload.css", stylesheetUrl).href;
-		} catch (_) {
-			return "";
-		}
 	}
 	var BatchSectionImageUploadController = class {
 		constructor({ registry = createRegistry(), urlApi = globalThis.URL, cryptoApi = globalThis.crypto } = {}) {
@@ -12742,9 +15324,13 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 	var BATCH_SECTION_DIALOG_TAG = "edvibe-toolbox-batch-section-creation-dialog";
 	var BATCH_SECTION_OVERLAY_ID = "edvibe-toolbox-batch-section-creation-overlay";
 	var BatchSectionCreationDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			batchSectionCreationDialogStyles,
+			batchSectionImageUploadStyles
+		];
 		static properties = {
-			stylesheetUrl: { state: true },
-			imageStylesheetUrl: { state: true },
 			lessons: { state: true },
 			selectedLessonIds: { state: true },
 			blocks: { state: true },
@@ -12762,8 +15348,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		};
 		constructor() {
 			super();
-			this.stylesheetUrl = "";
-			this.imageStylesheetUrl = "";
 			this.imageController = controller;
 			this.lessons = [];
 			this.selectedLessonIds = /* @__PURE__ */ new Set();
@@ -12798,10 +15382,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		}
 		configure(options = {}) {
 			options = options && typeof options === "object" ? options : {};
-			if (options.stylesheetUrl !== void 0) {
-				this.stylesheetUrl = String(options.stylesheetUrl || "");
-				this.imageStylesheetUrl = resolveEnhancementStylesheet(this.stylesheetUrl);
-			}
 			if (options.imageController) this.imageController = options.imageController;
 			return this;
 		}
@@ -13192,11 +15772,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			const busy = this.isBusy();
 			const canPreflight = this.canPreflight();
 			return b`
-            <link class="edvibe-batch-section-stylesheet" rel="stylesheet"
-                href=${this.stylesheetUrl || A}>
-            <link class="edvibe-batch-section-image-stylesheet" rel="stylesheet"
-                href=${this.imageStylesheetUrl || A}>
-            <div class="edvibe-batch-section-overlay" @click=${this.onBackdrop}>
+<div class="edvibe-batch-section-overlay" @click=${this.onBackdrop}>
                 <section class="edvibe-batch-section-card" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-section-title">
                     <header class="edvibe-batch-section-header">
@@ -13851,7 +16427,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 	}
 	function createBatchSectionDeletionFeature$1({ sendRequest, getConnectionState, wait, canStart, onActiveChange, createDialog, copyText, persistExecution = async () => Object.freeze({ stored: false }), openHistory = () => {}, log = () => {} }) {
 		let active = false;
-		async function open({ stylesheetUrl } = {}) {
+		async function open() {
 			if (active || !canStart()) {
 				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
@@ -13875,7 +16451,6 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					marathonId
 				});
 				dialog.configure({
-					stylesheetUrl,
 					marathonId,
 					lessons,
 					async onInspect(input) {
@@ -13928,7 +16503,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 						dialog.remove();
 						active = false;
 						onActiveChange(false);
-						openHistory(executionId, stylesheetUrl);
+						openHistory(executionId);
 					},
 					onClose() {
 						dialog.remove();
@@ -14298,9 +16873,20 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		return installHistoryAwareFeature(batch_section_deletion_exports).createBatchSectionDeletionFeature(options);
 	}
 	//#endregion
+	//#region src/components/batch-section-deletion-dialog.styles.js
+	var batchSectionDeletionDialogStyles = i$3`
+:host{all:initial;font-family:Inter,system-ui,sans-serif;color:#202124}.overlay{position:fixed;inset:0;z-index:2147483647;background:rgba(16,20,30,.66);display:grid;place-items:center;padding:24px}.dialog{width:min(900px,96vw);max-height:92vh;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}.dialog header,.dialog footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-bottom:1px solid #e6e8ec}.dialog footer{border-bottom:0;border-top:1px solid #e6e8ec;justify-content:flex-end}.dialog h2,.dialog p{margin:0}.dialog p{margin-top:4px;color:#68707d}.dialog main{padding:20px 22px;overflow:auto;display:grid;gap:16px}label{display:grid;gap:6px;font-weight:600}input[type=text]{padding:10px 12px;border:1px solid #b9c0ca;border-radius:8px;font:inherit}.toolbar{display:flex;align-items:center;gap:8px}.selection{margin-left:auto;color:#68707d}.lessons{border:1px solid #dde1e7;border-radius:10px;max-height:280px;overflow:auto}.lesson{display:flex;grid-template-columns:none;align-items:center;gap:10px;padding:10px 12px;font-weight:400;border-bottom:1px solid #edf0f3}.lesson:last-child{border-bottom:0}.status{padding:10px 12px;background:#f3f5f8;border-radius:8px}.preflight,.result{border:1px solid #dde1e7;border-radius:10px;padding:14px}.preflight h3,.preflight h4{margin:0 0 8px}.preflight dl{display:flex;gap:20px;margin:0 0 14px}.preflight dl div{display:flex;gap:6px}.preflight dd{margin:0;font-weight:700}.preflight ul{margin:0 0 14px;padding-left:20px}.result textarea{box-sizing:border-box;width:100%;min-height:220px;resize:vertical;font:12px/1.5 ui-monospace,monospace}.result-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.result-actions .history{background:#315efb;color:#fff}button{border:0;border-radius:8px;padding:9px 13px;font:600 14px/1.2 inherit;background:#eef1f5;color:#222;cursor:pointer}button:hover{filter:brightness(.97)}button:disabled{opacity:.5;cursor:not-allowed}.inspect{background:#315efb;color:#fff}.danger{background:#c62828;color:#fff}.secondary{background:#eef1f5}.icon{font-size:24px;line-height:1;padding:5px 9px;background:transparent}@media(max-width:640px){.overlay{padding:8px}.dialog{max-height:98vh}.dialog header,.dialog footer,.dialog main{padding:14px}.dialog footer{flex-wrap:wrap}.preflight dl{flex-wrap:wrap}}
+
+`;
+	//#endregion
 	//#region src/components/batch-section-deletion-dialog.js
 	var BATCH_SECTION_DELETION_DIALOG_TAG = "edvibe-toolbox-batch-section-deletion-dialog";
 	var BatchSectionDeletionDialog = class extends i {
+		static styles = [
+			componentFoundationStyles,
+			dialogFoundationStyles,
+			batchSectionDeletionDialogStyles
+		];
 		static properties = {
 			options: { state: true },
 			sectionName: { state: true },
@@ -14431,8 +17017,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 			const lessons = this.options?.lessons || [];
 			const canExecute = Boolean(this.plan?.eligible?.length) && !this.resultVisible;
 			return b`
-            <link rel="stylesheet" href=${String(this.options?.stylesheetUrl || "")}>
-            <div class="overlay">
+<div class="overlay">
                 <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="title">
                     <header>
                         <div><h2 id="title">Delete section from lessons</h2><p>Every lesson is inspected before any deletion.</p></div>
@@ -14592,10 +17177,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		createDialog: () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
 		copyText: (text) => navigator.clipboard.writeText(text),
 		persistExecution: historyService.persistTerminal,
-		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-			stylesheetUrl: new URL("execution-history-dialog.css", sourceStylesheetUrl).href,
-			executionId
-		}),
+		openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
 		getLocationHref: () => window.location.href,
 		getMarathonName: () => document.querySelector("h1")?.textContent?.trim() || document.title || null,
 		log: createMainLog("BatchAccessHistory")
@@ -14603,10 +17185,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 	var createBatchUserManagementDialog = createHistoryAwareDialog$1({
 		createDialog: () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
 		persistExecution: historyService.persistTerminal,
-		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-			stylesheetUrl: new URL("execution-history-dialog.css", sourceStylesheetUrl).href,
-			executionId
-		}),
+		openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
 		getLocationHref: () => window.location.href,
 		getMarathonName: () => document.querySelector("h1")?.textContent?.trim() || document.title || null,
 		log: createMainLog("BatchUserManagementHistory")
@@ -14629,10 +17208,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		createDialog: () => document.createElement(BATCH_USER_ONBOARDING_DIALOG_TAG),
 		copyText: (text) => navigator.clipboard.writeText(text),
 		persistExecution: historyService.persistTerminal,
-		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-			stylesheetUrl: new URL("execution-history-dialog.css", sourceStylesheetUrl).href,
-			executionId
-		}),
+		openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
 		getLocationHref: () => window.location.href,
 		getMarathonName: () => document.querySelector("h1")?.textContent?.trim() || document.title || null,
 		getRequestContext: () => ({ host: window.location.hostname }),
@@ -14641,10 +17217,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 	var createBatchSectionCreationDialog = createHistoryAwareDialog({
 		createDialog: () => document.createElement(BATCH_SECTION_DIALOG_TAG),
 		persistExecution: historyService.persistTerminal,
-		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-			stylesheetUrl: new URL("execution-history-dialog.css", sourceStylesheetUrl).href,
-			executionId
-		}),
+		openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
 		getLocationHref: () => window.location.href,
 		getMarathonName: () => document.querySelector("h1")?.textContent?.trim() || document.title || null,
 		log: createMainLog("BatchSectionCreationHistory")
@@ -14673,29 +17246,23 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		createDialog: () => document.createElement(BATCH_SECTION_DELETION_DIALOG_TAG),
 		copyText: (text) => navigator.clipboard.writeText(text),
 		persistExecution: historyService.persistTerminal,
-		openHistory: (executionId, sourceStylesheetUrl) => executionHistoryFeature.open({
-			stylesheetUrl: new URL("execution-history-dialog.css", sourceStylesheetUrl).href,
-			executionId
-		}),
+		openHistory: (executionId) => executionHistoryFeature.open({ executionId }),
 		log: createMainLog("BatchSectionDeletion")
 	});
 	window.addEventListener("message", (event) => {
 		if (event.source !== window) return;
 		const data = event.data || {};
-		if (data.type === "EDVIBE_TOOLBOX_START_ALL") marathonExportFeature.start({ stylesheetUrl: data.stylesheetUrl });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_RESET") lessonResetFeature.open({ stylesheetUrl: data.stylesheetUrl });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS") batchLessonAccessFeature.open({ stylesheetUrl: data.stylesheetUrl });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING") batchUserOnboardingFeature.open({ stylesheetUrl: data.stylesheetUrl });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT") batchUserManagementFeature.open({ stylesheetUrl: data.stylesheetUrl });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION") batchSectionCreationFeature.open({ stylesheetUrl: data.stylesheetUrl });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION") batchSectionDeletionFeature.open({ stylesheetUrl: data.stylesheetUrl });
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY") executionHistoryFeature.open({
-			stylesheetUrl: data.stylesheetUrl,
-			executionId: data.executionId || null
-		});
-		if (data.type === "EDVIBE_TOOLBOX_OPEN_RECORDER") if (recorderOpen) actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
+		if (data.type === "EDVIBE_TOOLBOX_START_ALL") marathonExportFeature.start();
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_RESET") lessonResetFeature.open();
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_LESSON_ACCESS") batchLessonAccessFeature.open();
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_USER_ONBOARDING") batchUserOnboardingFeature.open();
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_USER_MANAGEMENT") batchUserManagementFeature.open();
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_CREATION") batchSectionCreationFeature.open();
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_BATCH_SECTION_DELETION") batchSectionDeletionFeature.open();
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_EXECUTION_HISTORY") executionHistoryFeature.open({ executionId: data.executionId || null });
+		if (data.type === "EDVIBE_TOOLBOX_OPEN_RECORDER") if (recorderOpen) actionRecorderFeature.open();
 		else if (operationGuard.activate("recording")) try {
-			actionRecorderFeature.open({ stylesheetUrl: data.stylesheetUrl });
+			actionRecorderFeature.open();
 		} catch (error) {
 			operationGuard.release("recording");
 			throw error;

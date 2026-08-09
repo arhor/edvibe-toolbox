@@ -14,26 +14,6 @@
   "action": {
     "default_popup": "popup.html"
   },
-  "web_accessible_resources": [
-    {
-      "matches": [
-        "*://*.edvibe.com/*"
-      ],
-      "resources": [
-        "src/components/reset-lessons-dialog.css",
-        "src/components/action-recorder-dialog.css",
-        "src/components/export-progress-dialog.css",
-        "src/components/batch-lesson-access-dialog.css",
-        "src/components/batch-user-onboarding-dialog.css",
-        "src/components/batch-user-management-dialog.css",
-        "src/components/batch-section-creation-dialog.css",
-        "src/components/batch-section-image-upload.css",
-        "src/components/batch-section-deletion-dialog.css",
-        "src/components/execution-history-dialog.css"
-      ],
-      "use_dynamic_url": false
-    }
-  ],
   "content_scripts": [
     {
       "js": [
