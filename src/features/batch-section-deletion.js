@@ -1,17 +1,8 @@
+import { createFeatureError as featureError, parseMarathonId } from '../shared/batch-workflow-primitives.js';
+import { getLessonById, loadAllMarathonLessons } from '../shared/edvibe-marathon-api.js';
+
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
 const EXPECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE', 'REQUEST_TIMEOUT', 'SEND_FAILED', 'WS_UNAVAILABLE']);
-
-function featureError(code, message, details = {}) {
-    const error = new Error(message);
-    error.code = code;
-    Object.assign(error, details);
-    return error;
-}
-
-function parseMarathonId(url) {
-    const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
-    return match ? Number(match[1]) : null;
-}
 
 function normalizeSectionName(value) {
     const name = String(value || '').trim();
@@ -95,22 +86,7 @@ function buildDeleteRequest(entry) {
 }
 
 async function loadLessonCatalogue({ sendRequest, marathonId, pageSize = 100 }) {
-    const items = [];
-    let count = null;
-    while (count === null || items.length < count) {
-        const response = await sendRequest('MarathonLessonWsController', 'GetMarathonLessonsPagination', 'Marathons', {
-            MarathonId: marathonId,
-            SearchTerm: '',
-            Page: { Skip: items.length, Take: pageSize }
-        });
-        const value = response?.Value ?? response?.value;
-        const next = value?.Items;
-        count = value?.Page?.Count;
-        if (!Array.isArray(next) || !Number.isInteger(count) || (next.length === 0 && items.length < count)) {
-            throw featureError('INVALID_RESPONSE', 'Lesson catalogue pagination was invalid.');
-        }
-        items.push(...next);
-    }
+    const items = await loadAllMarathonLessons({ sendRequest, marathonId, pageSize });
     return items.map(normalizeLesson);
 }
 
@@ -120,7 +96,7 @@ async function inspectLessonsSequentially({ lessons, selectedLessonIds, sendRequ
     const inspections = new Map();
     for (const [index, lesson] of targets.entries()) {
         try {
-            const response = await sendRequest('LessonWsController', 'GetLessonWithId', 'Books', { LessonId: lesson.lessonId });
+            const response = await getLessonById({ sendRequest, lessonId: lesson.lessonId });
             extractNormalSections(response);
             inspections.set(lesson.lessonId, { response });
         } catch (error) {

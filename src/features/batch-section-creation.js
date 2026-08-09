@@ -1,3 +1,6 @@
+import { createFeatureError, parseMarathonId } from '../shared/batch-workflow-primitives.js';
+import { getLessonById, loadAllMarathonLessons } from '../shared/edvibe-marathon-api.js';
+
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
 const TRANSIENT_CODES = new Set(['WS_UNAVAILABLE', 'REQUEST_TIMEOUT', 'SEND_FAILED']);
@@ -7,18 +10,6 @@ const EXPECTED_WRITE_CODES = new Set([
     'INVALID_RESPONSE'
 ]);
 const TOKEN_PATTERN = /\{\{\s*([^{}]+?)\s*\}\}/g;
-
-function createFeatureError(code, message, details = {}) {
-    const error = new Error(message);
-    error.code = code;
-    Object.assign(error, details);
-    return error;
-}
-
-function parseMarathonId(url) {
-    const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
-    return match ? Number(match[1]) : null;
-}
 
 function normalizeUrl(value) {
     const text = String(value || '').trim();
@@ -340,30 +331,7 @@ function createRecordedCreationAdapter({
 }
 
 async function loadLessonCatalogue({ sendRequest, marathonId, pageSize = 100 }) {
-    let items = [];
-    let total = null;
-    while (total === null || items.length < total) {
-        const response = await sendRequest(
-            'MarathonLessonWsController',
-            'GetMarathonLessonsPagination',
-            'Marathons',
-            {
-                MarathonId: marathonId,
-                SearchTerm: '',
-                Page: { Skip: items.length, Take: pageSize }
-            }
-        );
-        const next = response?.Value?.Items;
-        const count = response?.Value?.Page?.Count;
-        if (!Array.isArray(next) || !Number.isInteger(count)) {
-            throw createFeatureError('INVALID_RESPONSE', 'Lesson catalogue pagination was invalid.');
-        }
-        if (next.length === 0 && items.length < count) {
-            throw createFeatureError('INVALID_RESPONSE', 'Lesson catalogue pagination stalled.');
-        }
-        items = items.concat(next);
-        total = count;
-    }
+    const items = await loadAllMarathonLessons({ sendRequest, marathonId, pageSize });
     return items.map(normalizeLesson);
 }
 
@@ -379,12 +347,7 @@ async function inspectLessonsSequentially({
     const inspections = new Map();
     for (const [index, lesson] of targets.entries()) {
         try {
-            const structure = await sendRequest(
-                'LessonWsController',
-                'GetLessonWithId',
-                'Books',
-                { LessonId: lesson.lessonId }
-            );
+            const structure = await getLessonById({ sendRequest, lessonId: lesson.lessonId });
             inspections.set(Number(lesson.lessonId), { structure });
         } catch (error) {
             inspections.set(Number(lesson.lessonId), { error });
