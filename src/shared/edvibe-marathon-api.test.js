@@ -3,6 +3,8 @@ const assert = require('node:assert/strict');
 
 const {
     createEdvibeMarathonApi,
+    getLessonById,
+    loadAllMarathonLessons,
     loadAllPupilLessons,
     loadAllPupils
 } = require('./edvibe-marathon-api.js');
@@ -60,6 +62,49 @@ test('loads complete pupil lesson state without exposing controller details to f
     ]);
 });
 
+test('loads marathon lesson catalogue pages behind the Edvibe API boundary', async () => {
+    const calls = [];
+    const responses = [page([{ LessonId: 1 }], 2), page([{ LessonId: 2 }], 2)];
+    const lessons = await loadAllMarathonLessons({
+        marathonId: 77,
+        pageSize: 1,
+        sendRequest: async (...args) => {
+            calls.push(args);
+            return responses.shift();
+        }
+    });
+
+    assert.deepEqual(lessons.map(({ LessonId }) => LessonId), [1, 2]);
+    assert.deepEqual(calls[0], [
+        'MarathonLessonWsController',
+        'GetMarathonLessonsPagination',
+        'Marathons',
+        {
+            MarathonId: 77,
+            SearchTerm: '',
+            Page: { Skip: 0, Take: 1 }
+        }
+    ]);
+});
+
+test('loads a lesson structure through one controller boundary', async () => {
+    const calls = [];
+    const response = { Value: { Sections: [] } };
+    assert.equal(await getLessonById({
+        lessonId: 42,
+        sendRequest: async (...args) => {
+            calls.push(args);
+            return response;
+        }
+    }), response);
+    assert.deepEqual(calls[0], [
+        'LessonWsController',
+        'GetLessonWithId',
+        'Books',
+        { LessonId: 42 }
+    ]);
+});
+
 test('bound API captures transport dependency once', async () => {
     const calls = [];
     const api = createEdvibeMarathonApi({
@@ -70,7 +115,8 @@ test('bound API captures transport dependency once', async () => {
     });
 
     assert.deepEqual(await api.loadAllPupils({ marathonId: 7 }), []);
-    assert.equal(calls.length, 1);
+    assert.deepEqual(await api.loadAllMarathonLessons({ marathonId: 7 }), []);
+    assert.equal(calls.length, 2);
 });
 
 test('rejects malformed pagination at the API boundary', async () => {
