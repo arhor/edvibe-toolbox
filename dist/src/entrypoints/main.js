@@ -7456,7 +7456,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 		log("Marathon workspace archive downloaded:", downloadName);
 		return zipBlob;
 	}
-	function parseMarathonId$8(url) {
+	function parseMarathonId$5(url) {
 		const match = String(url || "").match(/marathon\/(\d+)/);
 		return match ? Number(match[1]) : null;
 	}
@@ -7485,7 +7485,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 					loadedSections: 0,
 					totalSections: 0
 				});
-				const marathonId = parseMarathonId$8(getCurrentUrl());
+				const marathonId = parseMarathonId$5(getCurrentUrl());
 				if (!marathonId) {
 					progressOverlay.error("Failed to find a valid MarathonId in the current page URL.");
 					notifyStatus("error", "Invalid marathon URL.");
@@ -7603,7 +7603,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 	//#region src/features/reset-lessons.js
 	var RESET_DIALOG_TAG = "edvibe-toolbox-reset-dialog";
 	var RESET_OVERLAY_ID = "edvibe-toolbox-reset-overlay";
-	function parseMarathonId$7(url) {
+	function parseMarathonId$4(url) {
 		const match = String(url || "").match(/marathon\/(\d+)/);
 		return match ? Number(match[1]) : null;
 	}
@@ -7771,7 +7771,7 @@ while (n === a[++i] && n === a[++i] && n === a[++i] && n === a[++i] && n === a[+
 				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
 			}
-			const marathonId = parseMarathonId$7(window.location.href);
+			const marathonId = parseMarathonId$4(window.location.href);
 			if (!marathonId) {
 				window.alert("Open an Edvibe marathon page before resetting lessons.");
 				return;
@@ -8849,63 +8849,27 @@ textarea {
 		ActionRecorderDialog
 	};
 	//#endregion
-	//#region src/features/batch-lesson-access.js
-	var EMAIL_PATTERN$1 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	var TRANSIENT_CODES$1 = /* @__PURE__ */ new Set([
+	//#region src/shared/batch-workflow-primitives.js
+	var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	var TRANSIENT_CODES = /* @__PURE__ */ new Set([
 		"WS_UNAVAILABLE",
 		"REQUEST_TIMEOUT",
 		"SEND_FAILED"
 	]);
-	var OPERATIONAL_WRITE_CODES = /* @__PURE__ */ new Set([
-		...TRANSIENT_CODES$1,
-		"SERVER_REJECTED",
-		"INVALID_RESPONSE"
-	]);
-	var BATCH_ACCESS_DIALOG_TAG$1 = "edvibe-toolbox-batch-access-dialog";
-	var BATCH_ACCESS_OVERLAY_ID$1 = "edvibe-toolbox-batch-access-overlay";
-	function createFeatureError$2(code, message, details = {}) {
+	function createFeatureError(code, message, details = {}) {
 		const error = new Error(message);
 		error.code = code;
 		Object.assign(error, details);
 		return error;
 	}
-	function getPupilId$1(pupil) {
-		return pupil.PupilId === void 0 ? pupil.Id : pupil.PupilId;
-	}
-	function getMarathonPupilId$1(pupil) {
-		return pupil.MarathonPupilId === void 0 ? pupil.Id : pupil.MarathonPupilId;
-	}
-	function isTransientError$1(error, getConnectionState) {
-		if (!TRANSIENT_CODES$1.has(error?.code)) return false;
-		if (error.code !== "SEND_FAILED") return true;
-		return Boolean(error.cause) && !getConnectionState().isOpen;
-	}
-	async function runWithRetry$1(operation, { wait, getConnectionState, retryDelays = [1e3, 3e3] }) {
-		let attempts = 0;
-		while (attempts <= retryDelays.length) {
-			attempts += 1;
-			try {
-				if (attempts > 1 && !getConnectionState().isOpen) throw createFeatureError$2("WS_UNAVAILABLE", "The Edvibe connection is unavailable.");
-				return {
-					value: await operation(),
-					attempts
-				};
-			} catch (error) {
-				if (!isTransientError$1(error, getConnectionState) || attempts > retryDelays.length) {
-					error.attempts = attempts;
-					throw error;
-				}
-				await wait(retryDelays[attempts - 1]);
-			}
-		}
-	}
-	function parseMarathonId$6(url) {
+	function parseMarathonId$3(url) {
 		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
 		return match ? Number(match[1]) : null;
 	}
-	function parseEmailInput$1(value) {
+	function parseEmailInput$1(value, { includeItems = false } = {}) {
 		const entries = [];
 		const malformed = [];
+		const items = [];
 		const seen = /* @__PURE__ */ new Set();
 		for (const token of String(value || "").split(/[,;\r\n]+/)) {
 			const input = token.trim();
@@ -8913,51 +8877,95 @@ textarea {
 			const normalized = input.toLowerCase();
 			if (seen.has(normalized)) continue;
 			seen.add(normalized);
-			if (!EMAIL_PATTERN$1.test(input)) {
-				malformed.push(input);
-				continue;
-			}
-			entries.push({
+			const isValid = EMAIL_PATTERN.test(input);
+			if (!isValid) malformed.push(input);
+			else entries.push({
 				input,
 				normalized
 			});
+			if (includeItems) items.push({
+				input,
+				normalized,
+				isValid
+			});
 		}
-		return {
+		return includeItems ? {
+			entries,
+			malformed,
+			items
+		} : {
 			entries,
 			malformed
 		};
 	}
-	function appendPage$1(items, total, nextItems, nextTotal, label) {
-		if (!Array.isArray(nextItems) || !Number.isInteger(nextTotal) || nextTotal < 0 || total !== null && nextTotal !== total || nextItems.length === 0 && items.length < nextTotal || items.length + nextItems.length > nextTotal) {
-			const error = /* @__PURE__ */ new Error(`${label} returned invalid pagination data.`);
-			error.code = "INVALID_RESPONSE";
-			throw error;
-		}
+	function appendPage(items, total, nextItems, nextTotal, label) {
+		if (!Array.isArray(nextItems) || !Number.isInteger(nextTotal) || nextTotal < 0 || total !== null && nextTotal !== total || nextItems.length === 0 && items.length < nextTotal || items.length + nextItems.length > nextTotal) throw createFeatureError("INVALID_RESPONSE", `${label} returned invalid pagination data.`);
 		return {
 			items: items.concat(nextItems),
 			total: nextTotal
 		};
 	}
-	async function loadAllPupils$1({ sendRequest, marathonId, pageSize = 50 }) {
+	function isTransientError(error, getConnectionState) {
+		if (!TRANSIENT_CODES.has(error?.code)) return false;
+		if (error.code !== "SEND_FAILED") return true;
+		return Boolean(error.cause) && !getConnectionState().isOpen;
+	}
+	async function runWithRetry(operation, { wait, getConnectionState, retryDelays = [1e3, 3e3] }) {
+		let attempts = 0;
+		while (attempts <= retryDelays.length) {
+			attempts += 1;
+			try {
+				if (attempts > 1 && !getConnectionState().isOpen) throw createFeatureError("WS_UNAVAILABLE", "The Edvibe connection is unavailable.");
+				return {
+					value: await operation(),
+					attempts
+				};
+			} catch (error) {
+				if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
+					error.attempts = attempts;
+					throw error;
+				}
+				await wait(retryDelays[attempts - 1]);
+			}
+		}
+		throw createFeatureError("INTERNAL_ERROR", "Retry loop ended unexpectedly.");
+	}
+	//#endregion
+	//#region src/shared/edvibe-marathon-api.js
+	function requireRequest(sendRequest) {
+		if (typeof sendRequest !== "function") throw new TypeError("sendRequest is required");
+		return sendRequest;
+	}
+	function readPage(response, label) {
+		const value = response?.Value ?? response?.value;
+		if (!value) throw createFeatureError("INVALID_RESPONSE", `${label} returned no value.`);
+		return {
+			items: value.Items,
+			total: value.Page?.Count
+		};
+	}
+	async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
+		const request = requireRequest(sendRequest);
 		let items = [];
 		let total = null;
 		while (total === null || items.length < total) {
-			const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
+			const pageData = readPage(await request("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
 				MarathonId: marathonId,
 				Skip: items.length,
 				Take: pageSize
-			});
-			const page = appendPage$1(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonPupils");
+			}), "GetMarathonPupils");
+			const page = appendPage(items, total, pageData.items, pageData.total, "GetMarathonPupils");
 			items = page.items;
 			total = page.total;
 		}
 		return items;
 	}
 	async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize = 20 }) {
+		const request = requireRequest(sendRequest);
 		let items = [];
 		let total = null;
 		while (total === null || items.length < total) {
-			const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsForPupilPagination", "Marathons", {
+			const pageData = readPage(await request("MarathonLessonWsController", "GetMarathonLessonsForPupilPagination", "Marathons", {
 				PupilId: pupilId,
 				MarathonId: marathonId,
 				SearchTerm: "",
@@ -8965,12 +8973,51 @@ textarea {
 					Skip: items.length,
 					Take: pageSize
 				}
-			});
-			const page = appendPage$1(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonLessonsForPupilPagination");
+			}), "GetMarathonLessonsForPupilPagination");
+			const page = appendPage(items, total, pageData.items, pageData.total, "GetMarathonLessonsForPupilPagination");
 			items = page.items;
 			total = page.total;
 		}
 		return items;
+	}
+	async function loadAllMarathonLessons({ sendRequest, marathonId, pageSize = 100 }) {
+		const request = requireRequest(sendRequest);
+		let items = [];
+		let total = null;
+		while (total === null || items.length < total) {
+			const pageData = readPage(await request("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
+				MarathonId: marathonId,
+				SearchTerm: "",
+				Page: {
+					Skip: items.length,
+					Take: pageSize
+				}
+			}), "GetMarathonLessonsPagination");
+			const page = appendPage(items, total, pageData.items, pageData.total, "GetMarathonLessonsPagination");
+			items = page.items;
+			total = page.total;
+		}
+		return items;
+	}
+	async function getLessonById({ sendRequest, lessonId }) {
+		const response = await requireRequest(sendRequest)("LessonWsController", "GetLessonWithId", "Books", { LessonId: lessonId });
+		if (response == null || typeof response !== "object") throw createFeatureError("INVALID_RESPONSE", "GetLessonWithId returned an invalid response.");
+		return response;
+	}
+	//#endregion
+	//#region src/features/batch-lesson-access.js
+	var OPERATIONAL_WRITE_CODES = /* @__PURE__ */ new Set([
+		...TRANSIENT_CODES,
+		"SERVER_REJECTED",
+		"INVALID_RESPONSE"
+	]);
+	var BATCH_ACCESS_DIALOG_TAG$1 = "edvibe-toolbox-batch-access-dialog";
+	var BATCH_ACCESS_OVERLAY_ID$1 = "edvibe-toolbox-batch-access-overlay";
+	function getPupilId$1(pupil) {
+		return pupil.PupilId === void 0 ? pupil.Id : pupil.PupilId;
+	}
+	function getMarathonPupilId$1(pupil) {
+		return pupil.MarathonPupilId === void 0 ? pupil.Id : pupil.MarathonPupilId;
 	}
 	function resolvePupilsByEmail(entries, pupils) {
 		const pupilsByEmail = /* @__PURE__ */ new Map();
@@ -9015,7 +9062,7 @@ textarea {
 				if (!selectedLessonIds.includes(lesson.MarathonLessonId)) continue;
 				if (selectedLessons.get(lesson.MarathonLessonId)) {
 					duplicateLessonIds.add(lesson.MarathonLessonId);
-					errors.push(createFeatureError$2("INVALID_RESPONSE", `Multiple lesson states were returned for lesson ${lesson.MarathonLessonId}.`, {
+					errors.push(createFeatureError("INVALID_RESPONSE", `Multiple lesson states were returned for lesson ${lesson.MarathonLessonId}.`, {
 						email: pupil.Email,
 						pupilId,
 						marathonLessonId: lesson.MarathonLessonId
@@ -9028,7 +9075,7 @@ textarea {
 				const lesson = selectedLessons.get(marathonLessonId);
 				if (duplicateLessonIds.has(marathonLessonId)) continue;
 				if (!lesson) {
-					errors.push(createFeatureError$2("INVALID_RESPONSE", `Lesson ${marathonLessonId} was not returned for ${pupil.Email}.`, {
+					errors.push(createFeatureError("INVALID_RESPONSE", `Lesson ${marathonLessonId} was not returned for ${pupil.Email}.`, {
 						email: pupil.Email,
 						pupilId,
 						marathonLessonId
@@ -9036,7 +9083,7 @@ textarea {
 					continue;
 				}
 				if (typeof lesson.IsOpen !== "boolean") {
-					errors.push(createFeatureError$2("INVALID_RESPONSE", `Lesson ${marathonLessonId} returned an invalid access state.`, {
+					errors.push(createFeatureError("INVALID_RESPONSE", `Lesson ${marathonLessonId} returned an invalid access state.`, {
 						email: pupil.Email,
 						pupilId,
 						marathonLessonId
@@ -9114,14 +9161,14 @@ textarea {
 				}));
 				await wait(300);
 				try {
-					itemAttempts = (await runWithRetry$1(async () => {
+					itemAttempts = (await runWithRetry(async () => {
 						const response = await sendRequest("MarathonLessonWsController", "ChangeIsOpenLessonForPupil", "Marathons", {
 							IsOpen: true,
 							MarathonLessonId: item.marathonLessonId,
 							MarathonPupilId: item.marathonPupilId,
 							MarathonId: marathonId
 						});
-						if (response?.Value !== true) throw createFeatureError$2("INVALID_RESPONSE", "The lesson access change was not confirmed.");
+						if (response?.Value !== true) throw createFeatureError("INVALID_RESPONSE", "The lesson access change was not confirmed.");
 						return response;
 					}, {
 						wait,
@@ -9149,7 +9196,7 @@ textarea {
 					message: "An internal error stopped the batch operation.",
 					attempts: itemAttempts
 				}));
-				throw createFeatureError$2("INTERNAL_ERROR", "An internal error stopped the batch operation.", {
+				throw createFeatureError("INTERNAL_ERROR", "An internal error stopped the batch operation.", {
 					cause: error,
 					partialResult: createExecutionResult({
 						requestedEmails,
@@ -9228,16 +9275,16 @@ textarea {
 		function createReadError(error, pupil, pupilId) {
 			const code = getErrorCode(error);
 			const email = String(pupil?.Email || "").trim();
-			return createFeatureError$2(code, `Could not load lesson access for ${email || "the selected pupil"} (${code}).`, {
+			return createFeatureError(code, `Could not load lesson access for ${email || "the selected pupil"} (${code}).`, {
 				email,
 				pupilId,
 				attempts: error?.attempts || 1
 			});
 		}
 		function createInputErrors(parsed, selectedLessonIds) {
-			const errors = parsed.malformed.map((input) => createFeatureError$2("INVALID_EMAIL", `Invalid email address: ${input}.`));
-			if (parsed.entries.length === 0 && parsed.malformed.length === 0) errors.push(createFeatureError$2("EMAILS_REQUIRED", "Enter at least one email address."));
-			if (selectedLessonIds.length === 0) errors.push(createFeatureError$2("LESSONS_REQUIRED", "Select at least one lesson."));
+			const errors = parsed.malformed.map((input) => createFeatureError("INVALID_EMAIL", `Invalid email address: ${input}.`));
+			if (parsed.entries.length === 0 && parsed.malformed.length === 0) errors.push(createFeatureError("EMAILS_REQUIRED", "Enter at least one email address."));
+			if (selectedLessonIds.length === 0) errors.push(createFeatureError("LESSONS_REQUIRED", "Select at least one lesson."));
 			return errors;
 		}
 		function showCompletedPlan(plan) {
@@ -9278,7 +9325,7 @@ textarea {
 					const pupilId = getPupilId$1(pupil);
 					try {
 						log(`Loading batch access state for PupilId ${pupilId} in MarathonId ${marathonId}.`);
-						const result = await runWithRetry$1(() => loadAllPupilLessons({
+						const result = await runWithRetry(() => loadAllPupilLessons({
 							sendRequest,
 							marathonId,
 							pupilId
@@ -9376,7 +9423,7 @@ textarea {
 				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
 			}
-			marathonId = parseMarathonId$6(window.location.href);
+			marathonId = parseMarathonId$3(window.location.href);
 			if (!marathonId) {
 				window.alert("Open an Edvibe marathon page before opening batch lesson access.");
 				return;
@@ -9401,11 +9448,11 @@ textarea {
 				(document.body || document.documentElement).appendChild(dialog);
 				dialog.showLoading();
 				log(`Initializing batch access for MarathonId ${marathonId}.`);
-				pupils = await loadAllPupils$1({
+				pupils = await loadAllPupils({
 					sendRequest,
 					marathonId
 				});
-				if (pupils.length === 0) throw createFeatureError$2("EMPTY_ROSTER", "No pupils were found in this marathon.");
+				if (pupils.length === 0) throw createFeatureError("EMPTY_ROSTER", "No pupils were found in this marathon.");
 				const firstPupilId = getPupilId$1(pupils[0]);
 				lessonCatalogue = await loadAllPupilLessons({
 					sendRequest,
@@ -9954,7 +10001,7 @@ textarea {
 						writeAttempts: current.writeAttempts,
 						startedAt: attempt.startedAt,
 						completedAt,
-						marathonId: parseMarathonId$6(getLocationHref()),
+						marathonId: parseMarathonId$3(getLocationHref()),
 						marathonName: getMarathonName(),
 						terminalStatus
 					});
@@ -10795,80 +10842,9 @@ textarea {
 	};
 	//#endregion
 	//#region src/features/batch-user-management.js
-	var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	var TRANSIENT_CODES = /* @__PURE__ */ new Set([
-		"WS_UNAVAILABLE",
-		"REQUEST_TIMEOUT",
-		"SEND_FAILED"
-	]);
 	var USER_MANAGEMENT_DIALOG_TAG$1 = "edvibe-toolbox-batch-user-management-dialog";
-	function createFeatureError$1(code, message, details = {}) {
-		const error = new Error(message);
-		error.code = code;
-		Object.assign(error, details);
-		return error;
-	}
-	function parseMarathonId$5(url) {
-		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-		return match ? Number(match[1]) : null;
-	}
 	function parseEmailInput(value) {
-		const entries = [];
-		const malformed = [];
-		const items = [];
-		const seen = /* @__PURE__ */ new Set();
-		for (const token of String(value || "").split(/[,;\r\n]+/)) {
-			const input = token.trim();
-			if (!input) continue;
-			const normalized = input.toLowerCase();
-			if (seen.has(normalized)) continue;
-			seen.add(normalized);
-			if (!EMAIL_PATTERN.test(input)) {
-				malformed.push(input);
-				items.push({
-					input,
-					normalized,
-					isValid: false
-				});
-				continue;
-			}
-			entries.push({
-				input,
-				normalized
-			});
-			items.push({
-				input,
-				normalized,
-				isValid: true
-			});
-		}
-		return {
-			entries,
-			malformed,
-			items
-		};
-	}
-	function appendPage(items, total, nextItems, nextTotal, label) {
-		if (!Array.isArray(nextItems) || !Number.isInteger(nextTotal) || nextTotal < 0 || total !== null && nextTotal !== total || nextItems.length === 0 && items.length < nextTotal || items.length + nextItems.length > nextTotal) throw createFeatureError$1("INVALID_RESPONSE", `${label} returned invalid pagination data.`);
-		return {
-			items: items.concat(nextItems),
-			total: nextTotal
-		};
-	}
-	async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
-		let items = [];
-		let total = null;
-		while (total === null || items.length < total) {
-			const response = await sendRequest("MarathonPupilsWsController", "GetMarathonPupils", "Marathons", {
-				MarathonId: marathonId,
-				Skip: items.length,
-				Take: pageSize
-			});
-			const page = appendPage(items, total, response?.Value?.Items, response?.Value?.Page?.Count, "GetMarathonPupils");
-			items = page.items;
-			total = page.total;
-		}
-		return items;
+		return parseEmailInput$1(value, { includeItems: true });
 	}
 	function resolveUsersByEmail(entries, pupils) {
 		const pupilsByEmail = /* @__PURE__ */ new Map();
@@ -10936,31 +10912,6 @@ textarea {
 				}
 			};
 		});
-	}
-	function isTransientError(error, getConnectionState) {
-		if (!TRANSIENT_CODES.has(error?.code)) return false;
-		if (error.code !== "SEND_FAILED") return true;
-		return Boolean(error.cause) && !getConnectionState().isOpen;
-	}
-	async function runWithRetry(operation, { wait, getConnectionState, retryDelays = [1e3, 3e3] }) {
-		let attempts = 0;
-		while (attempts <= retryDelays.length) {
-			attempts += 1;
-			try {
-				if (attempts > 1 && !getConnectionState().isOpen) throw createFeatureError$1("WS_UNAVAILABLE", "The Edvibe connection is unavailable.");
-				return {
-					value: await operation(),
-					attempts
-				};
-			} catch (error) {
-				if (!isTransientError(error, getConnectionState) || attempts > retryDelays.length) {
-					error.attempts = attempts;
-					throw error;
-				}
-				await wait(retryDelays[attempts - 1]);
-			}
-		}
-		throw createFeatureError$1("INTERNAL_ERROR", "Retry loop ended unexpectedly.");
 	}
 	function cloneUserRow(row) {
 		return {
@@ -11056,7 +11007,7 @@ textarea {
 								MarathonPupilId: row.marathonPupilId,
 								SelectedModeratorsIds: []
 							});
-							if (response?.Value?.IsSuccess !== true) throw createFeatureError$1("INVALID_RESPONSE", "The curator removal was not confirmed.");
+							if (response?.Value?.IsSuccess !== true) throw createFeatureError("INVALID_RESPONSE", "The curator removal was not confirmed.");
 							return response;
 						}, {
 							wait,
@@ -11075,7 +11026,7 @@ textarea {
 					try {
 						const result = await runWithRetry(async () => {
 							const response = await sendRequest("MarathonPupilsWsController", "DeleteMarathonPupil", "Marathons", { MarathonPupilId: row.marathonPupilId });
-							if (response?.Value !== row.marathonPupilId) throw createFeatureError$1("INVALID_RESPONSE", "The user deletion was not confirmed.");
+							if (response?.Value !== row.marathonPupilId) throw createFeatureError("INVALID_RESPONSE", "The user deletion was not confirmed.");
 							return response;
 						}, {
 							wait,
@@ -11108,7 +11059,7 @@ textarea {
 		};
 	}
 	function createInputErrors(parsed) {
-		if (parsed.entries.length === 0 && parsed.malformed.length === 0) return [createFeatureError$1("EMAILS_REQUIRED", "Enter at least one email address.")];
+		if (parsed.entries.length === 0 && parsed.malformed.length === 0) return [createFeatureError("EMAILS_REQUIRED", "Enter at least one email address.")];
 		return [];
 	}
 	function orderResolvedRows(parsed, resolution) {
@@ -11241,7 +11192,7 @@ textarea {
 				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
 			}
-			marathonId = parseMarathonId$5(window.location.href);
+			marathonId = parseMarathonId$3(window.location.href);
 			if (!marathonId) {
 				window.alert("Open an Edvibe marathon page before managing users.");
 				return;
@@ -11264,7 +11215,7 @@ textarea {
 					sendRequest,
 					marathonId
 				});
-				if (pupils.length === 0) throw createFeatureError$1("EMPTY_ROSTER", "No pupils were found in this marathon.");
+				if (pupils.length === 0) throw createFeatureError("EMPTY_ROSTER", "No pupils were found in this marathon.");
 				dialog.showConfigure();
 			} catch (error) {
 				log(`Batch user management initialization failed for MarathonId ${marathonId} (${getErrorCode(error)}).`);
@@ -11289,7 +11240,7 @@ textarea {
 		unassign: "unassign_curator",
 		delete: "delete_user"
 	});
-	function parseMarathonId$4(url) {
+	function parseMarathonId$2(url) {
 		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
 		return match ? String(match[1]) : null;
 	}
@@ -11503,7 +11454,7 @@ textarea {
 					summary,
 					startedAt: startedAt || completedAt,
 					completedAt,
-					marathonId: parseMarathonId$4(getLocationHref()),
+					marathonId: parseMarathonId$2(getLocationHref()),
 					marathonName: getMarathonName()
 				});
 				Promise.resolve().then(() => persistExecution(input)).then((history) => {
@@ -12143,8 +12094,8 @@ textarea {
 		"REQUEST_TIMEOUT",
 		"SEND_FAILED"
 	]);
-	function featureError$1(code, message, details = {}) {
-		return createFeatureError$1(code, message, details);
+	function featureError(code, message, details = {}) {
+		return createFeatureError(code, message, details);
 	}
 	function deepFreeze(value) {
 		if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
@@ -12155,7 +12106,7 @@ textarea {
 	function normalizeModerator(item) {
 		const id = Number(item?.Id);
 		const teacherId = Number(item?.TeacherId);
-		if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(teacherId) || teacherId <= 0) throw featureError$1("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained an invalid identifier.");
+		if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(teacherId) || teacherId <= 0) throw featureError("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained an invalid identifier.");
 		return Object.freeze({
 			id,
 			teacherId,
@@ -12164,12 +12115,12 @@ textarea {
 		});
 	}
 	function normalizeModeratorCatalogue(items) {
-		if (!Array.isArray(items)) throw featureError$1("INVALID_MODERATOR_RESPONSE", "The moderator catalogue was not an array.");
+		if (!Array.isArray(items)) throw featureError("INVALID_MODERATOR_RESPONSE", "The moderator catalogue was not an array.");
 		const moderators = items.map(normalizeModerator);
 		const ids = /* @__PURE__ */ new Set();
 		const teacherIds = /* @__PURE__ */ new Set();
 		for (const moderator of moderators) {
-			if (ids.has(moderator.id) || teacherIds.has(moderator.teacherId)) throw featureError$1("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained ambiguous identifiers.");
+			if (ids.has(moderator.id) || teacherIds.has(moderator.teacherId)) throw featureError("INVALID_MODERATOR_RESPONSE", "The moderator catalogue contained ambiguous identifiers.");
 			ids.add(moderator.id);
 			teacherIds.add(moderator.teacherId);
 		}
@@ -12316,7 +12267,7 @@ textarea {
 		const values = Array.isArray(rows) ? rows : [];
 		const assignmentSelected = values.some((row) => Boolean(row.assignSelected));
 		const target = assignmentSelected ? findTargetModerator(moderators, targetModeratorId) : null;
-		if (assignmentSelected && !target) throw featureError$1("CURATOR_REQUIRED", "Select a curator before preparing the execution plan.");
+		if (assignmentSelected && !target) throw featureError("CURATOR_REQUIRED", "Select a curator before preparing the execution plan.");
 		const planRows = values.map((row) => {
 			const addSelected = Boolean(row.addSelected);
 			const assignSelected = Boolean(row.assignSelected);
@@ -12367,12 +12318,12 @@ textarea {
 	}
 	function formatClientTime(value) {
 		const date = value instanceof Date ? value : new Date(value);
-		if (Number.isNaN(date.getTime())) throw featureError$1("INVALID_CLIENT_TIME", "Could not build the Edvibe client timestamp.");
+		if (Number.isNaN(date.getTime())) throw featureError("INVALID_CLIENT_TIME", "Could not build the Edvibe client timestamp.");
 		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
 	}
 	function buildAddRequest({ marathonId, emails, moderatorIds = [], host = "edvibe.com", now = /* @__PURE__ */ new Date(), userId = null }) {
 		const normalizedEmails = (emails || []).map((email) => String(email || "").trim()).filter(Boolean);
-		if (normalizedEmails.length === 0) throw featureError$1("EMAILS_REQUIRED", "At least one email is required for addition.");
+		if (normalizedEmails.length === 0) throw featureError("EMAILS_REQUIRED", "At least one email is required for addition.");
 		const hostname = String(host || "").trim() || "edvibe.com";
 		const value = {
 			MarathonId: marathonId,
@@ -12396,7 +12347,7 @@ textarea {
 	}
 	function buildAssignRequest({ marathonId, marathonPupilId, existingModeratorIds, targetModeratorId }) {
 		const selected = [.../* @__PURE__ */ new Set([...(existingModeratorIds || []).map(Number), Number(targetModeratorId)])];
-		if (selected.some((id) => !Number.isSafeInteger(id) || id <= 0)) throw featureError$1("UNSAFE_MODERATOR_REPLACEMENT", "A safe complete curator list could not be constructed.");
+		if (selected.some((id) => !Number.isSafeInteger(id) || id <= 0)) throw featureError("UNSAFE_MODERATOR_REPLACEMENT", "A safe complete curator list could not be constructed.");
 		return deepFreeze({
 			controller: "MarathonPupilsWsController",
 			method: "AddModeratorsToPupil",
@@ -12535,7 +12486,7 @@ textarea {
 		try {
 			const result = await runWithRetry(async () => {
 				const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
-				if (response?.Value?.IsSuccess !== true) throw featureError$1("INVALID_RESPONSE", "User addition was not positively confirmed.");
+				if (response?.Value?.IsSuccess !== true) throw featureError("INVALID_RESPONSE", "User addition was not positively confirmed.");
 				return response;
 			}, {
 				wait,
@@ -12595,7 +12546,7 @@ textarea {
 			try {
 				row.assignResult = operationResult("success", "CURATOR_ASSIGNED", "Target curator was assigned while preserving existing curators.", (await runWithRetry(async () => {
 					const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
-					if (response?.Value?.IsSuccess !== true) throw featureError$1("INVALID_RESPONSE", "Curator assignment was not positively confirmed.");
+					if (response?.Value?.IsSuccess !== true) throw featureError("INVALID_RESPONSE", "Curator assignment was not positively confirmed.");
 					return response;
 				}, {
 					wait,
@@ -12636,7 +12587,7 @@ textarea {
 				marathonId
 			})]);
 			const target = plan.targetModerator ? findTargetModerator(latestModerators, plan.targetModerator.id) : null;
-			if (plan.targetModerator && (!target || target.teacherId !== plan.targetModerator.teacherId)) throw featureError$1("STATE_CHANGED", "The selected curator changed or disappeared after preflight.");
+			if (plan.targetModerator && (!target || target.teacherId !== plan.targetModerator.teacherId)) throw featureError("STATE_CHANGED", "The selected curator changed or disappeared after preflight.");
 			revalidateRows({
 				rows,
 				pupils: latestPupils,
@@ -12852,7 +12803,7 @@ textarea {
 				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
 			}
-			const marathonId = parseMarathonId$5(getLocationHref());
+			const marathonId = parseMarathonId$3(getLocationHref());
 			if (!marathonId) {
 				window.alert("Open an Edvibe marathon page before adding users.");
 				return;
@@ -12876,7 +12827,7 @@ textarea {
 					parseEmailInput,
 					onDiscover({ emailInput }) {
 						const parsed = parseEmailInput(emailInput);
-						if (parsed.items.length === 0) throw featureError$1("EMAILS_REQUIRED", "Enter at least one email address.");
+						if (parsed.items.length === 0) throw featureError("EMAILS_REQUIRED", "Enter at least one email address.");
 						discoveryRows = resolveOnboardingRows(parsed, pupils, moderators);
 						return discoveryRows;
 					},
@@ -12896,7 +12847,7 @@ textarea {
 							moderators,
 							targetModeratorId
 						});
-						if (plan.counts.selectedOperations === 0) throw featureError$1("OPERATIONS_REQUIRED", "Select at least one add or curator-assignment operation.");
+						if (plan.counts.selectedOperations === 0) throw featureError("OPERATIONS_REQUIRED", "Select at least one add or curator-assignment operation.");
 						return plan;
 					},
 					async onExecute(plan, onProgress) {
@@ -13699,16 +13650,6 @@ input:focus-visible {
 		"INVALID_RESPONSE"
 	]);
 	var TOKEN_PATTERN = /\{\{\s*([^{}]+?)\s*\}\}/g;
-	function createFeatureError(code, message, details = {}) {
-		const error = new Error(message);
-		error.code = code;
-		Object.assign(error, details);
-		return error;
-	}
-	function parseMarathonId$3(url) {
-		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-		return match ? Number(match[1]) : null;
-	}
 	function normalizeUrl(value) {
 		const text = String(value || "").trim();
 		if (!text) return "";
@@ -13972,25 +13913,11 @@ input:focus-visible {
 		});
 	}
 	async function loadLessonCatalogue$1({ sendRequest, marathonId, pageSize = 100 }) {
-		let items = [];
-		let total = null;
-		while (total === null || items.length < total) {
-			const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
-				MarathonId: marathonId,
-				SearchTerm: "",
-				Page: {
-					Skip: items.length,
-					Take: pageSize
-				}
-			});
-			const next = response?.Value?.Items;
-			const count = response?.Value?.Page?.Count;
-			if (!Array.isArray(next) || !Number.isInteger(count)) throw createFeatureError("INVALID_RESPONSE", "Lesson catalogue pagination was invalid.");
-			if (next.length === 0 && items.length < count) throw createFeatureError("INVALID_RESPONSE", "Lesson catalogue pagination stalled.");
-			items = items.concat(next);
-			total = count;
-		}
-		return items.map(normalizeLesson$2);
+		return (await loadAllMarathonLessons({
+			sendRequest,
+			marathonId,
+			pageSize
+		})).map(normalizeLesson$2);
 	}
 	async function inspectLessonsSequentially$1({ lessons, selectedLessonIds, sendRequest, wait, delayMs = 300 }) {
 		const selected = new Set((selectedLessonIds || []).map(Number));
@@ -13998,7 +13925,10 @@ input:focus-visible {
 		const inspections = /* @__PURE__ */ new Map();
 		for (const [index, lesson] of targets.entries()) {
 			try {
-				const structure = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.lessonId });
+				const structure = await getLessonById({
+					sendRequest,
+					lessonId: lesson.lessonId
+				});
 				inspections.set(Number(lesson.lessonId), { structure });
 			} catch (error) {
 				inspections.set(Number(lesson.lessonId), { error });
@@ -14287,7 +14217,7 @@ input:focus-visible {
 		"transport",
 		"websocket"
 	]);
-	function parseMarathonId$2(url) {
+	function parseMarathonId$1(url) {
 		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
 		return match ? String(match[1]) : null;
 	}
@@ -14660,7 +14590,7 @@ input:focus-visible {
 						result: result || latestResult || {},
 						startedAt: startedAt || completedAt,
 						completedAt,
-						marathonId: parseMarathonId$2(getLocationHref()),
+						marathonId: parseMarathonId$1(getLocationHref()),
 						marathonName: getMarathonName(),
 						terminalStatus,
 						fatalError
@@ -16326,7 +16256,7 @@ input:focus-visible {
 		loadLessonCatalogue: () => loadLessonCatalogue,
 		normalizeLesson: () => normalizeLesson,
 		normalizeSectionName: () => normalizeSectionName,
-		parseMarathonId: () => parseMarathonId$1
+		parseMarathonId: () => parseMarathonId$3
 	});
 	var DIALOG_TAG = "edvibe-toolbox-batch-section-deletion-dialog";
 	var EXPECTED_WRITE_CODES = /* @__PURE__ */ new Set([
@@ -16336,19 +16266,9 @@ input:focus-visible {
 		"SEND_FAILED",
 		"WS_UNAVAILABLE"
 	]);
-	function featureError(code, message, details = {}) {
-		const error = new Error(message);
-		error.code = code;
-		Object.assign(error, details);
-		return error;
-	}
-	function parseMarathonId$1(url) {
-		const match = String(url || "").match(/\/marathon\/(\d+)(?:\/|$)/);
-		return match ? Number(match[1]) : null;
-	}
 	function normalizeSectionName(value) {
 		const name = String(value || "").trim();
-		if (!name) throw featureError("SECTION_NAME_REQUIRED", "Enter the exact section name.");
+		if (!name) throw createFeatureError("SECTION_NAME_REQUIRED", "Enter the exact section name.");
 		return name;
 	}
 	function normalizeLesson(node, index = 0) {
@@ -16362,12 +16282,12 @@ input:focus-visible {
 	}
 	function extractNormalSections(response) {
 		const value = response?.Value ?? response?.value ?? response;
-		if (!value || !Array.isArray(value.Sections)) throw featureError("INVALID_LESSON_RESPONSE", "The lesson response did not contain a normal Sections array.");
+		if (!value || !Array.isArray(value.Sections)) throw createFeatureError("INVALID_LESSON_RESPONSE", "The lesson response did not contain a normal Sections array.");
 		return value.Sections;
 	}
 	function findExactSectionMatches(sections, sectionName) {
 		const name = normalizeSectionName(sectionName);
-		if (!Array.isArray(sections)) throw featureError("INVALID_LESSON_RESPONSE", "Sections must be an array.");
+		if (!Array.isArray(sections)) throw createFeatureError("INVALID_LESSON_RESPONSE", "Sections must be an array.");
 		return sections.filter((section) => String(section?.Name ?? "") === name);
 	}
 	function rejection(lesson, code, message) {
@@ -16423,24 +16343,11 @@ input:focus-visible {
 		});
 	}
 	async function loadLessonCatalogue({ sendRequest, marathonId, pageSize = 100 }) {
-		const items = [];
-		let count = null;
-		while (count === null || items.length < count) {
-			const response = await sendRequest("MarathonLessonWsController", "GetMarathonLessonsPagination", "Marathons", {
-				MarathonId: marathonId,
-				SearchTerm: "",
-				Page: {
-					Skip: items.length,
-					Take: pageSize
-				}
-			});
-			const value = response?.Value ?? response?.value;
-			const next = value?.Items;
-			count = value?.Page?.Count;
-			if (!Array.isArray(next) || !Number.isInteger(count) || next.length === 0 && items.length < count) throw featureError("INVALID_RESPONSE", "Lesson catalogue pagination was invalid.");
-			items.push(...next);
-		}
-		return items.map(normalizeLesson);
+		return (await loadAllMarathonLessons({
+			sendRequest,
+			marathonId,
+			pageSize
+		})).map(normalizeLesson);
 	}
 	async function inspectLessonsSequentially({ lessons, selectedLessonIds, sendRequest, wait, requestDelayMs = 250, onProgress }) {
 		const selected = new Set((selectedLessonIds || []).map(Number));
@@ -16448,11 +16355,14 @@ input:focus-visible {
 		const inspections = /* @__PURE__ */ new Map();
 		for (const [index, lesson] of targets.entries()) {
 			try {
-				const response = await sendRequest("LessonWsController", "GetLessonWithId", "Books", { LessonId: lesson.lessonId });
+				const response = await getLessonById({
+					sendRequest,
+					lessonId: lesson.lessonId
+				});
 				extractNormalSections(response);
 				inspections.set(lesson.lessonId, { response });
 			} catch (error) {
-				inspections.set(lesson.lessonId, { error: featureError(error.code || "INVALID_LESSON_RESPONSE", error.message || "Inspection failed.") });
+				inspections.set(lesson.lessonId, { error: createFeatureError(error.code || "INVALID_LESSON_RESPONSE", error.message || "Inspection failed.") });
 			}
 			onProgress?.({
 				current: index + 1,
@@ -16480,7 +16390,7 @@ input:focus-visible {
 				const request = buildDeleteRequest(entry);
 				const response = await sendRequest(request.controller, request.method, request.projectName, request.value);
 				const value = response?.Value ?? response?.value;
-				if (response?.IsSuccess === false || response?.isSuccess === false || value === false || value == null) throw featureError("INVALID_RESPONSE", "Deletion was not positively confirmed.");
+				if (response?.IsSuccess === false || response?.isSuccess === false || value === false || value == null) throw createFeatureError("INVALID_RESPONSE", "Deletion was not positively confirmed.");
 				results.push({
 					...entry,
 					status: "deleted",
@@ -16572,7 +16482,7 @@ input:focus-visible {
 				window.alert("Another Edvibe Toolbox operation is already running.");
 				return;
 			}
-			const marathonId = parseMarathonId$1(window.location.href);
+			const marathonId = parseMarathonId$3(window.location.href);
 			if (!marathonId) {
 				window.alert("Open an Edvibe marathon page first.");
 				return;
