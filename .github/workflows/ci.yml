@@ -32,6 +32,8 @@ jobs:
         run: npm run test:ci
       - name: Build production extension
         run: npm run build
+      - name: Check production bundle output
+        run: npm run check:build-output
 
   sync-dist:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -57,6 +59,8 @@ jobs:
         run: npm ci
       - name: Build production extension
         run: npm run build
+      - name: Check production bundle output
+        run: npm run check:build-output
       - name: Detect generated distribution changes
         id: dist
         shell: bash
