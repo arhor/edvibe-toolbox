@@ -1132,8 +1132,8 @@ textarea {
                 </div>
             </details>
         `}render(){let e=this.state.status===`recording`,t=!!this.state.session,n=this.state.session?.operations||[],r=this.visibleOperations(),i=this.state.session?.otherFrames||[],a={idle:`Готово к записи`,recording:`Идёт запись`,stopped:`Запись остановлена`,"limit-reached":`Достигнут лимит`},o=`recorder-indicator${e?` is-recording`:``}`,s=String(this.state.copyFallback||``);return U`
-<button class=${o} type="button" ?hidden=${!this.minimized}
-                aria-label="Открыть запись WebSocket" @click=${()=>this.restore()}>
+            <button class=${o} type="button" ?hidden=${!this.minimized}
+                aria-label="Открыть запись WebSocket" title="Открыть запись WebSocket" @click=${()=>this.restore()}>
                 <span></span><strong>REC</strong>
                 <span class="indicator-count">${r.length}</span>
             </button>
@@ -1145,10 +1145,12 @@ textarea {
                             <p class="recorder-subtitle">Выполните одно действие в Edvibe и изучите обмен сообщениями.</p>
                         </div>
                         <div class="header-actions">
-                            <button class="icon-button recorder-minimize" type="button" aria-label="Свернуть"
-                                @click=${()=>{this.minimized=!0}}>−</button>
-                            <button class="icon-button recorder-close" type="button" aria-label="Закрыть"
-                                @click=${()=>this.handleClose()}>&times;</button>
+                            <button class="icon-button recorder-minimize" type="button" aria-label="Свернуть" @click=${()=>{this.minimized=!0}}>
+                                -
+                            </button>
+                            <button class="icon-button recorder-close" type="button" aria-label="Закрыть" @click=${()=>this.handleClose()}>
+                                &times;
+                            </button>
                         </div>
                     </header>
                     <div class="recorder-toolbar">
@@ -1158,17 +1160,21 @@ textarea {
                             <span class="elapsed">${this.elapsedLabel}</span>
                         </div>
                         <div class="toolbar-actions">
-                            <button class="button primary recorder-start" type="button" ?hidden=${e}
-                                @click=${()=>this.handleStart()}>Начать запись</button>
-                            <button class="button danger recorder-stop" type="button" ?hidden=${!e}
-                                @click=${()=>this.callbacks.onStop?.()}>Остановить</button>
-                            <button class="button recorder-clear" type="button" ?disabled=${!t}
-                                @click=${()=>this.handleClear()}>Очистить</button>
-                            <button class="button recorder-copy" type="button"
-                                ?disabled=${!t||n.length===0}
-                                @click=${()=>this.callbacks.onCopyRecipe?.()}>Копировать рецепт</button>
-                            <button class="button recorder-export" type="button" ?disabled=${!t}
-                                @click=${()=>this.callbacks.onExport?.()}>Экспорт JSON</button>
+                            <button class="button primary recorder-start" type="button" ?hidden=${e} @click=${()=>this.handleStart()}>
+                                Начать запись
+                            </button>
+                            <button class="button danger recorder-stop" type="button" ?hidden=${!e} @click=${()=>this.callbacks.onStop?.()}>
+                                Остановить
+                            </button>
+                            <button class="button recorder-clear" type="button" ?disabled=${!t} @click=${()=>this.handleClear()}>
+                                Очистить
+                            </button>
+                            <button class="button recorder-copy" type="button" ?disabled=${!t||n.length===0} @click=${()=>this.callbacks.onCopyRecipe?.()}>
+                                Копировать рецепт
+                            </button>
+                            <button class="button recorder-export" type="button" ?disabled=${!t} @click=${()=>this.callbacks.onExport?.()}>
+                                Экспорт JSON
+                            </button>
                         </div>
                     </div>
                     <div class="recorder-body">
@@ -1180,17 +1186,16 @@ textarea {
                             <span><strong class="operation-count">${r.length}</strong> операций</span>
                             <span><strong class="frame-count">${this.state.session?.frameCount||0}</strong> кадров</span>
                             <span><strong class="byte-count">${this.formatBytes(this.state.session?.storedBytes||0)}</strong> текста</span>
-                            <label><input class="show-toolbox" type="checkbox" .checked=${this.showToolbox}
-                                @change=${e=>{this.showToolbox=e.currentTarget.checked}}>
-                                Показать трафик Toolbox</label>
+                            <label>
+                                <input class="show-toolbox" type="checkbox" .checked=${this.showToolbox} @change=${e=>{this.showToolbox=e.currentTarget.checked}}>
+                                Показать трафик Toolbox
+                            </label>
                         </div>
                         <p class="recorder-notice" role="status" ?hidden=${!this.state.notice}>${this.state.notice||``}</p>
                         <section>
                             <h3>Операции</h3>
                             <div class="operation-list">${r.map(e=>this.renderOperation(e))}</div>
-                            <p class="empty-operations" ?hidden=${r.length>0}>
-                                Запустите запись и выполните действие в Edvibe.
-                            </p>
+                            <p class="empty-operations" ?hidden=${r.length>0}> Запустите запись и выполните действие в Edvibe.</p>
                         </section>
                         <details class="other-section">
                             <summary>Другие кадры (<span class="other-count">${i.length}</span>)</summary>
