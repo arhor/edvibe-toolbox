@@ -17179,7 +17179,7 @@ input:focus-visible {
 	});
 	globalThis.EdVibeBatchSectionDeletionDialog = batchSectionDeletionDialogApi;
 	//#endregion
-	//#region src/main.js
+	//#region src/runtime/main.js
 	var createMainLog = createLoggerFactory("MAIN");
 	var log = createMainLog();
 	log("Initializing Toolbox modules...");

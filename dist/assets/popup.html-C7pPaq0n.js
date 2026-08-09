@@ -835,7 +835,7 @@ function isRuntimeExportStatusMessage(value) {
 	])) && value.action === RUNTIME_MESSAGE_ACTIONS.EXPORT_STATUS && EXPORT_STATE_VALUES.has(value.state) && (value.message === void 0 || typeof value.message === "string");
 }
 //#endregion
-//#region popup.js
+//#region src/runtime/popup.js
 createLoggerFactory("POPUP")();
 var TOOL_GROUPS = Object.freeze({
 	history: "История",

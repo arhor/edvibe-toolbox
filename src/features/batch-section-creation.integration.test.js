@@ -4,9 +4,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
-const popup = fs.readFileSync(path.join(root, 'popup.js'), 'utf8');
-const isolated = fs.readFileSync(path.join(root, 'src/isolated.js'), 'utf8');
-const main = fs.readFileSync(path.join(root, 'src/main.js'), 'utf8');
+const popup = fs.readFileSync(path.join(root, 'src/runtime/popup.js'), 'utf8');
+const isolated = fs.readFileSync(path.join(root, 'src/runtime/isolated.js'), 'utf8');
+const main = fs.readFileSync(path.join(root, 'src/runtime/main.js'), 'utf8');
 const protocol = fs.readFileSync(path.join(root, 'src/shared/message-protocol.js'), 'utf8');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
 const mainEntrypoint = fs.readFileSync(path.join(root, 'src/entrypoints/main.js'), 'utf8');
@@ -34,9 +34,9 @@ test('MAIN composition imports section creation component and feature through ES
 
     assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
     assert.equal(mainWorld.run_at, 'document_start');
-    assert.match(mainEntrypoint, /import ['"]\.\.\/main\.js['"];?/);
-    assert.match(main, /from ['"]\.\/components\/batch-section-creation-dialog\.js['"]/);
-    assert.match(main, /from ['"]\.\/features\/batch-section-creation\.js['"]/);
+    assert.match(mainEntrypoint, /import ['"]\.\.\/runtime\/main\.js['"];?/);
+    assert.match(main, /from ['"]\.\.\/components\/batch-section-creation-dialog\.js['"]/);
+    assert.match(main, /from ['"]\.\.\/features\/batch-section-creation\.js['"]/);
     assert.match(main, /document\.createElement\(batchSectionCreationDialogApi\.BATCH_SECTION_DIALOG_TAG\)/);
     assert.match(dialog, /from '\.\/batch-section-creation-dialog\.styles\.js';/);
     assert.equal(resources.includes('src/components/batch-section-creation-dialog.css'), false);

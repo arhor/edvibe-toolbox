@@ -10,20 +10,20 @@ test('MAIN composition preserves execution-history infrastructure through direct
     const manifest = JSON.parse(read('manifest.json'));
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
     const entrypoint = read('src/entrypoints/main.js');
-    const main = read('src/main.js');
+    const main = read('src/runtime/main.js');
 
     assert.deepEqual(mainWorld.js, ['src/entrypoints/main.js']);
     assert.equal(mainWorld.run_at, 'document_start');
-    assert.match(entrypoint, /import ['"]\.\.\/main\.js['"];?/);
+    assert.match(entrypoint, /import ['"]\.\.\/runtime\/main\.js['"];?/);
     for (const modulePath of [
-        './shared/indexeddb.js',
-        './shared/execution-history-repository.js',
-        './shared/execution-history-retention.js',
-        './shared/execution-history-export.js',
-        './shared/chrome-storage-bridge.js',
-        './shared/execution-history-service.js',
-        './components/execution-history-dialog.js',
-        './features/execution-history.js'
+        '../shared/indexeddb.js',
+        '../shared/execution-history-repository.js',
+        '../shared/execution-history-retention.js',
+        '../shared/execution-history-export.js',
+        '../shared/chrome-storage-bridge.js',
+        '../shared/execution-history-service.js',
+        '../components/execution-history-dialog.js',
+        '../features/execution-history.js'
     ]) {
         assert.ok(main.includes(`from '${modulePath}'`) || main.includes(`from "${modulePath}"`), `${modulePath} should be imported by the coordinator`);
     }
@@ -33,9 +33,9 @@ test('MAIN composition preserves execution-history infrastructure through direct
 });
 
 test('popup, isolated bridge, main coordinator, and representative batch results are connected', () => {
-    const popup = read('popup.js');
-    const isolated = read('src/isolated.js');
-    const main = read('src/main.js');
+    const popup = read('src/runtime/popup.js');
+    const isolated = read('src/runtime/isolated.js');
+    const main = read('src/runtime/main.js');
     const protocol = read('src/shared/message-protocol.js');
     const onboardingFeature = read('src/features/batch-user-onboarding.js');
     const onboardingDialog = read('src/components/batch-user-onboarding-dialog.js');

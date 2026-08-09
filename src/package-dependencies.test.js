@@ -32,6 +32,6 @@ test('marathon export imports package modules directly without runtime globals',
     assert.match(exportSource, /import TurndownService from 'turndown';/);
     assert.doesNotMatch(exportSource, /window\.JSZip|window\.TurndownService/);
     assert.equal(fs.existsSync(path.join(root, 'src/entrypoints/runtime-dependencies.js')), false);
-    assert.match(mainEntry, /import ['"]\.\.\/main\.js['"];?/);
+    assert.match(mainEntry, /import ['"]\.\.\/runtime\/main\.js['"];?/);
     assert.doesNotMatch(mainEntry, /runtime-dependencies|lib\/(?:jszip|turndown)\.min\.js/);
 });
