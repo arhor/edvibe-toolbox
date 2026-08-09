@@ -25,27 +25,24 @@ function requireRequest(sendRequest) {
 }
 
 /**
+ * Decode the transport envelope without changing pagination failure semantics.
+ * The shared appendPage validator remains authoritative for Items and Count.
  * @param {unknown} response
- * @param {string} label
- * @returns {{ items: Record<string, unknown>[], total: number }}
+ * @returns {{ items: unknown, total: unknown }}
  */
-function readPage(response, label) {
-    if (!isRecord(response)) {
-        throw createFeatureError('INVALID_RESPONSE', `${label} returned an invalid response.`);
-    }
+function readPage(response) {
+    if (!isRecord(response)) return { items: undefined, total: undefined };
     const value = isRecord(response.Value)
         ? response.Value
         : isRecord(response.value)
             ? response.value
             : null;
-    if (!value || !Array.isArray(value.Items) || !value.Items.every(isRecord)) {
-        throw createFeatureError('INVALID_RESPONSE', `${label} returned invalid items.`);
-    }
+    if (!value) return { items: undefined, total: undefined };
     const page = isRecord(value.Page) ? value.Page : null;
-    if (!page || !Number.isSafeInteger(page.Count) || Number(page.Count) < 0) {
-        throw createFeatureError('INVALID_RESPONSE', `${label} returned an invalid page count.`);
-    }
-    return { items: value.Items, total: Number(page.Count) };
+    return {
+        items: value.Items,
+        total: page?.Count
+    };
 }
 
 /**
@@ -66,7 +63,7 @@ async function loadAllPupils({ sendRequest, marathonId, pageSize = 50 }) {
             'Marathons',
             { MarathonId: marathonId, Skip: items.length, Take: pageSize }
         );
-        const pageData = readPage(response, 'GetMarathonPupils');
+        const pageData = readPage(response);
         const page = appendPage(items, total, pageData.items, pageData.total, 'GetMarathonPupils');
         items = page.items;
         total = page.total;
@@ -98,7 +95,7 @@ async function loadAllPupilLessons({ sendRequest, marathonId, pupilId, pageSize 
                 Page: { Skip: items.length, Take: pageSize }
             }
         );
-        const pageData = readPage(response, 'GetMarathonLessonsForPupilPagination');
+        const pageData = readPage(response);
         const page = appendPage(
             items,
             total,
@@ -135,7 +132,7 @@ async function loadAllMarathonLessons({ sendRequest, marathonId, pageSize = 100 
                 Page: { Skip: items.length, Take: pageSize }
             }
         );
-        const pageData = readPage(response, 'GetMarathonLessonsPagination');
+        const pageData = readPage(response);
         const page = appendPage(
             items,
             total,
@@ -175,15 +172,19 @@ async function getLessonById({ sendRequest, lessonId }) {
 function createEdvibeMarathonApi({ sendRequest }) {
     const request = requireRequest(sendRequest);
     return Object.freeze({
+        /** @param {{ marathonId: number, pageSize?: number }} options */
         loadAllPupils(options) {
             return loadAllPupils({ ...options, sendRequest: request });
         },
+        /** @param {{ marathonId: number, pupilId: number, pageSize?: number }} options */
         loadAllPupilLessons(options) {
             return loadAllPupilLessons({ ...options, sendRequest: request });
         },
+        /** @param {{ marathonId: number, pageSize?: number }} options */
         loadAllMarathonLessons(options) {
             return loadAllMarathonLessons({ ...options, sendRequest: request });
         },
+        /** @param {{ lessonId: number }} options */
         getLessonById(options) {
             return getLessonById({ ...options, sendRequest: request });
         }
