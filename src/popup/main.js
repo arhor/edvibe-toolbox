@@ -5,6 +5,7 @@ import {
 } from '../shared/message-protocol.js';
 
 const TOOL_GROUPS = Object.freeze({ history: 'История', export: 'Экспорт', management: 'Управление', development: 'Разработка' });
+
 const TOOL_DEFINITIONS = Object.freeze([
     { id: 'execution-history', group: 'history', title: 'История операций', description: 'Просмотреть, отфильтровать и скачать сохранённые отчёты.', command: POPUP_COMMANDS.OPEN_EXECUTION_HISTORY, requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true },
     { id: 'marathon-export', group: 'export', title: 'Экспорт марафона', description: 'Скачать уроки, материалы и резервный JSON.', command: POPUP_COMMANDS.START_EXPORT, requirement: 'marathon', busyLabel: 'Экспортируется…' },
