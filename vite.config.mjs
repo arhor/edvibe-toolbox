@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { crx } from '@crxjs/vite-plugin';
-import { defineConfig } from 'vite';
+import { defineConfig, withFilter } from 'vite';
+import swc from '@rollup/plugin-swc'
 
 const sourceManifest = JSON.parse(
     readFileSync(new URL('./manifest.json', import.meta.url), 'utf8')
@@ -16,8 +17,19 @@ export default defineConfig({
     plugins: [
         crx({
             manifest: sourceManifest,
-            contentScripts: { standaloneFiles }
-        })
+            contentScripts: { standaloneFiles },
+        }),
+        withFilter(
+            swc({
+                swc: {
+                    jsc: {
+                        parser: { decorators: true, decoratorsBeforeExport: true },
+                        transform: { decoratorVersion: '2023-11' },
+                    },
+                },
+            }),
+            { transform: { code: '@' } },
+        ),
     ],
     build: {
         outDir: 'dist',

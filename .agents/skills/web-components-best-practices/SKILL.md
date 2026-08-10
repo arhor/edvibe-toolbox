@@ -15,7 +15,6 @@ Edvibe Toolbox uses Lit as the standard implementation layer for custom elements
 4. Decide whether the existing integration needs Shadow DOM or light DOM. Preserve the current choice during unrelated refactors.
 5. Use Lit lifecycle hooks for rendering-related work and standard custom-element callbacks only for resources that genuinely follow connection/disconnection.
 6. Keep network, persistence, and feature orchestration outside the component when those responsibilities already belong to a feature or service layer.
-7. Validate representative user flows in `src/component-tests/` using the real Chrome/Chromium harness.
 
 Read [lifecycle-and-patterns.md](references/lifecycle-and-patterns.md) when lifecycle symmetry, native custom-element behavior, form association, events, Shadow DOM, or accessibility details matter. Treat it as platform background; Lit remains the repository's rendering convention.
 

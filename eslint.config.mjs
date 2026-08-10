@@ -13,7 +13,6 @@ const browserGlobals = {
 const nodeGlobals = globals.node;
 const componentFiles = [
     'src/components/**/*.js',
-    'src/component-tests/**/*.js'
 ];
 const unusedOptions = {
     argsIgnorePattern: '^_',

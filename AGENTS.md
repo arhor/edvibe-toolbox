@@ -22,8 +22,6 @@ Keep these runtime worlds separate and preserve `document_start` behavior for ti
 - `src/components/`: Lit custom elements, component-specific Lit style modules, and reusable style foundations.
 - `src/features/`: feature workflows that coordinate transport, data, components, and persistence.
 - `src/shared/`: shared infrastructure such as logging, WebSocket transport, IndexedDB, operation guards, and execution history.
-- `src/component-tests/`: real-browser component tests and their browser harness.
-- `scripts/run-component-tests.mjs`: Chrome/Chromium component-test runner.
 - `scripts/check-build-output.mjs`: production bundle-shape and regression-budget checker.
 - `package.json` and `package-lock.json`: pinned npm dependency and command configuration.
 - `vite.config.mjs`: CRXJS/Vite build configuration.
@@ -81,7 +79,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 - Avoid broad permissions in `manifest.json`; add only the minimum Chrome permissions needed for a feature.
 - Do not commit generated export files unless the user explicitly requests it and confirms the data is safe to include.
 - Keep comments useful and sparse. Explain non-obvious browser-extension, lifecycle, build, or WebSocket behavior rather than simple assignments.
-- Keep tests beside the primary source module they exercise and name them in kebab-case with the `.test.js` suffix. Browser component tests belong in `src/component-tests/`.
+- Keep tests beside the primary source module they exercise and name them in kebab-case with the `.test.js` suffix.
 
 ## Validation Expectations
 
