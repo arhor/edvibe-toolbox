@@ -22,39 +22,72 @@ const pageContextTitle = document.getElementById('pageContextTitle');
 const pageContextDescription = document.getElementById('pageContextDescription');
 const toolGroupsElement = document.getElementById('toolGroups');
 const popupStatusElement = document.getElementById('popupStatus');
+
 let activeTab = null;
 let pageContext = { type: 'loading' };
 let exportInProgress = false;
 let pendingToolId = null;
 
 chrome.runtime.onMessage.addListener((message) => {
-    if (!isRuntimeExportStatusMessage(message)) return;
+    if (!isRuntimeExportStatusMessage(message)) {
+        return;
+    }
     exportInProgress = message.state === 'started';
     renderTools();
-    if (message.state === 'complete') showStatus('Экспорт завершён.');
-    else if (message.state === 'error') showStatus(message.message || 'Не удалось экспортировать марафон.', true);
+    if (message.state === 'complete') {
+        showStatus('Экспорт завершён.');
+    } else if (message.state === 'error') {
+        showStatus(message.message || 'Не удалось экспортировать марафон.', true);
+    }
 });
 
 initializePopup();
 
 async function initializePopup() {
-    const [contextResult, storageResult] = await Promise.allSettled([getPageContext(), chrome.storage.local.get('exportInProgress')]);
-    if (contextResult.status === 'fulfilled') { pageContext = contextResult.value; activeTab = pageContext.tab || null; }
-    else pageContext = { type: 'unavailable' };
-    if (storageResult.status === 'fulfilled') exportInProgress = Boolean(storageResult.value.exportInProgress);
+    const [contextResult, storageResult] = await Promise.allSettled([
+        getPageContext(),
+        chrome.storage.local.get('exportInProgress')
+    ]);
+
+    if (contextResult.status === 'fulfilled') {
+        pageContext = contextResult.value;
+        activeTab = pageContext.tab || null;
+    } else {
+        pageContext = { type: 'unavailable' };
+    }
+    if (storageResult.status === 'fulfilled') {
+        exportInProgress = Boolean(storageResult.value.exportInProgress);
+    }
     renderPageContext();
     renderTools();
 }
 
 async function getPageContext() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id || !tab.url) return { type: 'unavailable' };
+    if (!tab?.id || !tab.url) {
+        return { type: 'unavailable' };
+    }
     let url;
-    try { url = new URL(tab.url); } catch (_) { return { type: 'unsupported', tab }; }
+    try {
+        url = new URL(tab.url);
+    } catch (_) {
+        return {
+            type: 'unsupported',
+            tab
+        };
+    }
+
     const isEdvibe = url.hostname === 'edvibe.com' || url.hostname.endsWith('.edvibe.com');
-    if (!isEdvibe) return { type: 'unsupported', tab };
+    if (!isEdvibe) {
+        return {
+            type: 'unsupported',
+            tab
+        };
+    }
     const marathonMatch = url.pathname.match(/\/marathon\/(\d+)(?:\/|$)/);
-    return marathonMatch ? { type: 'marathon', marathonId: marathonMatch[1], tab } : { type: 'edvibe', tab };
+    return marathonMatch
+        ? { type: 'marathon', marathonId: marathonMatch[1], tab }
+        : { type: 'edvibe', tab };
 }
 
 function renderPageContext() {
@@ -71,9 +104,12 @@ function renderPageContext() {
 
 function renderTools() {
     toolGroupsElement.replaceChildren();
+
     for (const [groupId, groupTitle] of Object.entries(TOOL_GROUPS)) {
         const tools = TOOL_DEFINITIONS.filter((tool) => tool.group === groupId);
-        if (!tools.length) continue;
+        if (!tools.length) {
+            continue;
+        }
         const group = document.createElement('popup-tool-group');
         group.configure({ title: groupTitle, tools, getState: getToolRenderState, onExecute: executeTool });
         toolGroupsElement.append(group);
@@ -85,37 +121,81 @@ function getToolRenderState(tool) {
     const isBusy = tool.id === 'marathon-export' && exportInProgress;
     const isPending = pendingToolId === tool.id;
     const isBlocked = (exportInProgress || pendingToolId !== null) && !isBusy && !isPending;
-    return { disabled: Boolean(unavailableReason || isBusy || isPending || isBlocked), reason: unavailableReason || (isBlocked ? 'Дождитесь завершения другого инструмента.' : ''), busy: isBusy || isPending };
+
+    return {
+        disabled: Boolean(unavailableReason || isBusy || isPending || isBlocked),
+        reason: unavailableReason || (isBlocked ? 'Дождитесь завершения другого инструмента.' : ''),
+        busy: isBusy || isPending
+    };
 }
 
 function getUnavailableReason(tool) {
-    if (tool.requirement === 'edvibe') return pageContext.type === 'edvibe' || pageContext.type === 'marathon' ? '' : 'Откройте страницу Edvibe.';
-    return tool.requirement !== 'marathon' || pageContext.type === 'marathon' ? '' : 'Откройте страницу марафона.';
+    if (tool.requirement === 'edvibe') {
+        return (pageContext.type === 'edvibe' || pageContext.type === 'marathon')
+            ? ''
+            : 'Откройте страницу Edvibe.';
+    } else {
+        return (tool.requirement !== 'marathon' || pageContext.type === 'marathon')
+            ? ''
+            : 'Откройте страницу марафона.';
+    }
 }
 
 async function executeTool(toolId) {
     const tool = TOOL_DEFINITIONS.find((item) => item.id === toolId);
-    if (!tool || getUnavailableReason(tool) || !activeTab?.id || exportInProgress || pendingToolId !== null) return;
+
+    if (!tool || getUnavailableReason(tool) || !activeTab?.id || exportInProgress || pendingToolId !== null) {
+        return;
+    }
+
     clearStatus(); pendingToolId = tool.id;
-    if (tool.id === 'marathon-export') exportInProgress = true;
+
+    if (tool.id === 'marathon-export') {
+        exportInProgress = true;
+    }
     renderTools();
     try {
         await sendTabCommand(activeTab.id, tool.command);
         pendingToolId = null; renderTools();
-        if (tool.closeOnSuccess) window.close();
+        if (tool.closeOnSuccess) {
+            window.close();
+        }
     } catch (error) {
-        if (tool.id === 'marathon-export') exportInProgress = false;
-        pendingToolId = null; renderTools(); showStatus(error.message || 'Не удалось запустить инструмент.', true);
+        if (tool.id === 'marathon-export') {
+            exportInProgress = false;
+        }
+        pendingToolId = null;
+        renderTools();
+        showStatus(error.message || 'Не удалось запустить инструмент.', true);
     }
 }
 
 function sendTabCommand(tabId, action) {
     const message = { action };
-    if (!isPopupCommandMessage(message)) return Promise.reject(new Error('Unsupported Toolbox command.'));
-    return new Promise((resolve, reject) => chrome.tabs.sendMessage(tabId, message, (response) => {
-        if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-        else resolve(response);
-    }));
+
+    if (isPopupCommandMessage(message)) {
+        new Promise((resolve, reject) => {
+            chrome.tabs.sendMessage(tabId, message, (response) => {
+                if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                } else {
+                    resolve(response);
+                }
+            });
+        });
+
+    } else {
+        return Promise.reject(new Error('Unsupported Toolbox command.'));
+    }
 }
-function showStatus(message, isError = false) { popupStatusElement.textContent = message; popupStatusElement.classList.toggle('is-error', isError); popupStatusElement.hidden = false; }
-function clearStatus() { popupStatusElement.textContent = ''; popupStatusElement.classList.remove('is-error'); popupStatusElement.hidden = true; }
+function showStatus(message, isError = false) {
+    popupStatusElement.textContent = message;
+    popupStatusElement.classList.toggle('is-error', isError);
+    popupStatusElement.hidden = false;
+}
+
+function clearStatus() {
+    popupStatusElement.textContent = '';
+    popupStatusElement.classList.remove('is-error');
+    popupStatusElement.hidden = true;
+}

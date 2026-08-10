@@ -15,7 +15,7 @@ export default defineManifest({
         'activeTab'
     ],
     action: {
-        default_popup: 'popup.html'
+        default_popup: 'src/popup/index.html'
     },
     content_scripts: [
         {
