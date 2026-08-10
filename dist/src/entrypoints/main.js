@@ -100,9 +100,8 @@ h2 { margin: 0 0 8px; color: #111827; font-size: 20px; line-height: 1.3; }
 :host([error]) .close { display: block; }
 
 `,Ne=`edvibe-toolbox-export-progress`,Pe=class extends G{static styles=[Ae,je,Me];static properties={statusText:{state:!0},loadedSections:{state:!0},totalSections:{state:!0},countText:{state:!0},progressState:{state:!0}};constructor(){super(),this.statusText=`Preparing export...`,this.loadedSections=0,this.totalSections=0,this.countText=void 0,this.progressState=`loading`}setProgress(e={}){e=e&&typeof e==`object`?e:{};let{statusText:t=``,loadedSections:n=0,totalSections:r=0,countText:i,state:a=`loading`}=e;return this.statusText=String(t||``),this.loadedSections=Number(n)||0,this.totalSections=Number(r)||0,this.countText=i,this.progressState=String(a||`loading`),this.syncHostState(),this}syncHostState(){let e=this.totalSections>0;this.toggleAttribute(`indeterminate`,!e&&this.progressState===`loading`),this.toggleAttribute(`complete`,this.progressState===`complete`),this.toggleAttribute(`error`,this.progressState===`error`)}complete(e,t){return this.setProgress({statusText:e,loadedSections:t,totalSections:t,state:`complete`})}error(e){return this.setProgress({statusText:e,state:`error`})}dismissAfter(e){let t=Number.isFinite(Number(e))?Math.max(0,Number(e)):0;setTimeout(()=>this.remove(),t)}render(){let e=this.totalSections>0,t=this.progressState===`complete`?100:e?Math.min(100,Math.round(this.loadedSections/this.totalSections*100)):0,n=this.countText??(e?`${this.loadedSections} / ${this.totalSections} sections loaded`:this.progressState===`complete`?`Export complete`:`Discovering sections...`),r=e||this.progressState===`complete`?t:W;return U`
-<div class="overlay">
-                <section class="card" role="dialog" aria-modal="true"
-                    aria-labelledby="export-progress-title">
+            <div class="overlay">
+                <section class="card" role="dialog" aria-modal="true" aria-labelledby="export-progress-title">
                     <h2 id="export-progress-title">Exporting marathon</h2>
                     <p class="status">${this.statusText}</p>
                     <progress class="progress" max="100" value=${r}></progress>
