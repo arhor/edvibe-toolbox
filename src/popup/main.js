@@ -4,6 +4,9 @@ import {
     isRuntimeExportStatusMessage
 } from '../shared/message-protocol.js';
 
+import '@/popup/components/popup-tool-group.js';
+import '@/popup/components/popup-tool-card.js';
+
 const TOOL_GROUPS = Object.freeze({ history: 'История', export: 'Экспорт', management: 'Управление', development: 'Разработка' });
 
 const TOOL_DEFINITIONS = Object.freeze([
