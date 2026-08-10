@@ -1,4 +1,0 @@
-interface:
-  display_name: "Preserve Edvibe Runtime Wiring"
-  short_description: "Protect bundled entry-point ordering and early MAIN execution"
-  default_prompt: "Use $preserving-edvibe-manifest-scripts when editing runtime entry points or manifest content-script wiring."
