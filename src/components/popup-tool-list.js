@@ -10,9 +10,13 @@ export class PopupToolCard extends LitElement {
     constructor() {
         super();
         this.configuration = {};
-        this.setAttribute('role', 'button');
         this.addEventListener('click', () => this.activate());
         this.addEventListener('keydown', (event) => this.handleKeydown(event));
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.setAttribute('role', 'button');
     }
 
     createRenderRoot() {
@@ -67,7 +71,7 @@ export class PopupToolCard extends LitElement {
         this.dataset.disabled = String(this.disabled);
         this.setAttribute('aria-disabled', String(this.disabled));
         this.tabIndex = this.disabled ? -1 : 0;
-        this.classList.toggle('is-danger', this.tool.appearance === 'danger');
+        this.dataset.danger = String(this.tool.appearance === 'danger');
     }
 
     updated(changedProperties) {

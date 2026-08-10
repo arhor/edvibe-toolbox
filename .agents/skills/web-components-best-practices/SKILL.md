@@ -9,7 +9,7 @@ Edvibe Toolbox uses Lit as the standard implementation layer for custom elements
 
 ## Workflow
 
-1. Inspect the existing component, its feature/service owner, stylesheet, browser tests, and public integration contract.
+1. Inspect the existing component, its feature/service owner, stylesheet, any existing tests, and public integration contract.
 2. Define or preserve the public contract before implementation: element name, properties, methods, events, states, and externally observable behavior.
 3. Model UI state with Lit reactive properties/state and derive markup declaratively in `render()`.
 4. Decide whether the existing integration needs Shadow DOM or light DOM. Preserve the current choice during unrelated refactors.
@@ -21,7 +21,7 @@ Read [lifecycle-and-patterns.md](references/lifecycle-and-patterns.md) when life
 ## Non-negotiable Practices
 
 - Extend `LitElement` for Toolbox UI custom elements unless the task has a concrete reason to use another base.
-- Use lowercase hyphenated custom-element names and guard registration when duplicate evaluation is possible.
+- Use lowercase hyphenated custom-element names. When registering with plain `customElements.define()`, guard against duplicate evaluation (e.g. check `customElements.get(tag)` first). Lit's `@customElement` decorator registers unconditionally, so components using it must rely on their module being evaluated only once instead.
 - Keep constructors cheap. Initialize state and stable dependencies; do not perform network work or depend on connection/layout there.
 - Represent externally visible state as reactive data and let `render()` produce the corresponding markup.
 - Do not build a second rendering system with `innerHTML`, template cloning, cached query-selector maps, or manual show/hide synchronization when Lit can express the state directly.
@@ -69,4 +69,4 @@ Pass those capabilities into components through established configuration callba
 
 ## Validation
 
-Use the real-browser component harness for component behavior. Exercise creation/configuration, relevant state transitions, user events, asynchronous updates, cleanup/disconnection, and public custom events. Run the repository's complete CI validation and production build before merging.
+There is currently no real-browser component test suite; it was removed and is expected to be rewritten. Until it exists, cover component behavior with Node.js tests where practical (e.g. asserting on rendered markup, source structure, and integration wiring) and note any creation/configuration, state-transition, user-event, async-update, cleanup/disconnection, or custom-event behavior that still needs manual verification in Chrome. Run the repository's complete CI validation and production build before merging.

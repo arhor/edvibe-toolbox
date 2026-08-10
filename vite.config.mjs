@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { crx } from '@crxjs/vite-plugin';
 import { defineConfig, withFilter } from 'vite';
-import swc from '@rollup/plugin-swc'
+import swc from '@rollup/plugin-swc';
 
 const sourceManifest = JSON.parse(
     readFileSync(new URL('./manifest.json', import.meta.url), 'utf8')

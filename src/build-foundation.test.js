@@ -15,7 +15,7 @@ test('package exposes pinned CRXJS/Vite development and production commands', ()
     assert.equal(packageJson.scripts.dev, 'vite build --watch --mode development');
     assert.equal(packageJson.scripts.build, 'vite build');
     assert.equal(packageJson.devDependencies['@crxjs/vite-plugin'], '2.7.1');
-    assert.equal(packageJson.devDependencies.vite, '8.1.5');
+    assert.equal(packageJson.devDependencies.vite, '8.2.1');
 });
 
 test('build configuration preserves standalone document-start content-script entry points', async () => {

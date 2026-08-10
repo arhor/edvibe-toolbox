@@ -44,12 +44,9 @@ npm run lint
 
 `npm run dev` runs the Vite build in watch mode. `npm run build` creates the production extension in `dist/`. `npm run check:build-output` validates the generated production bundle shape and regression budgets. `npm run typecheck` validates TypeScript contracts, and `npm run lint` enforces the repository's JavaScript/TypeScript, Lit, and Web Component quality rules.
 
-Testing commands are intentionally separated:
-
 ```bash
-npm test                 # non-browser Node.js tests
-npm run test:components  # real Chrome/Chromium Web Component tests
-npm run test:ci          # complete test suite used by CI
+npm test     # Node.js test suite
+npm run test:ci  # complete test suite used by CI (currently an alias for `npm test`)
 ```
 
 For manual browser validation, load the repository's `dist/` directory with Chrome's **Load unpacked** action. Rebuild after source changes and reload the extension card before testing the affected Edvibe workflow.
@@ -59,6 +56,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 - Source files are authoritative. Never hand-edit files under `dist/`.
 - Pull requests are validated with `npm ci`, `npm run typecheck`, `npm run lint`, `npm run test:ci`, `npm run build`, and `npm run check:build-output`.
 - Production bundles are explicitly minified with Vite's Oxc minifier. MAIN and ISOLATED content scripts remain standalone eager bundles to preserve CRXJS and `document_start` behavior; do not introduce chunking purely to reduce reported byte counts.
+- Vite 8's default Oxc transformer does not lower stage-3 decorators, so `vite.config.mjs` runs `@rollup/plugin-swc` (scoped via `withFilter`/`code: '@'`) to transpile files that use decorator syntax, such as Lit's `@customElement`. Keep this transform scoped to decorator-containing files rather than applying it project-wide.
 - Review `docs/build-output-policy.md` before changing production minification, bundle shape, or bundle regression budgets.
 - PR authors do not need to commit generated `dist/` updates.
 - After a successful source change reaches `master`, the CI `sync-dist` job rebuilds, validates, and commits `dist/` only when generated output changed.
@@ -86,7 +84,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 GitHub Actions is the authoritative validation environment for repository changes.
 
 - Source or build changes: require linting, type checking, the full CI test suite, a successful production build, and the production bundle output check.
-- Component changes: cover important reactive state, user events, Shadow/light DOM behavior, cleanup, and public integration contracts in the real-browser component suite.
+- Component changes: cover important reactive state, user events, Shadow/light DOM behavior, cleanup, and public integration contracts. There is currently no real-browser component test suite; add Node.js coverage where practical and note any behavior that can only be verified manually in Chrome.
 - Popup changes: verify relevant button state, labels, command availability, and error handling.
 - Messaging changes: confirm popup/isolated/MAIN routing forwards only expected commands and minimal metadata.
 - Automation changes: preserve safe partial results, retries/cancellation semantics, and execution-history behavior where applicable.

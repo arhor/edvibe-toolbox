@@ -27,7 +27,7 @@ test('popup uses a CSP-safe data-driven tool catalog', () => {
         assert.match(popupScript, new RegExp(`id: '${id}'`));
     }
     assert.match(popupScript, /createElement\('popup-tool-group'\)/);
-    assert.match(popupComponents, /customElements\.define\('popup-tool-card'/);
+    assert.match(popupComponents, /@customElement\('popup-tool-card'\)/);
     assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
 });
 
@@ -63,7 +63,7 @@ test('popup styling and script loading remain component-oriented', () => {
     assert.match(popupEntrypoint, /import '\.\.\/components\/popup-tool-list\.js';/);
     assert.match(popupEntrypoint, /import '\.\.\/runtime\/popup\.js';/);
     assert.match(popupStyles, /popup-tool-card:focus-visible/);
-    assert.match(popupStyles, /popup-tool-card\.is-danger/);
+    assert.match(popupStyles, /popup-tool-card\[data-danger="true"\]/);
     assert.doesNotMatch(popupStyles, /\.tool-action/);
     assert.match(popupComponents, /import \{ LitElement, html \} from 'lit';/);
     assert.match(popupComponents, /class PopupToolCard extends LitElement/);

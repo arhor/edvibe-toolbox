@@ -14,14 +14,18 @@ The current production shape is therefore intentionally three JavaScript outputs
 
 Do not introduce dynamic imports or manual chunking merely to reduce the apparent size of the eager MAIN bundle. Any split must first demonstrate that it preserves content-script timing, CRXJS compatibility, and feature behavior.
 
+## Decorator transpilation
+
+Vite 8's default Oxc transformer does not lower stage-3 decorators (used by Lit's `@customElement`). `vite.config.mjs` runs `@rollup/plugin-swc` ahead of Oxc, scoped with `withFilter`/`code: '@'` so only files containing a decorator are transpiled. Oxc continues to minify the rest of the build; do not widen the SWC transform to the whole bundle.
+
 ## Reviewed baseline
 
-After the ESM, runtime-layout, and shared-boundary cleanup, the production build was measured with Vite 8.1.5 and Oxc minification:
+After adding the scoped SWC decorator transform, the production build was measured with Vite 8.2.1 and Oxc minification:
 
 - MAIN: about 449 kB;
 - ISOLATED: about 6.7 kB;
-- popup JavaScript: about 27.4 kB;
-- total JavaScript: about 483 kB.
+- popup JavaScript: about 31.2 kB;
+- total JavaScript: about 487 kB.
 
 For comparison, the previously committed unminified MAIN bundle was about 662 kB. Two consecutive builds from the same source produced identical file hashes, which is sufficient for the existing deterministic `dist/` synchronization workflow.
 

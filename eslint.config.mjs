@@ -69,6 +69,13 @@ export default defineConfig([
         }
     },
     {
+        name: 'Lit components (stage-3 decorator syntax)',
+        files: componentFiles,
+        languageOptions: {
+            parser: tseslint.parser
+        }
+    },
+    {
         ...litConfigs['flat/recommended'],
         name: 'Lit components',
         files: componentFiles
