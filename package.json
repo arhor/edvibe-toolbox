@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build",
-    "check:build-output": "node scripts/check-build-output.mjs",
+    "check:build-output": "node scripts/check-build-output.js",
     "lint": "eslint .",
     "test": "node --test \"src/**/*.test.js\"",
     "test:ci": "npm test"
