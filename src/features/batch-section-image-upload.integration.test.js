@@ -1,11 +1,11 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const { pathToFileURL } = require('node:url');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const root = path.resolve(__dirname, '../..');
-const manifestPromise = import(pathToFileURL(path.join(root, 'manifest.config.mjs')).href)
+const root = path.resolve(import.meta.dirname, '../..');
+const manifestPromise = import(pathToFileURL(path.join(root, 'manifest.config.js')).href)
     .then(({ default: manifest }) => manifest);
 
 test('MAIN coordinator composes the image picker and upload adapter through ESM', async () => {

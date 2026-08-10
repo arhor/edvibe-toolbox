@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const { REQUEST_TYPE, RESPONSE_TYPE, createStorageBridge } = require('./chrome-storage-bridge.js');
+import { REQUEST_TYPE, RESPONSE_TYPE, createStorageBridge } from './chrome-storage-bridge.js';
 
 function createWindowHarness() {
     const listeners = new Set();

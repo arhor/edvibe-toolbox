@@ -1,6 +1,4 @@
-'use strict';
-
-function sectionDefinition() {
+export function sectionDefinition() {
     return {
         name: 'Summer promotion',
         blocks: [
@@ -11,7 +9,7 @@ function sectionDefinition() {
     };
 }
 
-function lessons() {
+export function lessons() {
     return [
         { lessonId: 101, marathonLessonId: 1001, number: 1, name: 'Welcome' },
         { lessonId: 102, marathonLessonId: 1002, number: 2, name: 'Practice' },
@@ -19,7 +17,7 @@ function lessons() {
     ];
 }
 
-function plan({ eligible = lessons(), rejected = [], selectedLessonIds = [101, 102, 103] } = {}) {
+export function plan({ eligible = lessons(), rejected = [], selectedLessonIds = [101, 102, 103] } = {}) {
     return Object.freeze({
         definition: Object.freeze(sectionDefinition()),
         selectedLessonIds: Object.freeze([...selectedLessonIds]),
@@ -29,7 +27,7 @@ function plan({ eligible = lessons(), rejected = [], selectedLessonIds = [101, 1
     });
 }
 
-function build(history, options = {}) {
+export function build(history, options = {}) {
     return history.buildExecutionHistoryInput({
         plan: options.plan || plan(),
         result: options.result || {},
@@ -41,5 +39,3 @@ function build(history, options = {}) {
         fatalError: options.fatalError || null
     });
 }
-
-module.exports = { sectionDefinition, lessons, plan, build };

@@ -1,8 +1,8 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const { initializeIsolatedBridge } = require('./runtime/isolated.js');
-const {
+import { initializeIsolatedBridge } from './runtime/isolated.js';
+import {
     EXPORT_STATES,
     POPUP_COMMANDS,
     STORAGE_ACTIONS,
@@ -12,7 +12,7 @@ const {
     createStorageRequest,
     isRuntimeExportStatusMessage,
     isStorageResponseMessage
-} = require('./shared/message-protocol.js');
+} from './shared/message-protocol.js';
 
 function createHarness(initialStorage = {}) {
     const windowListeners = new Set();

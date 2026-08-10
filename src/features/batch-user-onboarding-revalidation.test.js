@@ -1,6 +1,6 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const onboarding = require('./batch-user-onboarding');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as onboarding from './batch-user-onboarding.js';
 
 const rawModerator = (id, teacherId) => ({
     Id: id,

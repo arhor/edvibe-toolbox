@@ -1,9 +1,7 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const history = require('./batch-section-creation-history.js');
-const { lessons, plan, build } = require('./batch-section-creation-history-test-fixtures.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as history from './batch-section-creation-history.js';
+import { lessons, plan, build } from './batch-section-creation-history-test-fixtures.js';
 
 test('preserves same-name preflight rejection as a distinct lesson outcome', () => {
     const collision = {

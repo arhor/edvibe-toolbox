@@ -1,8 +1,6 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const history = require('./batch-section-deletion-history.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as history from './batch-section-deletion-history.js';
 
 const lessons = () => [
     { lessonId: 101, marathonLessonId: 1001, number: 1, name: 'Welcome' },

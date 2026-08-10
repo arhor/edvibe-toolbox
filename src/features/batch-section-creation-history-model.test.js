@@ -1,10 +1,8 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const history = require('./batch-section-creation-history.js');
-const recordApi = require('../shared/execution-history-record.js');
-const { sectionDefinition, lessons, build } = require('./batch-section-creation-history-test-fixtures.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as history from './batch-section-creation-history.js';
+import * as recordApi from '../shared/execution-history-record.js';
+import { sectionDefinition, lessons, build } from './batch-section-creation-history-test-fixtures.js';
 
 test('builds a canonical successful record with lesson, section, order, and generated IDs', () => {
     const input = build(history, {

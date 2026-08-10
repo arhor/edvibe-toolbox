@@ -1,9 +1,9 @@
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const test = require('node:test');
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
 
-const projectRoot = path.resolve(__dirname, '..');
+const projectRoot = path.resolve(import.meta.dirname, '..');
 const popupHtml = fs.readFileSync(path.join(projectRoot, 'popup.html'), 'utf8');
 const popupEntrypoint = fs.readFileSync(path.join(projectRoot, 'src/entrypoints/popup.js'), 'utf8');
 const popupScript = fs.readFileSync(path.join(projectRoot, 'src/runtime/popup.js'), 'utf8');
@@ -27,7 +27,7 @@ test('popup uses a CSP-safe data-driven tool catalog', () => {
         assert.match(popupScript, new RegExp(`id: '${id}'`));
     }
     assert.match(popupScript, /createElement\('popup-tool-group'\)/);
-    assert.match(popupComponents, /@customElement\('popup-tool-card'\)/);
+    assert.match(popupComponents, /customElements\.define\('popup-tool-card', PopupToolCard\)/);
     assert.doesNotMatch(popupScript, /window\.startAutomation\s*=/);
 });
 

@@ -1,12 +1,12 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const source = fs.readFileSync(path.join(__dirname, 'batch-section-creation-dialog.js'), 'utf8');
-const styles = fs.readFileSync(path.join(__dirname, 'batch-section-creation-dialog.styles.js'), 'utf8');
-const imageStyles = fs.readFileSync(path.join(__dirname, 'batch-section-image-upload.styles.js'), 'utf8');
-const imageUploadSource = fs.readFileSync(path.join(__dirname, 'batch-section-image-upload.js'), 'utf8');
+const source = fs.readFileSync(path.join(import.meta.dirname, 'batch-section-creation-dialog.js'), 'utf8');
+const styles = fs.readFileSync(path.join(import.meta.dirname, 'batch-section-creation-dialog.styles.js'), 'utf8');
+const imageStyles = fs.readFileSync(path.join(import.meta.dirname, 'batch-section-image-upload.styles.js'), 'utf8');
+const imageUploadSource = fs.readFileSync(path.join(import.meta.dirname, 'batch-section-image-upload.js'), 'utf8');
 
 test('section creation dialog uses Lit for selection, block construction, preview, and reports', () => {
     assert.match(source, /import \{ LitElement, html, nothing \} from 'lit';/);

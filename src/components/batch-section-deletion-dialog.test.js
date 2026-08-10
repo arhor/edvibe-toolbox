@@ -1,9 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const source = fs.readFileSync(path.join(__dirname, 'batch-section-deletion-dialog.js'), 'utf8');
+const source = fs.readFileSync(path.join(import.meta.dirname, 'batch-section-deletion-dialog.js'), 'utf8');
 
 test('batch section deletion dialog uses Lit and keeps async feature callbacks', () => {
     assert.match(source, /import \{ LitElement, html, nothing \} from 'lit';/);

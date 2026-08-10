@@ -1,6 +1,6 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const api = require('./execution-history-retention.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as api from './execution-history-retention.js';
 
 function repository(records) {
     const values = [...records];

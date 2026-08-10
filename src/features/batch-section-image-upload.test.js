@@ -1,12 +1,12 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     UPLOAD_ENDPOINT,
     createAuthorizationCapture,
     createDynamicImageRecipe,
     uploadImageAssets
-} = require('./batch-section-image-upload.js');
+} from './batch-section-image-upload.js';
 
 class FakeFormData {
     constructor() {

@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     parseMarathonId,
     collectLessonSections,
     shouldDeleteLastRequest,
@@ -12,7 +12,7 @@ const {
     executeResetWork,
     createResetLessonsFeature,
     getErrorType
-} = require('./reset-lessons.js');
+} from './reset-lessons.js';
 
 test('parseMarathonId reads a numeric marathon id', () => {
     assert.equal(parseMarathonId('https://app.edvibe.com/marathon/18508'), 18508);

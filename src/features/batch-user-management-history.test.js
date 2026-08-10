@@ -1,9 +1,7 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const history = require('./batch-user-management-history.js');
-const recordApi = require('../shared/execution-history-record.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as history from './batch-user-management-history.js';
+import * as recordApi from '../shared/execution-history-record.js';
 
 function matchedRow(overrides = {}) {
     return {

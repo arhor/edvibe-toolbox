@@ -1,12 +1,12 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     REDACTED_VALUE,
     createActionRecorderFeature,
     makeRecipe,
     safePageContext
-} = require('./action-recorder.js');
+} from './action-recorder.js';
 
 function createHarness(options = {}) {
     let observer;

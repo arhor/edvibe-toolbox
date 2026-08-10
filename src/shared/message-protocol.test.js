@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const protocol = require('./message-protocol.js');
+import * as protocol from './message-protocol.js';
 
 test('command routes provide one authoritative popup-to-MAIN mapping', () => {
     const commands = Object.values(protocol.POPUP_COMMANDS);

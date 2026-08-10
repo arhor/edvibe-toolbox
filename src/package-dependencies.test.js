@@ -1,9 +1,9 @@
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const test = require('node:test');
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
 
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(import.meta.dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 const readJson = (relativePath) => JSON.parse(read(relativePath));
 
@@ -17,9 +17,9 @@ test('runtime libraries are pinned package-managed dependencies', () => {
         turndown: '7.2.2'
     });
     assert.deepEqual(packageLock.packages[''].dependencies, packageJson.dependencies);
-    assert.doesNotThrow(() => require.resolve('jszip'));
-    assert.doesNotThrow(() => require.resolve('lit'));
-    assert.doesNotThrow(() => require.resolve('turndown'));
+    assert.doesNotThrow(() => import.meta.resolve('jszip'));
+    assert.doesNotThrow(() => import.meta.resolve('lit'));
+    assert.doesNotThrow(() => import.meta.resolve('turndown'));
     assert.equal(fs.existsSync(path.join(root, 'lib/jszip.min.js')), false);
     assert.equal(fs.existsSync(path.join(root, 'lib/turndown.min.js')), false);
 });

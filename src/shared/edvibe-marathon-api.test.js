@@ -1,13 +1,13 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     createEdvibeMarathonApi,
     getLessonById,
     loadAllMarathonLessons,
     loadAllPupilLessons,
     loadAllPupils
-} = require('./edvibe-marathon-api.js');
+} from './edvibe-marathon-api.js';
 
 function page(items, count) {
     return { Value: { Items: items, Page: { Count: count } } };

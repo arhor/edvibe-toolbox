@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const { createOperationGuard } = require('./operation-guard.js');
+import { createOperationGuard } from './operation-guard.js';
 
 test('operation guard activates one named operation', () => {
     const guard = createOperationGuard();

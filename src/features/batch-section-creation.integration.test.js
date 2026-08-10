@@ -1,15 +1,15 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const { pathToFileURL } = require('node:url');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const root = path.resolve(__dirname, '../..');
+const root = path.resolve(import.meta.dirname, '../..');
 const popup = fs.readFileSync(path.join(root, 'src/runtime/popup.js'), 'utf8');
 const isolated = fs.readFileSync(path.join(root, 'src/runtime/isolated.js'), 'utf8');
 const main = fs.readFileSync(path.join(root, 'src/runtime/main.js'), 'utf8');
 const protocol = fs.readFileSync(path.join(root, 'src/shared/message-protocol.js'), 'utf8');
-const manifestPromise = import(pathToFileURL(path.join(root, 'manifest.config.mjs')).href)
+const manifestPromise = import(pathToFileURL(path.join(root, 'manifest.config.js')).href)
     .then(({ default: manifest }) => manifest);
 const mainEntrypoint = fs.readFileSync(path.join(root, 'src/entrypoints/main.js'), 'utf8');
 const dialog = fs.readFileSync(path.join(root, 'src/components/batch-section-creation-dialog.js'), 'utf8');

@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const recordApi = require('./execution-history-record.js');
-const repositoryApi = require('./execution-history-repository.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as recordApi from './execution-history-record.js';
+import * as repositoryApi from './execution-history-repository.js';
 
 function record(id, completedAt, overrides = {}) {
     return recordApi.buildExecutionRecord({

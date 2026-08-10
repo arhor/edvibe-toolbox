@@ -1,9 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     createMarathonExportFeature
-} = require('./marathon-export.js');
+} from './marathon-export.js';
 
 const silentLog = () => {};
 

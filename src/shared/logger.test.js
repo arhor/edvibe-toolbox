@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const { createLoggerFactory } = require('./logger.js');
+import { createLoggerFactory } from './logger.js';
 
 function captureConsole(t) {
     const calls = [];

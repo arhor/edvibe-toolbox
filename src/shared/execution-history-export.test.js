@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const recordApi = require('./execution-history-record.js');
-const api = require('./execution-history-export.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as recordApi from './execution-history-record.js';
+import * as api from './execution-history-export.js';
 
 const record = recordApi.buildExecutionRecord({
     id: 'abcd-1234', operationType: 'Batch Section Deletion',

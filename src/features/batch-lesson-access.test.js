@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     parseMarathonId,
     parseEmailInput,
     loadAllPupils,
@@ -13,7 +13,7 @@ const {
     executeAccessPlan,
     formatBatchReport,
     createBatchLessonAccessFeature
-} = require('./batch-lesson-access.js');
+} from './batch-lesson-access.js';
 
 function createFeatureDialog() {
     const listeners = new Map();

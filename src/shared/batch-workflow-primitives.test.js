@@ -1,13 +1,13 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     appendPage,
     createFeatureError,
     parseEmailInput,
     parseMarathonId,
     runWithRetry
-} = require('./batch-workflow-primitives.js');
+} from './batch-workflow-primitives.js';
 
 test('parses marathon context with one shared numeric-path rule', () => {
     assert.equal(parseMarathonId('https://app.edvibe.com/marathon/18508'), 18508);

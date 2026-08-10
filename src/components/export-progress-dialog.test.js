@@ -1,9 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const componentPath = path.resolve(__dirname, 'export-progress-dialog.js');
+const componentPath = path.resolve(import.meta.dirname, 'export-progress-dialog.js');
 const source = fs.readFileSync(componentPath, 'utf8');
 
 test('export progress dialog is a Lit component with an ESM integration contract', () => {

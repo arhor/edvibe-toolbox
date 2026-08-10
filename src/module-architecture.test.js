@@ -1,12 +1,12 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('node:path');
-const { pathToFileURL } = require('node:url');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const protocol = require('./shared/message-protocol.js');
+import * as protocol from './shared/message-protocol.js';
 
 const manifestPromise = import(pathToFileURL(
-    path.resolve(__dirname, '..', 'manifest.config.mjs')
+    path.resolve(import.meta.dirname, '..', 'manifest.config.js')
 ).href).then(({ default: manifest }) => manifest);
 
 test('manifest preserves separate document-start MAIN and ISOLATED runtime worlds', async () => {

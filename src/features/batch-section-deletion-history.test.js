@@ -1,8 +1,6 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const history = require('./batch-section-deletion-history.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as history from './batch-section-deletion-history.js';
 
 function createFakeDialog() {
     const status = { textContent: '', hidden: false };

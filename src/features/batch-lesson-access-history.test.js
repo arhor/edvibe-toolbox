@@ -1,12 +1,12 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     OPERATION_TYPE,
     buildObservedPlan,
     buildExecutionHistoryInput,
     createHistoryAwareFeature
-} = require('./batch-lesson-access-history.js');
+} from './batch-lesson-access-history.js';
 
 function pupil(email, pupilId, marathonPupilId = pupilId + 1000) {
     return Object.freeze({ email, pupilId, marathonPupilId });

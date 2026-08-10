@@ -1,9 +1,7 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const history = require('./batch-section-creation-history.js');
-const { lessons, plan } = require('./batch-section-creation-history-test-fixtures.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as history from './batch-section-creation-history.js';
+import { lessons, plan } from './batch-section-creation-history-test-fixtures.js';
 
 test('history-aware dialog preserves the visible result when persistence rejects', async () => {
     const status = { textContent: '' };

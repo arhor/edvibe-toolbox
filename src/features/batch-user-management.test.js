@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const {
+import {
     parseMarathonId,
     parseEmailInput,
     appendPage,
@@ -11,7 +11,7 @@ const {
     runWithRetry,
     executeUserPlan,
     createBatchUserManagementFeature
-} = require('./batch-user-management.js');
+} from './batch-user-management.js';
 
 function createRow(overrides = {}) {
     return {

@@ -1,9 +1,10 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { pathToFileURL } = require('node:url');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const manifestPromise = import(pathToFileURL(
-    require('node:path').resolve(__dirname, '..', 'manifest.config.mjs')
+    path.resolve(import.meta.dirname, '..', 'manifest.config.js')
 ).href).then(({ default: manifest }) => manifest);
 
 test('manifest requests only Chrome capabilities consumed by the current runtime', async () => {

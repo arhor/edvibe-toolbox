@@ -1,9 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const componentPath = path.resolve(__dirname, 'reset-lessons-dialog.js');
+const componentPath = path.resolve(import.meta.dirname, 'reset-lessons-dialog.js');
 const source = fs.readFileSync(componentPath, 'utf8');
 
 test('reset lessons dialog is implemented as a Lit component', () => {

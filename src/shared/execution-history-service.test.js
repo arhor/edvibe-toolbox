@@ -1,6 +1,6 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const api = require('./execution-history-service.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as api from './execution-history-service.js';
 
 function input() {
     return { operationType: 'demo', startedAt: '2026-08-06T04:00:00.000Z', completedAt: '2026-08-06T04:01:00.000Z', status: 'completed', pageContext: {}, counts: {}, results: [] };

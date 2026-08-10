@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const api = require('./batch-section-creation.js');
+import * as api from './batch-section-creation.js';
 
 function definition() {
     return {

@@ -1,9 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const source = fs.readFileSync(path.resolve(__dirname, 'batch-lesson-access-dialog.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(import.meta.dirname, 'batch-lesson-access-dialog.js'), 'utf8');
 
 test('batch lesson access dialog is a declarative Lit component', () => {
     assert.match(source, /import \{ LitElement, html, nothing \} from 'lit';/);
