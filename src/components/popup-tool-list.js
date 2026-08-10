@@ -1,7 +1,5 @@
 import { LitElement, html } from 'lit';
-import { customElement } from 'lit/decorators.js';
 
-@customElement('popup-tool-card')
 export class PopupToolCard extends LitElement {
     static properties = {
         configuration: { state: true }
@@ -98,7 +96,8 @@ export class PopupToolCard extends LitElement {
     }
 }
 
-@customElement('popup-tool-group')
+customElements.define('popup-tool-card', PopupToolCard);
+
 export class PopupToolGroup extends LitElement {
     static properties = {
         configuration: { state: true }
@@ -141,3 +140,5 @@ export class PopupToolGroup extends LitElement {
         `;
     }
 }
+
+customElements.define('popup-tool-group', PopupToolGroup);

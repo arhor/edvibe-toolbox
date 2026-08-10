@@ -1,5 +1,10 @@
 import { defineManifest } from '@crxjs/vite-plugin';
 
+export const ContentScripts = {
+    ISOLATED: 'src/entrypoints/isolated.js',
+    MAIN: 'src/entrypoints/main.js',
+};
+
 export default defineManifest({
     manifest_version: 3,
     name: 'Edvibe Toolbox',
@@ -15,13 +20,13 @@ export default defineManifest({
     content_scripts: [
         {
             matches: ['*://*.edvibe.com/*'],
-            js: ['src/entrypoints/isolated.js'],
+            js: [ContentScripts.ISOLATED],
             run_at: 'document_start',
             world: 'ISOLATED'
         },
         {
             matches: ['*://*.edvibe.com/*'],
-            js: ['src/entrypoints/main.js'],
+            js: [ContentScripts.MAIN],
             run_at: 'document_start',
             world: 'MAIN'
         }
