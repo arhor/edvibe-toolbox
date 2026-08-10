@@ -9,31 +9,31 @@ class ResetLessonsDialog extends LitElement {
     static styles = [componentFoundationStyles, dialogFoundationStyles, resetLessonsDialogStyles];
 
     static properties = {
-        currentStep: {state: true},
-        allPupils: {state: true},
-        pupilTotal: {state: true},
-        selectedPupil: {state: true},
-        lessons: {state: true},
-        selectedLessonIds: {state: true},
-        locked: {state: true},
-        loading: {state: true},
-        finished: {state: true},
-        pupilPageLoading: {state: true},
-        appliedSearchQuery: {state: true},
-        searchDebouncing: {state: true},
-        suppressPupilPageLoading: {state: true},
-        searchValue: {state: true},
-        statusMessage: {state: true},
-        statusState: {state: true},
-        progressVisible: {state: true},
-        progressIndeterminate: {state: true},
-        progressValue: {state: true}
+        currentStep: { state: true },
+        allPupils: { state: true },
+        pupilTotal: { state: true },
+        selectedPupil: { state: true },
+        lessons: { state: true },
+        selectedLessonIds: { state: true },
+        locked: { state: true },
+        loading: { state: true },
+        finished: { state: true },
+        pupilPageLoading: { state: true },
+        appliedSearchQuery: { state: true },
+        searchDebouncing: { state: true },
+        suppressPupilPageLoading: { state: true },
+        searchValue: { state: true },
+        statusMessage: { state: true },
+        statusState: { state: true },
+        progressVisible: { state: true },
+        progressIndeterminate: { state: true },
+        progressValue: { state: true }
     };
 
     constructor() {
         super();
         this.searchDelay = 1000;
-        this.log = () => {};
+        this.log = () => { };
         this.loadLessons = null;
         this.loadNextPupils = null;
         this.currentStep = 'user';
@@ -78,11 +78,11 @@ class ResetLessonsDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-        const { searchDelay = 1000, loadLessons, loadNextPupils, log = () => {} } = options;
+        const { searchDelay = 1000, loadLessons, loadNextPupils, log = () => { } } = options;
         this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1000;
         this.loadLessons = typeof loadLessons === 'function' ? loadLessons : null;
         this.loadNextPupils = typeof loadNextPupils === 'function' ? loadNextPupils : null;
-        this.log = typeof log === 'function' ? log : () => {};
+        this.log = typeof log === 'function' ? log : () => { };
         return this;
     }
 
@@ -92,7 +92,7 @@ class ResetLessonsDialog extends LitElement {
         if (!this.shadowRoot) { this.elements = null; return; }
         const find = (selector) => this.shadowRoot.querySelector(selector);
         this.elements = {
-backdrop: find('.edvibe-reset-overlay'), search: find('.edvibe-reset-search'),
+            backdrop: find('.edvibe-reset-overlay'), search: find('.edvibe-reset-search'),
             userStep: find('.edvibe-reset-user-step'), lessonStep: find('.edvibe-reset-lesson-step'), pupilsShell: find('.edvibe-reset-pupils-shell'),
             pupilsList: find('.edvibe-reset-pupils'), pupilsLoading: find('.edvibe-reset-pupils-loading'), lessonsList: find('.edvibe-reset-lessons'),
             selectAll: find('.edvibe-reset-select-all-input'), status: find('.edvibe-reset-status'), progress: find('.edvibe-reset-progress'),

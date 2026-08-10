@@ -25,18 +25,18 @@ class ExportProgressDialog extends LitElement {
     }
 
     setProgress(options = {}) {
-    options = options && typeof options === 'object' ? options : {};
-    const { statusText = '', loadedSections = 0, totalSections = 0, countText, state = 'loading' } = options;
-    this.statusText = String(statusText || '');
-    this.loadedSections = Number(loadedSections) || 0;
-    this.totalSections = Number(totalSections) || 0;
-    this.countText = countText;
-    this.progressState = String(state || 'loading');
-    this.syncHostState();
-    return this;
-}
+        options = options && typeof options === 'object' ? options : {};
+        const { statusText = '', loadedSections = 0, totalSections = 0, countText, state = 'loading' } = options;
+        this.statusText = String(statusText || '');
+        this.loadedSections = Number(loadedSections) || 0;
+        this.totalSections = Number(totalSections) || 0;
+        this.countText = countText;
+        this.progressState = String(state || 'loading');
+        this.syncHostState();
+        return this;
+    }
 
-syncHostState() {
+    syncHostState() {
         const hasTotal = this.totalSections > 0;
         this.toggleAttribute('indeterminate', !hasTotal && this.progressState === 'loading');
         this.toggleAttribute('complete', this.progressState === 'complete');
@@ -53,7 +53,7 @@ syncHostState() {
     }
 
     error(statusText) {
-        return this.setProgress({statusText, state: 'error'});
+        return this.setProgress({ statusText, state: 'error' });
     }
 
     dismissAfter(ms) {
@@ -78,9 +78,8 @@ syncHostState() {
             : nothing;
 
         return html`
-<div class="overlay">
-                <section class="card" role="dialog" aria-modal="true"
-                    aria-labelledby="export-progress-title">
+            <div class="overlay">
+                <section class="card" role="dialog" aria-modal="true" aria-labelledby="export-progress-title">
                     <h2 id="export-progress-title">Exporting marathon</h2>
                     <p class="status">${this.statusText}</p>
                     <progress class="progress" max="100" value=${progressValue}></progress>
