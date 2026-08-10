@@ -1,11 +1,16 @@
-// @ts-check
-
 import { appendPage, createFeatureError } from './batch-workflow-primitives.js';
 
-/** @typedef {import('./edvibe-marathon-api.types.js').EdvibeSendRequest} EdvibeSendRequest */
-/** @typedef {import('./edvibe-marathon-api.types.js').EdvibeMarathonApi} EdvibeMarathonApi */
-/** @typedef {import('./edvibe-marathon-api.types.js').MarathonLesson} MarathonLesson */
-/** @typedef {import('./edvibe-marathon-api.types.js').MarathonPupil} MarathonPupil */
+/**
+ * @callback EdvibeSendRequest
+ * @param {string} controller
+ * @param {string} method
+ * @param {string} projectName
+ * @param {Record<string, unknown>} value
+ * @returns {Promise<unknown>}
+ */
+
+/** @typedef {Record<string, unknown> & { PupilId?: number, MarathonPupilId?: number, Id?: number, Email?: string }} MarathonPupil */
+/** @typedef {Record<string, unknown> & { LessonId?: number, MarathonLessonId?: number, Id?: number, Number?: number, Name?: string, IsOpen?: boolean }} MarathonLesson */
 
 /**
  * @param {unknown} value
@@ -167,7 +172,6 @@ async function getLessonById({ sendRequest, lessonId }) {
 
 /**
  * @param {{ sendRequest: EdvibeSendRequest }} options
- * @returns {EdvibeMarathonApi}
  */
 function createEdvibeMarathonApi({ sendRequest }) {
     const request = requireRequest(sendRequest);

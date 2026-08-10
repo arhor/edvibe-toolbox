@@ -3,7 +3,6 @@ import globals from 'globals';
 import { configs as litConfigs } from 'eslint-plugin-lit';
 import { configs as wcConfigs } from 'eslint-plugin-wc';
 import { defineConfig, globalIgnores } from 'eslint/config';
-import tseslint from 'typescript-eslint';
 
 const browserGlobals = {
     ...globals.browser,
@@ -52,27 +51,6 @@ export default defineConfig([
                 ...browserGlobals,
                 ...nodeGlobals
             }
-        }
-    },
-    {
-        name: 'typescript baseline',
-        files: ['**/*.ts'],
-        extends: [tseslint.configs.recommended],
-        languageOptions: {
-            globals: {
-                ...browserGlobals,
-                ...nodeGlobals
-            }
-        },
-        rules: {
-            '@typescript-eslint/no-unused-vars': ['error', unusedOptions]
-        }
-    },
-    {
-        name: 'Lit components (stage-3 decorator syntax)',
-        files: componentFiles,
-        languageOptions: {
-            parser: tseslint.parser
         }
     },
     {

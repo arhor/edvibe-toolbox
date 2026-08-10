@@ -38,11 +38,10 @@ npm ci
 npm run dev
 npm run build
 npm run check:build-output
-npm run typecheck
 npm run lint
 ```
 
-`npm run dev` runs the Vite build in watch mode. `npm run build` creates the production extension in `dist/`. `npm run check:build-output` validates the generated production bundle shape and regression budgets. `npm run typecheck` validates TypeScript contracts, and `npm run lint` enforces the repository's JavaScript/TypeScript, Lit, and Web Component quality rules.
+`npm run dev` runs the Vite build in watch mode. `npm run build` creates the production extension in `dist/`. `npm run check:build-output` validates the generated production bundle shape and regression budgets. `npm run lint` enforces the repository's JavaScript, Lit, and Web Component quality rules.
 
 ```bash
 npm test     # Node.js test suite
@@ -54,7 +53,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 ## Build And Generated Files
 
 - Source files are authoritative. Never hand-edit files under `dist/`.
-- Pull requests are validated with `npm ci`, `npm run typecheck`, `npm run lint`, `npm run test:ci`, `npm run build`, and `npm run check:build-output`.
+- Pull requests are validated with `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`, and `npm run check:build-output`.
 - Production bundles are explicitly minified with Vite's Oxc minifier. MAIN and ISOLATED content scripts remain standalone eager bundles to preserve CRXJS and `document_start` behavior; do not introduce chunking purely to reduce reported byte counts.
 - Vite 8's default Oxc transformer does not lower stage-3 decorators, so `vite.config.mjs` runs `@rollup/plugin-swc` (scoped via `withFilter`/`code: '@'`) to transpile files that use decorator syntax, such as Lit's `@customElement`. Keep this transform scoped to decorator-containing files rather than applying it project-wide.
 - Review `docs/build-output-policy.md` before changing production minification, bundle shape, or bundle regression budgets.

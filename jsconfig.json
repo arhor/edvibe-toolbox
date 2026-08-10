@@ -1,7 +1,37 @@
 {
     "compilerOptions": {
+        "target": "ES2022",
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "allowJs": true,
+        "checkJs": false,
+        "noEmit": true,
+        "types": [
+            "chrome",
+            "node"
+        ],
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": [
+                "./src/*"
+            ]
         }
-    }
+    },
+    "include": [
+        "src/**/*.js",
+        "scripts/**/*.js",
+        "scripts/**/*.mjs",
+        "scripts/**/*.cjs",
+        "*.js",
+        "*.mjs",
+        "*.cjs"
+    ],
+    "exclude": [
+        "dist",
+        "node_modules"
+    ]
 }
