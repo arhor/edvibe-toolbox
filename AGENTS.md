@@ -15,7 +15,7 @@ Keep these runtime worlds separate and preserve `document_start` behavior for ti
 
 ## Repository Layout
 
-- `manifest.json`: source Manifest V3 configuration consumed by CRXJS.
+- `manifest.config.mjs`: source Manifest V3 configuration consumed by CRXJS.
 - `popup.html`: source popup document. Its module entry point is `src/entrypoints/popup.js`.
 - `src/entrypoints/`: small Vite/CRXJS composition roots for popup, ISOLATED, and MAIN runtimes.
 - `src/runtime/`: runtime coordinators and popup-owned global presentation; application runtime code belongs here rather than at repository root.
@@ -74,7 +74,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 - Keep in-page Lit component presentation in Lit `css` template modules composed through `static styles`. Put reusable design tokens and visual foundations under `src/components/styles/`, keep component-specific rules beside their component, and leave popup page CSS global unless a separate migration intentionally changes its light-DOM styling model.
 - Keep feature/network/persistence logic outside UI components where an existing service or feature boundary already owns it. Components should primarily own presentation and interaction state.
 - Use clear console log prefixes consistent with the existing `[Edvibe Toolbox][Area]` style.
-- Avoid broad permissions in `manifest.json`; add only the minimum Chrome permissions needed for a feature.
+- Avoid broad permissions in `manifest.config.mjs`; add only the minimum Chrome permissions needed for a feature.
 - Do not commit generated export files unless the user explicitly requests it and confirms the data is safe to include.
 - Keep comments useful and sparse. Explain non-obvious browser-extension, lifecycle, build, or WebSocket behavior rather than simple assignments.
 - Keep tests beside the primary source module they exercise and name them in kebab-case with the `.test.js` suffix.

@@ -1,18 +1,20 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
-const root = path.resolve(__dirname, '..');
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+const manifestPromise = import(pathToFileURL(
+    require('node:path').resolve(__dirname, '..', 'manifest.config.mjs')
+).href).then(({ default: manifest }) => manifest);
 
-test('manifest requests only Chrome capabilities consumed by the current runtime', () => {
+test('manifest requests only Chrome capabilities consumed by the current runtime', async () => {
+    const manifest = await manifestPromise;
     assert.deepEqual(manifest.permissions, ['storage', 'activeTab']);
     assert.equal(Object.prototype.hasOwnProperty.call(manifest, 'host_permissions'), false);
     assert.equal(manifest.permissions.includes('scripting'), false);
 });
 
-test('Edvibe page access is limited to the static content-script match pattern', () => {
+test('Edvibe page access is limited to the static content-script match pattern', async () => {
+    const manifest = await manifestPromise;
     assert.equal(manifest.content_scripts.length, 2);
     for (const entry of manifest.content_scripts) {
         assert.deepEqual(entry.matches, ['*://*.edvibe.com/*']);

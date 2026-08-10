@@ -40,7 +40,7 @@ Edvibe Toolbox targets **Manifest V3** and uses a bundled browser-extension tool
 - **HTML/CSS/JavaScript** remain the underlying browser platform technologies.
 - Runtime libraries such as **JSZip** and **Turndown** are installed through npm and bundled into the extension.
 
-The source manifest is `manifest.json`. Production builds are written to `dist/`; generated files there are build-owned output and must not be edited manually.
+The source manifest configuration is `manifest.config.mjs`. Production builds are written to `dist/`; generated files there are build-owned output and must not be edited manually.
 
 ## Development
 

@@ -1,15 +1,16 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const protocol = require('./shared/message-protocol.js');
 
-const root = path.resolve(__dirname, '..');
-const readJson = (relativePath) => JSON.parse(fs.readFileSync(path.join(root, relativePath), 'utf8'));
+const manifestPromise = import(pathToFileURL(
+    path.resolve(__dirname, '..', 'manifest.config.mjs')
+).href).then(({ default: manifest }) => manifest);
 
-test('manifest preserves separate document-start MAIN and ISOLATED runtime worlds', () => {
-    const manifest = readJson('manifest.json');
+test('manifest preserves separate document-start MAIN and ISOLATED runtime worlds', async () => {
+    const manifest = await manifestPromise;
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
     const isolatedWorld = manifest.content_scripts.find((entry) => entry.world === 'ISOLATED');
 

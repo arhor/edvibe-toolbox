@@ -2,13 +2,15 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '../..');
 const popup = fs.readFileSync(path.join(root, 'src/runtime/popup.js'), 'utf8');
 const isolated = fs.readFileSync(path.join(root, 'src/runtime/isolated.js'), 'utf8');
 const main = fs.readFileSync(path.join(root, 'src/runtime/main.js'), 'utf8');
 const protocol = fs.readFileSync(path.join(root, 'src/shared/message-protocol.js'), 'utf8');
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+const manifestPromise = import(pathToFileURL(path.join(root, 'manifest.config.mjs')).href)
+    .then(({ default: manifest }) => manifest);
 const mainEntrypoint = fs.readFileSync(path.join(root, 'src/entrypoints/main.js'), 'utf8');
 const dialog = fs.readFileSync(path.join(root, 'src/components/batch-section-creation-dialog.js'), 'utf8');
 
@@ -28,7 +30,8 @@ test('popup command crosses validated isolated and MAIN routing without presenta
     assert.match(main, /operationGuard\.release\('recording'\)/);
 });
 
-test('MAIN composition imports section creation component and feature through ESM', () => {
+test('MAIN composition imports section creation component and feature through ESM', async () => {
+    const manifest = await manifestPromise;
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
     const resources = (manifest.web_accessible_resources ?? []).flatMap((entry) => entry.resources || []);
 

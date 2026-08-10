@@ -1,36 +1,50 @@
-import { readFileSync } from 'node:fs';
+import path from 'node:path'
 import { crx } from '@crxjs/vite-plugin';
 import { defineConfig, withFilter } from 'vite';
 import swc from '@rollup/plugin-swc';
-
-const sourceManifest = JSON.parse(
-    readFileSync(new URL('./manifest.json', import.meta.url), 'utf8')
-);
-
-const standaloneFiles = Object.freeze(
-    sourceManifest.content_scripts.flatMap(({ js = [] }) => js)
-);
-
-export { sourceManifest, standaloneFiles };
+import manifest from './manifest.config.mjs';
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'src'),
+        },
+    },
     plugins: [
         crx({
-            manifest: sourceManifest,
-            contentScripts: { standaloneFiles },
+            manifest,
+            contentScripts: {
+                standaloneFiles: manifest.content_scripts.flatMap((it) => it.js ?? []),
+            },
         }),
         withFilter(
             swc({
                 swc: {
                     jsc: {
-                        parser: { decorators: true, decoratorsBeforeExport: true },
-                        transform: { decoratorVersion: '2023-11' },
+                        parser: {
+                            decorators: true,
+                            decoratorsBeforeExport: true
+                        },
+                        transform: {
+                            decoratorVersion: '2023-11'
+                        },
                     },
                 },
             }),
-            { transform: { code: '@' } },
+            {
+                transform: {
+                    code: '@'
+                }
+            },
         ),
     ],
+    server: {
+        cors: {
+            origin: [
+                /chrome-extension:\/\//,
+            ],
+        },
+    },
     build: {
         outDir: 'dist',
         emptyOutDir: true,

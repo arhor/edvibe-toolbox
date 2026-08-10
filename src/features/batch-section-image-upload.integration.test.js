@@ -2,11 +2,14 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '../..');
+const manifestPromise = import(pathToFileURL(path.join(root, 'manifest.config.mjs')).href)
+    .then(({ default: manifest }) => manifest);
 
-test('MAIN coordinator composes the image picker and upload adapter through ESM', () => {
-    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+test('MAIN coordinator composes the image picker and upload adapter through ESM', async () => {
+    const manifest = await manifestPromise;
     const mainWorld = manifest.content_scripts.find((entry) => entry.world === 'MAIN');
     const mainEntrypoint = fs.readFileSync(path.join(root, 'src/entrypoints/main.js'), 'utf8');
     const main = fs.readFileSync(path.join(root, 'src/runtime/main.js'), 'utf8');
