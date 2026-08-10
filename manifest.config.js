@@ -1,8 +1,8 @@
 import { defineManifest } from '@crxjs/vite-plugin';
 
 export const ContentScripts = {
-    ISOLATED: 'src/entrypoints/isolated.js',
-    MAIN: 'src/entrypoints/main.js',
+    ISOLATED: 'src/content/isolated.js',
+    MAIN: 'src/content/main.js',
 };
 
 export default defineManifest({

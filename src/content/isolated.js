@@ -1,4 +1,4 @@
-import { createLoggerFactory } from '../shared/logger.js';
+import { createLoggerFactory } from '@/shared/logger.js';
 import {
     EXPORT_STATES,
     POPUP_COMMANDS,
@@ -11,7 +11,7 @@ import {
     isExportStatusMessage,
     isPopupCommandMessage,
     isStorageRequestMessage
-} from '../shared/message-protocol.js';
+} from '@/shared/message-protocol.js';
 
 function initializeIsolatedBridge(options = {}) {
     const windowApi = options.windowApi || globalThis.window;
