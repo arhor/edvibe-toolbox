@@ -1,6 +1,6 @@
 import { html, LitElement } from 'lit';
 
-import '@/popup/components/popup-tool-card.js';
+import './popup-tool-card.js';
 
 const POPUP_TOOL_GROUP_TAG = 'popup-tool-group';
 

@@ -1,19 +1,56 @@
 import { html, LitElement, nothing } from 'lit';
 
-import { EXPORT_STATES } from '@/shared/message-protocol.js';
-import { createPopupChromeClient } from '@/popup/popup-chrome-client.js';
+import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '@/shared/message-protocol.js';
 import {
     TOOL_DEFINITIONS,
     TOOL_GROUPS,
     getPageContextContent,
     getToolViewModel,
-    getUnavailableReason
+    getUnavailableReason,
+    resolvePageContext
 } from '@/popup/popup-model.js';
+
 import '@/popup/components/popup-tool-group.js';
 
-const POPUP_APP_TAG = 'popup-app';
+async function getPageContext() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    return resolvePageContext(tab);
+}
 
-class PopupApp extends LitElement {
+async function getExportInProgress() {
+    const result = await chrome.storage.local.get('exportInProgress');
+    return Boolean(result.exportInProgress);
+}
+
+function sendCommand(tabId, action) {
+    const message = { action };
+
+    if (!isPopupCommandMessage(message)) {
+        return Promise.reject(new Error('Unsupported Toolbox command.'));
+    }
+
+    return new Promise((resolve, reject) => {
+        chrome.tabs.sendMessage(tabId, message, (response) => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+            } else {
+                resolve(response);
+            }
+        });
+    });
+}
+
+function subscribeToExportStatus(listener) {
+    const handleMessage = (message) => {
+        if (isRuntimeExportStatusMessage(message)) {
+            listener(message);
+        }
+    };
+    chrome.runtime.onMessage.addListener(handleMessage);
+    return () => chrome.runtime.onMessage.removeListener(handleMessage);
+}
+
+export class PopupApp extends LitElement {
     static properties = {
         pageContext: { state: true },
         initialized: { state: true },
@@ -24,7 +61,6 @@ class PopupApp extends LitElement {
 
     constructor() {
         super();
-        this.client = createPopupChromeClient(chrome);
         this.pageContext = { type: 'loading' };
         this.initialized = false;
         this.exportInProgress = false;
@@ -43,7 +79,7 @@ class PopupApp extends LitElement {
         super.connectedCallback();
         const version = ++this.connectionVersion;
         this.exportStatusObserved = false;
-        this.unsubscribeFromExportStatus = this.client.subscribeToExportStatus((message) => {
+        this.unsubscribeFromExportStatus = subscribeToExportStatus((message) => {
             this.handleExportStatus(message);
         });
         void this.initialize(version);
@@ -58,8 +94,8 @@ class PopupApp extends LitElement {
 
     async initialize(version) {
         const [contextResult, storageResult] = await Promise.allSettled([
-            this.client.getPageContext(),
-            this.client.getExportInProgress()
+            getPageContext(),
+            getExportInProgress()
         ]);
         if (version !== this.connectionVersion || !this.isConnected) {
             return;
@@ -77,8 +113,12 @@ class PopupApp extends LitElement {
     handleExportStatus(message) {
         this.exportStatusObserved = true;
         this.exportInProgress = message.state === EXPORT_STATES.STARTED;
+
         if (message.state === EXPORT_STATES.COMPLETE) {
-            this.status = { message: 'Экспорт завершён.', isError: false };
+            this.status = {
+                message: 'Экспорт завершён.',
+                isError: false
+            };
         } else if (message.state === EXPORT_STATES.ERROR) {
             this.status = {
                 message: message.message || 'Не удалось экспортировать марафон.',
@@ -120,7 +160,8 @@ class PopupApp extends LitElement {
 
         const version = this.connectionVersion;
         try {
-            await this.client.sendCommand(this.pageContext.tabId, tool.command);
+            await sendCommand(this.pageContext.tabId, tool.command);
+
             if (version !== this.connectionVersion || !this.isConnected) {
                 return;
             }
@@ -188,8 +229,6 @@ class PopupApp extends LitElement {
     }
 }
 
-if (!customElements.get(POPUP_APP_TAG)) {
-    customElements.define(POPUP_APP_TAG, PopupApp);
+if (!customElements.get('popup-app')) {
+    customElements.define('popup-app', PopupApp);
 }
-
-export { POPUP_APP_TAG, PopupApp };
