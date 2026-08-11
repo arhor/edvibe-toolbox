@@ -2,9 +2,9 @@ import { html, LitElement, nothing } from 'lit';
 
 import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '@/shared/message-protocol.js';
 import {
-    TOOL_DEFINITIONS,
     TOOL_GROUPS,
     getPageContextContent,
+    getToolDefinition,
     getToolViewModel,
     getUnavailableReason,
     resolvePageContext
@@ -133,17 +133,14 @@ export class PopupApp extends LitElement {
             exportInProgress: this.exportInProgress,
             pendingToolId: this.pendingToolId
         };
-        return Object.entries(TOOL_GROUPS).map(([id, title]) => ({
-            id,
-            title,
-            tools: TOOL_DEFINITIONS
-                .filter((tool) => tool.group === id)
-                .map((tool) => getToolViewModel(tool, state))
+        return TOOL_GROUPS.map((group) => ({
+            ...group,
+            tools: group.tools.map((tool) => getToolViewModel(tool, state))
         }));
     }
 
     async executeTool(toolId) {
-        const tool = TOOL_DEFINITIONS.find((item) => item.id === toolId);
+        const tool = getToolDefinition(toolId);
         if (!tool
             || getUnavailableReason(tool, this.pageContext)
             || !this.pageContext.tabId

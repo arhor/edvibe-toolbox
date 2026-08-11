@@ -1,23 +1,121 @@
 import { POPUP_COMMANDS } from '../shared/message-protocol.js';
 
-const TOOL_GROUPS = Object.freeze({
-    history: 'История',
-    export: 'Экспорт',
-    management: 'Управление',
-    development: 'Разработка'
-});
+function freezeToolGroup(group) {
+    return Object.freeze({
+        ...group,
+        tools: Object.freeze(group.tools.map(Object.freeze))
+    });
+}
 
-const TOOL_DEFINITIONS = Object.freeze([
-    { id: 'execution-history', group: 'history', title: 'История операций', description: 'Просмотреть, отфильтровать и скачать сохранённые отчёты.', command: POPUP_COMMANDS.OPEN_EXECUTION_HISTORY, requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'marathon-export', group: 'export', title: 'Экспорт марафона', description: 'Скачать уроки, материалы и резервный JSON.', command: POPUP_COMMANDS.START_EXPORT, requirement: 'marathon', busyLabel: 'Экспортируется…' },
-    { id: 'lesson-reset', group: 'management', title: 'Сброс прогресса учеников', description: 'Очистить сохранённые ответы в выбранных уроках.', command: POPUP_COMMANDS.OPEN_LESSON_RESET, requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
-    { id: 'batch-lesson-access', group: 'management', title: 'Открыть доступ к урокам', description: 'Открыть выбранные уроки для списка учеников.', command: POPUP_COMMANDS.OPEN_BATCH_LESSON_ACCESS, requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'batch-user-onboarding', group: 'management', title: 'Добавить пользователей', description: 'Добавить пользователей и назначить выбранного куратора по списку email.', command: POPUP_COMMANDS.OPEN_BATCH_USER_ONBOARDING, requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'batch-section-creation', group: 'management', title: 'Создать раздел в уроках', description: 'Добавить один раздел в несколько выбранных уроков.', command: POPUP_COMMANDS.OPEN_BATCH_SECTION_CREATION, requirement: 'marathon', busyLabel: 'Открывается…', closeOnSuccess: true },
-    { id: 'batch-section-deletion', group: 'management', title: 'Удалить раздел из уроков', description: 'Безопасно удалить раздел с точным именем из выбранных уроков.', command: POPUP_COMMANDS.OPEN_BATCH_SECTION_DELETION, requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
-    { id: 'batch-user-management', group: 'management', title: 'Управление пользователями', description: 'Снять кураторов и удалить пользователей по списку email.', command: POPUP_COMMANDS.OPEN_BATCH_USER_MANAGEMENT, requirement: 'marathon', busyLabel: 'Открывается…', appearance: 'danger', closeOnSuccess: true },
-    { id: 'action-recorder', group: 'development', title: 'Запись действий WebSocket', description: 'Записать запросы и ответы выполненного действия.', command: POPUP_COMMANDS.OPEN_ACTION_RECORDER, requirement: 'edvibe', busyLabel: 'Открывается…', closeOnSuccess: true }
-].map(Object.freeze));
+const TOOL_GROUPS = Object.freeze([
+    {
+        id: 'history',
+        title: 'История',
+        tools: [
+            {
+                id: 'execution-history',
+                title: 'История операций',
+                description: 'Просмотреть, отфильтровать и скачать сохранённые отчёты.',
+                command: POPUP_COMMANDS.OPEN_EXECUTION_HISTORY,
+                requirement: 'edvibe',
+                busyLabel: 'Открывается…',
+                closeOnSuccess: true
+            }
+        ]
+    },
+    {
+        id: 'export',
+        title: 'Экспорт',
+        tools: [
+            {
+                id: 'marathon-export',
+                title: 'Экспорт марафона',
+                description: 'Скачать уроки, материалы и резервный JSON.',
+                command: POPUP_COMMANDS.START_EXPORT,
+                requirement: 'marathon',
+                busyLabel: 'Экспортируется…'
+            }
+        ]
+    },
+    {
+        id: 'management',
+        title: 'Управление',
+        tools: [
+            {
+                id: 'lesson-reset',
+                title: 'Сброс прогресса учеников',
+                description: 'Очистить сохранённые ответы в выбранных уроках.',
+                command: POPUP_COMMANDS.OPEN_LESSON_RESET,
+                requirement: 'marathon',
+                busyLabel: 'Открывается…',
+                appearance: 'danger',
+                closeOnSuccess: true
+            },
+            {
+                id: 'batch-lesson-access',
+                title: 'Открыть доступ к урокам',
+                description: 'Открыть выбранные уроки для списка учеников.',
+                command: POPUP_COMMANDS.OPEN_BATCH_LESSON_ACCESS,
+                requirement: 'marathon',
+                busyLabel: 'Открывается…',
+                closeOnSuccess: true
+            },
+            {
+                id: 'batch-user-onboarding',
+                title: 'Добавить пользователей',
+                description: 'Добавить пользователей и назначить выбранного куратора по списку email.',
+                command: POPUP_COMMANDS.OPEN_BATCH_USER_ONBOARDING,
+                requirement: 'marathon',
+                busyLabel: 'Открывается…',
+                closeOnSuccess: true
+            },
+            {
+                id: 'batch-section-creation',
+                title: 'Создать раздел в уроках',
+                description: 'Добавить один раздел в несколько выбранных уроков.',
+                command: POPUP_COMMANDS.OPEN_BATCH_SECTION_CREATION,
+                requirement: 'marathon',
+                busyLabel: 'Открывается…',
+                closeOnSuccess: true
+            },
+            {
+                id: 'batch-section-deletion',
+                title: 'Удалить раздел из уроков',
+                description: 'Безопасно удалить раздел с точным именем из выбранных уроков.',
+                command: POPUP_COMMANDS.OPEN_BATCH_SECTION_DELETION,
+                requirement: 'marathon',
+                busyLabel: 'Открывается…',
+                appearance: 'danger',
+                closeOnSuccess: true
+            },
+            {
+                id: 'batch-user-management',
+                title: 'Управление пользователями',
+                description: 'Снять кураторов и удалить пользователей по списку email.',
+                command: POPUP_COMMANDS.OPEN_BATCH_USER_MANAGEMENT,
+                requirement: 'marathon',
+                busyLabel: 'Открывается…',
+                appearance: 'danger',
+                closeOnSuccess: true
+            }
+        ]
+    },
+    {
+        id: 'development',
+        title: 'Разработка',
+        tools: [
+            {
+                id: 'action-recorder',
+                title: 'Запись действий WebSocket',
+                description: 'Записать запросы и ответы выполненного действия.',
+                command: POPUP_COMMANDS.OPEN_ACTION_RECORDER,
+                requirement: 'edvibe',
+                busyLabel: 'Открывается…',
+                closeOnSuccess: true
+            }
+        ]
+    }
+].map(freezeToolGroup));
 
 const PAGE_CONTEXT_CONTENT = Object.freeze({
     loading: Object.freeze({ title: 'Проверяем страницу…', description: 'Определяем доступные инструменты' }),
@@ -70,6 +168,16 @@ function getUnavailableReason(tool, pageContext) {
         : 'Откройте страницу марафона.';
 }
 
+function getToolDefinition(toolId) {
+    for (const group of TOOL_GROUPS) {
+        const tool = group.tools.find((item) => item.id === toolId);
+        if (tool) {
+            return tool;
+        }
+    }
+    return undefined;
+}
+
 function getToolViewModel(tool, { pageContext, exportInProgress, pendingToolId }) {
     const unavailableReason = getUnavailableReason(tool, pageContext);
     const isBusy = tool.id === 'marathon-export' && exportInProgress;
@@ -85,9 +193,9 @@ function getToolViewModel(tool, { pageContext, exportInProgress, pendingToolId }
 }
 
 export {
-    TOOL_DEFINITIONS,
     TOOL_GROUPS,
     getPageContextContent,
+    getToolDefinition,
     getToolViewModel,
     getUnavailableReason,
     resolvePageContext

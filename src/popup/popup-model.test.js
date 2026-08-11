@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import {
-    TOOL_DEFINITIONS,
+    TOOL_GROUPS,
     getPageContextContent,
+    getToolDefinition,
     getToolViewModel,
     resolvePageContext
 } from './popup-model.js';
@@ -73,8 +74,8 @@ describe('getPageContextContent', () => {
 describe('getToolViewModel', () => {
     test('derives availability, pending, and export states', () => {
         // Given
-        const exportTool = TOOL_DEFINITIONS.find(({ id }) => id === 'marathon-export');
-        const historyTool = TOOL_DEFINITIONS.find(({ id }) => id === 'execution-history');
+        const exportTool = getToolDefinition('marathon-export');
+        const historyTool = getToolDefinition('execution-history');
         const unavailableState = {
             pageContext: { type: 'edvibe' },
             exportInProgress: false,
@@ -116,5 +117,22 @@ describe('getToolViewModel', () => {
         assert.equal(pendingHistory.disabled, true);
         assert.equal(pendingHistory.busy, true);
         assert.equal(pendingHistory.reason, '');
+    });
+});
+
+describe('tool definitions', () => {
+    test('keeps groups ordered and resolves nested tools by id', () => {
+        // Given
+        const expectedGroupIds = ['history', 'export', 'management', 'development'];
+
+        // When
+        const groupIds = TOOL_GROUPS.map(({ id }) => id);
+        const lessonResetTool = getToolDefinition('lesson-reset');
+        const unknownTool = getToolDefinition('unknown-tool');
+
+        // Then
+        assert.deepEqual(groupIds, expectedGroupIds);
+        assert.equal(lessonResetTool?.title, 'Сброс прогресса учеников');
+        assert.equal(unknownTool, undefined);
     });
 });
