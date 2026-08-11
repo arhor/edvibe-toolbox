@@ -8,6 +8,54 @@ const EXPECTED_WRITE_CODES = new Set([
     'REQUEST_TIMEOUT',
     'SEND_FAILED'
 ]);
+const MAX_DIAGNOSTIC_ATTEMPTS = 3;
+const MAX_DIAGNOSTIC_STRING = 256;
+const SENSITIVE_DIAGNOSTIC_KEY = /(?:authorization|cookie|token|credential|password|secret|session|email|user|pupil|binary|image|photo|file|blob)/i;
+
+function sanitizeDiagnostics(value, depth = 0, seen = new WeakSet()) {
+    if (typeof value === 'string') return value.length <= MAX_DIAGNOSTIC_STRING
+        ? value : `${value.slice(0, MAX_DIAGNOSTIC_STRING)}…[truncated]`;
+    if (value === null || ['number', 'boolean'].includes(typeof value)) return value;
+    if (!value || typeof value !== 'object') return `[${typeof value}]`;
+    if (depth >= 4) return '[depth limit]';
+    if (seen.has(value)) return '[circular]';
+    seen.add(value);
+    const output = Array.isArray(value) ? [] : {};
+    const entries = Object.entries(value);
+    for (const [key, child] of entries.slice(0, 25)) {
+        output[key] = SENSITIVE_DIAGNOSTIC_KEY.test(key)
+            ? '[redacted]'
+            : sanitizeDiagnostics(child, depth + 1, seen);
+    }
+    if (entries.length > 25) output.__truncatedEntries = entries.length - 25;
+    seen.delete(value);
+    return output;
+}
+
+function diagnosticAttempt(error, operation, attempt) {
+    const source = error?.diagnostics || {};
+    return sanitizeDiagnostics({
+        operation,
+        attempt,
+        code: error?.code,
+        controller: error?.controller || source.request?.controller,
+        method: error?.method || source.request?.method,
+        requestId: error?.requestId || source.request?.requestId,
+        serverErrorCode: error?.serverErrorCode || source.response?.errorCode,
+        serverMessage: source.response?.serverMessage,
+        startedAt: source.request?.startedAt,
+        elapsedMs: source.response?.elapsedMs,
+        requestSummary: source.request?.value,
+        responseSummary: source.response?.value
+    });
+}
+
+function diagnosticEnvelope(operation, attempts) {
+    return attempts.length ? sanitizeDiagnostics({
+        operation,
+        attempts: attempts.slice(-MAX_DIAGNOSTIC_ATTEMPTS)
+    }) : null;
+}
 
 function featureError(code, message, details = {}) {
     return baseApi.createFeatureError(code, message, details);
@@ -369,8 +417,9 @@ function buildAssignRequest({ marathonId, marathonPupilId, existingModeratorIds,
     });
 }
 
-function operationResult(status, code, message, attempts = 0, dependency = null) {
-    return { status, code, message, attempts, dependency };
+function operationResult(status, code, message, attempts = 0, dependency = null, diagnostics = null) {
+    return { status, code, message, attempts, dependency, diagnostics: diagnostics
+        ? sanitizeDiagnostics(diagnostics) : null };
 }
 
 function initializeExecutionRows(plan) {
@@ -536,6 +585,8 @@ async function executeAddGroup({
         && Boolean(row.assignSelected) === includeModerator
     );
     if (targets.length === 0) return { targets, confirmed: false, fatalError: null };
+    const diagnosticId = includeModerator ? 'add-group-with-curator' : 'add-group';
+    for (const row of targets) row.addDiagnosticRef = diagnosticId;
 
     const context = getRequestContext?.() || {};
     const request = buildAddRequest({
@@ -547,28 +598,38 @@ async function executeAddGroup({
         now: now()
     });
 
+    const diagnosticAttempts = [];
     try {
         const result = await baseApi.runWithRetry(async () => {
-            const response = await sendRequest(
-                request.controller,
-                request.method,
-                request.projectName,
-                request.value
-            );
-            if (response?.Value?.IsSuccess !== true) {
-                throw featureError('INVALID_RESPONSE', 'User addition was not positively confirmed.');
+            try {
+                const response = await sendRequest(
+                    request.controller,
+                    request.method,
+                    request.projectName,
+                    request.value
+                );
+                if (response?.Value?.IsSuccess !== true) {
+                    throw featureError('INVALID_RESPONSE', 'User addition was not positively confirmed.');
+                }
+                return response;
+            } catch (error) {
+                diagnosticAttempts.push(diagnosticAttempt(error, 'add_user', diagnosticAttempts.length + 1));
+                throw error;
             }
-            return response;
         }, { wait, getConnectionState });
         for (const row of targets) row.addRequestAttempts = result.attempts;
-        return { targets, confirmed: true, fatalError: null };
+        return { targets, confirmed: true, fatalError: null, diagnosticId,
+            diagnostics: diagnosticEnvelope('add_user', diagnosticAttempts) };
     } catch (error) {
+        const diagnostics = diagnosticEnvelope('add_user', diagnosticAttempts);
         for (const row of targets) {
             row.addResult = operationResult(
                 'failed',
                 error.code || 'USER_ADD_FAILED',
                 error.message || 'User addition failed.',
-                error.attempts || 1
+                error.attempts || 1,
+                null,
+                { reference: diagnosticId }
             );
             if (isPending(row.assignResult)) {
                 row.assignResult = operationResult(
@@ -583,7 +644,9 @@ async function executeAddGroup({
         return {
             targets,
             confirmed: false,
-            fatalError: isOperationWide(error, getConnectionState) ? error : null
+            diagnosticId,
+            fatalError: isOperationWide(error, getConnectionState) ? Object.assign(error, { diagnostics }) : null,
+            diagnostics
         };
     }
 }
@@ -600,7 +663,9 @@ function reconcileAddedRows({ groups, pupils, targetModerator }) {
                     candidates.length === 0
                         ? 'The add request succeeded, but the user was not found in the refreshed marathon roster.'
                         : 'The add request succeeded, but the refreshed user identity was ambiguous.',
-                    row.addRequestAttempts || 1
+                    row.addRequestAttempts || 1,
+                    null,
+                    { reference: row.addDiagnosticRef }
                 );
                 if (isPending(row.assignResult)) {
                     row.assignResult = operationResult(
@@ -620,7 +685,9 @@ function reconcileAddedRows({ groups, pupils, targetModerator }) {
                 'success',
                 'USER_ADDED',
                 'User was added to the marathon.',
-                row.addRequestAttempts || 1
+                row.addRequestAttempts || 1,
+                null,
+                { reference: row.addDiagnosticRef }
             );
             if (isPending(row.assignResult) && row.assignSelected) {
                 const assigned = Array.isArray(currentPupil.Moderators)
@@ -655,7 +722,9 @@ function markConfirmedGroupsUnverified(groups, error) {
                 'failed',
                 'ADD_VERIFICATION_FAILED',
                 `The add request was accepted, but per-user verification could not finish: ${error?.message || 'operation interrupted'}`,
-                row.addRequestAttempts || 1
+                row.addRequestAttempts || 1,
+                null,
+                { reference: row.addDiagnosticRef }
             );
             if (isPending(row.assignResult)) {
                 row.assignResult = operationResult(
@@ -694,33 +763,47 @@ async function executeExistingAssignments({
             existingModeratorIds: row.currentModerators.map((moderator) => moderator.id),
             targetModeratorId: targetModerator.id
         });
+        const diagnosticAttempts = [];
         try {
             const result = await baseApi.runWithRetry(async () => {
-                const response = await sendRequest(
-                    request.controller,
-                    request.method,
-                    request.projectName,
-                    request.value
-                );
-                if (response?.Value?.IsSuccess !== true) {
-                    throw featureError('INVALID_RESPONSE', 'Curator assignment was not positively confirmed.');
+                try {
+                    const response = await sendRequest(
+                        request.controller,
+                        request.method,
+                        request.projectName,
+                        request.value
+                    );
+                    if (response?.Value?.IsSuccess !== true) {
+                        throw featureError('INVALID_RESPONSE', 'Curator assignment was not positively confirmed.');
+                    }
+                    return response;
+                } catch (error) {
+                    diagnosticAttempts.push(diagnosticAttempt(error, 'assign_curator', diagnosticAttempts.length + 1));
+                    throw error;
                 }
-                return response;
             }, { wait, getConnectionState });
             row.assignResult = operationResult(
                 'success',
                 'CURATOR_ASSIGNED',
                 'Target curator was assigned while preserving existing curators.',
-                result.attempts
+                result.attempts,
+                null,
+                diagnosticEnvelope('assign_curator', diagnosticAttempts)
             );
         } catch (error) {
             row.assignResult = operationResult(
                 'failed',
                 error.code || 'CURATOR_ASSIGNMENT_FAILED',
                 error.message || 'Curator assignment failed.',
-                error.attempts || 1
+                error.attempts || 1,
+                null,
+                diagnosticEnvelope('assign_curator', diagnosticAttempts)
             );
-            if (isOperationWide(error, getConnectionState)) fatalError = error;
+            if (isOperationWide(error, getConnectionState)) {
+                fatalError = Object.assign(error, {
+                    diagnostics: diagnosticEnvelope('assign_curator', diagnosticAttempts)
+                });
+            }
         }
         emitProgress(onProgress, rows, { email: row.email, operation: 'assign_curator' });
         if (index < targets.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
@@ -746,6 +829,9 @@ function rejectRevalidatableRows(rows, error) {
             error?.code || 'STATE_CHANGED',
             error?.message || 'The confirmed plan could not be revalidated.'
         );
+        const diagnostics = diagnosticEnvelope('revalidate', [diagnosticAttempt(error, 'revalidate', 1)]);
+        if (row.addResult?.status === 'rejected') row.addResult.diagnostics = diagnostics;
+        if (row.assignResult?.status === 'rejected') row.assignResult.diagnostics = diagnostics;
     }
 }
 
@@ -764,6 +850,7 @@ async function executePlan({
     const groups = [];
     let fatalError = null;
     let writesStarted = false;
+    let currentOperation = 'revalidate';
 
     try {
         const [latestPupils, latestModerators] = await Promise.all([
@@ -792,6 +879,7 @@ async function executePlan({
             );
             if (!hasTargets) continue;
             writesStarted = true;
+            currentOperation = includeModerator ? 'add_user_with_curator' : 'add_user';
             const group = await executeAddGroup({
                 rows,
                 marathonId,
@@ -813,12 +901,14 @@ async function executePlan({
         }
 
         if (!fatalError && groups.some((group) => group.confirmed)) {
+            currentOperation = 'verify_additions';
             const refreshedPupils = await baseApi.loadAllPupils({ sendRequest, marathonId });
             reconcileAddedRows({ groups, pupils: refreshedPupils, targetModerator: target });
             emitProgress(onProgress, rows, { operation: 'verify_additions' });
         }
 
         if (!fatalError && target) {
+            currentOperation = 'assign_curator';
             if (rows.some((row) => isPending(row.assignResult) && row.membership === 'in_marathon')) {
                 writesStarted = true;
             }
@@ -834,7 +924,11 @@ async function executePlan({
             });
         }
     } catch (error) {
-        fatalError = error;
+        fatalError = Object.assign(error, {
+            diagnostics: error?.diagnostics?.attempts
+                ? error.diagnostics
+                : diagnosticEnvelope(currentOperation, [diagnosticAttempt(error, currentOperation, 1)])
+        });
     }
 
     if (fatalError && groups.some((group) => group.confirmed)) {
@@ -853,6 +947,10 @@ async function executePlan({
 
     return deepFreeze({
         plan,
+        diagnostics: groups.map((group) => group.diagnostics ? ({
+            id: group.diagnosticId,
+            ...group.diagnostics
+        }) : null).filter(Boolean),
         rows: rows.map((row) => ({
             itemId: row.itemId,
             email: row.email,
@@ -870,7 +968,9 @@ async function executePlan({
         fatalError: fatalError
             ? Object.freeze({
                 code: fatalError.code || 'INTERNAL_ERROR',
-                message: fatalError.message || 'The operation stopped unexpectedly.'
+                message: fatalError.message || 'The operation stopped unexpectedly.',
+                diagnostics: fatalError.diagnostics
+                    || diagnosticEnvelope('fatal', [diagnosticAttempt(fatalError, 'fatal', 1)])
             })
             : null
     });
@@ -889,6 +989,7 @@ function inferRowStatus(row) {
 }
 
 function formatReport(result) {
+    const sharedDiagnostics = new Map((result.diagnostics || []).map((item) => [item.id, item]));
     const lines = [
         'Edvibe Toolbox: batch user onboarding',
         `Requested users: ${result.plan.counts.requested}`,
@@ -904,18 +1005,42 @@ function formatReport(result) {
         lines.push(`[${inferRowStatus(row)}] ${label}`);
         if (row.addResult) {
             lines.push(`  add_user: ${row.addResult.status} ${row.addResult.code} — ${row.addResult.message}`);
+            if (!row.addResult.diagnostics?.reference) {
+                appendDiagnosticReport(lines, row.addResult.diagnostics, '    ');
+            }
         }
         if (row.assignResult) {
             lines.push(`  assign_curator: ${row.assignResult.status} ${row.assignResult.code} — ${row.assignResult.message}`);
+            appendDiagnosticReport(lines, row.assignResult.diagnostics, '    ');
         }
         if (!row.addResult && !row.assignResult) {
             lines.push(`  discovery: ${row.resolution} — ${row.message || 'No operation selected.'}`);
         }
     }
+    for (const [id, diagnostics] of sharedDiagnostics) {
+        lines.push('', `Shared request diagnostic: ${id}`);
+        appendDiagnosticReport(lines, diagnostics, '  ');
+    }
     if (result.fatalError) {
         lines.push('', `Interrupted: ${result.fatalError.code} — ${result.fatalError.message}`);
+        appendDiagnosticReport(lines, result.fatalError.diagnostics, '  ');
     }
     return lines.join('\n');
+}
+
+function appendDiagnosticReport(lines, diagnostics, indent) {
+    for (const attempt of diagnostics?.attempts || []) {
+        const route = [attempt.controller, attempt.method].filter(Boolean).join('.');
+        const details = [
+            `attempt ${attempt.attempt}`,
+            route,
+            attempt.requestId ? `request ${attempt.requestId}` : null,
+            attempt.serverErrorCode != null ? `server ${attempt.serverErrorCode}` : null,
+            attempt.serverMessage,
+            attempt.elapsedMs != null ? `${attempt.elapsedMs}ms` : null
+        ].filter(Boolean);
+        if (details.length > 1) lines.push(`${indent}diagnostic: ${details.join(' | ')}`);
+    }
 }
 
 function buildCounts(rows) {
@@ -946,7 +1071,8 @@ function serializeHistoryOperation(name, result) {
         attemptCount: Number(result.attempts) || 0,
         code: result.code || null,
         message: result.message || null,
-        dependency: result.dependency ? Object.freeze({ ...result.dependency }) : null
+        dependency: result.dependency ? Object.freeze({ ...result.dependency }) : null,
+        diagnostics: result.diagnostics ? deepFreeze(sanitizeDiagnostics(result.diagnostics)) : null
     }) : null;
 }
 
@@ -1028,6 +1154,8 @@ function buildExecutionHistoryInput({
         pageContext: { marathonId: String(marathonId), marathonName },
         counts,
         results: historyRows,
+        diagnostics: Object.freeze((result.diagnostics || []).map((item) => deepFreeze(sanitizeDiagnostics(item)))),
+        fatalError: result.fatalError ? deepFreeze(sanitizeDiagnostics(result.fatalError)) : null,
         message: JSON.stringify({ userCounts: counts, operationCounts })
     });
 }
