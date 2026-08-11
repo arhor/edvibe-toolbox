@@ -1,4 +1,55 @@
 const REQUEST_TIMEOUT_MS = 15000;
+const DIAGNOSTIC_LIMITS = Object.freeze({
+    maxDepth: 4,
+    maxEntries: 25,
+    maxStringLength: 256
+});
+const SENSITIVE_KEY_PATTERN = /(?:authorization|cookie|token|credential|password|secret|session(?:id)?|email|userdetails?|pupildetails?|binary|image|photo|avatar|file|blob)/i;
+
+function sanitizeDiagnosticValue(value, depth = 0, seen = new WeakSet()) {
+    if (typeof value === 'string') {
+        return value.length <= DIAGNOSTIC_LIMITS.maxStringLength
+            ? value
+            : `${value.slice(0, DIAGNOSTIC_LIMITS.maxStringLength)}…[truncated]`;
+    }
+    if (value === null || typeof value === 'number' || typeof value === 'boolean') {
+        return value;
+    }
+    if (typeof value === 'bigint') {
+        return `${value}n`;
+    }
+    if (typeof value !== 'object') {
+        return `[${typeof value}]`;
+    }
+    if (
+        (typeof ArrayBuffer !== 'undefined' && (
+            value instanceof ArrayBuffer || ArrayBuffer.isView(value)
+        ))
+        || (typeof Blob !== 'undefined' && value instanceof Blob)
+    ) {
+        return '[binary data redacted]';
+    }
+    if (depth >= DIAGNOSTIC_LIMITS.maxDepth) {
+        return '[depth limit]';
+    }
+    if (seen.has(value)) {
+        return '[circular]';
+    }
+    seen.add(value);
+
+    const result = Array.isArray(value) ? [] : {};
+    const entries = Object.entries(value);
+    for (const [key, child] of entries.slice(0, DIAGNOSTIC_LIMITS.maxEntries)) {
+        result[key] = SENSITIVE_KEY_PATTERN.test(key)
+            ? '[redacted]'
+            : sanitizeDiagnosticValue(child, depth + 1, seen);
+    }
+    if (entries.length > DIAGNOSTIC_LIMITS.maxEntries) {
+        result.__truncatedEntries = entries.length - DIAGNOSTIC_LIMITS.maxEntries;
+    }
+    seen.delete(value);
+    return result;
+}
 
 function createTransportError(code, message, details = {}) {
     const error = new Error(message);
@@ -8,6 +59,7 @@ function createTransportError(code, message, details = {}) {
         'method',
         'requestId',
         'serverErrorCode',
+        'diagnostics',
         'cause'
     ]) {
         if (details[key] !== undefined) {
@@ -30,6 +82,7 @@ function createWebSocketTransport({
     let nextSocketId = 1;
     let internalSendDepth = 0;
     const pendingRequests = new Map();
+    const responseDiagnostics = new WeakMap();
     const frameObservers = new Set();
 
     function getByteLength(data) {
@@ -115,6 +168,28 @@ function createWebSocketTransport({
         };
     }
 
+    // Request metadata is retained verbatim, while Value is bounded and sanitized.
+    // Emails, user/pupil details, authentication/session fields, and binary data are
+    // always summarized or redacted rather than retained in diagnostic envelopes.
+    function createRequestDiagnostics(packet, startedAt, valueObject) {
+        return {
+            controller: packet.Controller,
+            method: packet.Method,
+            projectName: packet.ProjectName,
+            requestId: packet.RequestId,
+            startedAt,
+            value: sanitizeDiagnosticValue(valueObject)
+        };
+    }
+
+    function extractServerMessage(data) {
+        const candidate = data?.Message ?? data?.ErrorMessage
+            ?? data?.Error?.Message ?? data?.Error?.message;
+        return typeof candidate === 'string'
+            ? sanitizeDiagnosticValue(candidate)
+            : undefined;
+    }
+
     function handleMessage(event, socketId) {
         let data = null;
         if (typeof event.data === 'string') {
@@ -150,6 +225,23 @@ function createWebSocketTransport({
             pendingRequests.delete(data.RequestId);
             clearTimeoutFn(pending.timeoutId);
             const elapsedMs = now() - pending.startedAt;
+            const response = {
+                requestId: data.RequestId,
+                success: data.IsSuccess === true,
+                errorCode: typeof data.ErrorCode === 'string'
+                    || typeof data.ErrorCode === 'number'
+                    ? data.ErrorCode
+                    : null,
+                className: typeof data.Class === 'string' ? data.Class : null,
+                method: typeof data.Method === 'string' ? data.Method : null,
+                elapsedMs
+            };
+            if (data.IsSuccess === true) {
+                response.value = sanitizeDiagnosticValue(data.Value);
+            } else {
+                response.serverMessage = extractServerMessage(data);
+            }
+            const diagnostics = { request: pending.diagnostics, response };
             const outcome = data.IsSuccess === true
                 ? 'success'
                 : `failed (${data.ErrorCode})`;
@@ -160,18 +252,20 @@ function createWebSocketTransport({
 
             if (data.IsSuccess !== true) {
                 pending.reject(createTransportError('SERVER_REJECTED',
-                    `${data.Class || 'Edvibe'}:${data.Method || 'request'} `
-                    + `failed with ErrorCode ${data.ErrorCode}`,
+                    `${response.className || 'Edvibe'}:${response.method || 'request'} `
+                    + `failed with ErrorCode ${response.errorCode ?? 'unknown'}`,
                     {
                         controller: pending.controller,
                         method: pending.method,
                         requestId: data.RequestId,
-                        serverErrorCode: data.ErrorCode
+                        serverErrorCode: response.errorCode,
+                        diagnostics
                     }
                 ));
                 return;
             }
 
+            responseDiagnostics.set(data, diagnostics);
             pending.resolve(data);
         } catch (error) {
             log('Failed parsing WebSocket frame:', error);
@@ -240,6 +334,8 @@ function createWebSocketTransport({
             }
 
             const packet = createPacket(controller, method, projectName, valueObject);
+            const startedAt = now();
+            const diagnostics = createRequestDiagnostics(packet, startedAt, valueObject);
             const timeoutId = setTimeoutFn(() => {
                 pendingRequests.delete(packet.RequestId);
                 log(
@@ -252,7 +348,8 @@ function createWebSocketTransport({
                     {
                         controller,
                         method,
-                        requestId: packet.RequestId
+                        requestId: packet.RequestId,
+                        diagnostics: { request: diagnostics }
                     }
                 ));
             }, requestTimeoutMs);
@@ -263,7 +360,11 @@ function createWebSocketTransport({
                 timeoutId,
                 controller,
                 method,
-                startedAt: now()
+                projectName,
+                requestId: packet.RequestId,
+                startedAt,
+                requestValue: diagnostics.value,
+                diagnostics
             });
             log(
                 `→ ${controller}.${method} `
@@ -288,10 +389,17 @@ function createWebSocketTransport({
                     controller,
                     method,
                     requestId: packet.RequestId,
+                    diagnostics: { request: diagnostics },
                     cause: error
                 }));
             }
         });
+    }
+
+    function getResponseDiagnostics(response) {
+        return response && typeof response === 'object'
+            ? responseDiagnostics.get(response)
+            : undefined;
     }
 
     function sendWithoutResponse(controller, method, projectName, valueObject) {
@@ -314,8 +422,9 @@ function createWebSocketTransport({
         sendRequest,
         sendWithoutResponse,
         subscribeFrames,
-        getConnectionState
+        getConnectionState,
+        getResponseDiagnostics
     };
 }
 
-export { createWebSocketTransport };
+export { createWebSocketTransport, sanitizeDiagnosticValue };
