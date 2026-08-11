@@ -16,6 +16,10 @@ body {
     font-size: 13px;
 }
 
+popup-app {
+    display: block;
+}
+
 .app-header {
     display: flex;
     gap: 11px;
@@ -131,37 +135,48 @@ main {
 
 popup-tool-card {
     display: block;
+}
+
+popup-tool-card button {
+    display: block;
+    width: 100%;
+    margin: 0;
     padding: 13px;
     border: 1px solid #dfe4ee;
     border-radius: 11px;
+    color: inherit;
     background: #ffffff;
     box-shadow: 0 2px 7px rgba(30, 42, 70, 0.04);
     cursor: pointer;
+    font: inherit;
+    text-align: left;
     transition: border-color 120ms ease, background 120ms ease,
         box-shadow 120ms ease, transform 120ms ease;
 }
 
-popup-tool-card:hover:not([data-disabled="true"]) {
+popup-tool-card button:hover:not(:disabled) {
     border-color: #b9c2e8;
     box-shadow: 0 4px 12px rgba(30, 42, 70, 0.09);
     transform: translateY(-1px);
 }
 
-popup-tool-card:focus-visible {
+popup-tool-card button:focus-visible {
     outline: 3px solid rgba(64, 85, 211, 0.25);
     outline-offset: 2px;
 }
 
-popup-tool-card[data-disabled="true"] {
+popup-tool-card button:disabled {
+    color: inherit;
     background: #fafbfc;
     cursor: default;
+    opacity: 1;
 }
 
-popup-tool-card[data-danger="true"]:not([data-disabled="true"]) {
+popup-tool-card button[data-danger="true"]:not(:disabled) {
     border-color: #e4caca;
 }
 
-popup-tool-card[data-danger="true"]:hover:not([data-disabled="true"]) {
+popup-tool-card button[data-danger="true"]:hover:not(:disabled) {
     border-color: #d6a7a7;
     background: #fffafa;
 }
@@ -174,6 +189,7 @@ popup-tool-card[data-danger="true"]:hover:not([data-disabled="true"]) {
 }
 
 .tool-copy {
+    display: block;
     min-width: 0;
 }
 
@@ -185,6 +201,7 @@ popup-tool-card[data-danger="true"]:hover:not([data-disabled="true"]) {
 
 .tool-description,
 .tool-requirement {
+    display: block;
     margin-top: 4px;
     color: #697386;
     font-size: 11px;
@@ -196,6 +213,7 @@ popup-tool-card[data-danger="true"]:hover:not([data-disabled="true"]) {
 }
 
 .tool-busy {
+    display: block;
     margin-top: 5px;
     color: #4055d3;
     font-size: 11px;

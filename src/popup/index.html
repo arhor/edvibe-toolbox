@@ -9,28 +9,7 @@
 </head>
 
 <body>
-    <header class="app-header">
-        <div class="app-mark" aria-hidden="true">ET</div>
-        <div>
-            <h1>Edvibe Toolbox</h1>
-            <p>Инструменты для текущей страницы</p>
-        </div>
-    </header>
-
-    <main>
-        <section id="pageContext" class="page-context is-loading" aria-live="polite">
-            <span class="context-indicator" aria-hidden="true"></span>
-            <div>
-                <strong id="pageContextTitle">Проверяем страницу…</strong>
-                <span id="pageContextDescription">Определяем доступные инструменты</span>
-            </div>
-        </section>
-
-        <div id="toolGroups" class="tool-groups"></div>
-
-        <p id="popupStatus" class="popup-status" role="status" hidden></p>
-    </main>
-
+    <popup-app></popup-app>
     <script type="module" src="main.js"></script>
 </body>
 

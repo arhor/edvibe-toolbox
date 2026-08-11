@@ -2,42 +2,34 @@ import { html, LitElement } from 'lit';
 
 import '@/popup/components/popup-tool-card.js';
 
-export class PopupToolGroup extends LitElement {
+const POPUP_TOOL_GROUP_TAG = 'popup-tool-group';
 
+class PopupToolGroup extends LitElement {
     static properties = {
-        configuration: { state: true }
+        title: { type: String },
+        tools: { attribute: false }
     };
 
     constructor() {
         super();
-        this.configuration = {};
+        this.title = '';
+        this.tools = [];
     }
 
     createRenderRoot() {
         return this;
     }
 
-    configure(options = {}) {
-        this.configuration = options && typeof options === 'object' ? options : {};
-        return this;
-    }
-
     render() {
-        const tools = Array.isArray(this.configuration.tools) ? this.configuration.tools : [];
-        const getState = typeof this.configuration.getState === 'function' ? this.configuration.getState : () => ({});
-
         return html`
-            <h2 class="tool-group-title">
-                ${String(this.configuration.title || '')}
-            </h2>
+            <h2 class="tool-group-title">${this.title}</h2>
             <div class="tool-list">
-                ${tools.map((tool) => html`
+                ${this.tools.map((tool) => html`
                     <popup-tool-card
-                        .configuration=${{
-                            tool,
-                            ...getState(tool),
-                            onExecute: this.configuration.onExecute
-                        }}
+                        .tool=${tool}
+                        ?disabled=${tool.disabled}
+                        .reason=${tool.reason}
+                        ?busy=${tool.busy}
                     ></popup-tool-card>
                 `)}
             </div>
@@ -45,4 +37,8 @@ export class PopupToolGroup extends LitElement {
     }
 }
 
-customElements.define('popup-tool-group', PopupToolGroup);
+if (!customElements.get(POPUP_TOOL_GROUP_TAG)) {
+    customElements.define(POPUP_TOOL_GROUP_TAG, PopupToolGroup);
+}
+
+export { POPUP_TOOL_GROUP_TAG, PopupToolGroup };
