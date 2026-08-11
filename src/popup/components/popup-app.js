@@ -10,6 +10,7 @@ import {
 } from '../popup-model.js';
 
 import './popup-tool-group.js';
+import './popup-app.css';
 
 async function getPageContext() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
