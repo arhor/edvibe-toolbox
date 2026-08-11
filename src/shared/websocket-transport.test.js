@@ -1,0 +1,164 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+    createWebSocketTransport,
+    sanitizeDiagnosticValue
+} from './websocket-transport.js';
+
+class FakeWebSocket {
+    static OPEN = 1;
+
+    constructor() {
+        this.readyState = FakeWebSocket.OPEN;
+        this.listeners = new Map();
+        this.sent = [];
+        FakeWebSocket.instance = this;
+    }
+
+    addEventListener(type, listener) {
+        this.listeners.set(type, listener);
+    }
+
+    send(data) {
+        if (this.sendError) throw this.sendError;
+        this.sent.push(data);
+    }
+
+    respond(data) {
+        this.listeners.get('message')({ data: JSON.stringify(data) });
+    }
+}
+
+function setup(options = {}) {
+    let time = 100;
+    const timers = [];
+    const transport = createWebSocketTransport({
+        WebSocketClass: FakeWebSocket,
+        cryptoApi: { randomUUID: () => 'request-1' },
+        now: () => time,
+        setTimeoutFn: (callback) => {
+            timers.push(callback);
+            return timers.length;
+        },
+        clearTimeoutFn: () => {},
+        ...options
+    });
+    const root = {};
+    transport.install(root);
+    const socket = new root.WebSocket('wss://example.test');
+    return { transport, socket, timers, advance: (milliseconds) => { time += milliseconds; } };
+}
+
+test('exposes bounded diagnostics for a successful response without changing it', async () => {
+    const { transport, socket, advance } = setup();
+    const promise = transport.sendRequest('Users', 'Get', 'School', { Page: 1 });
+    advance(12);
+    const response = { RequestId: 'request-1', IsSuccess: true, Value: { Count: 2 } };
+    socket.respond(response);
+
+    const resolved = await promise;
+    assert.deepEqual(resolved, response);
+    assert.deepEqual(transport.getResponseDiagnostics(resolved), {
+        request: {
+            controller: 'Users', method: 'Get', projectName: 'School',
+            requestId: 'request-1', startedAt: 100, value: { Page: 1 }
+        },
+        response: {
+            requestId: 'request-1', success: true, errorCode: null,
+            className: null, method: null, elapsedMs: 12, value: { Count: 2 }
+        }
+    });
+    assert.deepEqual(Object.keys(resolved), Object.keys(response));
+});
+
+test('attaches response diagnostics to server rejection errors', async () => {
+    const { transport, socket, advance } = setup();
+    const promise = transport.sendRequest('Users', 'Create', 'School', { Name: 'Sam' });
+    advance(5);
+    socket.respond({
+        RequestId: 'request-1', IsSuccess: false, ErrorCode: 'DUPLICATE',
+        Class: 'UserService', Method: 'Create', Message: 'Already exists'
+    });
+
+    await assert.rejects(promise, (error) => {
+        assert.equal(error.code, 'SERVER_REJECTED');
+        assert.deepEqual(error.diagnostics.response, {
+            requestId: 'request-1', success: false, errorCode: 'DUPLICATE',
+            className: 'UserService', method: 'Create', elapsedMs: 5,
+            serverMessage: 'Already exists'
+        });
+        return true;
+    });
+});
+
+test('attaches request diagnostics to timeout errors', async () => {
+    const { transport, timers } = setup({ requestTimeoutMs: 9 });
+    const promise = transport.sendRequest('Lessons', 'Get', 'Books', { LessonId: 7 });
+    timers[0]();
+    await assert.rejects(promise, (error) => {
+        assert.equal(error.code, 'REQUEST_TIMEOUT');
+        assert.equal(error.diagnostics.request.requestId, 'request-1');
+        assert.deepEqual(error.diagnostics.request.value, { LessonId: 7 });
+        return true;
+    });
+});
+
+test('attaches request diagnostics to synchronous send failures', async () => {
+    const { transport, socket } = setup();
+    socket.sendError = new Error('socket closed');
+    await assert.rejects(
+        transport.sendRequest('Lessons', 'Save', 'Books', { LessonId: 7 }),
+        (error) => error.code === 'SEND_FAILED'
+            && error.diagnostics.request.controller === 'Lessons'
+    );
+});
+
+test('redacts sensitive request and response fields', async () => {
+    const { transport, socket } = setup();
+    const promise = transport.sendRequest('Users', 'Onboard', 'School', {
+        Email: 'learner@example.test', Password: 'nope', UserDetails: { Name: 'Lee' },
+        Authorization: 'Bearer token', SessionId: 'session', SafeCount: 3
+    });
+    socket.respond({
+        RequestId: 'request-1', IsSuccess: true,
+        Value: { Cookie: 'raw', ImageData: 'raw', SafeCount: 3 }
+    });
+    const diagnostics = transport.getResponseDiagnostics(await promise);
+    assert.deepEqual(diagnostics.request.value, {
+        Email: '[redacted]', Password: '[redacted]', UserDetails: '[redacted]',
+        Authorization: '[redacted]', SessionId: '[redacted]', SafeCount: 3
+    });
+    assert.deepEqual(diagnostics.response.value, {
+        Cookie: '[redacted]', ImageData: '[redacted]', SafeCount: 3
+    });
+});
+
+test('truncates long, deep, and wide diagnostic values', () => {
+    const sanitized = sanitizeDiagnosticValue({
+        text: 'x'.repeat(300),
+        deep: { a: { b: { c: { d: true } } } },
+        wide: Object.fromEntries(Array.from({ length: 27 }, (_, index) => [`k${index}`, index]))
+    });
+    assert.match(sanitized.text, /…\[truncated\]$/);
+    assert.equal(sanitized.deep.a.b.c, '[depth limit]');
+    assert.equal(sanitized.wide.__truncatedEntries, 2);
+});
+
+test('handles malformed server error payloads without retaining the payload', async () => {
+    const { transport, socket } = setup();
+    const promise = transport.sendRequest('Users', 'Create', 'School', {});
+    socket.respond({
+        RequestId: 'request-1', IsSuccess: false,
+        ErrorCode: { unexpected: true }, Message: { private: 'payload' }
+    });
+    await assert.rejects(promise, (error) => {
+        assert.equal(error.code, 'SERVER_REJECTED');
+        assert.equal(error.diagnostics.response.serverMessage, undefined);
+        assert.deepEqual(Object.keys(error.diagnostics.response), [
+            'requestId', 'success', 'errorCode', 'className', 'method',
+            'elapsedMs', 'serverMessage'
+        ]);
+        return true;
+    });
+});
