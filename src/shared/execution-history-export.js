@@ -1,14 +1,13 @@
 import * as recordApi from './execution-history-record.js';
 
 function serializeExecutionRecord(record) {
-    recordApi.validateExecutionRecord(record);
-    return `${JSON.stringify(record, null, 2)}\n`;
+    return `${JSON.stringify(recordApi.cloneExecutionRecord(record), null, 2)}\n`;
 }
 
 function serializeExecutionRecords(records) {
     if (!Array.isArray(records)) throw new TypeError('Records must be an array');
-    records.forEach(recordApi.validateExecutionRecord);
-    return `${JSON.stringify(records, null, 2)}\n`;
+    const normalizedRecords = records.map(recordApi.cloneExecutionRecord);
+    return `${JSON.stringify(normalizedRecords, null, 2)}\n`;
 }
 
 function slug(value) {
