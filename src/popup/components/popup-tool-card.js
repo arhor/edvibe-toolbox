@@ -1,21 +1,29 @@
 import { html, LitElement, nothing } from 'lit';
 
-const POPUP_TOOL_CARD_TAG = 'popup-tool-card';
+import { getToolViewModel } from '../popup-model.js';
 
-class PopupToolCard extends LitElement {
+export class PopupToolCard extends LitElement {
     static properties = {
         tool: { attribute: false },
-        disabled: { type: Boolean },
-        reason: { type: String },
-        busy: { type: Boolean }
+        pageContext: { attribute: false },
+        exportInProgress: { type: Boolean },
+        pendingToolId: { attribute: false }
     };
 
     constructor() {
         super();
         this.tool = {};
-        this.disabled = false;
-        this.reason = '';
-        this.busy = false;
+        this.pageContext = { type: 'loading' };
+        this.exportInProgress = false;
+        this.pendingToolId = null;
+    }
+
+    get toolViewModel() {
+        return getToolViewModel(this.tool, {
+            pageContext: this.pageContext,
+            exportInProgress: this.exportInProgress,
+            pendingToolId: this.pendingToolId
+        });
     }
 
     createRenderRoot() {
@@ -23,31 +31,42 @@ class PopupToolCard extends LitElement {
     }
 
     activate() {
-        const toolId = String(this.tool?.id || '');
-        if (this.disabled || !toolId) {
+        const { id, disabled } = this.toolViewModel;
+
+        if (disabled || !id) {
             return;
         }
         this.dispatchEvent(new CustomEvent('popup-tool-activate', {
-            detail: { toolId },
-            bubbles: true
+            detail: {
+                toolId: id,
+            },
+            bubbles: true,
         }));
     }
 
     render() {
+        const { id, title, description, appearance, busyLabel, disabled, reason, busy } = this.toolViewModel;
+
         return html`
             <button
                 type="button"
-                data-tool-id=${this.tool?.id || nothing}
-                data-danger=${this.tool?.appearance === 'danger' ? 'true' : nothing}
-                ?disabled=${this.disabled}
+                data-tool-id=${id}
+                data-danger=${appearance === 'danger' ? 'true' : nothing}
+                ?disabled=${disabled}
                 @click=${this.activate}
             >
                 <span class="tool-card-header">
                     <span class="tool-copy">
-                        <strong class="tool-title">${this.tool?.title || ''}</strong>
-                        <span class="tool-description">${this.tool?.description || ''}</span>
-                        ${this.reason ? html`<span class="tool-requirement">${this.reason}</span>` : nothing}
-                        ${this.busy ? html`<span class="tool-busy">${this.tool?.busyLabel || ''}</span>` : nothing}
+                        <strong class="tool-title">${title}</strong>
+                        <span class="tool-description">${description}</span>
+
+                        ${reason
+                            ? html`<span class="tool-requirement">${reason}</span>`
+                            : nothing}
+
+                        ${busy
+                            ? html`<span class="tool-busy">${busyLabel}</span>`
+                            : nothing}
                     </span>
                 </span>
             </button>
@@ -55,8 +74,4 @@ class PopupToolCard extends LitElement {
     }
 }
 
-if (!customElements.get(POPUP_TOOL_CARD_TAG)) {
-    customElements.define(POPUP_TOOL_CARD_TAG, PopupToolCard);
-}
-
-export { POPUP_TOOL_CARD_TAG, PopupToolCard };
+customElements.define('popup-tool-card', PopupToolCard);

@@ -162,10 +162,11 @@ function getUnavailableReason(tool, pageContext) {
         return pageContext.type === 'edvibe' || pageContext.type === 'marathon'
             ? ''
             : 'Откройте страницу Edvibe.';
+    } else {
+        return tool.requirement !== 'marathon' || pageContext.type === 'marathon'
+            ? ''
+            : 'Откройте страницу марафона.';
     }
-    return tool.requirement !== 'marathon' || pageContext.type === 'marathon'
-        ? ''
-        : 'Откройте страницу марафона.';
 }
 
 function getToolDefinition(toolId) {

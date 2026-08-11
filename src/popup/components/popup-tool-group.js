@@ -2,18 +2,22 @@ import { html, LitElement } from 'lit';
 
 import './popup-tool-card.js';
 
-const POPUP_TOOL_GROUP_TAG = 'popup-tool-group';
-
-class PopupToolGroup extends LitElement {
+export class PopupToolGroup extends LitElement {
     static properties = {
         title: { type: String },
-        tools: { attribute: false }
+        tools: { attribute: false },
+        pageContext: { attribute: false },
+        exportInProgress: { type: Boolean },
+        pendingToolId: { attribute: false },
     };
 
     constructor() {
         super();
         this.title = '';
         this.tools = [];
+        this.pageContext = { type: 'loading' };
+        this.exportInProgress = false;
+        this.pendingToolId = null;
     }
 
     createRenderRoot() {
@@ -27,9 +31,9 @@ class PopupToolGroup extends LitElement {
                 ${this.tools.map((tool) => html`
                     <popup-tool-card
                         .tool=${tool}
-                        ?disabled=${tool.disabled}
-                        .reason=${tool.reason}
-                        ?busy=${tool.busy}
+                        .pageContext=${this.pageContext}
+                        .exportInProgress=${this.exportInProgress}
+                        .pendingToolId=${this.pendingToolId}
                     ></popup-tool-card>
                 `)}
             </div>
@@ -37,8 +41,4 @@ class PopupToolGroup extends LitElement {
     }
 }
 
-if (!customElements.get(POPUP_TOOL_GROUP_TAG)) {
-    customElements.define(POPUP_TOOL_GROUP_TAG, PopupToolGroup);
-}
-
-export { POPUP_TOOL_GROUP_TAG, PopupToolGroup };
+customElements.define('popup-tool-group', PopupToolGroup);

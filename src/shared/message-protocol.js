@@ -89,7 +89,10 @@ const STORAGE_ACTION_VALUES = new Set(Object.values(STORAGE_ACTIONS));
 const STORAGE_KEY_VALUES = new Set(Object.values(STORAGE_KEYS));
 
 function isRecord(value) {
-    return value !== null && typeof value === 'object' && !Array.isArray(value);
+    return value !== null
+       && typeof value === 'object'
+       && !Array.isArray(value)
+       && value !== undefined;
 }
 
 function hasOnlyKeys(value, allowedKeys) {
@@ -97,7 +100,8 @@ function hasOnlyKeys(value, allowedKeys) {
 }
 
 function isNonEmptyString(value) {
-    return typeof value === 'string' && value.length > 0;
+    return typeof value === 'string'
+        && value.length > 0;
 }
 
 function getCommandRoute(action) {

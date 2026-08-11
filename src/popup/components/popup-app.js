@@ -1,16 +1,15 @@
 import { html, LitElement, nothing } from 'lit';
 
-import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '@/shared/message-protocol.js';
+import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '../../shared/message-protocol.js';
 import {
     TOOL_GROUPS,
     getPageContextContent,
     getToolDefinition,
-    getToolViewModel,
     getUnavailableReason,
     resolvePageContext
-} from '@/popup/popup-model.js';
+} from '../popup-model.js';
 
-import '@/popup/components/popup-tool-group.js';
+import './popup-tool-group.js';
 
 async function getPageContext() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -93,7 +92,7 @@ export class PopupApp extends LitElement {
     }
 
     async initialize(version) {
-        const [contextResult, storageResult] = await Promise.allSettled([
+        const [pageContextResult, exportInProgressResult] = await Promise.allSettled([
             getPageContext(),
             getExportInProgress()
         ]);
@@ -101,11 +100,12 @@ export class PopupApp extends LitElement {
             return;
         }
 
-        this.pageContext = contextResult.status === 'fulfilled'
-            ? contextResult.value
+        this.pageContext = pageContextResult.status === 'fulfilled'
+            ? pageContextResult.value
             : { type: 'unavailable' };
-        if (storageResult.status === 'fulfilled' && !this.exportStatusObserved) {
-            this.exportInProgress = storageResult.value;
+
+        if (exportInProgressResult.status === 'fulfilled' && !this.exportStatusObserved) {
+            this.exportInProgress = exportInProgressResult.value;
         }
         this.initialized = true;
     }
@@ -125,18 +125,6 @@ export class PopupApp extends LitElement {
                 isError: true
             };
         }
-    }
-
-    get toolsByGroup() {
-        const state = {
-            pageContext: this.pageContext,
-            exportInProgress: this.exportInProgress,
-            pendingToolId: this.pendingToolId
-        };
-        return TOOL_GROUPS.map((group) => ({
-            ...group,
-            tools: group.tools.map((tool) => getToolViewModel(tool, state))
-        }));
     }
 
     async executeTool(toolId) {
@@ -207,10 +195,13 @@ export class PopupApp extends LitElement {
 
                 ${this.initialized ? html`
                     <div class="tool-groups">
-                        ${this.toolsByGroup.map((group) => html`
+                        ${TOOL_GROUPS.map((group) => html`
                             <popup-tool-group
                                 .title=${group.title}
                                 .tools=${group.tools}
+                                .pageContext=${this.pageContext}
+                                ?exportInProgress=${this.exportInProgress}
+                                .pendingToolId=${this.pendingToolId}
                             ></popup-tool-group>
                         `)}
                     </div>
@@ -226,6 +217,4 @@ export class PopupApp extends LitElement {
     }
 }
 
-if (!customElements.get('popup-app')) {
-    customElements.define('popup-app', PopupApp);
-}
+customElements.define('popup-app', PopupApp);
