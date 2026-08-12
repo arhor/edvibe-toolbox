@@ -1,4 +1,5 @@
 import * as coreApi from './batch-section-deletion.js';
+import { historyDiagnostics } from '../shared/history-diagnostics.js';
 
 const OPERATION_TYPE = 'batch-section-deletion';
 const TERMINAL_STATUSES = new Set([
@@ -156,6 +157,7 @@ function serializeResult(entry, plan, terminalStatus) {
         code,
         message,
         attempts: entry.attempts,
+        ...(historyDiagnostics(entry) ? { diagnostics: historyDiagnostics(entry) } : {}),
         data: Object.freeze({
             lesson,
             section: Object.freeze({
