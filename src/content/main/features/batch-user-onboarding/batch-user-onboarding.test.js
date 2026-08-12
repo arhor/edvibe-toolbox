@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { parseEmailInput } from './batch-user-onboarding.js';
+import {
+    buildExecutionPlan,
+    resolveOnboardingRows
+} from './batch-user-onboarding-planning.js';
+import { executePlan } from './batch-user-onboarding-execution.js';
 import {
     buildExecutionHistoryInput,
-    buildExecutionPlan,
-    executePlan,
-    formatReport,
-    resolveOnboardingRows
-} from './batch-user-onboarding.js';
+    formatReport
+} from './batch-user-onboarding-reporting.js';
 
 const moderators = [{ Id: 7, TeacherId: 70, Name: 'Curator' }];
 const catalogueResponse = { Value: { Items: moderators } };
@@ -50,6 +53,19 @@ function additionPlan(emails) {
         targetModeratorId: null
     });
 }
+
+test('public email parser preserves onboarding item metadata', () => {
+    const parsed = parseEmailInput(' First@Example.com ; invalid ');
+    assert.deepEqual(parsed.entries, [{
+        input: 'First@Example.com',
+        normalized: 'first@example.com'
+    }]);
+    assert.deepEqual(parsed.malformed, ['invalid']);
+    assert.deepEqual(parsed.items, [
+        { input: 'First@Example.com', normalized: 'first@example.com', isValid: true },
+        { input: 'invalid', normalized: 'invalid', isValid: false }
+    ]);
+});
 
 test('server-rejected grouped additions retain bounded shared retry diagnostics', async () => {
     let addAttempts = 0;
