@@ -1,6 +1,144 @@
 import { css } from 'lit';
 
 export const batchSectionDeletionDialogStyles = css`
-:host{all:initial;font-family:Inter,system-ui,sans-serif;color:#202124}.overlay{position:fixed;inset:0;z-index:2147483647;background:rgba(16,20,30,.66);display:grid;place-items:center;padding:24px}.dialog{width:min(900px,96vw);max-height:92vh;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}.dialog header,.dialog footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-bottom:1px solid #e6e8ec}.dialog footer{border-bottom:0;border-top:1px solid #e6e8ec;justify-content:flex-end}.dialog h2,.dialog p{margin:0}.dialog p{margin-top:4px;color:#68707d}.dialog main{padding:20px 22px;overflow:auto;display:grid;gap:16px}label{display:grid;gap:6px;font-weight:600}input[type=text]{padding:10px 12px;border:1px solid #b9c0ca;border-radius:8px;font:inherit}.toolbar{display:flex;align-items:center;gap:8px}.selection{margin-left:auto;color:#68707d}.lessons{border:1px solid #dde1e7;border-radius:10px;max-height:280px;overflow:auto}.lesson{display:flex;grid-template-columns:none;align-items:center;gap:10px;padding:10px 12px;font-weight:400;border-bottom:1px solid #edf0f3}.lesson:last-child{border-bottom:0}.status{padding:10px 12px;background:#f3f5f8;border-radius:8px}.preflight,.result{border:1px solid #dde1e7;border-radius:10px;padding:14px}.preflight h3,.preflight h4{margin:0 0 8px}.preflight dl{display:flex;gap:20px;margin:0 0 14px}.preflight dl div{display:flex;gap:6px}.preflight dd{margin:0;font-weight:700}.preflight ul{margin:0 0 14px;padding-left:20px}.result textarea{box-sizing:border-box;width:100%;min-height:220px;resize:vertical;font:12px/1.5 ui-monospace,monospace}.result-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.result-actions .history{background:#315efb;color:#fff}button{border:0;border-radius:8px;padding:9px 13px;font:600 14px/1.2 inherit;background:#eef1f5;color:#222;cursor:pointer}button:hover{filter:brightness(.97)}button:disabled{opacity:.5;cursor:not-allowed}.inspect{background:#315efb;color:#fff}.danger{background:#c62828;color:#fff}.secondary{background:#eef1f5}.icon{font-size:24px;line-height:1;padding:5px 9px;background:transparent}@media(max-width:640px){.overlay{padding:8px}.dialog{max-height:98vh}.dialog header,.dialog footer,.dialog main{padding:14px}.dialog footer{flex-wrap:wrap}.preflight dl{flex-wrap:wrap}}
+.dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(900px, 96vw);
+    max-height: 92vh;
+}
 
+.dialog header,
+.dialog footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--edvibe-border-subtle);
+}
+
+.dialog footer {
+    border-bottom: 0;
+    border-top: 1px solid var(--edvibe-border-subtle);
+}
+
+.dialog h2,
+.dialog p {
+    margin: 0;
+}
+
+.dialog header p {
+    margin-top: 4px;
+    color: var(--edvibe-text-muted);
+}
+
+.icon {
+    min-width: 36px;
+    padding: 0;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.dialog main {
+    display: grid;
+    gap: 16px;
+    overflow: auto;
+    padding: 20px 22px;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.selection {
+    margin-left: auto;
+    color: var(--edvibe-text-muted);
+}
+
+.lessons {
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
+}
+
+.lesson {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--edvibe-border-subtle);
+    font-weight: 400;
+}
+
+.lesson:last-child {
+    border-bottom: 0;
+}
+
+.preflight,
+.result {
+    padding: 14px;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+}
+
+.preflight {
+    border: 0;
+}
+
+.preflight h3,
+.preflight h4 {
+    margin: 0 0 8px;
+}
+
+.preflight dl {
+    display: flex;
+    gap: 20px;
+    margin: 0 0 14px;
+}
+
+.preflight dl div {
+    display: flex;
+    gap: 6px;
+}
+
+.preflight dd {
+    margin: 0;
+    font-weight: 700;
+}
+
+.preflight ul {
+    margin: 0 0 14px;
+    padding-left: 20px;
+}
+
+.result textarea {
+    min-height: 220px;
+    resize: vertical;
+    font: 12px/1.5 ui-monospace, monospace;
+}
+
+.result-actions {
+    margin-top: 8px;
+}
+
+@media(max-width:640px) {
+    .dialog {
+        max-height: 100vh;
+    }
+
+    .dialog header,
+    .dialog footer,
+    .dialog main {
+        padding: 14px;
+    }
+
+    .preflight dl {
+        flex-wrap: wrap;
+    }
+}
 `;

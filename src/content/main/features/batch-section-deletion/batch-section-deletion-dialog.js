@@ -1,11 +1,25 @@
 import { LitElement, html, nothing } from 'lit';
 import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    fieldStyles,
+    noticeStyles
+} from '../../styles/primitives.js';
 import { batchSectionDeletionDialogStyles } from './batch-section-deletion-dialog.styles.js';
 
 const BATCH_SECTION_DELETION_DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
 
 class BatchSectionDeletionDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, batchSectionDeletionDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        noticeStyles,
+        batchSectionDeletionDialogStyles
+    ];
 
     static properties = {
         options: {state: true},
@@ -149,7 +163,7 @@ class BatchSectionDeletionDialog extends LitElement {
     renderPlan() {
         if (!this.plan) return nothing;
         return html`
-            <section class="preflight">
+            <section class="preflight" data-notice>
                 <h3>Preflight</h3>
                 <dl>
                     <div><dt>Selected</dt><dd>${this.plan.selectedCount}</dd></div>
@@ -168,20 +182,20 @@ class BatchSectionDeletionDialog extends LitElement {
         const lessons = this.options?.lessons || [];
         const canExecute = Boolean(this.plan?.eligible?.length) && !this.resultVisible;
         return html`
-<div class="overlay">
-                <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="title">
+            <div class="overlay" data-part="overlay">
+                <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="title">
                     <header>
                         <div><h2 id="title">Delete section from lessons</h2><p>Every lesson is inspected before any deletion.</p></div>
-                        <button class="icon close" type="button" aria-label="Close" ?disabled=${this.busy}
+                        <button class="icon close" data-control="secondary" type="button" aria-label="Close" ?disabled=${this.busy}
                             @click=${() => this.close()}>×</button>
                     </header>
                     <main>
-                        <label>Exact section name<input class="section-name" type="text" autocomplete="off"
+                        <label data-field>Exact section name<input class="section-name" type="text" autocomplete="off"
                             placeholder="Ogłoszenie" .value=${this.sectionName} ?disabled=${this.busy}
                             @input=${(event) => { this.sectionName = event.currentTarget.value; }}></label>
-                        <div class="toolbar">
-                            <button class="select-all" type="button" ?disabled=${this.busy} @click=${this.selectAll}>Select all</button>
-                            <button class="clear" type="button" ?disabled=${this.busy} @click=${this.clearSelection}>Clear</button>
+                        <div class="toolbar" data-part="actions">
+                            <button class="select-all" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.selectAll}>Select all</button>
+                            <button class="clear" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.clearSelection}>Clear</button>
                             <span class="selection">${this.selectedLessonIds.size} selected</span>
                         </div>
                         <div class="lessons">
@@ -195,24 +209,24 @@ class BatchSectionDeletionDialog extends LitElement {
                                 </label>
                             `)}
                         </div>
-                        <div class="status" ?hidden=${!this.statusVisible}>${this.statusMessage}</div>
+                        <div class="status" data-notice ?hidden=${!this.statusVisible}>${this.statusMessage}</div>
                         ${this.renderPlan()}
                         <section class="result" ?hidden=${!this.resultVisible}>
-                            <textarea readonly .value=${this.resultReport}></textarea>
-                            <div class="result-actions">
-                                <button class="copy" type="button" ?disabled=${this.busy}
+                            <label data-field><span>Report</span><textarea readonly .value=${this.resultReport}></textarea></label>
+                            <div class="result-actions" data-part="actions">
+                                <button class="copy" data-control="secondary" type="button" ?disabled=${this.busy}
                                     @click=${() => this.options?.onCopy?.(this.resultReport)}>Copy report</button>
-                                <button class="history" type="button" ?hidden=${!this.executionId}
+                                <button class="history" data-control type="button" ?hidden=${!this.executionId}
                                     ?disabled=${this.busy} @click=${this.openHistory}>Open in history</button>
                             </div>
                         </section>
                     </main>
-                    <footer>
-                        <button class="secondary close" type="button" ?disabled=${this.busy}
+                    <footer data-part="actions">
+                        <button class="secondary close" data-control="secondary" type="button" ?disabled=${this.busy}
                             @click=${() => this.close()}>Cancel</button>
-                        <button class="inspect" type="button" ?hidden=${this.resultVisible} ?disabled=${this.busy}
+                        <button class="inspect" data-control type="button" ?hidden=${this.resultVisible} ?disabled=${this.busy}
                             @click=${this.inspect}>${this.plan ? 'Run preflight again' : 'Inspect selected lessons'}</button>
-                        <button class="danger execute" type="button" ?hidden=${!canExecute} ?disabled=${this.busy}
+                        <button class="danger execute" data-control="danger" type="button" ?hidden=${!canExecute} ?disabled=${this.busy}
                             @click=${this.execute}>Confirm deletion</button>
                     </footer>
                 </section>
