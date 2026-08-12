@@ -3,13 +3,29 @@ import {
     componentFoundationStyles,
     dialogFoundationStyles
 } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    emptyStateStyles,
+    fieldStyles,
+    progressStyles
+} from '../../styles/primitives.js';
 import { resetLessonsDialogStyles } from './reset-lessons-dialog.styles.js';
 
 const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
 
 class ResetLessonsDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, resetLessonsDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        progressStyles,
+        emptyStateStyles,
+        resetLessonsDialogStyles
+    ];
 
     static properties = {
         currentStep: { state: true },
@@ -279,7 +295,7 @@ class ResetLessonsDialog extends LitElement {
 
     renderPupilRows() {
         const visiblePupils = this.filterPupils(this.appliedSearchQuery);
-        if (visiblePupils.length === 0) return html`<p class="edvibe-reset-empty">Пользователи не найдены.</p>`;
+        if (visiblePupils.length === 0) return html`<p class="edvibe-reset-empty" data-part="empty-state">Пользователи не найдены.</p>`;
         const busy = this.isPupilLoadingVisible();
         return visiblePupils.map((pupil) => {
             const selected = pupil.PupilId === this.selectedPupil?.PupilId;
@@ -288,7 +304,7 @@ class ResetLessonsDialog extends LitElement {
         });
     }
     renderLessonRows(inputsBlocked) {
-        if (this.lessons.length === 0) return html`<p class="edvibe-reset-empty">Для пользователя нет уроков.</p>`;
+        if (this.lessons.length === 0) return html`<p class="edvibe-reset-empty" data-part="empty-state">Для пользователя нет уроков.</p>`;
         return this.lessons.map((lesson) => html`<label class="edvibe-reset-row edvibe-reset-lesson"><input type="checkbox" .value=${String(lesson.MarathonLessonId)} .checked=${this.selectedLessonIds.has(lesson.MarathonLessonId)} ?disabled=${inputsBlocked} @change=${(event) => this.toggleLesson(lesson.MarathonLessonId, event.currentTarget.checked)}><span class="edvibe-reset-row-copy"><span class="edvibe-reset-row-name">${Number(lesson.Number) + 1}. ${lesson.Name}</span><span class="edvibe-reset-row-email">${lesson.LastRequest ? `Статус последнего запроса: ${lesson.LastRequest.Status}` : 'Нет запросов на проверку'}</span></span></label>`);
     }
     render() {
@@ -300,15 +316,15 @@ class ResetLessonsDialog extends LitElement {
         const progressValue = this.progressIndeterminate ? nothing : this.progressValue;
         const selectedPupilLabel = this.selectedPupil ? `${this.selectedPupil.Name || 'Без имени'} — ${this.selectedPupil.Email || ''}` : '';
         return html`
-<div class="edvibe-reset-overlay" @click=${this.handleBackdropClick}>
-                <div class="edvibe-reset-card" role="dialog" aria-modal="true" aria-labelledby="edvibe-reset-title">
-                    <div class="edvibe-reset-header"><div><h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2><p class="edvibe-reset-subtitle"><span class="edvibe-reset-step-indicator">${view.showingUsers ? 'Шаг 1 из 2' : 'Шаг 2 из 2'}</span><span class="edvibe-reset-step-description">${view.showingUsers ? 'Выберите пользователя.' : 'Выберите уроки для сброса прогресса.'}</span></p></div><button class="edvibe-reset-close" type="button" aria-label="Закрыть" ?disabled=${view.closeDisabled} @click=${() => this.close()}>&times;</button></div>
+            <div class="edvibe-reset-overlay" data-part="overlay" @click=${this.handleBackdropClick}>
+                <div class="edvibe-reset-card" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="edvibe-reset-title">
+                    <div class="edvibe-reset-header"><div><h2 id="edvibe-reset-title" class="edvibe-reset-title">Сброс уроков</h2><p class="edvibe-reset-subtitle"><span class="edvibe-reset-step-indicator">${view.showingUsers ? 'Шаг 1 из 2' : 'Шаг 2 из 2'}</span><span class="edvibe-reset-step-description">${view.showingUsers ? 'Выберите пользователя.' : 'Выберите уроки для сброса прогресса.'}</span></p></div><button class="edvibe-reset-close" data-control="secondary" type="button" aria-label="Закрыть" ?disabled=${view.closeDisabled} @click=${() => this.close()}>&times;</button></div>
                     <div class="edvibe-reset-body">
-                        <section class="edvibe-reset-user-step" aria-label="Выбор пользователя" ?hidden=${!view.showingUsers}><label class="edvibe-reset-label" for="edvibe-reset-search">Поиск по email</label><input id="edvibe-reset-search" class="edvibe-reset-search" type="search" placeholder="user@example.com" autocomplete="off" .value=${this.searchValue} ?disabled=${inputsBlocked} @input=${this.handleSearchInput}><div class=${`edvibe-reset-pupils-shell${pupilBusy ? ' is-loading' : ''}`}><div class="edvibe-reset-list edvibe-reset-pupils" role="listbox" aria-label="Пользователи марафона" aria-busy=${String(pupilBusy)} .inert=${pupilBusy} @scroll=${this.handlePupilsScroll}>${this.renderPupilRows()}</div><div class="edvibe-reset-pupils-loading" role="status" aria-live="polite" ?hidden=${!pupilBusy}><span class="edvibe-reset-spinner" aria-hidden="true"></span><span>Загрузка пользователей...</span></div></div></section>
+                        <section class="edvibe-reset-user-step" aria-label="Выбор пользователя" ?hidden=${!view.showingUsers}><div class="edvibe-reset-search-field" data-field><label class="edvibe-reset-label" for="edvibe-reset-search">Поиск по email</label><input id="edvibe-reset-search" class="edvibe-reset-search" type="search" placeholder="user@example.com" autocomplete="off" .value=${this.searchValue} ?disabled=${inputsBlocked} @input=${this.handleSearchInput}></div><div class=${`edvibe-reset-pupils-shell${pupilBusy ? ' is-loading' : ''}`}><div class="edvibe-reset-list edvibe-reset-pupils" role="listbox" aria-label="Пользователи марафона" aria-busy=${String(pupilBusy)} .inert=${pupilBusy} @scroll=${this.handlePupilsScroll}>${this.renderPupilRows()}</div><div class="edvibe-reset-pupils-loading" role="status" aria-live="polite" ?hidden=${!pupilBusy}><span class="edvibe-reset-spinner" aria-hidden="true"></span><span>Загрузка пользователей...</span></div></div></section>
                         <section class="edvibe-reset-lesson-step" aria-label="Выбор уроков" ?hidden=${view.showingUsers}><div class="edvibe-reset-label edvibe-reset-selected-pupil">${selectedPupilLabel}</div><label class="edvibe-reset-select-all"><input class="edvibe-reset-select-all-input" type="checkbox" .checked=${selectAllChecked} .indeterminate=${selectAllIndeterminate} ?disabled=${inputsBlocked || this.lessons.length === 0} @change=${this.handleSelectAll}>Выбрать все уроки</label><div class="edvibe-reset-list edvibe-reset-lessons" aria-label="Уроки пользователя" tabindex="-1">${this.renderLessonRows(inputsBlocked)}</div></section>
                     </div>
-                    <div class="edvibe-reset-live-region"><p class=${statusClass} aria-live="polite">${this.statusMessage}</p><progress class=${progressClass} max="100" value=${progressValue}></progress></div>
-                    <div class="edvibe-reset-footer"><button class="edvibe-reset-button edvibe-reset-cancel" type="button" ?disabled=${view.closeDisabled} @click=${() => this.close()}>Закрыть</button><button class="edvibe-reset-button edvibe-reset-back" type="button" ?hidden=${view.showingUsers} ?disabled=${view.backDisabled} @click=${this.handleBack}>${this.finished ? 'Сбросить для другого пользователя' : 'Назад'}</button><button class="edvibe-reset-button edvibe-reset-next" type="button" ?hidden=${!view.showingUsers} ?disabled=${view.nextDisabled} @click=${this.handleNext}>Далее</button><button class="edvibe-reset-button edvibe-reset-submit" type="button" ?hidden=${view.showingUsers} ?disabled=${view.submitDisabled} @click=${this.handleSubmit}>Сбросить прогресс</button></div>
+                    <div class="edvibe-reset-live-region"><p class=${statusClass} data-part="status" aria-live="polite">${this.statusMessage}</p><progress class=${progressClass} data-part="progress" max="100" value=${progressValue}></progress></div>
+                    <div class="edvibe-reset-footer" data-part="actions"><button class="edvibe-reset-button edvibe-reset-cancel" data-control="secondary" type="button" ?disabled=${view.closeDisabled} @click=${() => this.close()}>Закрыть</button><button class="edvibe-reset-button edvibe-reset-back" data-control="secondary" type="button" ?hidden=${view.showingUsers} ?disabled=${view.backDisabled} @click=${this.handleBack}>${this.finished ? 'Сбросить для другого пользователя' : 'Назад'}</button><button class="edvibe-reset-button edvibe-reset-next" data-control type="button" ?hidden=${!view.showingUsers} ?disabled=${view.nextDisabled} @click=${this.handleNext}>Далее</button><button class="edvibe-reset-button edvibe-reset-submit" data-control="danger" type="button" ?hidden=${view.showingUsers} ?disabled=${view.submitDisabled} @click=${this.handleSubmit}>Сбросить прогресс</button></div>
                 </div>
             </div>`;
     }
