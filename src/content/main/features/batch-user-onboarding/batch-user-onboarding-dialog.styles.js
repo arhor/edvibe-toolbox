@@ -1,32 +1,8 @@
 import { css } from 'lit';
 
 export const batchUserOnboardingDialogStyles = css`
-:host {
-    all: initial;
-}
-
 [hidden] {
     display: none !important;
-}
-
-.overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 2147483647;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    box-sizing: border-box;
-    background: rgba(15, 23, 42, .62);
-    color: #1f2937;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
-.overlay *,
-.overlay *::before,
-.overlay *::after {
-    box-sizing: border-box;
 }
 
 .dialog {
@@ -35,9 +11,6 @@ export const batchUserOnboardingDialogStyles = css`
     width: min(1180px, calc(100vw - 32px));
     max-height: min(880px, calc(100vh - 32px));
     padding: 24px;
-    border-radius: 16px;
-    background: #fff;
-    box-shadow: 0 24px 80px rgba(15, 23, 42, .38);
 }
 
 .header,
@@ -56,7 +29,7 @@ export const batchUserOnboardingDialogStyles = css`
 
 .eyebrow {
     margin: 0 0 4px;
-    color: #2563eb;
+    color: var(--edvibe-primary);
     font-size: 11px;
     font-weight: 750;
     letter-spacing: .08em;
@@ -65,26 +38,23 @@ export const batchUserOnboardingDialogStyles = css`
 
 .header h2 {
     margin: 0;
-    color: #111827;
+    color: var(--edvibe-text-strong);
     font-size: 21px;
     line-height: 1.3;
 }
 
 .description {
     margin: 5px 0 0;
-    color: #6b7280;
+    color: var(--edvibe-text-muted);
     font-size: 13px;
     line-height: 1.4;
 }
 
 .icon {
-    padding: 4px 8px;
-    border: 0;
-    background: transparent;
-    color: #6b7280;
+    min-width: 36px;
+    padding: 0;
     font-size: 24px;
     line-height: 1;
-    cursor: pointer;
 }
 
 .body {
@@ -101,37 +71,7 @@ export const batchUserOnboardingDialogStyles = css`
 }
 
 .field {
-    display: block;
-    color: #374151;
     font-size: 13px;
-    font-weight: 650;
-}
-
-.field > span {
-    display: block;
-    margin-bottom: 7px;
-}
-
-.field small {
-    display: block;
-    margin-top: 5px;
-    color: #6b7280;
-    font-size: 11px;
-    font-weight: 400;
-}
-
-.emails,
-.curator,
-.report {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background: #fff;
-    color: #111827;
-    font: inherit;
-    line-height: 1.45;
-    outline: none;
 }
 
 .emails,
@@ -153,8 +93,6 @@ export const batchUserOnboardingDialogStyles = css`
     flex-wrap: wrap;
     gap: 8px 16px;
     margin-top: -8px;
-    color: #6b7280;
-    font-size: 12px;
 }
 
 .curator-field {
@@ -164,12 +102,6 @@ export const batchUserOnboardingDialogStyles = css`
 
 .errors {
     margin-top: 14px;
-    padding: 10px 12px;
-    border: 1px solid #fecaca;
-    border-radius: 8px;
-    background: #fef2f2;
-    color: #b91c1c;
-    font-size: 13px;
 }
 
 .errors p {
@@ -184,33 +116,34 @@ export const batchUserOnboardingDialogStyles = css`
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 8px;
-    color: #6b7280;
+    color: var(--edvibe-text-muted);
     font-size: 12px;
 }
 
 .review-toolbar strong {
-    color: #374151;
+    color: var(--edvibe-text);
 }
 
 .table-wrap {
     overflow: auto;
     max-height: 390px;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
 }
 
 table {
     width: 100%;
     min-width: 1020px;
     border-collapse: collapse;
-    color: #1f2937;
+    color: var(--edvibe-text);
     font-size: 12px;
 }
 
 th,
 td {
     padding: 10px 11px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--edvibe-border-subtle);
     text-align: left;
     vertical-align: top;
 }
@@ -219,8 +152,8 @@ th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: #f8fafc;
-    color: #374151;
+    background: var(--edvibe-surface-subtle);
+    color: var(--edvibe-text);
     font-weight: 700;
 }
 
@@ -234,14 +167,10 @@ td:nth-child(5) {
 
 th button {
     display: block;
+    min-height: 28px;
     margin: 5px auto 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #2563eb;
-    font: inherit;
+    padding: 4px 8px;
     font-size: 10px;
-    cursor: pointer;
 }
 
 td strong,
@@ -252,7 +181,7 @@ td small {
 
 td small {
     margin-top: 3px;
-    color: #6b7280;
+    color: var(--edvibe-text-muted);
 }
 
 .is-error,
@@ -261,33 +190,33 @@ td small {
 }
 
 .is-error {
-    color: #b91c1c;
+    color: var(--edvibe-danger);
 }
 
 .row-status {
     min-width: 190px;
-    color: #4b5563;
+    color: var(--edvibe-text-muted);
 }
 
 .preflight,
 .result {
     margin-top: 18px;
     padding: 14px;
-    border: 1px solid #dbeafe;
-    border-radius: 10px;
-    background: #f8fbff;
+    border: 1px solid var(--edvibe-info-border);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-info-surface);
 }
 
 .preflight h3 {
     margin: 0 0 7px;
-    color: #111827;
+    color: var(--edvibe-text-strong);
     font-size: 15px;
 }
 
 .preflight p,
 .preflight ul {
     margin: 7px 0 0;
-    color: #4b5563;
+    color: var(--edvibe-text-muted);
     font-size: 12px;
     line-height: 1.45;
 }
@@ -299,8 +228,6 @@ td small {
 }
 
 .result-actions {
-    justify-content: flex-end;
-    gap: 8px;
     margin-top: 10px;
 }
 
@@ -312,7 +239,6 @@ td small {
 .status {
     min-height: 20px;
     margin: 0;
-    color: #4b5563;
     font-size: 13px;
     line-height: 1.4;
 }
@@ -326,60 +252,14 @@ td small {
 
 .footer {
     flex: 0 0 auto;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 9px;
     margin-top: 18px;
 }
 
-.footer button,
-.result-actions button {
-    padding: 9px 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font: inherit;
-    font-size: 12px;
-    font-weight: 650;
-    cursor: pointer;
-}
-
-.primary {
-    border-color: #2563eb !important;
-    background: #2563eb;
-    color: #fff;
-}
-
-.secondary {
-    background: #fff;
-    color: #374151;
-}
-
-button:disabled,
-textarea:disabled,
-select:disabled,
-input:disabled {
-    cursor: not-allowed;
-    opacity: .58;
-}
-
-button:focus-visible,
-textarea:focus-visible,
-select:focus-visible,
-input:focus-visible {
-    outline: 2px solid #2563eb;
-    outline-offset: 2px;
-}
-
 @media (max-width: 760px) {
-    .overlay {
-        padding: 8px;
-    }
-
     .dialog {
         width: 100%;
-        max-height: calc(100vh - 16px);
+        max-height: 100vh;
         padding: 18px;
-        border-radius: 12px;
     }
 
     .configure {
