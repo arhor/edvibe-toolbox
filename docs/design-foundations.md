@@ -64,7 +64,8 @@ brand accent.
 | `--edvibe-info` | `#1e3a8a` | Informational text |
 | `--edvibe-info-surface` | `#eff6ff` | Informational panel background |
 | `--edvibe-info-border` | `#bfdbfe` | Informational panel boundary |
-| `--edvibe-focus-ring` | `rgba(37, 99, 235, 0.25)` | `:focus-visible` outline/ring |
+| `--edvibe-focus-outline` | `#2563eb` | Solid `:focus-visible` outline with sufficient contrast |
+| `--edvibe-focus-halo` | `rgba(37, 99, 235, 0.25)` | Optional outer halo used in addition to the solid outline |
 | `--edvibe-radius-control` | `8px` | Inputs, buttons, and notices |
 | `--edvibe-radius-panel` | `10px` | Cards, rows, and secondary panels |
 | `--edvibe-radius-dialog` | `16px` | Modal surface |
@@ -81,8 +82,9 @@ real type primitive has more than one consumer.
 
 Interactive states follow these rules:
 
-- `:focus-visible` uses a 2--3 px primary focus ring with a 2 px offset. Focus
-  must not be conveyed by border color alone.
+- `:focus-visible` uses a 2 px solid primary outline with a 2 px offset. An
+  optional translucent halo may reinforce it, but must not replace the solid
+  outline. Focus must not be conveyed by border color alone.
 - Disabled controls keep readable text, remove pointer affordance, and use a
   subtle surface plus reduced opacity only when contrast remains sufficient.
 - Destructive actions use the danger role; they do not become primary merely
@@ -97,17 +99,29 @@ a reason to create a custom element.
 
 | Level | Responsibility | Owner |
 | --- | --- | --- |
-| Semantic token | Stable visual meaning shared by otherwise independent UI | Documented here; define in each runtime root until popup and MAIN have a genuinely shared delivery mechanism |
+| Semantic token | Stable visual meaning shared by otherwise independent UI | One authoritative shared definition of names and values, delivered to popup and MAIN through runtime-specific adapters when required |
 | Reusable Lit style | Repeated presentation with no independent behavior, such as a dialog shell, field, action row, notice, or progress treatment | `src/content/main/styles/`; MAIN only |
 | Reusable Web Component | A stable public contract with cross-cutting behavior, lifecycle, events, accessibility, or state | `src/content/main/components/` when multiple MAIN features consume it; shared UI only after both runtime contexts can import it safely |
 
 The popup is light-DOM UI with global CSS. MAIN feature elements use Shadow DOM
 and Lit `css` modules. Consequently, `src/content/main/styles/foundations.js` is
-MAIN-owned even when its token names match this document. Do not import popup
-CSS into MAIN, inject MAIN styles into the page, or move an abstraction to
-`src/shared/` solely because the names agree. A cross-runtime module is justified
-only when both entry points can consume it without changing the isolated/MAIN
-world boundary or `document_start` evaluation order.
+MAIN-owned even when its token names match this document. Token values must not
+be independently maintained in the two runtime roots: follow-up implementation
+must establish one shared source of truth, while popup and MAIN may use
+different adapters or generated delivery artifacts. The exact mechanism (for
+example a JS token map or CSS artifact) is intentionally left to that task.
+
+Do not import popup CSS into MAIN, inject MAIN styles into the page, or move a
+presentation abstraction to `src/shared/` solely because the names agree. A
+cross-runtime delivery mechanism is justified only when both entry points can
+consume it without changing the isolated/MAIN world boundary or
+`document_start` evaluation order.
+
+Shared Lit styles need a small semantic markup contract. Adoption may normalize
+internal classes or add stable attributes such as `data-part` so a style module
+does not know every feature-specific selector. Keep that normalization limited
+to presentation hooks: DOM semantics, feature behavior, and public custom-
+element methods, properties, and events remain unchanged.
 
 ## Pattern inventory
 
@@ -122,8 +136,8 @@ world boundary or `document_start` evaluation order.
 | Empty-result copy in recorder, reset lessons, batch access, and section creation | Reusable Lit style | MAIN empty-state style; no component until richer behavior repeats |
 | Bordered cards/list rows in popup tool cards, history records/outcomes, recorder operations, reset rows, lesson lists, and section result lists | Token + feature-specific UI | Share surface/border/radius tokens; keep markup feature-specific because selection and action contracts differ |
 | Status chips/badges in execution history and row statuses elsewhere | Reusable Lit style candidate | Wait for a second true chip consumer before creating a component |
-| Dialog close behavior, Escape handling, focus management, modal semantics, and cleanup repeated across MAIN dialogs | Reusable Web Component/controller candidate | MAIN-owned behavioral primitive; stronger justification than visual similarity, but migrate in a dedicated task |
-| Image upload preview/object-URL lifecycle | Reusable Web Component | MAIN-owned existing `batch-section-image-upload`; reuse only for actual image-upload flows |
+| Dialog close behavior, Escape handling, modal semantics, and cleanup repeated across MAIN dialogs; initial and return focus are inconsistent or missing | Reusable Web Component/controller candidate | MAIN-owned behavioral primitive should make focus behavior consistent as part of its contract; migrate in a dedicated task |
+| Image upload registry, preview, and object-URL lifecycle in batch section creation | Feature-specific controller/helper + styles | Keep `BatchSectionImageUploadController`, its helpers, and presentation with batch section creation until a second real upload consumer proves a reusable contract |
 | Popup tool group and tool card rendering | Feature-specific Web Components | Popup-owned; their page-context command behavior is not a generic card API |
 | Recorder frame inspection, history filtering/detail, lesson selection, section builder, and onboarding table | Feature-specific UI | Keep with the owning feature |
 
@@ -133,11 +147,13 @@ Follow-up work should proceed from low-risk foundations to behavioral
 primitives. Each candidate below has multiple real consumers or a cross-cutting
 responsibility.
 
-1. Expand `src/content/main/styles/foundations.js` with the canonical semantic
-   tokens, preserving temporary aliases for its existing token names.
+1. Establish one authoritative shared definition for the canonical token names
+   and values. Adapt or generate runtime-specific delivery for popup and MAIN,
+   preserving temporary aliases for existing MAIN token names.
 2. Extract MAIN-only Lit style modules for dialog shell, buttons/action rows,
-   fields, notices, progress/status, and empty states. Adopt them incrementally;
-   do not combine this with template rewrites.
+   fields, notices, progress/status, and empty states. Adopt them incrementally,
+   allowing minimal internal class or `data-part` normalization needed to share
+   the visual contract; do not combine this with structural template rewrites.
 3. Migrate batch lesson access, batch section creation, batch user management,
    and batch user onboarding first. Their near-identical modal structures offer
    the clearest proof and expose compatibility gaps early.
@@ -146,9 +162,9 @@ responsibility.
 5. Normalize popup literals to the same semantic roles in
    `popup-app.css`. Keep its light-DOM architecture and brand accent.
 6. Design a MAIN modal primitive or controller around behavior: Escape and
-   backdrop dismissal policy, initial/return focus, scroll containment,
-   `aria-modal`, and cleanup. Preserve existing custom-element tags and feature
-   events during migration.
+   backdrop dismissal policy, consistent initial/return focus, scroll
+   containment, `aria-modal`, and cleanup. Preserve existing custom-element
+   tags and feature events during migration.
 7. Re-evaluate chips/badges and richer empty states only after another consumer
    demonstrates a stable public contract.
 
