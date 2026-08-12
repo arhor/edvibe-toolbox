@@ -110,6 +110,21 @@ time { margin-top: 2px; }
 .outcome-card small { display: block; margin-top: 6px; color: var(--history-muted); }
 .outcome-card details { margin-top: 9px; color: var(--history-muted); font-size: 11px; }
 .outcome-card pre { overflow: auto; margin: 7px 0 0; padding: 10px; border-radius: 9px; color: #344054; background: #f5f7fa; font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; }
+.interruptions { margin-bottom: 22px; padding: 14px; border: 1px solid #efcaca; border-radius: 14px; background: #fff8f8; }
+.interruptions > .muted { margin: -4px 0 10px; }
+.diagnostics > summary { cursor: pointer; color: #475467; font-weight: 800; }
+.diagnostic-attempts { display: grid; gap: 10px; margin-top: 9px; }
+.diagnostic-attempt { min-width: 0; padding: 11px; border: 1px solid var(--history-border); border-radius: 10px; background: #fafbfc; }
+.diagnostic-metadata { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.diagnostic-metadata div { min-width: 0; }
+.diagnostic-metadata dt, .diagnostic-message strong, .diagnostic-summaries h5 { color: var(--history-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.diagnostic-metadata dd { overflow-wrap: anywhere; margin: 2px 0 0; color: var(--history-text); }
+.diagnostic-message { margin-top: 10px; }
+.diagnostic-message p { overflow-wrap: anywhere; margin-top: 3px; }
+.diagnostic-summaries { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.diagnostic-summaries section { min-width: 0; }
+.diagnostic-summaries h5 { margin: 0; }
+.diagnostic-summaries pre { max-width: 100%; max-height: 240px; overflow: auto; overflow-wrap: anywhere; word-break: break-word; white-space: pre-wrap; }
 .muted { color: var(--history-muted); font-size: 12px; }
 
 .dialog-footer { border-top: 1px solid var(--history-border); }
@@ -126,6 +141,7 @@ time { margin-top: 2px; }
     .workspace { grid-template-columns: 1fr; overflow: auto; }
     .browser-panel { min-height: 450px; border-right: 0; border-bottom: 1px solid var(--history-border); }
     .detail-panel { min-height: 500px; }
+    .diagnostic-metadata, .diagnostic-summaries { grid-template-columns: 1fr; }
     .settings-grid { grid-template-columns: 1fr 1fr; }
 }
 

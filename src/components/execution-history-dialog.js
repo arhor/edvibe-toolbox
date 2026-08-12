@@ -33,6 +33,17 @@ function createSummary(record) {
     });
 }
 
+const FAILED_OUTCOME_STATUSES = new Set(['failed', 'rejected', 'interrupted']);
+
+function formatDiagnosticSummary(value) {
+    if (value === null || value === undefined) return 'Not available';
+    return JSON.stringify(value, null, 2);
+}
+
+function isExecutionInterruption(result) {
+    return FAILED_OUTCOME_STATUSES.has(result.status) && !result.itemId;
+}
+
 class ExecutionHistoryDialog extends LitElement {
     static styles = [componentFoundationStyles, dialogFoundationStyles, executionHistoryDialogStyles];
 
@@ -303,7 +314,36 @@ class ExecutionHistoryDialog extends LitElement {
                 ${hasData ? html`
                     <details><summary>Item details</summary><pre>${JSON.stringify(result.data, null, 2)}</pre></details>
                 ` : ''}
+                ${FAILED_OUTCOME_STATUSES.has(result.status) ? this.renderDiagnostics(result.diagnostics) : ''}
             </article>
+        `;
+    }
+
+    renderDiagnostics(diagnostics) {
+        if (!diagnostics?.requestAttempts?.length) return '';
+        return html`
+            <details class="diagnostics">
+                <summary>Request diagnostics</summary>
+                <div class="diagnostic-attempts">
+                    ${diagnostics.requestAttempts.map((attempt) => html`
+                        <section class="diagnostic-attempt" aria-label=${`Request attempt ${attempt.attemptNumber}`}>
+                            <dl class="diagnostic-metadata">
+                                <div><dt>Endpoint</dt><dd>${attempt.method} · ${[attempt.projectName, attempt.controller, attempt.operationName].filter(Boolean).join(' / ')}</dd></div>
+                                <div><dt>Request ID</dt><dd>${attempt.requestId || 'Not available'}</dd></div>
+                                <div><dt>Attempt</dt><dd>${attempt.attemptNumber}</dd></div>
+                                <div><dt>Duration</dt><dd>${attempt.durationMs == null ? 'Not available' : `${attempt.durationMs} ms`}</dd></div>
+                                <div><dt>Transport code</dt><dd>${attempt.transportCode || 'Not available'}</dd></div>
+                                <div><dt>Server code</dt><dd>${attempt.serverErrorCode || 'Not available'}</dd></div>
+                            </dl>
+                            <div class="diagnostic-message"><strong>Server message</strong><p>${attempt.serverErrorMessage || 'Not available'}</p></div>
+                            <div class="diagnostic-summaries">
+                                <section aria-label="Request summary"><h5>Request summary</h5><pre>${formatDiagnosticSummary(attempt.requestSummary)}</pre></section>
+                                <section aria-label="Response summary"><h5>Response summary</h5><pre>${formatDiagnosticSummary(attempt.responseSummary)}</pre></section>
+                            </div>
+                        </section>
+                    `)}
+                </div>
+            </details>
         `;
     }
 
@@ -324,6 +364,8 @@ class ExecutionHistoryDialog extends LitElement {
             ['Started', formatExecutionDate(record.startedAt)],
             ['Completed', formatExecutionDate(record.completedAt)]
         ];
+        const interruptions = record.results.filter(isExecutionInterruption);
+        const itemResults = record.results.filter((result) => !isExecutionInterruption(result));
         return html`
             <section class="detail-header">
                 <div>
@@ -344,10 +386,17 @@ class ExecutionHistoryDialog extends LitElement {
                 `)}
             </section>
             <section class="outcomes">
-                <h4>Item outcomes (${record.results.length})</h4>
-                ${record.results.length === 0
+                ${interruptions.length ? html`
+                    <section class="interruptions" aria-labelledby="interruption-heading">
+                        <h4 id="interruption-heading">Execution interruption</h4>
+                        <p class="muted">Failures that stopped the execution before they could be associated with an item.</p>
+                        ${interruptions.map((result) => this.renderOutcome(result))}
+                    </section>
+                ` : ''}
+                <h4>Item outcomes (${itemResults.length})</h4>
+                ${itemResults.length === 0
                     ? html`<p class="muted">No per-item outcomes were recorded.</p>`
-                    : record.results.map((result) => this.renderOutcome(result))}
+                    : itemResults.map((result) => this.renderOutcome(result))}
             </section>
         `;
     }
@@ -415,7 +464,9 @@ const executionHistoryDialogApi = Object.freeze({
     ExecutionHistoryDialog,
     formatExecutionStatus,
     formatExecutionDate,
-    createSummary
+    createSummary,
+    formatDiagnosticSummary,
+    isExecutionInterruption
 });
 globalThis.EdVibeExecutionHistoryDialog = executionHistoryDialogApi;
 
@@ -424,5 +475,7 @@ export {
     ExecutionHistoryDialog,
     formatExecutionStatus,
     formatExecutionDate,
-    createSummary
+    createSummary,
+    formatDiagnosticSummary,
+    isExecutionInterruption
 };
