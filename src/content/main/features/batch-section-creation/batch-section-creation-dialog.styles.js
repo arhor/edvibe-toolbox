@@ -1,30 +1,6 @@
 import { css } from 'lit';
 
 export const batchSectionCreationDialogStyles = css`
-:host {
-    all: initial;
-}
-
-.edvibe-batch-section-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 2147483647;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 18px;
-    box-sizing: border-box;
-    background: rgba(15, 23, 42, .68);
-    color: #1f2937;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
-.edvibe-batch-section-overlay *,
-.edvibe-batch-section-overlay *::before,
-.edvibe-batch-section-overlay *::after {
-    box-sizing: border-box;
-}
-
 [hidden] {
     display: none !important;
 }
@@ -34,11 +10,6 @@ export const batchSectionCreationDialogStyles = css`
     flex-direction: column;
     width: min(1120px, calc(100vw - 36px));
     max-height: min(900px, calc(100vh - 36px));
-    overflow: hidden;
-    border: 1px solid rgba(148, 163, 184, .32);
-    border-radius: 20px;
-    background: #fff;
-    box-shadow: 0 30px 100px rgba(15, 23, 42, .46);
 }
 
 .edvibe-batch-section-header,
@@ -57,13 +28,13 @@ export const batchSectionCreationDialogStyles = css`
     justify-content: space-between;
     gap: 22px;
     padding: 22px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    background: linear-gradient(135deg, #f8fafc, #eff6ff);
+    border-bottom: 1px solid var(--edvibe-border-subtle);
+    background: var(--edvibe-surface-subtle);
 }
 
 .edvibe-batch-section-eyebrow {
     margin: 0 0 4px;
-    color: #2563eb;
+    color: var(--edvibe-primary);
     font-size: 11px;
     font-weight: 750;
     letter-spacing: .09em;
@@ -77,7 +48,7 @@ export const batchSectionCreationDialogStyles = css`
 .edvibe-batch-section-results h3,
 .edvibe-batch-section-errors h3 {
     margin: 0;
-    color: #111827;
+    color: var(--edvibe-text-strong);
 }
 
 .edvibe-batch-section-header h2 {
@@ -88,21 +59,17 @@ export const batchSectionCreationDialogStyles = css`
 .edvibe-batch-section-description,
 .edvibe-batch-section-heading-row p {
     margin: 5px 0 0;
-    color: #64748b;
+    color: var(--edvibe-text-muted);
     font-size: 13px;
     line-height: 1.45;
 }
 
 .edvibe-batch-section-close {
     flex: 0 0 auto;
-    padding: 4px 9px;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-    color: #64748b;
+    min-width: 36px;
+    padding: 0;
     font-size: 25px;
     line-height: 1;
-    cursor: pointer;
 }
 
 .edvibe-batch-section-body {
@@ -123,23 +90,7 @@ export const batchSectionCreationDialogStyles = css`
 }
 
 .edvibe-batch-section-field {
-    display: grid;
-    gap: 7px;
-    color: #374151;
     font-size: 13px;
-    font-weight: 650;
-}
-
-.edvibe-batch-section-field input,
-.edvibe-batch-section-field textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 9px;
-    background: #fff;
-    color: #111827;
-    font: 400 14px/1.45 "Segoe UI", Arial, sans-serif;
-    outline: none;
 }
 
 .edvibe-batch-section-field textarea {
@@ -147,13 +98,9 @@ export const batchSectionCreationDialogStyles = css`
     min-height: 92px;
 }
 
-.edvibe-batch-section-field input:focus,
-.edvibe-batch-section-field textarea:focus,
-.edvibe-batch-section-lesson:focus-within,
-.edvibe-batch-section-overlay button:focus-visible {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
-    outline: none;
+.edvibe-batch-section-lesson:focus-within {
+    outline: 2px solid var(--edvibe-focus-outline);
+    outline-offset: -2px;
 }
 
 .edvibe-batch-section-heading-row {
@@ -170,24 +117,11 @@ export const batchSectionCreationDialogStyles = css`
 .edvibe-batch-section-selection-actions,
 .edvibe-batch-section-add-actions {
     flex-wrap: wrap;
-    justify-content: flex-end;
     gap: 8px;
 }
 
-.edvibe-batch-section-selection-actions button,
-.edvibe-batch-section-add-actions button,
-.edvibe-batch-section-block-actions button {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: #fff;
-    color: #334155;
-    font: 650 12px/1.2 "Segoe UI", Arial, sans-serif;
-    cursor: pointer;
-}
-
-.edvibe-batch-section-selection-actions button,
-.edvibe-batch-section-add-actions button {
-    padding: 8px 10px;
+.edvibe-batch-section-selection-actions {
+    justify-content: flex-end;
 }
 
 .edvibe-batch-section-add-actions {
@@ -195,18 +129,19 @@ export const batchSectionCreationDialogStyles = css`
     margin-bottom: 10px;
 }
 
+.edvibe-batch-section-selection-actions button,
 .edvibe-batch-section-add-actions button {
-    border-color: #bfdbfe;
-    background: #eff6ff;
-    color: #1d4ed8;
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 12px;
 }
 
 .edvibe-batch-section-lessons {
     overflow: auto;
     max-height: 390px;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    background: #fff;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
 }
 
 .edvibe-batch-section-lesson {
@@ -214,8 +149,8 @@ export const batchSectionCreationDialogStyles = css`
     align-items: flex-start;
     gap: 10px;
     padding: 11px 12px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1f2937;
+    border-bottom: 1px solid var(--edvibe-border-subtle);
+    color: var(--edvibe-text);
     font-size: 13px;
     line-height: 1.4;
     cursor: pointer;
@@ -226,7 +161,7 @@ export const batchSectionCreationDialogStyles = css`
 }
 
 .edvibe-batch-section-lesson:hover {
-    background: #f8fafc;
+    background: var(--edvibe-surface-subtle);
 }
 
 .edvibe-batch-section-lesson input {
@@ -241,9 +176,9 @@ export const batchSectionCreationDialogStyles = css`
 
 .edvibe-batch-section-block {
     padding: 13px;
-    border: 1px solid #dbeafe;
-    border-radius: 12px;
-    background: #f8fbff;
+    border: 1px solid var(--edvibe-info-border);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-info-surface);
 }
 
 .edvibe-batch-section-block header {
@@ -253,7 +188,7 @@ export const batchSectionCreationDialogStyles = css`
 }
 
 .edvibe-batch-section-block strong {
-    color: #1e3a8a;
+    color: var(--edvibe-info);
     font-size: 13px;
 }
 
@@ -267,25 +202,22 @@ export const batchSectionCreationDialogStyles = css`
 
 .edvibe-batch-section-block-actions button {
     min-width: 31px;
-    padding: 6px 8px;
-}
-
-.edvibe-batch-section-block-actions button[data-block-action="remove"] {
-    border-color: #fecaca;
-    color: #b91c1c;
+    min-height: 31px;
+    padding: 5px 8px;
+    font-size: 12px;
 }
 
 .edvibe-batch-section-preview {
     margin-top: 14px;
     padding: 14px;
-    border: 1px dashed #94a3b8;
-    border-radius: 12px;
-    background: #f8fafc;
+    border: 1px dashed var(--edvibe-border);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface-subtle);
 }
 
 .edvibe-batch-section-preview-name {
     margin: 8px 0;
-    color: #0f172a;
+    color: var(--edvibe-text-strong);
     font-size: 14px;
     font-weight: 700;
 }
@@ -306,48 +238,33 @@ export const batchSectionCreationDialogStyles = css`
 
 .edvibe-batch-section-protocol,
 .edvibe-batch-section-errors,
-.edvibe-batch-section-summary,
-.edvibe-batch-section-results {
+.edvibe-batch-section-summary {
     margin-top: 18px;
-    padding: 14px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 13px;
-    line-height: 1.48;
-}
-
-.edvibe-batch-section-protocol {
-    border-color: #fcd34d;
-    background: #fffbeb;
-    color: #92400e;
 }
 
 .edvibe-batch-section-protocol p {
     margin: 5px 0 0;
 }
 
-.edvibe-batch-section-errors {
-    border-color: #fecaca;
-    background: #fef2f2;
-    color: #991b1b;
-}
-
-.edvibe-batch-section-summary {
-    border-color: #bfdbfe;
-    background: #eff6ff;
-    color: #1e3a8a;
-}
-
 .edvibe-batch-section-summary-group {
     margin-top: 13px;
     padding-top: 11px;
-    border-top: 1px solid rgba(37, 99, 235, .18);
+    border-top: 1px solid currentColor;
 }
 
 .edvibe-batch-section-summary-group h4 {
     margin: 0;
-    color: #1e3a8a;
+    color: inherit;
     font-size: 13px;
+}
+
+.edvibe-batch-section-results {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    font-size: 13px;
+    line-height: 1.48;
 }
 
 .edvibe-batch-section-result-list {
@@ -361,17 +278,17 @@ export const batchSectionCreationDialogStyles = css`
     grid-template-columns: minmax(160px, 1fr) auto;
     gap: 4px 12px;
     padding: 11px 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    background: #fff;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
 }
 
 .edvibe-batch-section-result strong {
-    color: #111827;
+    color: var(--edvibe-text-strong);
 }
 
 .edvibe-batch-section-result > span {
-    color: #475569;
+    color: var(--edvibe-text-muted);
     font-weight: 700;
 }
 
@@ -379,41 +296,33 @@ export const batchSectionCreationDialogStyles = css`
 .edvibe-batch-section-result small {
     grid-column: 1 / -1;
     margin: 0;
-    color: #64748b;
+    color: var(--edvibe-text-muted);
     overflow-wrap: anywhere;
 }
 
 .edvibe-batch-section-result.is-created {
-    border-color: #bbf7d0;
-    background: #f0fdf4;
+    border-color: var(--edvibe-success-border);
+    background: var(--edvibe-success-surface);
 }
 
 .edvibe-batch-section-result.is-failed,
 .edvibe-batch-section-result.is-partially_created {
-    border-color: #fed7aa;
-    background: #fff7ed;
+    border-color: var(--edvibe-warning-border);
+    background: var(--edvibe-warning-surface);
 }
 
 .edvibe-batch-section-result.is-rejected,
 .edvibe-batch-section-result.is-not_attempted {
-    background: #f8fafc;
+    background: var(--edvibe-surface-subtle);
 }
 
 .edvibe-batch-section-fatal-note {
     margin: 12px 0 0;
-    padding: 10px 12px;
-    border-radius: 9px;
-    background: #fef2f2;
-    color: #991b1b;
     font-weight: 650;
 }
 
 .edvibe-batch-section-empty {
     margin: 0;
-    padding: 14px;
-    color: #64748b;
-    font-size: 13px;
-    text-align: center;
 }
 
 .edvibe-batch-section-live-region {
@@ -426,8 +335,8 @@ export const batchSectionCreationDialogStyles = css`
     width: 16px;
     height: 16px;
     margin-right: 7px;
-    border: 2px solid #bfdbfe;
-    border-top-color: #2563eb;
+    border: 2px solid var(--edvibe-info-border);
+    border-top-color: var(--edvibe-primary);
     border-radius: 50%;
     vertical-align: -3px;
     animation: edvibe-batch-section-spin .8s linear infinite;
@@ -442,17 +351,16 @@ export const batchSectionCreationDialogStyles = css`
 .edvibe-batch-section-status {
     min-height: 19px;
     margin: 0;
-    color: #475569;
     font-size: 13px;
     line-height: 1.4;
 }
 
 .edvibe-batch-section-status[data-state="error"] {
-    color: #b91c1c;
+    color: var(--edvibe-danger);
 }
 
 .edvibe-batch-section-status[data-state="warning"] {
-    color: #a16207;
+    color: var(--edvibe-warning);
 }
 
 .edvibe-batch-section-progress {
@@ -460,56 +368,11 @@ export const batchSectionCreationDialogStyles = css`
     width: 100%;
     height: 10px;
     margin-top: 9px;
-    overflow: hidden;
-    border: 0;
-    border-radius: 999px;
-    background: #e5e7eb;
-    appearance: none;
-}
-
-.edvibe-batch-section-progress::-webkit-progress-bar {
-    background: #e5e7eb;
-}
-
-.edvibe-batch-section-progress::-webkit-progress-value {
-    border-radius: 999px;
-    background: linear-gradient(90deg, #2563eb, #16a34a);
 }
 
 .edvibe-batch-section-footer {
     flex: 0 0 auto;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 10px;
     padding: 18px 24px 22px;
-}
-
-.edvibe-batch-section-footer button {
-    padding: 10px 16px;
-    border: 1px solid #cbd5e1;
-    border-radius: 9px;
-    background: #fff;
-    color: #334155;
-    font: 650 13px/1.2 "Segoe UI", Arial, sans-serif;
-    cursor: pointer;
-}
-
-.edvibe-batch-section-preflight,
-.edvibe-batch-section-confirm {
-    border-color: #2563eb !important;
-    background: #2563eb !important;
-    color: #fff !important;
-}
-
-.edvibe-batch-section-overlay button:hover:not(:disabled) {
-    filter: brightness(.97);
-}
-
-.edvibe-batch-section-overlay button:disabled,
-.edvibe-batch-section-overlay input:disabled,
-.edvibe-batch-section-overlay textarea:disabled {
-    cursor: not-allowed;
-    opacity: .56;
 }
 
 @media (max-width: 820px) {
@@ -523,14 +386,9 @@ export const batchSectionCreationDialogStyles = css`
 }
 
 @media (max-width: 560px) {
-    .edvibe-batch-section-overlay {
-        padding: 8px;
-    }
-
     .edvibe-batch-section-card {
         width: 100%;
-        max-height: calc(100vh - 16px);
-        border-radius: 13px;
+        max-height: 100vh;
     }
 
     .edvibe-batch-section-header,
@@ -558,5 +416,4 @@ export const batchSectionCreationDialogStyles = css`
         grid-template-columns: 1fr;
     }
 }
-
 `;
