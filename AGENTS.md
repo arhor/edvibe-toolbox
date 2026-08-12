@@ -4,96 +4,98 @@ Guidance for AI agents working in this repository.
 
 ## Project Overview
 
-Edvibe Toolbox is a Manifest V3 Chrome extension for automating workflows on `edvibe.com`. The source is JavaScript/CSS/HTML, browser UI components use Lit, npm manages runtime and build dependencies, and CRXJS/Vite produces the loadable extension under `dist/`.
+Edvibe Toolbox is a Manifest V3 Chrome extension for automating workflows on `edvibe.com`. Source code is JavaScript, browser UI components use Lit, npm manages dependencies, and CRXJS/Vite produces the loadable extension under `dist/`.
 
-The extension has two content-script contexts:
+The extension has three deliberately separate runtime owners:
 
-- `src/entrypoints/isolated.js` runs in the extension isolated world. It initializes isolated-world dependencies and then loads the command bridge in `src/runtime/isolated.js`.
-- `src/entrypoints/main.js` runs in the page `MAIN` world. It initializes package-managed runtime libraries and shared infrastructure before components, features, and the coordinator in `src/runtime/main.js`.
+- `src/popup/` owns the extension popup, its components, and popup-global presentation.
+- `src/content/isolated/` runs in Chrome's extension ISOLATED world and owns the bridge between Chrome runtime APIs and page messages.
+- `src/content/main/` runs in the page MAIN world and owns Edvibe-facing transport, workflows, in-page UI, persistence, and runtime orchestration.
 
-Keep these runtime worlds separate and preserve `document_start` behavior for timing-sensitive interception.
+Code under `src/shared/` is reserved for contracts or primitives that genuinely need to be consumed by more than one runtime. Keep runtime-owned implementation out of shared code.
+
+Preserve the ISOLATED/MAIN separation and the manifest's `document_start` behavior for timing-sensitive interception.
 
 ## Repository Layout
 
-- `manifest.config.mjs`: source Manifest V3 configuration consumed by CRXJS.
-- `popup.html`: source popup document. Its module entry point is `src/entrypoints/popup.js`.
-- `src/entrypoints/`: small Vite/CRXJS composition roots for popup, ISOLATED, and MAIN runtimes.
-- `src/runtime/`: runtime coordinators and popup-owned global presentation; application runtime code belongs here rather than at repository root.
-- `src/content/main/features/`: MAIN-owned feature slices, including workflow logic, Lit components, component styles, and colocated tests.
-- `src/content/main/styles/`: reusable Lit style foundations shared across MAIN feature components.
-- `src/content/main/infrastructure/`: runtime-wide services owned exclusively by the MAIN-world content script, including transport, operation coordination, storage bridging, IndexedDB, diagnostics, and execution history.
-- `src/shared/`: infrastructure shared across runtime worlds, such as logging and the cross-world message protocol, plus shared feature workflow helpers.
-- `scripts/check-build-output.mjs`: production bundle-shape and regression-budget checker.
-- `package.json` and `package-lock.json`: pinned npm dependency and command configuration.
+- `manifest.config.js`: source Manifest V3 configuration consumed by CRXJS.
+- `src/popup/index.html` and `src/popup/index.js`: popup document and composition root.
+- `src/popup/components/`: popup-owned Lit components.
+- `src/content/isolated/index.js`: ISOLATED-world composition root.
+- `src/content/isolated/bridge.js`: validated popup/runtime/window message routing.
+- `src/content/main/index.js`: MAIN-world composition root and feature wiring.
+- `src/content/main/features/`: MAIN-owned feature slices, including workflow logic, Lit dialogs, styles, and colocated tests.
+- `src/content/main/components/`: reusable MAIN-world UI components shared by multiple MAIN features.
+- `src/content/main/styles/`: reusable MAIN-world Lit style foundations.
+- `src/content/main/infrastructure/`: MAIN-wide transport, operation coordination, storage bridging, IndexedDB, diagnostics, and execution-history infrastructure.
+- `src/shared/`: cross-runtime contracts and genuinely shared primitives, including the message protocol, logger, and extension-wide UI design tokens.
+- `docs/design-foundations.md`: design-system guidance and shared UI conventions.
+- `scripts/check-build-output.js`: production bundle-shape and regression-budget checker.
+- `package.json` and `package-lock.json`: pinned npm dependencies and commands.
 - `vite.config.mjs`: CRXJS/Vite build configuration.
 - `.github/workflows/ci.yml`: pull-request validation and `master` distribution synchronization.
-- `dist/`: committed generated extension distribution. Chrome loads `dist/manifest.json`. Treat every file under `dist/` as build-owned output and never edit it manually.
-- `export-*.json`: generated/exported data artifacts. Treat as local data unless the user explicitly asks to inspect or modify them.
+- `dist/`: committed generated extension distribution. Chrome loads `dist/manifest.json`; never edit generated files manually.
 
 ## Development Commands
 
-Use Node.js 22, as pinned by `.nvmrc` and `package.json`.
+Use Node.js 22 as pinned by `.nvmrc`.
 
 ```bash
 npm ci
 npm run dev
+npm run lint
+npm test
 npm run build
 npm run check:build-output
-npm run lint
 ```
 
-`npm run dev` runs the Vite build in watch mode. `npm run build` creates the production extension in `dist/`. `npm run check:build-output` validates the generated production bundle shape and regression budgets. `npm run lint` enforces the repository's JavaScript, Lit, and Web Component quality rules.
+`npm run dev` builds in watch mode. `npm test` and `npm run test:ci` run the colocated Node.js test suite. `npm run build` creates the production extension in `dist/`, and `npm run check:build-output` validates its generated shape and regression budgets.
 
-```bash
-npm test     # Node.js test suite
-npm run test:ci  # complete test suite used by CI (currently an alias for `npm test`)
-```
-
-For manual browser validation, load the repository's `dist/` directory with Chrome's **Load unpacked** action. Rebuild after source changes and reload the extension card before testing the affected Edvibe workflow.
+For manual browser validation, load `dist/` with Chrome's **Load unpacked** action. Rebuild and reload the extension card before testing changed workflows.
 
 ## Build And Generated Files
 
 - Source files are authoritative. Never hand-edit files under `dist/`.
-- Pull requests are validated with `npm ci`, `npm run lint`, `npm run test:ci`, `npm run build`, and `npm run check:build-output`.
-- Production bundles are explicitly minified with Vite's Oxc minifier. MAIN and ISOLATED content scripts remain standalone eager bundles to preserve CRXJS and `document_start` behavior; do not introduce chunking purely to reduce reported byte counts.
-- Vite 8's default Oxc transformer does not lower stage-3 decorators, so `vite.config.mjs` runs `@rollup/plugin-swc` (scoped via `withFilter`/`code: '@'`) to transpile files that use decorator syntax, such as Lit's `@customElement`. Keep this transform scoped to decorator-containing files rather than applying it project-wide.
-- Review `docs/build-output-policy.md` before changing production minification, bundle shape, or bundle regression budgets.
-- PR authors do not need to commit generated `dist/` updates.
-- After a successful source change reaches `master`, the CI `sync-dist` job rebuilds, validates, and commits `dist/` only when generated output changed.
-- Keep write permissions scoped to the distribution synchronization job. Validation jobs remain read-only.
-- Runtime libraries are npm dependencies imported through source modules and bundled by Vite. Do not add copied/minified library files to the repository as an alternative dependency mechanism.
+- Pull requests are validated with `npm ci`, linting, `npm run test:ci`, a production build, and the build-output check.
+- PR authors do not need to commit regenerated `dist/` output.
+- After a successful source change reaches `master`, CI rebuilds and synchronizes `dist/` only when generated output changed.
+- Runtime libraries are npm dependencies imported from source and bundled by Vite. Do not add copied/minified vendor files as an alternative dependency mechanism.
+- Preserve the standalone MAIN and ISOLATED content-script bundles and `document_start` behavior unless a task intentionally changes that runtime contract.
 
-## Coding Guidelines
+## Architecture And Coding Guidelines
 
-- Preserve the Manifest V3 architecture and keep isolated-world and MAIN-world responsibilities separate.
-- Use source entry points to express runtime dependency evaluation order. Keep manifest content-script entries focused on the standalone runtime entry files expected by CRXJS.
-- Keep the MAIN runtime eagerly composed at `document_start` while transport interception, operation guards, and command routing depend on deterministic startup. Introduce lazy feature loading only when its boundary is proven safe and does not change page-timing behavior.
-- Use Lit as the standard implementation for Web Components. Prefer `LitElement`, reactive properties/state, declarative `html` templates, and Lit lifecycle/update APIs over manual DOM construction and synchronization.
-- Preserve existing custom-element public contracts when migrating or refactoring: tag names, methods, properties, events, and integration callbacks should remain stable unless the task explicitly changes them.
-- Choose Shadow DOM or light DOM according to the existing component styling/integration contract. Do not switch encapsulation casually during unrelated work.
-- Keep in-page Lit component presentation in Lit `css` template modules composed through `static styles`. Put reusable MAIN design tokens and visual foundations under `src/content/main/styles/`, keep component-specific rules beside their component, and leave popup page CSS global unless a separate migration intentionally changes its light-DOM styling model.
-- Keep feature/network/persistence logic outside UI components where an existing service or feature boundary already owns it. Components should primarily own presentation and interaction state.
-- Use clear console log prefixes consistent with the existing `[Edvibe Toolbox][Area]` style.
-- Avoid broad permissions in `manifest.config.mjs`; add only the minimum Chrome permissions needed for a feature.
-- Do not commit generated export files unless the user explicitly requests it and confirms the data is safe to include.
-- Keep comments useful and sparse. Explain non-obvious browser-extension, lifecycle, build, or WebSocket behavior rather than simple assignments.
+- Put code in the runtime that owns it. Do not move MAIN-only or popup-only helpers into `src/shared/` merely for convenience.
+- Do not make one feature import another feature implementation as a utility library. Promote a primitive only when there is a real shared owner, and choose the narrowest appropriate one.
+- Keep runtime composition roots readable. They should wire dependencies and route commands rather than accumulate feature-domain behavior.
+- Keep feature/network/persistence logic outside UI components when a feature or infrastructure boundary already owns it. Components primarily own presentation and interaction state.
+- Use Lit as the standard implementation for Web Components. Prefer reactive properties/state, declarative `html` templates, and Lit lifecycle/update APIs over manual DOM synchronization.
+- Preserve custom-element public contracts during refactors unless the task explicitly changes them.
+- Choose Shadow DOM or light DOM according to the existing integration contract. Do not switch encapsulation casually.
+- Use shared UI design tokens from `src/shared/ui-design-tokens.js`. Reusable MAIN visual foundations belong under `src/content/main/styles/`; reusable MAIN components belong under `src/content/main/components/`; feature-specific styles stay beside their component as Lit `css` modules.
+- Follow `docs/design-foundations.md` when introducing or changing shared UI patterns.
+- Avoid broad permissions in `manifest.config.js`; add only the minimum Chrome permissions required.
+- Keep comments sparse and useful, especially around non-obvious browser-extension, lifecycle, build, or WebSocket behavior.
+
+## Testing Conventions
+
 - Keep tests beside the primary source module they exercise and name them in kebab-case with the `.test.js` suffix.
+- Prefer behavioral and contract tests over implementation-shape tests.
+- Test observable message validation/routing, public component behavior, workflow results, retries, persistence contracts, and boundary error handling.
+- Do not assert source files as strings, import text, or directory layout merely to freeze architecture. ESLint owns static import restrictions; `scripts/check-build-output.js` owns generated artifact shape and bundle budgets.
+- Component tests should cover important reactive state, user events, cleanup, and public integration contracts where practical in the Node.js test environment. Note behavior that requires manual Chrome validation.
+- Messaging changes should verify that popup, ISOLATED, and MAIN boundaries accept only supported contracts and minimal metadata.
+- Batch/automation changes should preserve safe partial results, retry/cancellation semantics, and execution-history behavior where applicable.
 
 ## Validation Expectations
 
-GitHub Actions is the authoritative validation environment for repository changes.
+GitHub Actions is the authoritative validation environment for repository changes. Before considering a change complete, expect lint, tests, production build, and build-output validation to pass.
 
-- Source or build changes: require linting, type checking, the full CI test suite, a successful production build, and the production bundle output check.
-- Component changes: cover important reactive state, user events, Shadow/light DOM behavior, cleanup, and public integration contracts. There is currently no real-browser component test suite; add Node.js coverage where practical and note any behavior that can only be verified manually in Chrome.
-- Popup changes: verify relevant button state, labels, command availability, and error handling.
-- Messaging changes: confirm popup/isolated/MAIN routing forwards only expected commands and minimal metadata.
-- Automation changes: preserve safe partial results, retries/cancellation semantics, and execution-history behavior where applicable.
-- Manifest or entry-point changes: verify the production build and preserve the standalone `document_start` content-script behavior required by CRXJS.
-- Generated-output changes: change the source or build configuration and let the build produce `dist/`; do not patch generated files.
+For manifest or runtime-entry changes, additionally verify the standalone `document_start` content-script behavior. For UI changes, manually inspect the affected popup or in-page workflow when browser-only behavior cannot be covered by Node tests.
 
 ## Safety And Data Handling
 
 - Treat Edvibe lesson exports, execution history, recordings, and pupil/user data as potentially sensitive educational content.
 - Avoid logging full payloads when concise IDs or counts are enough.
-- Be careful with cross-world `window.postMessage` traffic; send minimal command messages and validate incoming message types before acting.
+- Keep cross-world `window.postMessage` traffic minimal and validate incoming message shapes before acting.
 - Preserve current throttling behavior in scraping and batch-operation loops unless there is a clear reason to adjust it.
+- Do not commit generated export or recording files unless the user explicitly requests it and confirms the data is safe to include.
