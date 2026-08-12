@@ -4,8 +4,8 @@ import {
     parseEmailInput as parseSharedEmailInput,
     parseMarathonId,
     runWithRetry
-} from '../../../../shared/batch-workflow-primitives.js';
-import { loadAllPupils } from '../../../../shared/edvibe-marathon-api.js';
+} from '../batch-workflow-primitives.js';
+import { loadAllPupils } from '../edvibe-marathon-api.js';
 
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
 const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';

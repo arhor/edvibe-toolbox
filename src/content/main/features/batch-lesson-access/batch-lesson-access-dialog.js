@@ -403,11 +403,4 @@ if (!customElements.get(BATCH_ACCESS_DIALOG_TAG)) {
     customElements.define(BATCH_ACCESS_DIALOG_TAG, BatchLessonAccessDialog);
 }
 
-const batchAccessDialogApi = {
-    BATCH_ACCESS_DIALOG_TAG,
-    BATCH_ACCESS_OVERLAY_ID,
-    BatchLessonAccessDialog
-};
-globalThis.EdVibeBatchAccessDialogComponent = batchAccessDialogApi;
-
 export {BATCH_ACCESS_DIALOG_TAG, BATCH_ACCESS_OVERLAY_ID, BatchLessonAccessDialog};

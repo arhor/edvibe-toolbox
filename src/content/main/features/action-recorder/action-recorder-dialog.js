@@ -283,11 +283,4 @@ if (!customElements.get(RECORDER_DIALOG_TAG)) {
     customElements.define(RECORDER_DIALOG_TAG, ActionRecorderDialog);
 }
 
-const actionRecorderDialogApi = {
-    RECORDER_DIALOG_TAG,
-    RECORDER_DIALOG_ID,
-    ActionRecorderDialog
-};
-globalThis.EdVibeActionRecorderDialog = actionRecorderDialogApi;
-
 export { RECORDER_DIALOG_TAG, RECORDER_DIALOG_ID, ActionRecorderDialog };

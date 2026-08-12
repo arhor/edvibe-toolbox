@@ -1,5 +1,5 @@
-import { createFeatureError as featureError, parseMarathonId } from '../../../../shared/batch-workflow-primitives.js';
-import { getLessonById, loadAllMarathonLessons } from '../../../../shared/edvibe-marathon-api.js';
+import { createFeatureError as featureError, parseMarathonId } from '../batch-workflow-primitives.js';
+import { getLessonById, loadAllMarathonLessons } from '../edvibe-marathon-api.js';
 import { historyDiagnostics } from '../../infrastructure/history-diagnostics.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';

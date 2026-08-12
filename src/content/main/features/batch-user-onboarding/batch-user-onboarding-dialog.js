@@ -319,7 +319,4 @@ if (!customElements.get(BATCH_USER_ONBOARDING_DIALOG_TAG)) {
     customElements.define(BATCH_USER_ONBOARDING_DIALOG_TAG, BatchUserOnboardingDialog);
 }
 
-const batchUserOnboardingDialogApi = Object.freeze({BATCH_USER_ONBOARDING_DIALOG_TAG, BatchUserOnboardingDialog});
-globalThis.EdVibeBatchUserOnboardingDialog = batchUserOnboardingDialogApi;
-
 export {BATCH_USER_ONBOARDING_DIALOG_TAG, BatchUserOnboardingDialog};
