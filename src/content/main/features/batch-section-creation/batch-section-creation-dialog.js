@@ -1,11 +1,11 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '../../../../components/styles/foundations.js';
 import { batchSectionCreationDialogStyles } from './batch-section-creation-dialog.styles.js';
-import { batchSectionImageUploadStyles } from './batch-section-image-upload.styles.js';
+import { batchSectionImageUploadStyles } from './image-upload/batch-section-image-upload.styles.js';
 import {
     controller as defaultImageController,
     formatFileSize,
-} from './batch-section-image-upload.js';
+} from './image-upload/batch-section-image-upload.js';
 
 const BATCH_SECTION_DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';

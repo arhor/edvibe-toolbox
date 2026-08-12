@@ -1,4 +1,4 @@
-import { registry as defaultRegistry } from '../components/batch-section-image-upload.js';
+import { registry as defaultRegistry } from './image-upload/batch-section-image-upload.js';
 import { createRecordedCreationAdapter } from './batch-section-creation.js';
 import { batchSectionCreationRecipe } from './batch-section-creation-recipe.js';
 
