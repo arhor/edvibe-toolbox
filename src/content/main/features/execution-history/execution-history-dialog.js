@@ -3,6 +3,13 @@ import {
     componentFoundationStyles,
     dialogFoundationStyles
 } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    emptyStateStyles,
+    fieldStyles,
+    noticeStyles
+} from '../../styles/primitives.js';
 import { executionHistoryDialogStyles } from './execution-history-dialog.styles.js';
 
 const EXECUTION_HISTORY_DIALOG_TAG = 'edvibe-toolbox-execution-history-dialog';
@@ -48,7 +55,16 @@ function isExecutionInterruption(result) {
 }
 
 class ExecutionHistoryDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, executionHistoryDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        noticeStyles,
+        emptyStateStyles,
+        executionHistoryDialogStyles
+    ];
 
     static properties = {
         options: {state: true},
@@ -354,7 +370,7 @@ class ExecutionHistoryDialog extends LitElement {
         const record = this.selectedRecord;
         if (!record) {
             return html`
-                <div class="detail-placeholder">
+                <div class="detail-placeholder" data-part="empty-state">
                     <span aria-hidden="true">↗</span>
                     <h3>Select an execution</h3>
                     <p>Its summary and ordered item outcomes will appear here.</p>
@@ -375,9 +391,9 @@ class ExecutionHistoryDialog extends LitElement {
                     <h3>${record.operationType}</h3>
                     <p>${formatExecutionStatus(record.status)} · ${formatExecutionDate(record.completedAt)}</p>
                 </div>
-                <div class="detail-actions">
-                    <button type="button" class="secondary" @click=${() => this.handleAction('download-one')}>Download JSON</button>
-                    <button type="button" class="danger secondary" @click=${() => this.handleAction('delete-one')}>Delete</button>
+                <div class="detail-actions" data-part="actions">
+                    <button type="button" class="secondary" data-control="secondary" @click=${() => this.handleAction('download-one')}>Download JSON</button>
+                    <button type="button" class="danger secondary" data-control="danger" @click=${() => this.handleAction('delete-one')}>Delete</button>
                 </div>
             </section>
             <dl class="summary-grid">
@@ -412,31 +428,31 @@ class ExecutionHistoryDialog extends LitElement {
         const toastClass = `toast${this.toastError ? ' is-error' : ''}`;
 
         return html`
-<div class="overlay">
-                <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
+            <div class="overlay" data-part="overlay">
+                <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
                     <header class="dialog-header">
                         <div><p class="eyebrow">Edvibe Toolbox</p><h2 id="history-title">Execution history</h2><p class="header-copy">Browse terminal operation reports stored in this browser.</p></div>
-                        <button class="icon-button" type="button" data-action="close" aria-label="Close" @click=${() => this.handleAction('close')}>×</button>
+                        <button class="icon-button" data-control="secondary" type="button" data-action="close" aria-label="Close" @click=${() => this.handleAction('close')}>×</button>
                     </header>
                     <div class="workspace">
                         <aside class="browser-panel">
                             <form class="filters" data-role="filters" @submit=${(event) => { event.preventDefault(); this.loadRecords(); }}>
-                                <label>Operation<select name="operationType" .value=${this.filterOperationType} @change=${(event) => this.setFilter('operationType', event.currentTarget.value)}>
+                                <label data-field>Operation<select name="operationType" .value=${this.filterOperationType} @change=${(event) => this.setFilter('operationType', event.currentTarget.value)}>
                                     <option value="">All operations</option>
                                     ${this.operationTypes.map((operationType) => html`<option value=${operationType}>${operationType}</option>`)}
                                 </select></label>
-                                <label>Status<select name="status" .value=${this.filterStatus} @change=${(event) => this.setFilter('status', event.currentTarget.value)}>
+                                <label data-field>Status<select name="status" .value=${this.filterStatus} @change=${(event) => this.setFilter('status', event.currentTarget.value)}>
                                     <option value="">All statuses</option><option value="completed">Completed</option><option value="completed_with_failures">Completed with failures</option><option value="cancelled">Cancelled</option><option value="interrupted">Interrupted</option>
                                 </select></label>
-                                <label>Marathon<input name="marathonId" type="search" inputmode="numeric" placeholder="Any marathon" .value=${this.filterMarathonId} @input=${(event) => this.setFilter('marathonId', event.currentTarget.value)}></label>
+                                <label data-field>Marathon<input name="marathonId" type="search" inputmode="numeric" placeholder="Any marathon" .value=${this.filterMarathonId} @input=${(event) => this.setFilter('marathonId', event.currentTarget.value)}></label>
                                 <div class="date-fields">
-                                    <label>From<input name="from" type="date" .value=${this.filterFrom} @input=${(event) => this.setFilter('from', event.currentTarget.value)}></label>
-                                    <label>To<input name="to" type="date" .value=${this.filterTo} @input=${(event) => this.setFilter('to', event.currentTarget.value)}></label>
+                                    <label data-field>From<input name="from" type="date" .value=${this.filterFrom} @input=${(event) => this.setFilter('from', event.currentTarget.value)}></label>
+                                    <label data-field>To<input name="to" type="date" .value=${this.filterTo} @input=${(event) => this.setFilter('to', event.currentTarget.value)}></label>
                                 </div>
-                                <div class="filter-actions"><button type="submit">Apply</button><button type="button" class="secondary" @click=${() => this.handleAction('reset-filters')}>Reset</button></div>
+                                <div class="filter-actions" data-part="actions"><button data-control type="submit">Apply</button><button data-control="secondary" type="button" class="secondary" @click=${() => this.handleAction('reset-filters')}>Reset</button></div>
                             </form>
-                            <div class="list-toolbar"><strong data-role="record-count">${this.records.length} execution${this.records.length === 1 ? '' : 's'}</strong><button type="button" class="secondary compact" @click=${() => this.handleAction('export-filtered')}>Export filtered</button></div>
-                            <div class=${stateClass} data-role="state" ?hidden=${!stateVisible}>${this.listMessage}</div>
+                            <div class="list-toolbar"><strong data-role="record-count">${this.records.length} execution${this.records.length === 1 ? '' : 's'}</strong><button type="button" data-control="secondary" class="secondary compact" @click=${() => this.handleAction('export-filtered')}>Export filtered</button></div>
+                            <div class=${stateClass} data-part="empty-state" data-role="state" ?hidden=${!stateVisible}>${this.listMessage}</div>
                             <div class="record-list" data-role="record-list" ?hidden=${!listVisible}>${this.records.map((record) => this.renderRecord(record))}</div>
                         </aside>
                         <main class="detail-panel" data-role="detail">${this.renderDetail()}</main>
@@ -444,13 +460,13 @@ class ExecutionHistoryDialog extends LitElement {
                     <footer class="dialog-footer">
                         <details class="retention-settings"><summary>Retention & automatic export</summary><div class="settings-grid">
                             <label class="checkbox"><input type="checkbox" name="keepIndefinitely" .checked=${indefinite} @change=${(event) => this.updatePreference('mode', event.currentTarget.checked ? 'indefinite' : 'limits')}>Keep indefinitely</label>
-                            <label>Newest executions<input type="number" name="maxCount" min="1" step="1" .value=${String(this.preferences.maxCount)} ?disabled=${indefinite} @input=${(event) => this.updatePreference('maxCount', event.currentTarget.value)}></label>
-                            <label>Maximum age, days<input type="number" name="maxAgeDays" min="1" step="1" .value=${String(this.preferences.maxAgeDays)} ?disabled=${indefinite} @input=${(event) => this.updatePreference('maxAgeDays', event.currentTarget.value)}></label>
+                            <label data-field>Newest executions<input type="number" name="maxCount" min="1" step="1" .value=${String(this.preferences.maxCount)} ?disabled=${indefinite} @input=${(event) => this.updatePreference('maxCount', event.currentTarget.value)}></label>
+                            <label data-field>Maximum age, days<input type="number" name="maxAgeDays" min="1" step="1" .value=${String(this.preferences.maxAgeDays)} ?disabled=${indefinite} @input=${(event) => this.updatePreference('maxAgeDays', event.currentTarget.value)}></label>
                             <label class="checkbox"><input type="checkbox" name="autoExport" .checked=${this.preferences.autoExport} @change=${(event) => this.updatePreference('autoExport', event.currentTarget.checked)}>Download JSON after persistence</label>
-                            <button type="button" @click=${() => this.handleAction('save-preferences')}>Save settings</button>
+                            <button type="button" data-control @click=${() => this.handleAction('save-preferences')}>Save settings</button>
                         </div></details>
-                        <div class="footer-actions"><button type="button" class="danger secondary" @click=${() => this.handleAction('clear-all')}>Clear all history</button><button type="button" @click=${() => this.handleAction('close')}>Close</button></div>
-                        <p class=${toastClass} data-role="toast" role="status" ?hidden=${!this.toastMessage}>${this.toastMessage}</p>
+                        <div class="footer-actions" data-part="actions"><button type="button" data-control="danger" class="danger secondary" @click=${() => this.handleAction('clear-all')}>Clear all history</button><button type="button" data-control @click=${() => this.handleAction('close')}>Close</button></div>
+                        <p class=${toastClass} data-notice=${this.toastError ? 'danger' : 'success'} data-role="toast" role="status" ?hidden=${!this.toastMessage}>${this.toastMessage}</p>
                     </footer>
                 </section>
             </div>
