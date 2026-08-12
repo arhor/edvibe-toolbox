@@ -180,6 +180,10 @@ popup-tool-card button:disabled {
     opacity: .72;
 }
 
+popup-tool-card button:disabled .tool-title {
+    color: var(--edvibe-text-muted);
+}
+
 popup-tool-card button[data-danger="true"]:not(:disabled) {
     border-color: var(--edvibe-danger-border);
 }
