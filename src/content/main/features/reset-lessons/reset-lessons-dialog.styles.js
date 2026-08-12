@@ -1,36 +1,12 @@
 import { css } from 'lit';
 
 export const resetLessonsDialogStyles = css`
-:host {
-    position: fixed;
-    inset: 0;
-    z-index: 2147483647;
-    display: block;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
 :host([hidden]) {
     display: none !important;
 }
 
 :host(.is-running) .edvibe-reset-body {
     display: none;
-}
-
-.edvibe-reset-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    background: rgba(15, 23, 42, .6);
-    box-sizing: border-box;
-}
-
-.edvibe-reset-overlay *,
-.edvibe-reset-overlay {
-    box-sizing: border-box;
 }
 
 [hidden] {
@@ -43,10 +19,6 @@ export const resetLessonsDialogStyles = css`
     width: min(760px, calc(100vw - 32px));
     max-height: min(820px, calc(100vh - 32px));
     padding: 24px;
-    border-radius: 16px;
-    background: #fff;
-    box-shadow: 0 24px 80px rgba(15, 23, 42, .38);
-    color: #1f2937;
 }
 
 .edvibe-reset-header {
@@ -58,31 +30,28 @@ export const resetLessonsDialogStyles = css`
 
 .edvibe-reset-title {
     margin: 0;
-    color: #111827;
+    color: var(--edvibe-text-strong);
     font-size: 21px;
     line-height: 1.3;
 }
 
 .edvibe-reset-subtitle {
     margin: 5px 0 0;
-    color: #6b7280;
+    color: var(--edvibe-text-muted);
     font-size: 13px;
 }
 
 .edvibe-reset-step-indicator {
     margin-right: 8px;
-    color: #2563eb;
+    color: var(--edvibe-primary);
     font-weight: 700;
 }
 
 .edvibe-reset-close {
-    border: 0;
-    padding: 4px 8px;
-    background: transparent;
-    color: #6b7280;
+    min-width: 36px;
+    padding: 0;
     font-size: 24px;
     line-height: 1;
-    cursor: pointer;
 }
 
 .edvibe-reset-body {
@@ -92,34 +61,25 @@ export const resetLessonsDialogStyles = css`
     margin-top: 18px;
 }
 
+.edvibe-reset-search-field {
+    font-size: 13px;
+}
+
 .edvibe-reset-label {
     display: block;
     margin-bottom: 7px;
-    color: #374151;
+    color: var(--edvibe-text);
     font-size: 13px;
     font-weight: 650;
-}
-
-.edvibe-reset-search {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    outline: none;
-    font: inherit;
-}
-
-.edvibe-reset-search:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, .15);
 }
 
 .edvibe-reset-list {
     overflow: auto;
     max-height: 250px;
     margin-top: 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
 }
 
 .edvibe-reset-pupils-shell {
@@ -142,9 +102,9 @@ export const resetLessonsDialogStyles = css`
     align-items: center;
     justify-content: center;
     gap: 10px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, .48);
-    color: #374151;
+    border-radius: var(--edvibe-radius-panel);
+    background: color-mix(in srgb, var(--edvibe-surface) 72%, transparent);
+    color: var(--edvibe-text);
     font-size: 13px;
     font-weight: 650;
 }
@@ -152,8 +112,8 @@ export const resetLessonsDialogStyles = css`
 .edvibe-reset-spinner {
     width: 22px;
     height: 22px;
-    border: 3px solid #bfdbfe;
-    border-top-color: #2563eb;
+    border: 3px solid var(--edvibe-info-border);
+    border-top-color: var(--edvibe-primary);
     border-radius: 50%;
     animation: edvibe-reset-spinner-rotate .8s linear infinite;
 }
@@ -165,9 +125,10 @@ export const resetLessonsDialogStyles = css`
     gap: 10px;
     padding: 11px 12px;
     border: 0;
-    border-bottom: 1px solid #f1f5f9;
-    background: #fff;
-    color: #1f2937;
+    border-bottom: 1px solid var(--edvibe-border-subtle);
+    background: var(--edvibe-surface);
+    color: var(--edvibe-text);
+    font: inherit;
     text-align: left;
     cursor: pointer;
 }
@@ -178,7 +139,17 @@ export const resetLessonsDialogStyles = css`
 
 .edvibe-reset-row:hover,
 .edvibe-reset-row.is-selected {
-    background: #eff6ff;
+    background: var(--edvibe-info-surface);
+}
+
+.edvibe-reset-row:focus-visible {
+    outline: 3px solid var(--edvibe-focus-outline);
+    outline-offset: -3px;
+}
+
+.edvibe-reset-row:disabled {
+    cursor: not-allowed;
+    opacity: .58;
 }
 
 .edvibe-reset-row-copy {
@@ -200,7 +171,7 @@ export const resetLessonsDialogStyles = css`
 
 .edvibe-reset-row-email {
     margin-top: 2px;
-    color: #6b7280;
+    color: var(--edvibe-text-muted);
     font-size: 12px;
 }
 
@@ -211,6 +182,11 @@ export const resetLessonsDialogStyles = css`
     margin-bottom: 8px;
     font-size: 13px;
     font-weight: 650;
+}
+
+.edvibe-reset-select-all input:disabled {
+    cursor: not-allowed;
+    opacity: .58;
 }
 
 .edvibe-reset-lesson {
@@ -224,16 +200,11 @@ export const resetLessonsDialogStyles = css`
 
 .edvibe-reset-empty {
     margin: 0;
-    padding: 22px;
-    color: #6b7280;
-    text-align: center;
-    font-size: 13px;
 }
 
 .edvibe-reset-status {
     min-height: 38px;
     margin: 0;
-    color: #4b5563;
     font-size: 13px;
     line-height: 1.4;
     white-space: pre-line;
@@ -245,88 +216,30 @@ export const resetLessonsDialogStyles = css`
 }
 
 .edvibe-reset-status.is-error {
-    color: #b91c1c;
+    color: var(--edvibe-danger);
 }
 
 .edvibe-reset-status.is-success {
-    color: #15803d;
+    color: var(--edvibe-success);
 }
 
 .edvibe-reset-progress {
     display: none;
-    width: 100%;
-    overflow: hidden;
     height: 11px;
-    border: 0;
     margin-top: 10px;
-    border-radius: 999px;
-    background: #e5e7eb;
-    appearance: none;
+    accent-color: var(--edvibe-danger);
 }
 
 .edvibe-reset-progress.is-visible {
     display: block;
 }
 
-.edvibe-reset-progress::-webkit-progress-bar {
-    background: #e5e7eb;
-}
-
-.edvibe-reset-progress::-webkit-progress-value {
-    border-radius: 999px;
-    background: linear-gradient(90deg, #e74c3c, #f59e0b);
-    transition: width .2s ease;
-}
-
 .edvibe-reset-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
     margin-top: 18px;
 }
 
 .edvibe-reset-button {
-    padding: 10px 16px;
-    border: 0;
-    border-radius: 8px;
-    color: #fff;
     font-size: 13px;
-    font-weight: 650;
-    cursor: pointer;
-}
-
-.edvibe-reset-button:disabled,
-button:disabled,
-input:disabled {
-    cursor: not-allowed;
-    opacity: .58;
-}
-
-.edvibe-reset-cancel,
-.edvibe-reset-back {
-    background: #64748b;
-}
-
-.edvibe-reset-next {
-    background: #2563eb;
-}
-
-.edvibe-reset-submit {
-    background: #e74c3c;
-}
-
-@keyframes edvibe-reset-progress-slide {
-    0% {
-        transform: translateX(-120%)
-    }
-
-    50% {
-        transform: translateX(90%)
-    }
-
-    100% {
-        transform: translateX(270%)
-    }
 }
 
 @keyframes edvibe-reset-spinner-rotate {
