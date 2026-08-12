@@ -3,6 +3,13 @@ import {
     componentFoundationStyles,
     dialogFoundationStyles
 } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    emptyStateStyles,
+    fieldStyles,
+    noticeStyles
+} from '../../styles/primitives.js';
 import { actionRecorderDialogStyles } from './action-recorder-dialog.styles.js';
 
 const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
@@ -12,6 +19,11 @@ class ActionRecorderDialog extends LitElement {
     static styles = [
         componentFoundationStyles,
         dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        noticeStyles,
+        emptyStateStyles,
         actionRecorderDialogStyles,
     ];
 
@@ -174,7 +186,7 @@ class ActionRecorderDialog extends LitElement {
             ].join(' · ')}</p>
                     ${this.renderJsonBlock('Запрос Value', operation.requestValue)}
                     ${this.renderJsonBlock('Ответ', operation.response)}
-                    <button type="button" class="button copy-request"
+                    <button type="button" class="button copy-request" data-control="secondary"
                         @click=${() => this.callbacks.onCopyRequest?.(operation.sequence)}>
                         Копировать запрос
                     </button>
@@ -204,18 +216,18 @@ class ActionRecorderDialog extends LitElement {
                 <span></span><strong>REC</strong>
                 <span class="indicator-count">${visibleOperations.length}</span>
             </button>
-            <div class="recorder-overlay" ?hidden=${this.minimized}>
-                <section class="recorder-panel" role="dialog" aria-labelledby="recorder-title">
+            <div class="recorder-overlay" data-part="overlay" ?hidden=${this.minimized}>
+                <section class="recorder-panel" data-part="dialog" role="dialog" aria-labelledby="recorder-title">
                     <header class="recorder-header">
                         <div>
                             <h2 id="recorder-title">Запись действий WebSocket</h2>
                             <p class="recorder-subtitle">Выполните одно действие в Edvibe и изучите обмен сообщениями.</p>
                         </div>
-                        <div class="header-actions">
-                            <button class="icon-button recorder-minimize" type="button" aria-label="Свернуть" @click=${() => { this.minimized = true; }}>
+                        <div class="header-actions" data-part="actions">
+                            <button class="icon-button recorder-minimize" data-control="secondary" type="button" aria-label="Свернуть" @click=${() => { this.minimized = true; }}>
                                 -
                             </button>
-                            <button class="icon-button recorder-close" type="button" aria-label="Закрыть" @click=${() => this.handleClose()}>
+                            <button class="icon-button recorder-close" data-control="secondary" type="button" aria-label="Закрыть" @click=${() => this.handleClose()}>
                                 &times;
                             </button>
                         </div>
@@ -226,26 +238,26 @@ class ActionRecorderDialog extends LitElement {
                             <strong class="state-label">${labels[this.state.status] || labels.idle}</strong>
                             <span class="elapsed">${this.elapsedLabel}</span>
                         </div>
-                        <div class="toolbar-actions">
-                            <button class="button primary recorder-start" type="button" ?hidden=${recording} @click=${() => this.handleStart()}>
+                        <div class="toolbar-actions" data-part="actions">
+                            <button class="button primary recorder-start" data-control type="button" ?hidden=${recording} @click=${() => this.handleStart()}>
                                 Начать запись
                             </button>
-                            <button class="button danger recorder-stop" type="button" ?hidden=${!recording} @click=${() => this.callbacks.onStop?.()}>
+                            <button class="button danger recorder-stop" data-control="danger" type="button" ?hidden=${!recording} @click=${() => this.callbacks.onStop?.()}>
                                 Остановить
                             </button>
-                            <button class="button recorder-clear" type="button" ?disabled=${!hasSession} @click=${() => this.handleClear()}>
+                            <button class="button recorder-clear" data-control="secondary" type="button" ?disabled=${!hasSession} @click=${() => this.handleClear()}>
                                 Очистить
                             </button>
-                            <button class="button recorder-copy" type="button" ?disabled=${!hasSession || operations.length === 0} @click=${() => this.callbacks.onCopyRecipe?.()}>
+                            <button class="button recorder-copy" data-control="secondary" type="button" ?disabled=${!hasSession || operations.length === 0} @click=${() => this.callbacks.onCopyRecipe?.()}>
                                 Копировать рецепт
                             </button>
-                            <button class="button recorder-export" type="button" ?disabled=${!hasSession} @click=${() => this.callbacks.onExport?.()}>
+                            <button class="button recorder-export" data-control="secondary" type="button" ?disabled=${!hasSession} @click=${() => this.callbacks.onExport?.()}>
                                 Экспорт JSON
                             </button>
                         </div>
                     </div>
                     <div class="recorder-body">
-                        <aside class="privacy-warning">
+                        <aside class="privacy-warning" data-notice="warning">
                             Запись может содержать данные учеников, уроки, ответы и идентификаторы.
                             Проверьте файл перед отправкой или коммитом.
                         </aside>
@@ -258,17 +270,17 @@ class ActionRecorderDialog extends LitElement {
                                 Показать трафик Toolbox
                             </label>
                         </div>
-                        <p class="recorder-notice" role="status" ?hidden=${!this.state.notice}>${this.state.notice || ''}</p>
+                        <p class="recorder-notice" data-notice="success" role="status" ?hidden=${!this.state.notice}>${this.state.notice || ''}</p>
                         <section>
                             <h3>Операции</h3>
                             <div class="operation-list">${visibleOperations.map((operation) => this.renderOperation(operation))}</div>
-                            <p class="empty-operations" ?hidden=${visibleOperations.length > 0}> Запустите запись и выполните действие в Edvibe.</p>
+                            <p class="empty-operations" data-part="empty-state" ?hidden=${visibleOperations.length > 0}> Запустите запись и выполните действие в Edvibe.</p>
                         </section>
                         <details class="other-section">
                             <summary>Другие кадры (<span class="other-count">${otherFrames.length}</span>)</summary>
                             <div class="other-list">${otherFrames.map((frame) => html`<pre>${JSON.stringify(frame, null, 2)}</pre>`)}</div>
                         </details>
-                        <label class="copy-fallback" ?hidden=${!copyFallback}>
+                        <label class="copy-fallback" data-field ?hidden=${!copyFallback}>
                             Скопируйте текст вручную
                             <textarea readonly .value=${copyFallback}></textarea>
                         </label>
