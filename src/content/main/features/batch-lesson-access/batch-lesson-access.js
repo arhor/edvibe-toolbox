@@ -5,8 +5,8 @@ import {
     parseEmailInput,
     parseMarathonId,
     runWithRetry
-} from '../../../../shared/batch-workflow-primitives.js';
-import { loadAllPupilLessons, loadAllPupils } from '../../../../shared/edvibe-marathon-api.js';
+} from '../batch-workflow-primitives.js';
+import { loadAllPupilLessons, loadAllPupils } from '../edvibe-marathon-api.js';
 
 const OPERATIONAL_WRITE_CODES = new Set([
     ...TRANSIENT_CODES,

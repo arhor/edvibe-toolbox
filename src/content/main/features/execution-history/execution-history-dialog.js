@@ -462,17 +462,6 @@ if (!customElements.get(EXECUTION_HISTORY_DIALOG_TAG)) {
     customElements.define(EXECUTION_HISTORY_DIALOG_TAG, ExecutionHistoryDialog);
 }
 
-const executionHistoryDialogApi = Object.freeze({
-    EXECUTION_HISTORY_DIALOG_TAG,
-    ExecutionHistoryDialog,
-    formatExecutionStatus,
-    formatExecutionDate,
-    createSummary,
-    formatDiagnosticSummary,
-    isExecutionInterruption
-});
-globalThis.EdVibeExecutionHistoryDialog = executionHistoryDialogApi;
-
 export {
     EXECUTION_HISTORY_DIALOG_TAG,
     ExecutionHistoryDialog,

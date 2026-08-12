@@ -55,6 +55,23 @@ export default defineConfig([
         }
     },
     {
+        name: 'shared runtime boundary',
+        files: ['src/shared/**/*.js'],
+        rules: {
+            'no-restricted-imports': ['error', {
+                patterns: [{
+                    group: [
+                        '../content/**',
+                        '../popup/**',
+                        '@/content/**',
+                        '@/popup/**'
+                    ],
+                    message: 'Shared modules cannot depend on runtime-owned implementations.'
+                }]
+            }]
+        }
+    },
+    {
         ...litConfigs['flat/recommended'],
         name: 'Lit components',
         files: componentFiles

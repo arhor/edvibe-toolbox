@@ -317,11 +317,4 @@ if (!customElements.get(USER_MANAGEMENT_DIALOG_TAG)) {
     customElements.define(USER_MANAGEMENT_DIALOG_TAG, BatchUserManagementDialog);
 }
 
-const batchUserManagementDialogApi = {
-    USER_MANAGEMENT_DIALOG_TAG,
-    USER_MANAGEMENT_OVERLAY_ID,
-    BatchUserManagementDialog
-};
-globalThis.EdVibeBatchUserManagementDialog = batchUserManagementDialogApi;
-
 export {USER_MANAGEMENT_DIALOG_TAG, USER_MANAGEMENT_OVERLAY_ID, BatchUserManagementDialog};

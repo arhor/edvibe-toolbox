@@ -571,11 +571,4 @@ if (!customElements.get(BATCH_SECTION_DIALOG_TAG)) {
     customElements.define(BATCH_SECTION_DIALOG_TAG, BatchSectionCreationDialog);
 }
 
-const batchSectionCreationDialogApi = {
-    BatchSectionCreationDialog,
-    BATCH_SECTION_DIALOG_TAG,
-    BATCH_SECTION_OVERLAY_ID
-};
-globalThis.EdVibeBatchSectionCreationDialog = batchSectionCreationDialogApi;
-
 export {BatchSectionCreationDialog, BATCH_SECTION_DIALOG_TAG, BATCH_SECTION_OVERLAY_ID};

@@ -225,10 +225,4 @@ if (!customElements.get(BATCH_SECTION_DELETION_DIALOG_TAG)) {
     customElements.define(BATCH_SECTION_DELETION_DIALOG_TAG, BatchSectionDeletionDialog);
 }
 
-const batchSectionDeletionDialogApi = Object.freeze({
-    BATCH_SECTION_DELETION_DIALOG_TAG,
-    BatchSectionDeletionDialog
-});
-globalThis.EdVibeBatchSectionDeletionDialog = batchSectionDeletionDialogApi;
-
 export {BATCH_SECTION_DELETION_DIALOG_TAG, BatchSectionDeletionDialog};
