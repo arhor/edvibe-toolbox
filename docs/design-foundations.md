@@ -37,6 +37,11 @@ because a new literal appears once. The canonical values preserve the dominant
 MAIN visual language while retaining the popup's existing indigo as a separate
 brand accent.
 
+The executable source of truth is `src/shared/ui-design-tokens.js`. MAIN Lit
+styles consume it through `src/content/main/styles/foundations.js`, while the
+popup applies the same values to its light-DOM root during startup. The table
+below documents that exported contract and must change with it.
+
 | Token | Canonical value | Purpose |
 | --- | --- | --- |
 | `--edvibe-font-family` | `"Segoe UI", Inter, Arial, system-ui, sans-serif` | Controls and in-page UI typography |
