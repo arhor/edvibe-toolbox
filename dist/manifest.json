@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "js": [
-        "src/content/isolated.js"
+        "src/content/isolated/index.js"
       ],
       "matches": [
         "*://*.edvibe.com/*"
@@ -23,7 +23,7 @@
     },
     {
       "js": [
-        "src/content/main.js"
+        "src/content/main/index.js"
       ],
       "matches": [
         "*://*.edvibe.com/*"
