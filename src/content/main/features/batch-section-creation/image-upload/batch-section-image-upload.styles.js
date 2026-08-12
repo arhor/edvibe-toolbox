@@ -11,25 +11,20 @@ export const batchSectionImageUploadStyles = css`
     justify-content: space-between;
     gap: 12px;
     margin-top: 8px;
-    color: #64748b;
+    color: var(--edvibe-text-muted);
     font-size: 12px;
     line-height: 1.4;
 }
 
 .edvibe-batch-section-file-details button {
     flex: 0 0 auto;
-    padding: 6px 9px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: #fff;
-    color: #334155;
-    font: 650 12px/1.2 "Segoe UI", Arial, sans-serif;
-    cursor: pointer;
+    min-height: 32px;
+    padding: 5px 9px;
+    font-size: 12px;
 }
 
 .edvibe-batch-section-file-error {
     margin: 8px 0 0;
-    color: #b91c1c;
     font-size: 12px;
     line-height: 1.4;
 }
@@ -40,9 +35,9 @@ export const batchSectionImageUploadStyles = css`
     max-height: 240px;
     margin-top: 10px;
     object-fit: contain;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    background: #f8fafc;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface-subtle);
 }
 
 `;
