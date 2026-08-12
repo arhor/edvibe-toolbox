@@ -1,11 +1,27 @@
 import { LitElement, html, nothing } from 'lit';
 import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    fieldStyles,
+    noticeStyles,
+    progressStyles
+} from '../../styles/primitives.js';
 import { batchUserOnboardingDialogStyles } from './batch-user-onboarding-dialog.styles.js';
 
 const BATCH_USER_ONBOARDING_DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 
 class BatchUserOnboardingDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, batchUserOnboardingDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        noticeStyles,
+        progressStyles,
+        batchUserOnboardingDialogStyles
+    ];
 
     static properties = {
         options: {state: true},
@@ -277,38 +293,38 @@ class BatchUserOnboardingDialog extends LitElement {
         const reviewVisible = ['review', 'preflight', 'executing', 'complete', 'partial-complete'].includes(this.mode) && this.rows.length > 0;
         const completed = ['complete', 'partial-complete'].includes(this.mode);
         return html`
-<div class="overlay" @click=${(event) => { if (event.target === event.currentTarget) this.close(); }}>
-                <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="batch-user-onboarding-title">
+            <div class="overlay" data-part="overlay" @click=${(event) => { if (event.target === event.currentTarget) this.close(); }}>
+                <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="batch-user-onboarding-title">
                     <header class="header"><div><p class="eyebrow">Edvibe Toolbox</p><h2 id="batch-user-onboarding-title">Добавить пользователей и назначить куратора</h2><p class="description">Проверьте весь список, подготовьте неизменяемый план и только потом подтвердите запись.</p></div>
-                        <button class="icon close" type="button" aria-label="Закрыть" ?disabled=${['loading', 'executing'].includes(this.mode)} @click=${() => this.close()}>×</button></header>
+                        <button class="icon close" data-control="secondary" type="button" aria-label="Закрыть" ?disabled=${['loading', 'executing'].includes(this.mode)} @click=${() => this.close()}>×</button></header>
                     <main class="body">
                         <section class="configure">
-                            <label class="field"><span>Email пользователей</span><textarea class="emails" rows="5" placeholder="user@example.com"
+                            <label class="field" data-field><span>Email пользователей</span><textarea class="emails" rows="5" placeholder="user@example.com"
                                 .value=${this.emailInput} ?disabled=${this.mode !== 'configure'}
                                 @input=${(event) => { this.emailInput = event.currentTarget.value; this.updateEmailCounts(); }}></textarea></label>
-                            <div class="email-state" aria-live="polite"><span class="valid-count">Уникальных email: ${this.emailCounts.valid}</span><span class="invalid-count">Некорректных: ${this.emailCounts.invalid}</span></div>
-                            <label class="field curator-field"><span>Целевой куратор</span>
+                            <div class="email-state" data-part="help" aria-live="polite"><span class="valid-count">Уникальных email: ${this.emailCounts.valid}</span><span class="invalid-count">Некорректных: ${this.emailCounts.invalid}</span></div>
+                            <label class="field curator-field" data-field><span>Целевой куратор</span>
                                 <select class="curator" .value=${this.targetModeratorId} ?disabled=${!['configure', 'review'].includes(this.mode)}
                                     @change=${(event) => { this.targetModeratorId = event.currentTarget.value; this.plan = null; }}>
                                     <option value="">Не выбран</option>
                                     ${(this.options?.moderators || []).map((moderator) => html`<option value=${String(moderator.id)}>${moderator.name ? `${moderator.name}${moderator.email ? ` · ${moderator.email}` : ''}` : moderator.email || `Moderator #${moderator.id}`}</option>`)}
-                                </select><small>Нужен только для строк с операцией назначения.</small></label>
+                                </select><small data-part="help">Нужен только для строк с операцией назначения.</small></label>
                         </section>
-                        <section class="errors" aria-live="polite" ?hidden=${this.errors.length === 0}>${this.errors.map((error) => html`<p>${error}</p>`)}</section>
+                        <section class="errors" data-notice="danger" aria-live="polite" ?hidden=${this.errors.length === 0}>${this.errors.map((error) => html`<p>${error}</p>`)}</section>
                         <section class="review" ?hidden=${!reviewVisible}><div class="review-toolbar"><strong class="review-count">${this.rows.length} строк</strong><span>Все операции по умолчанию выключены.</span></div>
-                            <div class="table-wrap"><table><thead><tr><th>Пользователь</th><th>Статус</th><th>Текущие кураторы</th><th>Добавить<button class="select-all-add" type="button" ?disabled=${this.mode !== 'review'} @click=${() => this.selectAll('addSelected')}>Выбрать все</button></th><th>Назначить<button class="select-all-assign" type="button" ?disabled=${this.mode !== 'review'} @click=${() => this.selectAll('assignSelected')}>Выбрать все</button></th><th>Проверка / результат</th></tr></thead><tbody class="rows">${this.rows.map((row) => this.renderRow(row))}</tbody></table></div>
+                            <div class="table-wrap"><table><thead><tr><th>Пользователь</th><th>Статус</th><th>Текущие кураторы</th><th>Добавить<button class="select-all-add" data-control="secondary" type="button" ?disabled=${this.mode !== 'review'} @click=${() => this.selectAll('addSelected')}>Выбрать все</button></th><th>Назначить<button class="select-all-assign" data-control="secondary" type="button" ?disabled=${this.mode !== 'review'} @click=${() => this.selectAll('assignSelected')}>Выбрать все</button></th><th>Проверка / результат</th></tr></thead><tbody class="rows">${this.rows.map((row) => this.renderRow(row))}</tbody></table></div>
                         </section>
                         ${this.renderPreflight()}
-                        <section class="result" ?hidden=${!completed}><label class="field"><span>Отчёт</span><textarea class="report" rows="12" readonly .value=${this.report}></textarea></label>
-                            <div class="result-actions"><button class="copy secondary" type="button" @click=${() => this.options?.onCopy?.(this.report)}>Скопировать отчёт</button><button class="history secondary" type="button" ?hidden=${!this.executionId} @click=${() => this.executionId && this.options?.onOpenHistory?.(this.executionId)}>Открыть в истории</button></div></section>
+                        <section class="result" ?hidden=${!completed}><label class="field" data-field><span>Отчёт</span><textarea class="report" rows="12" readonly .value=${this.report}></textarea></label>
+                            <div class="result-actions" data-part="actions"><button class="copy secondary" data-control="secondary" type="button" @click=${() => this.options?.onCopy?.(this.report)}>Скопировать отчёт</button><button class="history secondary" data-control="secondary" type="button" ?hidden=${!this.executionId} @click=${() => this.executionId && this.options?.onOpenHistory?.(this.executionId)}>Открыть в истории</button></div></section>
                     </main>
-                    <div class="live-region"><p class="status" role="status" aria-live="polite">${this.statusMessage}</p><progress class="progress" max=${this.progress.total} value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress></div>
-                    <footer class="footer">
-                        <button class="restart secondary" type="button" ?hidden=${!completed} @click=${this.restart}>Запустить другую группу</button>
-                        <button class="edit secondary" type="button" ?hidden=${this.mode !== 'preflight'} @click=${this.returnToReview}>Изменить выбор</button>
-                        <button class="discover primary" type="button" ?hidden=${this.mode !== 'configure'} @click=${this.discover}>Проверить пользователей</button>
-                        <button class="prepare primary" type="button" ?hidden=${this.mode !== 'review'} @click=${this.preparePlan}>Подготовить план</button>
-                        <button class="execute primary" type="button" ?hidden=${this.mode !== 'preflight'} @click=${this.execute}>Подтвердить и выполнить</button>
+                    <div class="live-region"><p class="status" data-part="status" role="status" aria-live="polite">${this.statusMessage}</p><progress class="progress" data-part="progress" max=${this.progress.total} value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress></div>
+                    <footer class="footer" data-part="actions">
+                        <button class="restart secondary" data-control="secondary" type="button" ?hidden=${!completed} @click=${this.restart}>Запустить другую группу</button>
+                        <button class="edit secondary" data-control="secondary" type="button" ?hidden=${this.mode !== 'preflight'} @click=${this.returnToReview}>Изменить выбор</button>
+                        <button class="discover primary" data-control type="button" ?hidden=${this.mode !== 'configure'} @click=${this.discover}>Проверить пользователей</button>
+                        <button class="prepare primary" data-control type="button" ?hidden=${this.mode !== 'review'} @click=${this.preparePlan}>Подготовить план</button>
+                        <button class="execute primary" data-control type="button" ?hidden=${this.mode !== 'preflight'} @click=${this.execute}>Подтвердить и выполнить</button>
                     </footer>
                 </section>
             </div>`;
