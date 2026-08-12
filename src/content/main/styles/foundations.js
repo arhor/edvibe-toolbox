@@ -1,17 +1,18 @@
-import { css } from 'lit';
+import { css, unsafeCSS } from 'lit';
+import {
+    TOOLBOX_DESIGN_TOKENS,
+    createDesignTokenDeclarations
+} from '../../../shared/ui-design-tokens.js';
+
+const tokenDeclarations = unsafeCSS(createDesignTokenDeclarations());
 
 export const componentFoundationStyles = css`
     :host {
-        --edvibe-font-family: "Segoe UI", Inter, Arial, system-ui, sans-serif;
-        --edvibe-dialog-z-index: 2147483647;
-        --edvibe-overlay-background: rgba(15, 23, 42, 0.6);
-        --edvibe-surface: #fff;
-        --edvibe-text: #1f2937;
-        --edvibe-muted-text: #6b7280;
-        --edvibe-border: #d9dfe9;
-        --edvibe-primary: #4055d3;
-        --edvibe-danger: #c93a3a;
-        --edvibe-radius: 14px;
+        ${tokenDeclarations}
+        --edvibe-dialog-z-index: var(--edvibe-z-dialog);
+        --edvibe-overlay-background: var(--edvibe-overlay);
+        --edvibe-muted-text: var(--edvibe-text-muted);
+        --edvibe-radius: var(--edvibe-radius-dialog);
     }
 
     button,
@@ -27,3 +28,5 @@ export const dialogFoundationStyles = css`
         font-family: var(--edvibe-font-family);
     }
 `;
+
+export { TOOLBOX_DESIGN_TOKENS };
