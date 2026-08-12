@@ -21,7 +21,8 @@ Keep these runtime worlds separate and preserve `document_start` behavior for ti
 - `src/runtime/`: runtime coordinators and popup-owned global presentation; application runtime code belongs here rather than at repository root.
 - `src/components/`: Lit custom elements, component-specific Lit style modules, and reusable style foundations.
 - `src/features/`: feature workflows that coordinate transport, data, components, and persistence.
-- `src/shared/`: shared infrastructure such as logging, WebSocket transport, IndexedDB, operation guards, and execution history.
+- `src/content/main/infrastructure/`: runtime-wide services owned exclusively by the MAIN-world content script, including transport, operation coordination, storage bridging, IndexedDB, diagnostics, and execution history.
+- `src/shared/`: infrastructure shared across runtime worlds, such as logging and the cross-world message protocol, plus shared feature workflow helpers.
 - `scripts/check-build-output.mjs`: production bundle-shape and regression-budget checker.
 - `package.json` and `package-lock.json`: pinned npm dependency and command configuration.
 - `vite.config.mjs`: CRXJS/Vite build configuration.

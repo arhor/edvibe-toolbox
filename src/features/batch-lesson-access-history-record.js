@@ -5,7 +5,7 @@ import {
     lessonKey,
     attemptKey
 } from './batch-lesson-access-history-model.js';
-import { historyDiagnostics } from '../shared/history-diagnostics.js';
+import { historyDiagnostics } from '../content/main/infrastructure/history-diagnostics.js';
 
 const REJECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE']);
 
