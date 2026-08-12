@@ -1,4 +1,5 @@
 import * as modelApi from './batch-section-creation-history-model.js';
+import { historyDiagnostics } from '../shared/history-diagnostics.js';
 
 const TERMINAL_STATUSES = new Set(modelApi.TERMINAL_STATUSES);
 
@@ -94,6 +95,7 @@ function serializeResult(result, definitionSummary, terminalStatus) {
         code,
         message,
         attempts,
+        ...(historyDiagnostics(result) ? { diagnostics: historyDiagnostics(result) } : {}),
         data: Object.freeze({
             lesson,
             section: definitionSummary,

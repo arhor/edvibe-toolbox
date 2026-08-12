@@ -5,10 +5,11 @@ import {
     lessonKey,
     attemptKey
 } from './batch-lesson-access-history-model.js';
+import { historyDiagnostics } from '../shared/history-diagnostics.js';
 
 const REJECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE']);
 
-function resultFromMatrix(item, outcome, attempts, code, message) {
+function resultFromMatrix(item, outcome, attempts, code, message, diagnosticSource = null) {
     const status = {
         opened: 'success',
         already_open: 'noop',
@@ -23,6 +24,7 @@ function resultFromMatrix(item, outcome, attempts, code, message) {
         code,
         message,
         attempts,
+        ...(historyDiagnostics(diagnosticSource) ? { diagnostics: historyDiagnostics(diagnosticSource) } : {}),
         data: freezeObject({
             submittedEmail: item.submittedInput,
             resolvedEmail: item.resolvedEmail,
@@ -70,7 +72,8 @@ function buildMatrixResults(plan, summary = {}, writeAttempts = new Map()) {
                 outcome,
                 Number.isInteger(failure.attempts) ? failure.attempts : 1,
                 failure.code || 'LESSON_ACCESS_WRITE_FAILED',
-                failure.message || 'The lesson access change failed.'
+                failure.message || 'The lesson access change failed.',
+                failure
             );
         }
         return resultFromMatrix(
@@ -109,6 +112,7 @@ function operationFailureResults(failures) {
         code: failure.code,
         message: failure.message,
         attempts: failure.attempts,
+        ...(historyDiagnostics(failure) ? { diagnostics: historyDiagnostics(failure) } : {}),
         data: freezeObject({ stage: failure.kind === 'input' ? 'input_validation' : 'preflight' })
     }));
 }
@@ -121,6 +125,7 @@ function discoveryFailureResults(failures) {
         code: failure.code,
         message: failure.message,
         attempts: failure.attempts,
+        ...(historyDiagnostics(failure) ? { diagnostics: historyDiagnostics(failure) } : {}),
         data: freezeObject({
             submittedEmail: failure.submittedEmail,
             resolvedEmail: failure.resolvedEmail,

@@ -1,3 +1,5 @@
+import { diagnosticsFromAttempts, historyDiagnostics } from '../shared/history-diagnostics.js';
+
 const OPERATION_TYPE = 'batch_user_management';
 const OPERATION_NAMES = Object.freeze({
     unassign: 'unassign_curator',
@@ -49,7 +51,8 @@ function serializeOperation(name, result) {
         message: result.message || null,
         dependency: dependencyBlocked
             ? Object.freeze({ blockedBy: OPERATION_NAMES.unassign })
-            : null
+            : null,
+        ...(historyDiagnostics(result) ? { diagnostics: historyDiagnostics(result) } : {})
     });
 }
 
@@ -101,6 +104,8 @@ function serializeRow(row, index) {
         ? serializeOperation(name, row?.unassign)
         : serializeOperation(name, row?.delete));
     const status = inferItemStatus(row, operations);
+    const diagnostics = diagnosticsFromAttempts(operations.flatMap((operation) =>
+        historyDiagnostics(operation)?.requestAttempts || []));
     return Object.freeze({
         itemId: row?.normalizedEmail || row?.email || `input-${index + 1}`,
         label: row?.email || row?.normalizedEmail || `Input ${index + 1}`,
@@ -108,6 +113,7 @@ function serializeRow(row, index) {
         code: resultCode(row, status),
         message: resultMessage(row, status, operations),
         attempts: operations.reduce((sum, operation) => sum + operation.attemptCount, 0),
+        ...(diagnostics ? { diagnostics } : {}),
         data: Object.freeze({
             submittedInput: row?.email || null,
             normalizedEmail: row?.normalizedEmail || null,

@@ -1,5 +1,6 @@
 import { createFeatureError as featureError, parseMarathonId } from '../shared/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '../shared/edvibe-marathon-api.js';
+import { historyDiagnostics } from '../shared/history-diagnostics.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
 const EXPECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE', 'REQUEST_TIMEOUT', 'SEND_FAILED', 'WS_UNAVAILABLE']);
@@ -126,7 +127,13 @@ async function executePlan({ plan, sendRequest, wait, requestDelayMs = 300, onPr
             results.push({ ...entry, status: 'deleted', code: 'DELETED', message: 'Section deleted.' });
         } catch (error) {
             const code = error.code || 'DELETE_FAILED';
-            results.push({ ...entry, status: 'failed', code, message: error.message || 'Deletion failed.' });
+            results.push({
+                ...entry,
+                status: 'failed',
+                code,
+                message: error.message || 'Deletion failed.',
+                diagnosticObservations: [error]
+            });
             if (!EXPECTED_WRITE_CODES.has(code)) fatalError = error;
         }
         onProgress?.({ current: index + 1, total: plan.eligible.length, entry, results: [...results] });
@@ -185,6 +192,13 @@ function buildExecutionHistoryInput({ marathonId, startedAt, completedAt, result
             code: entry.code,
             message: entry.message,
             attempts: entry.status === 'not_attempted' || entry.status === 'rejected' ? 0 : 1,
+            ...(historyDiagnostics(entry, {
+                correlationId: `delete-section:${entry.lessonId}`,
+                operationName: 'delete_section'
+            }) ? { diagnostics: historyDiagnostics(entry, {
+                    correlationId: `delete-section:${entry.lessonId}`,
+                    operationName: 'delete_section'
+                }) } : {}),
             data: Object.freeze({
                 lessonId: entry.lessonId,
                 marathonLessonId: entry.marathonLessonId,
