@@ -1,30 +1,6 @@
 import { css } from 'lit';
 
 export const batchLessonAccessDialogStyles = css`
-:host {
-    all: initial;
-}
-
-.edvibe-batch-access-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 2147483647;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    box-sizing: border-box;
-    background: rgba(15, 23, 42, .6);
-    color: #1f2937;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
-.edvibe-batch-access-overlay *,
-.edvibe-batch-access-overlay *::before,
-.edvibe-batch-access-overlay *::after {
-    box-sizing: border-box;
-}
-
 [hidden] {
     display: none !important;
 }
@@ -35,9 +11,6 @@ export const batchLessonAccessDialogStyles = css`
     width: min(760px, calc(100vw - 32px));
     max-height: min(820px, calc(100vh - 32px));
     padding: 24px;
-    border-radius: 16px;
-    background: #fff;
-    box-shadow: 0 24px 80px rgba(15, 23, 42, .38);
 }
 
 .edvibe-batch-access-header,
@@ -58,7 +31,7 @@ export const batchLessonAccessDialogStyles = css`
 .edvibe-batch-access-header h2,
 .edvibe-batch-access-lesson-heading h3 {
     margin: 0;
-    color: #111827;
+    color: var(--edvibe-text-strong);
 }
 
 .edvibe-batch-access-header h2 {
@@ -68,19 +41,16 @@ export const batchLessonAccessDialogStyles = css`
 
 .edvibe-batch-access-description {
     margin: 5px 0 0;
-    color: #6b7280;
+    color: var(--edvibe-text-muted);
     font-size: 13px;
     line-height: 1.4;
 }
 
 .edvibe-batch-access-close {
-    padding: 4px 8px;
-    border: 0;
-    background: transparent;
-    color: #6b7280;
+    min-width: 36px;
+    padding: 0;
     font-size: 24px;
     line-height: 1;
-    cursor: pointer;
 }
 
 .edvibe-batch-access-body {
@@ -90,45 +60,21 @@ export const batchLessonAccessDialogStyles = css`
     margin-top: 18px;
 }
 
-.edvibe-batch-access-configure > label,
+.edvibe-batch-access-email-field,
 .edvibe-batch-access-lesson-heading h3 {
-    display: block;
-    color: #374151;
+    color: var(--edvibe-text);
     font-size: 13px;
-    font-weight: 650;
 }
 
 .edvibe-batch-access-emails {
-    display: block;
-    width: 100%;
     min-height: 112px;
-    margin-top: 7px;
-    padding: 10px 12px;
     resize: vertical;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    color: #111827;
-    font: inherit;
     line-height: 1.45;
-    outline: none;
-}
-
-.edvibe-batch-access-emails:focus,
-.edvibe-batch-access-lesson:focus-within,
-.edvibe-batch-access-selection-actions button:focus,
-.edvibe-batch-access-footer button:focus,
-.edvibe-batch-access-close:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, .15);
-    outline: none;
 }
 
 .edvibe-batch-access-email-state {
     flex-wrap: wrap;
     gap: 8px 16px;
-    margin-top: 7px;
-    color: #6b7280;
-    font-size: 12px;
 }
 
 .edvibe-batch-access-lesson-heading {
@@ -139,7 +85,7 @@ export const batchLessonAccessDialogStyles = css`
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px 12px;
-    color: #374151;
+    color: var(--edvibe-text);
     font-size: 13px;
 }
 
@@ -150,24 +96,26 @@ export const batchLessonAccessDialogStyles = css`
     cursor: pointer;
 }
 
-.edvibe-batch-access-selection-actions button {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #2563eb;
-    font: inherit;
-    cursor: pointer;
+.edvibe-batch-access-clear-all {
+    min-height: 32px;
+    padding: 5px 9px;
 }
 
-.edvibe-batch-access-lessons,
+.edvibe-batch-access-lessons {
+    overflow: auto;
+    max-height: 248px;
+    margin-top: 10px;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
+}
+
 .edvibe-batch-access-errors,
 .edvibe-batch-access-summary,
 .edvibe-batch-access-failures {
     overflow: auto;
     max-height: 248px;
     margin-top: 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
 }
 
 .edvibe-batch-access-lesson {
@@ -175,8 +123,8 @@ export const batchLessonAccessDialogStyles = css`
     align-items: flex-start;
     gap: 10px;
     padding: 11px 12px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1f2937;
+    border-bottom: 1px solid var(--edvibe-border-subtle);
+    color: var(--edvibe-text);
     font-size: 14px;
     line-height: 1.4;
     cursor: pointer;
@@ -187,7 +135,12 @@ export const batchLessonAccessDialogStyles = css`
 }
 
 .edvibe-batch-access-lesson:hover {
-    background: #eff6ff;
+    background: var(--edvibe-info-surface);
+}
+
+.edvibe-batch-access-lesson:focus-within {
+    outline: 2px solid var(--edvibe-focus-outline);
+    outline-offset: -2px;
 }
 
 .edvibe-batch-access-lesson input {
@@ -195,57 +148,27 @@ export const batchLessonAccessDialogStyles = css`
     margin-top: 3px;
 }
 
-.edvibe-batch-access-empty,
-.edvibe-batch-access-error {
-    margin: 0;
-    padding: 12px;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
 .edvibe-batch-access-empty {
-    color: #6b7280;
-    text-align: center;
+    margin: 0;
 }
 
-.edvibe-batch-access-errors {
-    border-color: #fecaca;
-    background: #fef2f2;
-}
-
-.edvibe-batch-access-error {
-    border-bottom: 1px solid #fee2e2;
-    color: #b91c1c;
-}
-
-.edvibe-batch-access-error:last-child {
-    border-bottom: 0;
-}
-
-.edvibe-batch-access-failures {
-    border-color: #fed7aa;
-    background: #fff7ed;
-}
-
+.edvibe-batch-access-error,
 .edvibe-batch-access-failure {
     margin: 0;
-    padding: 12px;
-    border-bottom: 1px solid #ffedd5;
-    color: #9a3412;
+    color: inherit;
     font-size: 13px;
     line-height: 1.45;
     overflow-wrap: anywhere;
 }
 
-.edvibe-batch-access-failure:last-child {
-    border-bottom: 0;
+.edvibe-batch-access-error + .edvibe-batch-access-error,
+.edvibe-batch-access-failure + .edvibe-batch-access-failure {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid currentColor;
 }
 
 .edvibe-batch-access-summary {
-    padding: 12px;
-    border-color: #bfdbfe;
-    background: #eff6ff;
-    color: #1e3a8a;
     font-size: 13px;
     line-height: 1.55;
     white-space: pre-line;
@@ -261,8 +184,8 @@ export const batchLessonAccessDialogStyles = css`
     width: 16px;
     height: 16px;
     margin-right: 7px;
-    border: 2px solid #bfdbfe;
-    border-top-color: #2563eb;
+    border: 2px solid var(--edvibe-info-border);
+    border-top-color: var(--edvibe-primary);
     border-radius: 50%;
     vertical-align: -3px;
     animation: edvibe-batch-access-spin .8s linear infinite;
@@ -277,13 +200,12 @@ export const batchLessonAccessDialogStyles = css`
 .edvibe-batch-access-status {
     min-height: 20px;
     margin: 0;
-    color: #4b5563;
     font-size: 13px;
     line-height: 1.4;
 }
 
 .edvibe-batch-access-status.is-error {
-    color: #b91c1c;
+    color: var(--edvibe-danger);
 }
 
 .edvibe-batch-access-progress {
@@ -291,52 +213,13 @@ export const batchLessonAccessDialogStyles = css`
     width: 100%;
     height: 11px;
     margin-top: 10px;
-    overflow: hidden;
-    border: 0;
-    border-radius: 999px;
-    background: #e5e7eb;
-    appearance: none;
-}
-
-.edvibe-batch-access-progress::-webkit-progress-bar {
-    background: #e5e7eb;
-}
-
-.edvibe-batch-access-progress::-webkit-progress-value {
-    border-radius: 999px;
-    background: linear-gradient(90deg, #2563eb, #16a34a);
 }
 
 .edvibe-batch-access-footer {
     flex: 0 0 auto;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 10px;
     margin-top: 18px;
 }
 
-.edvibe-batch-access-footer button {
-    padding: 10px 16px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background: #fff;
-    color: #374151;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 650;
-    cursor: pointer;
-}
-
-.edvibe-batch-access-submit,
-.edvibe-batch-access-confirm {
-    border-color: #2563eb !important;
-    background: #2563eb !important;
-    color: #fff !important;
-}
-
-.edvibe-batch-access-footer button:disabled,
-.edvibe-batch-access-close:disabled,
-.edvibe-batch-access-emails:disabled,
 .edvibe-batch-access-selection-actions input:disabled {
     cursor: not-allowed;
     opacity: .58;
@@ -345,13 +228,8 @@ export const batchLessonAccessDialogStyles = css`
 @media (max-width: 560px) {
     .edvibe-batch-access-card {
         width: 100%;
-        max-height: calc(100vh - 16px);
+        max-height: 100vh;
         padding: 18px;
-        border-radius: 12px;
-    }
-
-    .edvibe-batch-access-overlay {
-        padding: 8px;
     }
 
     .edvibe-batch-access-lesson-heading {

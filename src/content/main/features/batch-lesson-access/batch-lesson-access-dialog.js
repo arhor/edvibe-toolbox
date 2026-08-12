@@ -1,12 +1,30 @@
 import { LitElement, html, nothing } from 'lit';
 import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    emptyStateStyles,
+    fieldStyles,
+    noticeStyles,
+    progressStyles
+} from '../../styles/primitives.js';
 import { batchLessonAccessDialogStyles } from './batch-lesson-access-dialog.styles.js';
 
 const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
 const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
 
 class BatchLessonAccessDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, batchLessonAccessDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        noticeStyles,
+        progressStyles,
+        emptyStateStyles,
+        batchLessonAccessDialogStyles
+    ];
 
     static properties = {
         lessons: {state: true},
@@ -51,7 +69,7 @@ class BatchLessonAccessDialog extends LitElement {
 
     configure(options = {}) {
         options = options && typeof options === 'object' ? options : {};
-if (options.lessons !== undefined || options.emailState !== undefined) {
+        if (options.lessons !== undefined || options.emailState !== undefined) {
             this.showConfigure(options);
         }
         return this;
@@ -327,25 +345,27 @@ if (options.lessons !== undefined || options.emailState !== undefined) {
         const statusClass = `edvibe-batch-access-status${this.statusError ? ' is-error' : ''}`;
 
         return html`
-<div class="edvibe-batch-access-overlay" @click=${this.handleBackdropClick}>
-                <section class="edvibe-batch-access-card" role="dialog" aria-modal="true"
+            <div class="edvibe-batch-access-overlay" data-part="overlay" @click=${this.handleBackdropClick}>
+                <section class="edvibe-batch-access-card" data-part="dialog" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-access-title">
                     <header class="edvibe-batch-access-header">
                         <div><h2 id="edvibe-batch-access-title">Открыть доступ к урокам</h2>
                             <p class="edvibe-batch-access-description">Укажите email учеников и выберите уроки.</p></div>
-                        <button class="edvibe-batch-access-close" type="button" aria-label="Закрыть"
+                        <button class="edvibe-batch-access-close" data-control="secondary" type="button" aria-label="Закрыть"
                             ?disabled=${!this.canClose()} @click=${() => this.close()}>&times;</button>
                     </header>
                     <div class="edvibe-batch-access-body">
                         <section class="edvibe-batch-access-configure">
-                            <label for="edvibe-batch-access-emails">Email учеников</label>
-                            <textarea id="edvibe-batch-access-emails" class="edvibe-batch-access-emails"
-                                rows="5" placeholder="user@example.com" .value=${this.emailInput}
-                                ?disabled=${editingLocked || this.mode === 'fatal-error'}
-                                @input=${this.handleInput}></textarea>
-                            <div class="edvibe-batch-access-email-state" aria-live="polite">
-                                <span class="edvibe-batch-access-email-count">Уникальных email: ${this.emailState.validCount}</span>
-                                <span class="edvibe-batch-access-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
+                            <div class="edvibe-batch-access-email-field" data-field>
+                                <label for="edvibe-batch-access-emails">Email учеников</label>
+                                <textarea id="edvibe-batch-access-emails" class="edvibe-batch-access-emails"
+                                    rows="5" placeholder="user@example.com" .value=${this.emailInput}
+                                    ?disabled=${editingLocked || this.mode === 'fatal-error'}
+                                    @input=${this.handleInput}></textarea>
+                                <div class="edvibe-batch-access-email-state" data-part="help" aria-live="polite">
+                                    <span class="edvibe-batch-access-email-count">Уникальных email: ${this.emailState.validCount}</span>
+                                    <span class="edvibe-batch-access-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
+                                </div>
                             </div>
                             <div class="edvibe-batch-access-lesson-heading"><h3>Уроки</h3>
                                 <div class="edvibe-batch-access-selection-actions">
@@ -353,43 +373,43 @@ if (options.lessons !== undefined || options.emailState !== undefined) {
                                         .checked=${allSelected} .indeterminate=${someSelected}
                                         ?disabled=${lessonsLocked || lessonCount === 0}
                                         @change=${this.handleSelectAll}>Выбрать все</label>
-                                    <button class="edvibe-batch-access-clear-all" type="button"
+                                    <button class="edvibe-batch-access-clear-all" data-control="secondary" type="button"
                                         ?disabled=${editingLocked || selected === 0}
                                         @click=${this.handleClearAll}>Очистить выбор</button>
                                 </div>
                             </div>
                             <div class="edvibe-batch-access-lessons" aria-label="Список уроков">
                                 ${lessonCount === 0
-                                    ? html`<p class="edvibe-batch-access-empty">Уроки не найдены.</p>`
+                                    ? html`<p class="edvibe-batch-access-empty" data-part="empty-state">Уроки не найдены.</p>`
                                     : this.lessons.map((lesson) => this.renderLesson(lesson, lessonsLocked))}
                             </div>
                         </section>
-                        <section class="edvibe-batch-access-errors" aria-live="polite" ?hidden=${this.errors.length === 0}>
+                        <section class="edvibe-batch-access-errors" data-notice="danger" aria-live="polite" ?hidden=${this.errors.length === 0}>
                             ${this.errors.map((error) => html`<p class="edvibe-batch-access-error">${error}</p>`)}
                         </section>
-                        <section class="edvibe-batch-access-summary" aria-live="polite" ?hidden=${this.summaryLines.length === 0}>
+                        <section class="edvibe-batch-access-summary" data-notice aria-live="polite" ?hidden=${this.summaryLines.length === 0}>
                             ${this.summaryLines.join('\n')}
                         </section>
-                        <section class="edvibe-batch-access-failures" aria-live="polite" ?hidden=${this.failures.length === 0}>
+                        <section class="edvibe-batch-access-failures" data-notice="warning" aria-live="polite" ?hidden=${this.failures.length === 0}>
                             ${this.failures.map((failure) => this.renderFailure(failure))}
                         </section>
                     </div>
                     <div class="edvibe-batch-access-live-region">
                         <span class="edvibe-batch-access-loading-indicator" role="img" aria-label="Загрузка уроков"
                             ?hidden=${this.mode !== 'loading'}></span>
-                        <p class=${statusClass} role="status" aria-live="polite">${this.statusMessage}</p>
-                        <progress class="edvibe-batch-access-progress" max=${this.progress.total}
+                        <p class=${statusClass} data-part="status" role="status" aria-live="polite">${this.statusMessage}</p>
+                        <progress class="edvibe-batch-access-progress" data-part="progress" max=${this.progress.total}
                             value=${progressValue} ?hidden=${!this.progress.visible}
                             aria-label=${this.progress.indeterminate ? 'Загрузка уроков' : nothing}></progress>
                     </div>
-                    <footer class="edvibe-batch-access-footer">
-                        <button class="edvibe-batch-access-copy" type="button" ?hidden=${!completed}
+                    <footer class="edvibe-batch-access-footer" data-part="actions">
+                        <button class="edvibe-batch-access-copy" data-control="secondary" type="button" ?hidden=${!completed}
                             ?disabled=${!completed} @click=${this.handleCopy}>Копировать отчёт</button>
-                        <button class="edvibe-batch-access-restart" type="button" ?hidden=${!completed}
+                        <button class="edvibe-batch-access-restart" data-control="secondary" type="button" ?hidden=${!completed}
                             ?disabled=${!completed} @click=${this.handleRestart}>Запустить другую группу</button>
-                        <button class="edvibe-batch-access-confirm" type="button" ?hidden=${this.mode !== 'confirm'}
+                        <button class="edvibe-batch-access-confirm" data-control type="button" ?hidden=${this.mode !== 'confirm'}
                             ?disabled=${this.mode !== 'confirm'} @click=${this.handleConfirm}>Подтвердить открытие доступа</button>
-                        <button class="edvibe-batch-access-submit" type="button"
+                        <button class="edvibe-batch-access-submit" data-control type="button"
                             ?hidden=${!['configure', 'validation-error'].includes(this.mode)}
                             ?disabled=${!this.canSubmit()} @click=${this.handleSubmit}>Проверить и открыть доступ</button>
                     </footer>
