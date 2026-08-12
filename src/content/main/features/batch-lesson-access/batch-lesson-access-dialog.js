@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../../../components/styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
 import { batchLessonAccessDialogStyles } from './batch-lesson-access-dialog.styles.js';
 
 const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';

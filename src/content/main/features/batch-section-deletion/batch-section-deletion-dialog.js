@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../../../components/styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
 import { batchSectionDeletionDialogStyles } from './batch-section-deletion-dialog.styles.js';
 
 const BATCH_SECTION_DELETION_DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';

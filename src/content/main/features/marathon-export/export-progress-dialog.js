@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from 'lit';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
-} from '../../../../components/styles/foundations.js';
+} from '../../styles/foundations.js';
 import { exportProgressDialogStyles } from './export-progress-dialog.styles.js';
 
 const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';

@@ -11,7 +11,7 @@ const browserGlobals = {
 
 const nodeGlobals = globals.node;
 const componentFiles = [
-    'src/components/**/*.js',
+    'src/content/main/features/**/*-dialog.js',
     'src/popup/components/**/*.js',
 ];
 const unusedOptions = {

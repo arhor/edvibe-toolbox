@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../../../components/styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
 import { batchSectionCreationDialogStyles } from './batch-section-creation-dialog.styles.js';
 import { batchSectionImageUploadStyles } from './image-upload/batch-section-image-upload.styles.js';
 import {

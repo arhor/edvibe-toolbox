@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../../../components/styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
 import { batchUserManagementDialogStyles } from './batch-user-management-dialog.styles.js';
 
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';

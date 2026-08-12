@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from 'lit';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
-} from '../../../../components/styles/foundations.js';
+} from '../../styles/foundations.js';
 import { resetLessonsDialogStyles } from './reset-lessons-dialog.styles.js';
 
 const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
