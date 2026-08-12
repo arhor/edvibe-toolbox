@@ -2,26 +2,9 @@ import { css } from 'lit';
 
 export const actionRecorderDialogStyles = css`
 :host {
-    color: #172033;
-    font: 13px/1.45 Inter, "Segoe UI", system-ui, sans-serif;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-button,
-textarea,
-input {
-    font: inherit;
-}
-
-.recorder-overlay {
-    position: fixed;
-    z-index: 2147483646;
-    inset: 0;
-    padding: 28px;
-    background: rgba(19, 27, 45, 0.52);
+    color: var(--edvibe-text);
+    font-size: 13px;
+    line-height: 1.45;
 }
 
 .recorder-overlay[hidden],
@@ -34,12 +17,8 @@ input {
     width: min(920px, 100%);
     max-height: calc(100vh - 56px);
     margin: 0 auto;
-    overflow: hidden;
     flex-direction: column;
-    border: 1px solid #dce2ec;
-    border-radius: 14px;
-    background: #f5f7fb;
-    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+    background: var(--edvibe-surface-app);
 }
 
 .recorder-header,
@@ -49,8 +28,8 @@ input {
     justify-content: space-between;
     align-items: center;
     padding: 16px 18px;
-    border-bottom: 1px solid #e0e5ee;
-    background: #fff;
+    border-bottom: 1px solid var(--edvibe-border-subtle);
+    background: var(--edvibe-surface);
 }
 
 .recorder-header h2,
@@ -66,7 +45,7 @@ input {
 
 .recorder-subtitle {
     margin-top: 3px !important;
-    color: #687386;
+    color: var(--edvibe-text-muted);
     font-size: 12px;
 }
 
@@ -80,67 +59,36 @@ input {
 }
 
 .icon-button {
-    width: 31px;
-    height: 31px;
-    border: 1px solid #d9dfe9;
-    border-radius: 7px;
-    color: #4e596b;
-    background: #fff;
-    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    padding: 0;
 }
 
 .recorder-toolbar {
     padding-block: 11px;
-    background: #fbfcfe;
+    background: var(--edvibe-surface-subtle);
 }
 
 .state-dot {
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: #9da5b4;
+    background: var(--edvibe-text-muted);
 }
 
 .recorder-state[data-status="recording"] .state-dot {
-    background: #df3636;
-    box-shadow: 0 0 0 4px #fde4e4;
+    background: var(--edvibe-danger);
+    box-shadow: 0 0 0 4px var(--edvibe-danger-border);
 }
 
 .recorder-state[data-status="limit-reached"] .state-dot {
-    background: #d58a14;
+    background: var(--edvibe-warning);
 }
 
 .elapsed {
     min-width: 34px;
-    color: #687386;
+    color: var(--edvibe-text-muted);
     font-variant-numeric: tabular-nums;
-}
-
-.button {
-    padding: 7px 10px;
-    border: 1px solid #d5dbe6;
-    border-radius: 7px;
-    color: #263248;
-    background: #fff;
-    cursor: pointer;
-}
-
-.button.primary {
-    border-color: #4055d3;
-    color: #fff;
-    background: #4055d3;
-}
-
-.button.danger {
-    border-color: #c93a3a;
-    color: #fff;
-    background: #c93a3a;
-}
-
-.button:disabled {
-    color: #9299a7;
-    background: #edf0f4;
-    cursor: not-allowed;
 }
 
 .recorder-body {
@@ -148,23 +96,15 @@ input {
     padding: 16px 18px 20px;
 }
 
-.privacy-warning {
-    padding: 10px 12px;
-    border: 1px solid #ecd292;
-    border-radius: 8px;
-    color: #765313;
-    background: #fff8e6;
-}
-
 .recorder-summary {
     margin: 13px 0;
     flex-wrap: wrap;
-    color: #596579;
+    color: var(--edvibe-text-muted);
 }
 
 .recorder-summary > span {
     padding-right: 10px;
-    border-right: 1px solid #d9dfe8;
+    border-right: 1px solid var(--edvibe-border-subtle);
 }
 
 .recorder-summary label {
@@ -173,10 +113,6 @@ input {
 
 .recorder-notice {
     margin-bottom: 12px;
-    padding: 9px 10px;
-    border-radius: 7px;
-    color: #34503e;
-    background: #e6f4eb;
 }
 
 .recorder-body h3 {
@@ -190,9 +126,10 @@ input {
 }
 
 .operation {
-    border: 1px solid #dbe1eb;
-    border-radius: 9px;
-    background: #fff;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
+    box-shadow: var(--edvibe-shadow-card);
 }
 
 .operation > summary {
@@ -206,7 +143,7 @@ input {
 
 .operation-sequence,
 .operation-duration {
-    color: #778195;
+    color: var(--edvibe-text-muted);
     font-variant-numeric: tabular-nums;
 }
 
@@ -218,20 +155,20 @@ input {
 
 .operation-result {
     text-align: right;
-    color: #28805a;
+    color: var(--edvibe-success);
 }
 
 .operation-result.is-error {
-    color: #b42f2f;
+    color: var(--edvibe-danger);
 }
 
 .operation-content {
     padding: 0 12px 12px;
-    border-top: 1px solid #e6eaf1;
+    border-top: 1px solid var(--edvibe-border-subtle);
 }
 
 .operation-content > p {
-    color: #697487;
+    color: var(--edvibe-text-muted);
     word-break: break-all;
 }
 
@@ -240,27 +177,17 @@ input {
     margin: 10px 0 4px;
 }
 
-pre,
-textarea {
+pre {
     width: 100%;
     overflow: auto;
     padding: 10px;
-    border: 1px solid #dce2eb;
-    border-radius: 7px;
-    color: #233048;
-    background: #f7f9fc;
+    border: 1px solid var(--edvibe-border-subtle);
+    border-radius: var(--edvibe-radius-control);
+    color: var(--edvibe-text);
+    background: var(--edvibe-surface-subtle);
     font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
     white-space: pre-wrap;
     word-break: break-word;
-}
-
-.empty-operations {
-    padding: 28px;
-    border: 1px dashed #ccd3df;
-    border-radius: 9px;
-    color: #788397;
-    text-align: center;
-    background: #fafbfc;
 }
 
 .empty-operations[hidden],
@@ -274,35 +201,37 @@ textarea {
 }
 
 .other-section > summary {
-    color: #596579;
+    color: var(--edvibe-text-muted);
     cursor: pointer;
 }
 
 .copy-fallback {
-    display: block;
     margin-top: 14px;
-    color: #765313;
+    color: var(--edvibe-warning);
 }
 
 .copy-fallback textarea {
     min-height: 150px;
     margin-top: 5px;
+    font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .recorder-indicator {
     position: fixed;
-    z-index: 2147483646;
+    z-index: var(--edvibe-z-dialog);
     right: 20px;
     bottom: 20px;
     display: flex;
     gap: 7px;
     align-items: center;
     padding: 9px 12px;
-    border: 1px solid #ccd3df;
-    border-radius: 999px;
-    color: #38445a;
-    background: #fff;
-    box-shadow: 0 8px 28px rgba(23, 32, 51, 0.2);
+    border: 1px solid var(--edvibe-border);
+    border-radius: var(--edvibe-radius-pill);
+    color: var(--edvibe-text);
+    background: var(--edvibe-surface);
+    box-shadow: var(--edvibe-shadow-card);
     cursor: pointer;
 }
 
@@ -310,19 +239,15 @@ textarea {
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: #9da5b4;
+    background: var(--edvibe-text-muted);
 }
 
 .recorder-indicator.is-recording > span:first-child {
-    background: #df3636;
-    box-shadow: 0 0 0 3px #fde4e4;
+    background: var(--edvibe-danger);
+    box-shadow: 0 0 0 3px var(--edvibe-danger-border);
 }
 
 @media (max-width: 720px) {
-    .recorder-overlay {
-        padding: 8px;
-    }
-
     .recorder-header,
     .recorder-toolbar {
         align-items: flex-start;
