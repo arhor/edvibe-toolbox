@@ -3,12 +3,24 @@ import {
     componentFoundationStyles,
     dialogFoundationStyles
 } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    progressStyles
+} from '../../styles/primitives.js';
 import { exportProgressDialogStyles } from './export-progress-dialog.styles.js';
 
 const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';
 
 class ExportProgressDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, exportProgressDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        progressStyles,
+        exportProgressDialogStyles
+    ];
 
     static properties = {
         statusText: { state: true },
@@ -81,16 +93,16 @@ class ExportProgressDialog extends LitElement {
             : nothing;
 
         return html`
-            <div class="overlay">
-                <section class="card" role="dialog" aria-modal="true" aria-labelledby="export-progress-title">
+            <div class="overlay" data-part="overlay">
+                <section class="card" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="export-progress-title">
                     <h2 id="export-progress-title">Exporting marathon</h2>
-                    <p class="status">${this.statusText}</p>
-                    <progress class="progress" max="100" value=${progressValue}></progress>
+                    <p class="status" data-part="status">${this.statusText}</p>
+                    <progress class="progress" data-part="progress" max="100" value=${progressValue}></progress>
                     <div class="meta">
                         <span class="count">${count}</span>
                         <span class="percent">${progressPercent}%</span>
                     </div>
-                    <button class="close" type="button" @click=${() => this.remove()}>Close</button>
+                    <button class="close" data-control type="button" @click=${() => this.remove()}>Close</button>
                 </section>
             </div>
         `;
