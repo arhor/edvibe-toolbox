@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../../../components/styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
 import { batchUserOnboardingDialogStyles } from './batch-user-onboarding-dialog.styles.js';
 
 const BATCH_USER_ONBOARDING_DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';

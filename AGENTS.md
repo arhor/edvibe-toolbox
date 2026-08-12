@@ -19,8 +19,8 @@ Keep these runtime worlds separate and preserve `document_start` behavior for ti
 - `popup.html`: source popup document. Its module entry point is `src/entrypoints/popup.js`.
 - `src/entrypoints/`: small Vite/CRXJS composition roots for popup, ISOLATED, and MAIN runtimes.
 - `src/runtime/`: runtime coordinators and popup-owned global presentation; application runtime code belongs here rather than at repository root.
-- `src/components/`: Lit custom elements, component-specific Lit style modules, and reusable style foundations.
-- `src/features/`: feature workflows that coordinate transport, data, components, and persistence.
+- `src/content/main/features/`: MAIN-owned feature slices, including workflow logic, Lit components, component styles, and colocated tests.
+- `src/content/main/styles/`: reusable Lit style foundations shared across MAIN feature components.
 - `src/content/main/infrastructure/`: runtime-wide services owned exclusively by the MAIN-world content script, including transport, operation coordination, storage bridging, IndexedDB, diagnostics, and execution history.
 - `src/shared/`: infrastructure shared across runtime worlds, such as logging and the cross-world message protocol, plus shared feature workflow helpers.
 - `scripts/check-build-output.mjs`: production bundle-shape and regression-budget checker.
@@ -71,7 +71,7 @@ For manual browser validation, load the repository's `dist/` directory with Chro
 - Use Lit as the standard implementation for Web Components. Prefer `LitElement`, reactive properties/state, declarative `html` templates, and Lit lifecycle/update APIs over manual DOM construction and synchronization.
 - Preserve existing custom-element public contracts when migrating or refactoring: tag names, methods, properties, events, and integration callbacks should remain stable unless the task explicitly changes them.
 - Choose Shadow DOM or light DOM according to the existing component styling/integration contract. Do not switch encapsulation casually during unrelated work.
-- Keep in-page Lit component presentation in Lit `css` template modules composed through `static styles`. Put reusable design tokens and visual foundations under `src/components/styles/`, keep component-specific rules beside their component, and leave popup page CSS global unless a separate migration intentionally changes its light-DOM styling model.
+- Keep in-page Lit component presentation in Lit `css` template modules composed through `static styles`. Put reusable MAIN design tokens and visual foundations under `src/content/main/styles/`, keep component-specific rules beside their component, and leave popup page CSS global unless a separate migration intentionally changes its light-DOM styling model.
 - Keep feature/network/persistence logic outside UI components where an existing service or feature boundary already owns it. Components should primarily own presentation and interaction state.
 - Use clear console log prefixes consistent with the existing `[Edvibe Toolbox][Area]` style.
 - Avoid broad permissions in `manifest.config.mjs`; add only the minimum Chrome permissions needed for a feature.
