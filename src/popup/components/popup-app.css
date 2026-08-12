@@ -1,8 +1,8 @@
 :root {
     color-scheme: light;
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #172033;
-    background: #f4f6fa;
+    font-family: var(--edvibe-font-family);
+    color: var(--edvibe-text);
+    background: var(--edvibe-surface-app);
 }
 
 * {
@@ -12,7 +12,7 @@
 body {
     width: 340px;
     margin: 0;
-    background: #f4f6fa;
+    background: var(--edvibe-surface-app);
     font-size: 13px;
 }
 
@@ -25,8 +25,8 @@ popup-app {
     gap: 11px;
     align-items: center;
     padding: 18px 18px 15px;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e7f0;
+    background: var(--edvibe-surface);
+    border-bottom: 1px solid var(--edvibe-border-subtle);
 }
 
 .app-mark {
@@ -35,10 +35,14 @@ popup-app {
     height: 36px;
     flex: 0 0 36px;
     place-items: center;
-    border-radius: 10px;
-    color: #ffffff;
-    background: linear-gradient(145deg, #5267e8, #3448bf);
-    box-shadow: 0 5px 12px rgba(66, 84, 200, 0.22);
+    border-radius: var(--edvibe-radius-panel);
+    color: var(--edvibe-surface);
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--edvibe-brand) 85%, var(--edvibe-surface)),
+        color-mix(in srgb, var(--edvibe-brand) 85%, var(--edvibe-text-strong))
+    );
+    box-shadow: 0 5px 12px color-mix(in srgb, var(--edvibe-brand) 22%, transparent);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.04em;
@@ -50,6 +54,7 @@ p {
 }
 
 .app-header h1 {
+    color: var(--edvibe-text-strong);
     font-size: 16px;
     line-height: 1.25;
     letter-spacing: -0.01em;
@@ -57,7 +62,7 @@ p {
 
 .app-header p {
     margin-top: 2px;
-    color: #697386;
+    color: var(--edvibe-text-muted);
     font-size: 12px;
 }
 
@@ -71,9 +76,9 @@ main {
     align-items: flex-start;
     min-height: 54px;
     padding: 11px 12px;
-    border: 1px solid #dfe4ee;
-    border-radius: 10px;
-    background: #ffffff;
+    border: 1px solid var(--edvibe-border);
+    border-radius: var(--edvibe-radius-panel);
+    background: var(--edvibe-surface);
 }
 
 .context-indicator {
@@ -82,18 +87,18 @@ main {
     flex: 0 0 8px;
     margin-top: 5px;
     border-radius: 50%;
-    background: #a3aabd;
-    box-shadow: 0 0 0 3px #edf0f5;
+    background: var(--edvibe-text-muted);
+    box-shadow: 0 0 0 3px var(--edvibe-surface-subtle);
 }
 
 .page-context.is-marathon .context-indicator {
-    background: #1f9d68;
-    box-shadow: 0 0 0 3px #dff5eb;
+    background: var(--edvibe-success);
+    box-shadow: 0 0 0 3px var(--edvibe-success-surface);
 }
 
 .page-context.is-edvibe .context-indicator {
-    background: #d28a18;
-    box-shadow: 0 0 0 3px #fff0cf;
+    background: var(--edvibe-warning);
+    box-shadow: 0 0 0 3px var(--edvibe-warning-surface);
 }
 
 .page-context strong,
@@ -102,13 +107,14 @@ main {
 }
 
 .page-context strong {
+    color: var(--edvibe-text-strong);
     font-size: 13px;
     line-height: 1.35;
 }
 
 .page-context div > span {
     margin-top: 2px;
-    color: #697386;
+    color: var(--edvibe-text-muted);
     font-size: 11px;
     line-height: 1.35;
 }
@@ -121,7 +127,7 @@ main {
 
 .tool-group-title {
     margin: 0 0 7px 2px;
-    color: #697386;
+    color: var(--edvibe-text-muted);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -142,11 +148,11 @@ popup-tool-card button {
     width: 100%;
     margin: 0;
     padding: 13px;
-    border: 1px solid #dfe4ee;
-    border-radius: 11px;
-    color: inherit;
-    background: #ffffff;
-    box-shadow: 0 2px 7px rgba(30, 42, 70, 0.04);
+    border: 1px solid var(--edvibe-border);
+    border-radius: var(--edvibe-radius-panel);
+    color: var(--edvibe-text);
+    background: var(--edvibe-surface);
+    box-shadow: var(--edvibe-shadow-card);
     cursor: pointer;
     font: inherit;
     text-align: left;
@@ -155,30 +161,36 @@ popup-tool-card button {
 }
 
 popup-tool-card button:hover:not(:disabled) {
-    border-color: #b9c2e8;
-    box-shadow: 0 4px 12px rgba(30, 42, 70, 0.09);
+    border-color: color-mix(in srgb, var(--edvibe-brand) 45%, var(--edvibe-border));
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--edvibe-text-strong) 9%, transparent);
     transform: translateY(-1px);
 }
 
 popup-tool-card button:focus-visible {
-    outline: 3px solid rgba(64, 85, 211, 0.25);
+    outline: 2px solid var(--edvibe-focus-outline);
     outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--edvibe-focus-halo);
 }
 
 popup-tool-card button:disabled {
-    color: inherit;
-    background: #fafbfc;
+    color: var(--edvibe-text-muted);
+    background: var(--edvibe-surface-subtle);
+    box-shadow: none;
     cursor: default;
-    opacity: 1;
+    opacity: .72;
 }
 
 popup-tool-card button[data-danger="true"]:not(:disabled) {
-    border-color: #e4caca;
+    border-color: var(--edvibe-danger-border);
+}
+
+popup-tool-card button[data-danger="true"]:not(:disabled) .tool-title {
+    color: var(--edvibe-danger);
 }
 
 popup-tool-card button[data-danger="true"]:hover:not(:disabled) {
-    border-color: #d6a7a7;
-    background: #fffafa;
+    border-color: var(--edvibe-danger);
+    background: var(--edvibe-danger-surface);
 }
 
 .tool-card-header {
@@ -195,6 +207,7 @@ popup-tool-card button[data-danger="true"]:hover:not(:disabled) {
 
 .tool-title {
     margin: 0;
+    color: var(--edvibe-text-strong);
     font-size: 13px;
     line-height: 1.35;
 }
@@ -203,19 +216,19 @@ popup-tool-card button[data-danger="true"]:hover:not(:disabled) {
 .tool-requirement {
     display: block;
     margin-top: 4px;
-    color: #697386;
+    color: var(--edvibe-text-muted);
     font-size: 11px;
     line-height: 1.4;
 }
 
 .tool-requirement {
-    color: #9a6716;
+    color: var(--edvibe-warning);
 }
 
 .tool-busy {
     display: block;
     margin-top: 5px;
-    color: #4055d3;
+    color: var(--edvibe-brand);
     font-size: 11px;
     font-weight: 650;
     line-height: 1.4;
@@ -224,14 +237,16 @@ popup-tool-card button[data-danger="true"]:hover:not(:disabled) {
 .popup-status {
     margin-top: 12px;
     padding: 9px 10px;
-    border-radius: 8px;
-    color: #34503e;
-    background: #e7f5ed;
+    border: 1px solid var(--edvibe-success-border);
+    border-radius: var(--edvibe-radius-control);
+    color: var(--edvibe-success);
+    background: var(--edvibe-success-surface);
     font-size: 11px;
     line-height: 1.4;
 }
 
 .popup-status.is-error {
-    color: #8c2828;
-    background: #fdeaea;
+    border-color: var(--edvibe-danger-border);
+    color: var(--edvibe-danger);
+    background: var(--edvibe-danger-surface);
 }
