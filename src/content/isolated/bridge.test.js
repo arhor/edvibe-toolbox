@@ -93,15 +93,18 @@ function flushPromises() {
 
 describe('initializeIsolatedBridge', () => {
     test('initializes export state and disposes every listener', () => {
+        // Given
         const harness = createHarness({ exportInProgress: true });
         const logs = [];
 
+        // When
         const bridge = initializeIsolatedBridge({
             windowApi: harness.windowApi,
             chromeApi: harness.chromeApi,
             log: (...args) => logs.push(args)
         });
 
+        // Then
         assert.deepEqual(harness.listenerCounts(), { runtime: 1, window: 1 });
         assert.equal(harness.storageValues.exportInProgress, false);
         assert.deepEqual(harness.storageWrites, [{ exportInProgress: false }]);
@@ -110,17 +113,22 @@ describe('initializeIsolatedBridge', () => {
             'Reset stale export state for the loaded page.'
         ]);
 
+        // When
         bridge.dispose();
 
+        // Then
         assert.deepEqual(harness.listenerCounts(), { runtime: 0, window: 0 });
     });
 
     test('routes valid popup commands to MAIN and responds to the popup', () => {
+        // Given
         const harness = createHarness();
         initializeIsolatedBridge(harness);
 
+        // When
         const result = harness.dispatchRuntime({ action: POPUP_COMMANDS.OPEN_LESSON_RESET });
 
+        // Then
         assert.deepEqual(harness.postedMessages, [{
             message: createMainCommandMessage(POPUP_COMMANDS.OPEN_LESSON_RESET),
             targetOrigin: '*'
@@ -133,11 +141,14 @@ describe('initializeIsolatedBridge', () => {
     });
 
     test('marks export active before routing the start command', () => {
+        // Given
         const harness = createHarness();
         initializeIsolatedBridge(harness);
 
+        // When
         harness.dispatchRuntime({ action: POPUP_COMMANDS.START_EXPORT });
 
+        // Then
         assert.equal(harness.storageValues.exportInProgress, true);
         assert.deepEqual(harness.runtimeMessages, [
             createRuntimeExportStatusMessage(EXPORT_STATES.STARTED)
@@ -149,9 +160,11 @@ describe('initializeIsolatedBridge', () => {
     });
 
     test('relays valid MAIN export status and ignores invalid window messages', () => {
+        // Given
         const harness = createHarness();
         initializeIsolatedBridge(harness);
 
+        // When
         harness.dispatchWindow(createExportStatusMessage(EXPORT_STATES.ERROR, 'Network failed'));
         harness.dispatchWindow({ type: 'EDVIBE_TOOLBOX_EXPORT_STATUS', state: 'unknown' });
         harness.dispatchWindow(
@@ -159,6 +172,7 @@ describe('initializeIsolatedBridge', () => {
             { differentWindow: true }
         );
 
+        // Then
         assert.equal(harness.storageValues.exportInProgress, false);
         assert.deepEqual(harness.runtimeMessages, [
             createRuntimeExportStatusMessage(EXPORT_STATES.ERROR, 'Network failed')
@@ -166,12 +180,14 @@ describe('initializeIsolatedBridge', () => {
     });
 
     test('handles storage get and set requests from MAIN', async () => {
+        // Given
         const preferences = { retentionDays: 30 };
         const harness = createHarness({
             [STORAGE_KEYS.EXECUTION_HISTORY_PREFERENCES]: preferences
         });
         initializeIsolatedBridge(harness);
 
+        // When
         harness.dispatchWindow(createStorageRequest({
             requestId: 'get-preferences',
             action: STORAGE_ACTIONS.GET,
@@ -185,6 +201,7 @@ describe('initializeIsolatedBridge', () => {
         }));
         await flushPromises();
 
+        // Then
         assert.deepEqual(harness.postedMessages, [
             {
                 message: createStorageResponse({
@@ -206,6 +223,7 @@ describe('initializeIsolatedBridge', () => {
     });
 
     test('returns storage failures to MAIN', async () => {
+        // Given
         const harness = createHarness();
         harness.chromeApi.storage.local.get = (_key, callback) => {
             harness.chromeApi.runtime.lastError = { message: 'Storage unavailable' };
@@ -214,6 +232,7 @@ describe('initializeIsolatedBridge', () => {
         };
         initializeIsolatedBridge(harness);
 
+        // When
         harness.dispatchWindow(createStorageRequest({
             requestId: 'failed-get',
             action: STORAGE_ACTIONS.GET,
@@ -221,6 +240,7 @@ describe('initializeIsolatedBridge', () => {
         }));
         await flushPromises();
 
+        // Then
         assert.deepEqual(harness.postedMessages, [{
             message: createStorageResponse({
                 requestId: 'failed-get',
@@ -232,17 +252,21 @@ describe('initializeIsolatedBridge', () => {
     });
 
     test('rejects invalid runtime messages without crossing the bridge', () => {
+        // Given
         const harness = createHarness();
         initializeIsolatedBridge(harness);
 
+        // When
         const result = harness.dispatchRuntime({ action: 'UNKNOWN_COMMAND' });
 
+        // Then
         assert.deepEqual(harness.postedMessages, []);
         assert.deepEqual(result.responses, [{ status: 'ignored' }]);
         assert.deepEqual(result.results, [true]);
     });
 
     test('validates required injected browser APIs', () => {
+        // When / Then
         assert.throws(
             () => initializeIsolatedBridge({ windowApi: {}, chromeApi: {} }),
             /Window messaging APIs are required/
