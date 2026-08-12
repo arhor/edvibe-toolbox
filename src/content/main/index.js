@@ -21,23 +21,23 @@ import * as exportApi from './features/marathon-export/marathon-export.js';
 import * as resetApi from './features/reset-lessons/reset-lessons.js';
 import * as recorderApi from './features/action-recorder/action-recorder.js';
 import * as recorderDialogApi from './features/action-recorder/action-recorder-dialog.js';
-import * as batchAccessApi from '../../features/batch-lesson-access.js';
-import * as batchAccessHistoryApi from '../../features/batch-lesson-access-history.js';
-import * as batchAccessDialogApi from '../../components/batch-lesson-access-dialog.js';
-import * as batchUserManagementApi from '../../features/batch-user-management.js';
-import * as batchUserManagementHistoryApi from '../../features/batch-user-management-history.js';
-import * as batchUserManagementDialogApi from '../../components/batch-user-management-dialog.js';
-import * as batchUserOnboardingApi from '../../features/batch-user-onboarding.js';
-import * as batchUserOnboardingDialogApi from '../../components/batch-user-onboarding-dialog.js';
-import * as batchSectionCreationApi from '../../features/batch-section-creation.js';
-import * as batchSectionCreationHistoryApi from '../../features/batch-section-creation-history.js';
-import * as batchSectionCreationDialogApi from '../../components/batch-section-creation-dialog.js';
+import * as batchAccessApi from './features/batch-lesson-access/batch-lesson-access.js';
+import * as batchAccessHistoryApi from './features/batch-lesson-access/batch-lesson-access-history.js';
+import * as batchAccessDialogApi from './features/batch-lesson-access/batch-lesson-access-dialog.js';
+import * as batchUserManagementApi from './features/batch-user-management/batch-user-management.js';
+import * as batchUserManagementHistoryApi from './features/batch-user-management/batch-user-management-history.js';
+import * as batchUserManagementDialogApi from './features/batch-user-management/batch-user-management-dialog.js';
+import * as batchUserOnboardingApi from './features/batch-user-onboarding/batch-user-onboarding.js';
+import * as batchUserOnboardingDialogApi from './features/batch-user-onboarding/batch-user-onboarding-dialog.js';
+import * as batchSectionCreationApi from './features/batch-section-creation/batch-section-creation.js';
+import * as batchSectionCreationHistoryApi from './features/batch-section-creation/batch-section-creation-history.js';
+import * as batchSectionCreationDialogApi from './features/batch-section-creation/batch-section-creation-dialog.js';
 import {
     createImageUploadCreationAdapter,
     dynamicImageRecipe
-} from '../../features/batch-section-image-upload.js';
-import * as batchSectionDeletionApi from '../../features/batch-section-deletion-history.js';
-import * as batchSectionDeletionDialogApi from '../../components/batch-section-deletion-dialog.js';
+} from './features/batch-section-creation/batch-section-image-upload.js';
+import * as batchSectionDeletionApi from './features/batch-section-deletion/batch-section-deletion-history.js';
+import * as batchSectionDeletionDialogApi from './features/batch-section-deletion/batch-section-deletion-dialog.js';
 
 const createMainLog = createLoggerFactory('MAIN');
 const log = createMainLog();

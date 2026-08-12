@@ -1,4 +1,4 @@
-import * as baseApi from './batch-user-management.js';
+import * as baseApi from '../batch-user-management/batch-user-management.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 const OPERATION_TYPE = 'batch_user_onboarding';
@@ -1318,4 +1318,4 @@ export {
     parseMarathonId,
     parseEmailInput,
     loadAllPupils
-} from './batch-user-management.js';
+} from '../batch-user-management/batch-user-management.js';
