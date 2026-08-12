@@ -1,5 +1,8 @@
 import { LitElement, html } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import {
+    componentFoundationStyles,
+    dialogFoundationStyles
+} from '../../../../components/styles/foundations.js';
 import { executionHistoryDialogStyles } from './execution-history-dialog.styles.js';
 
 const EXECUTION_HISTORY_DIALOG_TAG = 'edvibe-toolbox-execution-history-dialog';

@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import TurndownService from 'turndown';
-import { EXPORT_PROGRESS_TAG } from '../components/export-progress-dialog.js';
+import { EXPORT_PROGRESS_TAG } from './export-progress-dialog.js';
 
 const FORBIDDEN_PATH_CHARS = /[\\/:*?"<>|]/g;
 
