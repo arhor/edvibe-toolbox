@@ -1,5 +1,8 @@
 import { LitElement, html } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from './styles/foundations.js';
+import {
+    componentFoundationStyles,
+    dialogFoundationStyles
+} from '../../../../components/styles/foundations.js';
 import { actionRecorderDialogStyles } from './action-recorder-dialog.styles.js';
 
 const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
