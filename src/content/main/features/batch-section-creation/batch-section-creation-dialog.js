@@ -1,5 +1,13 @@
 import { LitElement, html, nothing } from 'lit';
 import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    emptyStateStyles,
+    fieldStyles,
+    noticeStyles,
+    progressStyles
+} from '../../styles/primitives.js';
 import { batchSectionCreationDialogStyles } from './batch-section-creation-dialog.styles.js';
 import { batchSectionImageUploadStyles } from './image-upload/batch-section-image-upload.styles.js';
 import {
@@ -11,7 +19,18 @@ const BATCH_SECTION_DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
 
 class BatchSectionCreationDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, batchSectionCreationDialogStyles, batchSectionImageUploadStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        noticeStyles,
+        progressStyles,
+        emptyStateStyles,
+        batchSectionCreationDialogStyles,
+        batchSectionImageUploadStyles
+    ];
 
     static properties = {
         lessons: {state: true},
@@ -336,7 +355,7 @@ class BatchSectionCreationDialog extends LitElement {
 
     renderBlockField(block, labelText, field, multiline, configurable) {
         return html`
-            <label class="edvibe-batch-section-field">
+            <label class="edvibe-batch-section-field" data-field>
                 <span>${labelText}</span>
                 ${multiline
                     ? html`<textarea data-block-field=${field} .value=${block[field] || ''}
@@ -351,7 +370,7 @@ class BatchSectionCreationDialog extends LitElement {
 
     renderImageFields(block, configurable) {
         return html`
-            <label class="edvibe-batch-section-field">
+            <label class="edvibe-batch-section-field" data-field>
                 <span>Файл изображения</span>
                 <input class="edvibe-batch-section-file-input" type="file" accept="image/*"
                     ?disabled=${!configurable}
@@ -360,11 +379,11 @@ class BatchSectionCreationDialog extends LitElement {
             ${block.fileName ? html`
                 <div class="edvibe-batch-section-file-details">
                     <span>${block.fileName} · ${formatFileSize(block.fileSize)}</span>
-                    <button type="button" ?disabled=${!configurable}
+                    <button type="button" data-control="secondary" ?disabled=${!configurable}
                         @click=${() => this.onClearImage(block)}>Убрать файл</button>
                 </div>
             ` : nothing}
-            ${block.fileError ? html`<p class="edvibe-batch-section-file-error">${block.fileError}</p>` : nothing}
+            ${block.fileError ? html`<p class="edvibe-batch-section-file-error" data-notice="danger">${block.fileError}</p>` : nothing}
             ${block.previewUrl ? html`
                 <img class="edvibe-batch-section-image-preview" src=${block.previewUrl}
                     alt=${block.alt || 'Предпросмотр изображения'}>
@@ -378,13 +397,13 @@ class BatchSectionCreationDialog extends LitElement {
             <article class="edvibe-batch-section-block" data-block-id=${block.id}>
                 <header>
                     <strong>${index + 1}. ${this.blockLabel(block.type)}</strong>
-                    <div class="edvibe-batch-section-block-actions">
-                        <button type="button" data-block-action="up" ?disabled=${!configurable || index === 0}
+                    <div class="edvibe-batch-section-block-actions" data-part="actions">
+                        <button type="button" data-control="secondary" data-block-action="up" ?disabled=${!configurable || index === 0}
                             @click=${() => this.onBlockAction(block.id, 'up')}>↑</button>
-                        <button type="button" data-block-action="down"
+                        <button type="button" data-control="secondary" data-block-action="down"
                             ?disabled=${!configurable || index === this.blocks.length - 1}
                             @click=${() => this.onBlockAction(block.id, 'down')}>↓</button>
-                        <button type="button" data-block-action="remove" ?disabled=${!configurable}
+                        <button type="button" data-control="danger" data-block-action="remove" ?disabled=${!configurable}
                             @click=${() => this.onBlockAction(block.id, 'remove')}>Удалить</button>
                     </div>
                 </header>
@@ -408,7 +427,7 @@ class BatchSectionCreationDialog extends LitElement {
     renderRecipeState() {
         if (this.recipeReady) return nothing;
         return html`
-            <section class="edvibe-batch-section-protocol">
+            <section class="edvibe-batch-section-protocol" data-notice="warning">
                 <strong>Запись WebSocket ещё не подключена.</strong>
                 <p>${this.recipeErrors[0]?.message
                     || 'Создание будет заблокировано, пока запись не преобразована в проверенный рецепт.'}</p>
@@ -419,7 +438,7 @@ class BatchSectionCreationDialog extends LitElement {
     renderErrors() {
         if (this.errors.length === 0) return nothing;
         return html`
-            <section class="edvibe-batch-section-errors" aria-live="polite">
+            <section class="edvibe-batch-section-errors" data-notice="danger" aria-live="polite">
                 <h3>Что нужно исправить</h3>
                 <ul>${this.errors.map((error) => html`<li>${error.code}: ${error.message}</li>`)}</ul>
             </section>
@@ -441,7 +460,7 @@ class BatchSectionCreationDialog extends LitElement {
         const plan = this.currentPlan;
         if (!plan) return nothing;
         return html`
-            <section class="edvibe-batch-section-summary" aria-live="polite">
+            <section class="edvibe-batch-section-summary" data-notice aria-live="polite">
                 <h3>Предварительный план</h3>
                 <ul>
                     <li>Выбрано уроков: ${plan.selectedLessonIds.length}</li>
@@ -474,7 +493,7 @@ class BatchSectionCreationDialog extends LitElement {
                     `)}
                 </div>
                 ${this.fatalResultError ? html`
-                    <p class="edvibe-batch-section-fatal-note">
+                    <p class="edvibe-batch-section-fatal-note" data-notice="danger">
                         ${this.fatalResultError.code || 'INTERNAL_ERROR'}: ${this.fatalResultError.message}
                     </p>
                 ` : nothing}
@@ -488,47 +507,47 @@ class BatchSectionCreationDialog extends LitElement {
         const canPreflight = this.canPreflight();
 
         return html`
-<div class="edvibe-batch-section-overlay" @click=${this.onBackdrop}>
-                <section class="edvibe-batch-section-card" role="dialog" aria-modal="true"
+            <div class="edvibe-batch-section-overlay" data-part="overlay" @click=${this.onBackdrop}>
+                <section class="edvibe-batch-section-card" data-part="dialog" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-section-title">
                     <header class="edvibe-batch-section-header">
                         <div><p class="edvibe-batch-section-eyebrow">Edvibe Toolbox</p>
                             <h2 id="edvibe-batch-section-title">Создать раздел в нескольких уроках</h2>
                             <p class="edvibe-batch-section-description">Соберите раздел один раз, проверьте план и примените его к выбранным урокам.</p></div>
-                        <button class="edvibe-batch-section-close" type="button" aria-label="Закрыть"
+                        <button class="edvibe-batch-section-close" data-control="secondary" type="button" aria-label="Закрыть"
                             ?disabled=${busy} @click=${() => this.close()}>&times;</button>
                     </header>
                     <div class="edvibe-batch-section-body">
                         <section class="edvibe-batch-section-configure" ?hidden=${!configurable}>
                             <div class="edvibe-batch-section-grid">
                                 <div class="edvibe-batch-section-column">
-                                    <label class="edvibe-batch-section-field"><span>Название раздела</span>
+                                    <label class="edvibe-batch-section-field" data-field><span>Название раздела</span>
                                         <input class="edvibe-batch-section-name" type="text" maxlength="200"
                                             autocomplete="off" placeholder="Например, Летняя акция"
                                             .value=${this.sectionName} ?disabled=${!configurable}
                                             @input=${(event) => { this.sectionName = event.currentTarget.value; }}></label>
                                     <div class="edvibe-batch-section-heading-row"><div><h3>Уроки</h3><p>Выберите все уроки, куда нужно добавить раздел.</p></div>
-                                        <div class="edvibe-batch-section-selection-actions">
-                                            <button class="edvibe-batch-section-select-all" type="button" ?disabled=${!configurable} @click=${this.onSelectAll}>Выбрать все</button>
-                                            <button class="edvibe-batch-section-clear-all" type="button" ?disabled=${!configurable} @click=${this.onClearAll}>Очистить</button>
+                                        <div class="edvibe-batch-section-selection-actions" data-part="actions">
+                                            <button class="edvibe-batch-section-select-all" data-control="secondary" type="button" ?disabled=${!configurable} @click=${this.onSelectAll}>Выбрать все</button>
+                                            <button class="edvibe-batch-section-clear-all" data-control="secondary" type="button" ?disabled=${!configurable} @click=${this.onClearAll}>Очистить</button>
                                         </div></div>
                                     <div class="edvibe-batch-section-lessons" aria-label="Список уроков">
                                         ${this.lessons.length
                                             ? this.lessons.map((lesson) => this.renderLesson(lesson, configurable))
-                                            : html`<p class="edvibe-batch-section-empty">Уроки не найдены.</p>`}
+                                            : html`<p class="edvibe-batch-section-empty" data-part="empty-state">Уроки не найдены.</p>`}
                                     </div>
                                 </div>
                                 <div class="edvibe-batch-section-column">
                                     <div class="edvibe-batch-section-heading-row"><div><h3>Конструктор</h3><p>Порядок блоков сохранится при выполнении.</p></div></div>
-                                    <div class="edvibe-batch-section-add-actions" role="group" aria-label="Добавить блок">
+                                    <div class="edvibe-batch-section-add-actions" data-part="actions" role="group" aria-label="Добавить блок">
                                         ${[['image', '+ Баннер'], ['text', '+ Текст'], ['link', '+ Ссылка']].map(([type, label]) => html`
-                                            <button type="button" data-add-block=${type} ?disabled=${!configurable}
+                                            <button type="button" data-control="secondary" data-add-block=${type} ?disabled=${!configurable}
                                                 @click=${() => this.onAddBlock(type)}>${label}</button>`)}
                                     </div>
                                     <div class="edvibe-batch-section-blocks">
                                         ${this.blocks.length
                                             ? this.blocks.map((block, index) => this.renderBlock(block, index, configurable))
-                                            : html`<p class="edvibe-batch-section-empty">Добавьте баннер, текст или ссылку.</p>`}
+                                            : html`<p class="edvibe-batch-section-empty" data-part="empty-state">Добавьте баннер, текст или ссылку.</p>`}
                                     </div>
                                     <section class="edvibe-batch-section-preview" aria-live="polite">
                                         <h3>Предпросмотр структуры</h3>
@@ -549,16 +568,16 @@ class BatchSectionCreationDialog extends LitElement {
                     </div>
                     <div class="edvibe-batch-section-live-region">
                         <span class="edvibe-batch-section-spinner" role="img" aria-label="Выполняется операция" ?hidden=${!busy}></span>
-                        <p class="edvibe-batch-section-status" data-state=${this.statusState} role="status" aria-live="polite">${this.statusMessage}</p>
-                        <progress class="edvibe-batch-section-progress" max=${this.progress.total}
+                        <p class="edvibe-batch-section-status" data-part="status" data-state=${this.statusState} role="status" aria-live="polite">${this.statusMessage}</p>
+                        <progress class="edvibe-batch-section-progress" data-part="progress" max=${this.progress.total}
                             value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress>
                     </div>
-                    <footer class="edvibe-batch-section-footer">
-                        <button class="edvibe-batch-section-copy" type="button" ?hidden=${this.mode !== 'complete'} @click=${this.onCopy}>Копировать отчёт</button>
-                        <button class="edvibe-batch-section-restart" type="button" ?hidden=${this.mode !== 'complete'} @click=${this.onRestart}>Создать другой раздел</button>
-                        <button class="edvibe-batch-section-confirm" type="button" ?hidden=${this.mode !== 'confirm'}
+                    <footer class="edvibe-batch-section-footer" data-part="actions">
+                        <button class="edvibe-batch-section-copy" data-control="secondary" type="button" ?hidden=${this.mode !== 'complete'} @click=${this.onCopy}>Копировать отчёт</button>
+                        <button class="edvibe-batch-section-restart" data-control="secondary" type="button" ?hidden=${this.mode !== 'complete'} @click=${this.onRestart}>Создать другой раздел</button>
+                        <button class="edvibe-batch-section-confirm" data-control type="button" ?hidden=${this.mode !== 'confirm'}
                             ?disabled=${!this.recipeReady || !this.currentPlan?.eligible?.length} @click=${this.onConfirm}>Подтвердить создание</button>
-                        <button class="edvibe-batch-section-preflight" type="button" ?hidden=${!configurable}
+                        <button class="edvibe-batch-section-preflight" data-control type="button" ?hidden=${!configurable}
                             ?disabled=${!canPreflight} @click=${this.onPreflight}>Проверить план</button>
                     </footer>
                 </section>
