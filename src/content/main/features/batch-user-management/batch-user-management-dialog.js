@@ -1,12 +1,28 @@
 import { LitElement, html } from 'lit';
 import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import {
+    controlStyles,
+    dialogShellStyles,
+    fieldStyles,
+    noticeStyles,
+    progressStyles
+} from '../../styles/primitives.js';
 import { batchUserManagementDialogStyles } from './batch-user-management-dialog.styles.js';
 
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
 const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
 
 class BatchUserManagementDialog extends LitElement {
-    static styles = [componentFoundationStyles, dialogFoundationStyles, batchUserManagementDialogStyles];
+    static styles = [
+        componentFoundationStyles,
+        dialogFoundationStyles,
+        dialogShellStyles,
+        controlStyles,
+        fieldStyles,
+        noticeStyles,
+        progressStyles,
+        batchUserManagementDialogStyles
+    ];
 
     static properties = {
         rows: {state: true},
@@ -258,35 +274,37 @@ class BatchUserManagementDialog extends LitElement {
         const locked = this.isLocked();
         const statusClass = `edvibe-batch-user-management-status${this.statusError ? ' is-error' : ''}`;
         return html`
-<div class="edvibe-batch-user-management-overlay" @click=${this.handleBackdropClick}>
-                <section class="edvibe-batch-user-management-card" role="dialog" aria-modal="true"
+            <div class="edvibe-batch-user-management-overlay" data-part="overlay" @click=${this.handleBackdropClick}>
+                <section class="edvibe-batch-user-management-card" data-part="dialog" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-user-management-title">
                     <header class="edvibe-batch-user-management-header">
                         <div><h2 id="edvibe-batch-user-management-title">Управление пользователями</h2>
                             <p class="edvibe-batch-user-management-description">Снимите кураторов и удалите пользователей по списку email.</p></div>
-                        <button class="edvibe-batch-user-management-close" type="button" aria-label="Закрыть"
+                        <button class="edvibe-batch-user-management-close" data-control="secondary" type="button" aria-label="Закрыть"
                             ?disabled=${!this.canClose()} @click=${() => this.close()}>&times;</button>
                     </header>
                     <div class="edvibe-batch-user-management-body">
                         <section class="edvibe-batch-user-management-configure">
-                            <label for="edvibe-batch-user-management-emails">Email пользователей</label>
-                            <textarea id="edvibe-batch-user-management-emails" class="edvibe-batch-user-management-emails"
-                                rows="5" placeholder="user@example.com" .value=${this.emailInput}
-                                ?disabled=${locked || completed || this.mode === 'fatal-error'} @input=${this.handleInput}></textarea>
-                            <div class="edvibe-batch-user-management-email-state" aria-live="polite">
-                                <span class="edvibe-batch-user-management-email-count">Уникальных email: ${this.emailState.validCount}</span>
-                                <span class="edvibe-batch-user-management-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
+                            <div class="edvibe-batch-user-management-email-field" data-field>
+                                <label for="edvibe-batch-user-management-emails">Email пользователей</label>
+                                <textarea id="edvibe-batch-user-management-emails" class="edvibe-batch-user-management-emails"
+                                    rows="5" placeholder="user@example.com" .value=${this.emailInput}
+                                    ?disabled=${locked || completed || this.mode === 'fatal-error'} @input=${this.handleInput}></textarea>
+                                <div class="edvibe-batch-user-management-email-state" data-part="help" aria-live="polite">
+                                    <span class="edvibe-batch-user-management-email-count">Уникальных email: ${this.emailState.validCount}</span>
+                                    <span class="edvibe-batch-user-management-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
+                                </div>
                             </div>
                         </section>
-                        <section class="edvibe-batch-user-management-errors" aria-live="polite" ?hidden=${this.errors.length === 0}>
+                        <section class="edvibe-batch-user-management-errors" data-notice="danger" aria-live="polite" ?hidden=${this.errors.length === 0}>
                             ${this.errors.map((error) => html`<p class="edvibe-batch-user-management-error">${error}</p>`)}
                         </section>
                         <section class="edvibe-batch-user-management-table-wrap" ?hidden=${this.rows.length === 0}>
                             <table class="edvibe-batch-user-management-table">
                                 <thead><tr><th scope="col">Пользователь</th>
-                                    <th scope="col">Снять куратора <button class="edvibe-batch-user-management-select-all-unassign" type="button"
+                                    <th scope="col">Снять куратора <button class="edvibe-batch-user-management-select-all-unassign" data-control="secondary" type="button"
                                         ?disabled=${locked || this.rows.length === 0} @click=${() => this.selectAll('unassign', !this.allSelected('unassign'))}>Выбрать все</button></th>
-                                    <th scope="col">Удалить пользователя <button class="edvibe-batch-user-management-select-all-delete" type="button"
+                                    <th scope="col">Удалить пользователя <button class="edvibe-batch-user-management-select-all-delete" data-control="secondary" type="button"
                                         ?disabled=${locked || this.rows.length === 0} @click=${() => this.selectAll('delete', !this.allSelected('delete'))}>Выбрать все</button></th>
                                     <th scope="col">Результат</th></tr></thead>
                                 <tbody class="edvibe-batch-user-management-table-body">${this.rows.map((row) => this.renderRow(row))}</tbody>
@@ -294,16 +312,16 @@ class BatchUserManagementDialog extends LitElement {
                         </section>
                     </div>
                     <div class="edvibe-batch-user-management-live-region">
-                        <p class=${statusClass} role="status" aria-live="polite">${this.statusMessage}</p>
-                        <progress class="edvibe-batch-user-management-progress" max=${this.progress.total}
+                        <p class=${statusClass} data-part="status" role="status" aria-live="polite">${this.statusMessage}</p>
+                        <progress class="edvibe-batch-user-management-progress" data-part="progress" max=${this.progress.total}
                             value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress>
                     </div>
-                    <footer class="edvibe-batch-user-management-footer">
-                        <button class="edvibe-batch-user-management-restart" type="button" ?hidden=${!completed}
+                    <footer class="edvibe-batch-user-management-footer" data-part="actions">
+                        <button class="edvibe-batch-user-management-restart" data-control="secondary" type="button" ?hidden=${!completed}
                             ?disabled=${!completed} @click=${this.handleRestart}>Запустить другую группу</button>
-                        <button class="edvibe-batch-user-management-start" type="button" ?hidden=${this.mode !== 'review'}
+                        <button class="edvibe-batch-user-management-start" data-control type="button" ?hidden=${this.mode !== 'review'}
                             ?disabled=${!this.canStart()} @click=${this.handleStart}>Начать обработку</button>
-                        <button class="edvibe-batch-user-management-check" type="button"
+                        <button class="edvibe-batch-user-management-check" data-control type="button"
                             ?hidden=${!['configure', 'validation-error'].includes(this.mode)} ?disabled=${!this.canCheck()}
                             @click=${this.handleCheck}>Проверить пользователей</button>
                     </footer>
