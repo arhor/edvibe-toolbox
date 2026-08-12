@@ -9,6 +9,13 @@ export const dialogShellStyles = css`
         place-items: center;
         padding: 16px;
         background: var(--edvibe-overlay);
+        box-sizing: border-box;
+    }
+
+    [data-part="overlay"] *,
+    [data-part="overlay"] *::before,
+    [data-part="overlay"] *::after {
+        box-sizing: border-box;
     }
 
     [data-part="dialog"] {
