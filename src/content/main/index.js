@@ -1,43 +1,43 @@
-import { createLoggerFactory } from '../shared/logger.js';
+import { createLoggerFactory } from '../../shared/logger.js';
 import {
     WINDOW_MESSAGE_TYPES,
     createExportStatusMessage,
     isMainCommandMessage
-} from '../shared/message-protocol.js';
+} from '../../shared/message-protocol.js';
 
-import * as transportApi from '../shared/websocket-transport.js';
-import * as operationGuardApi from '../shared/operation-guard.js';
-import * as indexedDbApi from '../shared/indexeddb.js';
-import * as historyRepositoryApi from '../shared/execution-history-repository.js';
-import * as historyRetentionApi from '../shared/execution-history-retention.js';
-import * as historyExportApi from '../shared/execution-history-export.js';
-import * as storageBridgeApi from '../shared/chrome-storage-bridge.js';
-import * as historyServiceApi from '../shared/execution-history-service.js';
+import * as transportApi from '../../shared/websocket-transport.js';
+import * as operationGuardApi from '../../shared/operation-guard.js';
+import * as indexedDbApi from '../../shared/indexeddb.js';
+import * as historyRepositoryApi from '../../shared/execution-history-repository.js';
+import * as historyRetentionApi from '../../shared/execution-history-retention.js';
+import * as historyExportApi from '../../shared/execution-history-export.js';
+import * as storageBridgeApi from '../../shared/chrome-storage-bridge.js';
+import * as historyServiceApi from '../../shared/execution-history-service.js';
 import '@/components/export-progress-dialog.js';
 import '@/components/reset-lessons-dialog.js';
-import * as historyDialogApi from '../components/execution-history-dialog.js';
-import * as historyFeatureApi from '../features/execution-history.js';
-import * as exportApi from '../features/marathon-export.js';
-import * as resetApi from '../features/reset-lessons.js';
-import * as recorderApi from '../features/action-recorder.js';
-import * as recorderDialogApi from '../components/action-recorder-dialog.js';
-import * as batchAccessApi from '../features/batch-lesson-access.js';
-import * as batchAccessHistoryApi from '../features/batch-lesson-access-history.js';
-import * as batchAccessDialogApi from '../components/batch-lesson-access-dialog.js';
-import * as batchUserManagementApi from '../features/batch-user-management.js';
-import * as batchUserManagementHistoryApi from '../features/batch-user-management-history.js';
-import * as batchUserManagementDialogApi from '../components/batch-user-management-dialog.js';
-import * as batchUserOnboardingApi from '../features/batch-user-onboarding.js';
-import * as batchUserOnboardingDialogApi from '../components/batch-user-onboarding-dialog.js';
-import * as batchSectionCreationApi from '../features/batch-section-creation.js';
-import * as batchSectionCreationHistoryApi from '../features/batch-section-creation-history.js';
-import * as batchSectionCreationDialogApi from '../components/batch-section-creation-dialog.js';
+import * as historyDialogApi from '../../components/execution-history-dialog.js';
+import * as historyFeatureApi from '../../features/execution-history.js';
+import * as exportApi from '../../features/marathon-export.js';
+import * as resetApi from '../../features/reset-lessons.js';
+import * as recorderApi from '../../features/action-recorder.js';
+import * as recorderDialogApi from '../../components/action-recorder-dialog.js';
+import * as batchAccessApi from '../../features/batch-lesson-access.js';
+import * as batchAccessHistoryApi from '../../features/batch-lesson-access-history.js';
+import * as batchAccessDialogApi from '../../components/batch-lesson-access-dialog.js';
+import * as batchUserManagementApi from '../../features/batch-user-management.js';
+import * as batchUserManagementHistoryApi from '../../features/batch-user-management-history.js';
+import * as batchUserManagementDialogApi from '../../components/batch-user-management-dialog.js';
+import * as batchUserOnboardingApi from '../../features/batch-user-onboarding.js';
+import * as batchUserOnboardingDialogApi from '../../components/batch-user-onboarding-dialog.js';
+import * as batchSectionCreationApi from '../../features/batch-section-creation.js';
+import * as batchSectionCreationHistoryApi from '../../features/batch-section-creation-history.js';
+import * as batchSectionCreationDialogApi from '../../components/batch-section-creation-dialog.js';
 import {
     createImageUploadCreationAdapter,
     dynamicImageRecipe
-} from '../features/batch-section-image-upload.js';
-import * as batchSectionDeletionApi from '../features/batch-section-deletion-history.js';
-import * as batchSectionDeletionDialogApi from '../components/batch-section-deletion-dialog.js';
+} from '../../features/batch-section-image-upload.js';
+import * as batchSectionDeletionApi from '../../features/batch-section-deletion-history.js';
+import * as batchSectionDeletionDialogApi from '../../components/batch-section-deletion-dialog.js';
 
 const createMainLog = createLoggerFactory('MAIN');
 const log = createMainLog();
