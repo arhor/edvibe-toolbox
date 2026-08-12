@@ -5,14 +5,14 @@ import {
     isMainCommandMessage
 } from '../../shared/message-protocol.js';
 
-import * as transportApi from '../../shared/websocket-transport.js';
-import * as operationGuardApi from '../../shared/operation-guard.js';
-import * as indexedDbApi from '../../shared/indexeddb.js';
-import * as historyRepositoryApi from '../../shared/execution-history-repository.js';
-import * as historyRetentionApi from '../../shared/execution-history-retention.js';
-import * as historyExportApi from '../../shared/execution-history-export.js';
-import * as storageBridgeApi from '../../shared/chrome-storage-bridge.js';
-import * as historyServiceApi from '../../shared/execution-history-service.js';
+import * as transportApi from './infrastructure/websocket-transport.js';
+import * as operationGuardApi from './infrastructure/operation-guard.js';
+import * as indexedDbApi from './infrastructure/indexeddb.js';
+import * as historyRepositoryApi from './infrastructure/execution-history-repository.js';
+import * as historyRetentionApi from './infrastructure/execution-history-retention.js';
+import * as historyExportApi from './infrastructure/execution-history-export.js';
+import * as storageBridgeApi from './infrastructure/chrome-storage-bridge.js';
+import * as historyServiceApi from './infrastructure/execution-history-service.js';
 import './features/marathon-export/export-progress-dialog.js';
 import './features/reset-lessons/reset-lessons-dialog.js';
 import * as historyDialogApi from './features/execution-history/execution-history-dialog.js';

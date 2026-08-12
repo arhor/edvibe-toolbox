@@ -1,5 +1,5 @@
 import * as coreApi from './batch-section-deletion.js';
-import { historyDiagnostics } from '../shared/history-diagnostics.js';
+import { historyDiagnostics } from '../content/main/infrastructure/history-diagnostics.js';
 
 const OPERATION_TYPE = 'batch-section-deletion';
 const TERMINAL_STATUSES = new Set([
