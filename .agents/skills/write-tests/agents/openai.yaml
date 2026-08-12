@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Tests"
+  short_description: "Write consistently structured automated tests"
+  default_prompt: "Use $write-tests to add or update tests for this change."
