@@ -108,7 +108,11 @@ export const fieldStyles = css`
         font: inherit;
     }
 
-    [data-part="help"] { color: var(--edvibe-text-muted); font-size: 11px; }
+    [data-part="help"] {
+        color: var(--edvibe-text-muted);
+        font-size: 11px;
+        line-height: 1.4;
+    }
 `;
 
 export const noticeStyles = css`
@@ -122,14 +126,34 @@ export const noticeStyles = css`
         line-height: 1.45;
     }
 
-    [data-notice="success"] { border-color: var(--edvibe-success-border); color: var(--edvibe-success); background: var(--edvibe-success-surface); }
-    [data-notice="warning"] { border-color: var(--edvibe-warning-border); color: var(--edvibe-warning); background: var(--edvibe-warning-surface); }
-    [data-notice="danger"] { border-color: var(--edvibe-danger-border); color: var(--edvibe-danger); background: var(--edvibe-danger-surface); }
+    [data-notice="success"] {
+        border-color: var(--edvibe-success-border);
+        color: var(--edvibe-success);
+        background: var(--edvibe-success-surface);
+    }
+
+    [data-notice="warning"] {
+        border-color: var(--edvibe-warning-border);
+        color: var(--edvibe-warning);
+        background: var(--edvibe-warning-surface);
+    }
+
+    [data-notice="danger"] {
+        border-color: var(--edvibe-danger-border);
+        color: var(--edvibe-danger);
+        background: var(--edvibe-danger-surface);
+    }
 `;
 
 export const progressStyles = css`
-    [data-part="progress"] { accent-color: var(--edvibe-primary); }
-    [data-part="status"] { color: var(--edvibe-text-muted); font-size: 12px; }
+    [data-part="progress"] {
+        accent-color: var(--edvibe-primary);
+    }
+
+    [data-part="status"] {
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+    }
 `;
 
 export const emptyStateStyles = css`

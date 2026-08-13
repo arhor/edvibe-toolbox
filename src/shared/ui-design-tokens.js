@@ -41,5 +41,7 @@ export function createDesignTokenDeclarations(tokens = TOOLBOX_DESIGN_TOKENS) {
 }
 
 export function applyDesignTokens(target, tokens = TOOLBOX_DESIGN_TOKENS) {
-    for (const [name, value] of Object.entries(tokens)) target.style.setProperty(name, value);
+    for (const [name, value] of Object.entries(tokens)) {
+        target.style.setProperty(name, value);
+    }
 }

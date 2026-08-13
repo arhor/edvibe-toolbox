@@ -123,7 +123,11 @@
         font: inherit;
     }
 
-    [data-part="help"] { color: var(--edvibe-text-muted); font-size: 11px; }
+    [data-part="help"] {
+        color: var(--edvibe-text-muted);
+        font-size: 11px;
+        line-height: 1.4;
+    }
 `,vn=W`
     [data-notice] {
         padding: 10px 12px;
@@ -135,12 +139,32 @@
         line-height: 1.45;
     }
 
-    [data-notice="success"] { border-color: var(--edvibe-success-border); color: var(--edvibe-success); background: var(--edvibe-success-surface); }
-    [data-notice="warning"] { border-color: var(--edvibe-warning-border); color: var(--edvibe-warning); background: var(--edvibe-warning-surface); }
-    [data-notice="danger"] { border-color: var(--edvibe-danger-border); color: var(--edvibe-danger); background: var(--edvibe-danger-surface); }
+    [data-notice="success"] {
+        border-color: var(--edvibe-success-border);
+        color: var(--edvibe-success);
+        background: var(--edvibe-success-surface);
+    }
+
+    [data-notice="warning"] {
+        border-color: var(--edvibe-warning-border);
+        color: var(--edvibe-warning);
+        background: var(--edvibe-warning-surface);
+    }
+
+    [data-notice="danger"] {
+        border-color: var(--edvibe-danger-border);
+        color: var(--edvibe-danger);
+        background: var(--edvibe-danger-surface);
+    }
 `,yn=W`
-    [data-part="progress"] { accent-color: var(--edvibe-primary); }
-    [data-part="status"] { color: var(--edvibe-text-muted); font-size: 12px; }
+    [data-part="progress"] {
+        accent-color: var(--edvibe-primary);
+    }
+
+    [data-part="status"] {
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+    }
 `,bn=W`
     [data-part="empty-state"] {
         padding: 24px;
@@ -150,55 +174,54 @@
         text-align: center;
     }
 `,xn=W`
-.card {
-    width: min(630px, calc(100vw - 32px));
-    padding: 24px;
-}
+    .card {
+        width: min(630px, calc(100vw - 32px));
+        padding: 24px;
+    }
 
-h2 {
-    margin: 0 0 8px;
-    color: var(--edvibe-text-strong);
-    font-size: 20px;
-    line-height: 1.3;
-}
+    h2 {
+        margin: 0 0 8px;
+        color: var(--edvibe-text-strong);
+        font-size: 20px;
+        line-height: 1.3;
+    }
 
-.status {
-    min-height: 40px;
-    margin: 0 0 16px;
-    font-size: 14px;
-    line-height: 1.4;
-    white-space: pre-line;
-}
+    .status {
+        min-height: 40px;
+        margin: 0 0 16px;
+        font-size: 14px;
+        line-height: 1.4;
+        white-space: pre-line;
+    }
 
-.progress {
-    height: 12px;
-}
+    .progress {
+        height: 12px;
+    }
 
-:host([error]) .progress {
-    accent-color: var(--edvibe-danger);
-}
+    :host([error]) .progress {
+        accent-color: var(--edvibe-danger);
+    }
 
-.meta {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 10px;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-}
+    .meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 10px;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+    }
 
-.close {
-    display: none;
-    width: 100%;
-    margin-top: 18px;
-    font-size: 13px;
-}
+    .close {
+        display: none;
+        width: 100%;
+        margin-top: 18px;
+        font-size: 13px;
+    }
 
-:host([complete]) .close,
-:host([error]) .close {
-    display: block;
-}
-
+    :host([complete]) .close,
+    :host([error]) .close {
+        display: block;
+    }
 `,Sn=`edvibe-toolbox-export-progress`,Cn=class extends ln{static styles=[pn,mn,hn,gn,yn,xn];static properties={statusText:{state:!0},loadedSections:{state:!0},totalSections:{state:!0},countText:{state:!0},progressState:{state:!0}};constructor(){super(),this.statusText=`Preparing export...`,this.loadedSections=0,this.totalSections=0,this.countText=void 0,this.progressState=`loading`}setProgress(e={}){e=e&&typeof e==`object`?e:{};let{statusText:t=``,loadedSections:n=0,totalSections:r=0,countText:i,state:a=`loading`}=e;return this.statusText=String(t||``),this.loadedSections=Number(n)||0,this.totalSections=Number(r)||0,this.countText=i,this.progressState=String(a||`loading`),this.syncHostState(),this}syncHostState(){let e=this.totalSections>0;this.toggleAttribute(`indeterminate`,!e&&this.progressState===`loading`),this.toggleAttribute(`complete`,this.progressState===`complete`),this.toggleAttribute(`error`,this.progressState===`error`)}complete(e,t){return this.setProgress({statusText:e,loadedSections:t,totalSections:t,state:`complete`})}error(e){return this.setProgress({statusText:e,state:`error`})}dismissAfter(e){let t=Number.isFinite(Number(e))?Math.max(0,Number(e)):0;setTimeout(()=>this.remove(),t)}render(){let e=this.totalSections>0,t=this.progressState===`complete`?100:e?Math.min(100,Math.round(this.loadedSections/this.totalSections*100)):0,n=this.countText??(e?`${this.loadedSections} / ${this.totalSections} sections loaded`:this.progressState===`complete`?`Export complete`:`Discovering sections...`),r=e||this.progressState===`complete`?t:K;return G`
             <div class="overlay" data-part="overlay">
                 <section class="card" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="export-progress-title">
@@ -213,259 +236,258 @@ h2 {
                 </section>
             </div>
         `}};customElements.get(`edvibe-toolbox-export-progress`)||customElements.define(Sn,Cn);var wn=W`
-:host([hidden]) {
-    display: none !important;
-}
-
-:host(.is-running) .edvibe-reset-body {
-    display: none;
-}
-
-[hidden] {
-    display: none !important;
-}
-
-.edvibe-reset-card {
-    display: flex;
-    flex-direction: column;
-    width: min(760px, calc(100vw - 32px));
-    max-height: min(820px, calc(100vh - 32px));
-    padding: 24px;
-}
-
-.edvibe-reset-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.edvibe-reset-title {
-    margin: 0;
-    color: var(--edvibe-text-strong);
-    font-size: 21px;
-    line-height: 1.3;
-}
-
-.edvibe-reset-subtitle {
-    margin: 5px 0 0;
-    color: var(--edvibe-text-muted);
-    font-size: 13px;
-}
-
-.edvibe-reset-step-indicator {
-    margin-right: 8px;
-    color: var(--edvibe-primary);
-    font-weight: 700;
-}
-
-.edvibe-reset-close {
-    min-width: 36px;
-    padding: 0;
-    font-size: 24px;
-    line-height: 1;
-}
-
-.edvibe-reset-body {
-    flex: 1 1 auto;
-    overflow: auto;
-    min-height: 0;
-    margin-top: 18px;
-}
-
-.edvibe-reset-search-field {
-    font-size: 13px;
-}
-
-.edvibe-reset-label {
-    display: block;
-    margin-bottom: 7px;
-    color: var(--edvibe-text);
-    font-size: 13px;
-    font-weight: 650;
-}
-
-.edvibe-reset-list {
-    overflow: auto;
-    max-height: 250px;
-    margin-top: 10px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-}
-
-.edvibe-reset-pupils-shell {
-    position: relative;
-}
-
-.edvibe-reset-pupils-shell.is-loading {
-    min-height: 96px;
-}
-
-.edvibe-reset-pupils-shell.is-loading .edvibe-reset-pupils {
-    opacity: .45;
-    pointer-events: none;
-}
-
-.edvibe-reset-pupils-loading {
-    position: absolute;
-    inset: 10px 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    border-radius: var(--edvibe-radius-panel);
-    background: color-mix(in srgb, var(--edvibe-surface) 72%, transparent);
-    color: var(--edvibe-text);
-    font-size: 13px;
-    font-weight: 650;
-}
-
-.edvibe-reset-spinner {
-    width: 22px;
-    height: 22px;
-    border: 3px solid var(--edvibe-info-border);
-    border-top-color: var(--edvibe-primary);
-    border-radius: 50%;
-    animation: edvibe-reset-spinner-rotate .8s linear infinite;
-}
-
-.edvibe-reset-row {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 12px;
-    border: 0;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    background: var(--edvibe-surface);
-    color: var(--edvibe-text);
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-
-.edvibe-reset-row:last-child {
-    border-bottom: 0;
-}
-
-.edvibe-reset-row:hover,
-.edvibe-reset-row.is-selected {
-    background: var(--edvibe-info-surface);
-}
-
-.edvibe-reset-row:focus-visible {
-    outline: 3px solid var(--edvibe-focus-outline);
-    outline-offset: -3px;
-}
-
-.edvibe-reset-row:disabled {
-    cursor: not-allowed;
-    opacity: .58;
-}
-
-.edvibe-reset-row-copy {
-    min-width: 0;
-}
-
-.edvibe-reset-row-name,
-.edvibe-reset-row-email {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.edvibe-reset-row-name {
-    font-size: 14px;
-    font-weight: 650;
-}
-
-.edvibe-reset-row-email {
-    margin-top: 2px;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-}
-
-.edvibe-reset-select-all {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 13px;
-    font-weight: 650;
-}
-
-.edvibe-reset-select-all input:disabled {
-    cursor: not-allowed;
-    opacity: .58;
-}
-
-.edvibe-reset-lesson {
-    align-items: flex-start;
-    cursor: default;
-}
-
-.edvibe-reset-lesson input {
-    margin-top: 3px;
-}
-
-.edvibe-reset-empty {
-    margin: 0;
-}
-
-.edvibe-reset-status {
-    min-height: 38px;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.4;
-    white-space: pre-line;
-}
-
-.edvibe-reset-live-region {
-    flex: 0 0 auto;
-    padding-top: 16px;
-}
-
-.edvibe-reset-status.is-error {
-    color: var(--edvibe-danger);
-}
-
-.edvibe-reset-status.is-success {
-    color: var(--edvibe-success);
-}
-
-.edvibe-reset-progress {
-    display: none;
-    height: 11px;
-    margin-top: 10px;
-    accent-color: var(--edvibe-danger);
-}
-
-.edvibe-reset-progress.is-visible {
-    display: block;
-}
-
-.edvibe-reset-footer {
-    margin-top: 18px;
-}
-
-.edvibe-reset-button {
-    font-size: 13px;
-}
-
-@keyframes edvibe-reset-spinner-rotate {
-    to {
-        transform: rotate(360deg);
+    :host([hidden]) {
+        display: none !important;
     }
-}
 
-@media (prefers-reduced-motion:reduce) {
+    :host(.is-running) .edvibe-reset-body {
+        display: none;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+
+    .edvibe-reset-card {
+        display: flex;
+        flex-direction: column;
+        width: min(760px, calc(100vw - 32px));
+        max-height: min(820px, calc(100vh - 32px));
+        padding: 24px;
+    }
+
+    .edvibe-reset-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .edvibe-reset-title {
+        margin: 0;
+        color: var(--edvibe-text-strong);
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .edvibe-reset-subtitle {
+        margin: 5px 0 0;
+        color: var(--edvibe-text-muted);
+        font-size: 13px;
+    }
+
+    .edvibe-reset-step-indicator {
+        margin-right: 8px;
+        color: var(--edvibe-primary);
+        font-weight: 700;
+    }
+
+    .edvibe-reset-close {
+        min-width: 36px;
+        padding: 0;
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .edvibe-reset-body {
+        flex: 1 1 auto;
+        overflow: auto;
+        min-height: 0;
+        margin-top: 18px;
+    }
+
+    .edvibe-reset-search-field {
+        font-size: 13px;
+    }
+
+    .edvibe-reset-label {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--edvibe-text);
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .edvibe-reset-list {
+        overflow: auto;
+        max-height: 250px;
+        margin-top: 10px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
+    }
+
+    .edvibe-reset-pupils-shell {
+        position: relative;
+    }
+
+    .edvibe-reset-pupils-shell.is-loading {
+        min-height: 96px;
+    }
+
+    .edvibe-reset-pupils-shell.is-loading .edvibe-reset-pupils {
+        opacity: .45;
+        pointer-events: none;
+    }
+
+    .edvibe-reset-pupils-loading {
+        position: absolute;
+        inset: 10px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border-radius: var(--edvibe-radius-panel);
+        background: color-mix(in srgb, var(--edvibe-surface) 72%, transparent);
+        color: var(--edvibe-text);
+        font-size: 13px;
+        font-weight: 650;
+    }
+
     .edvibe-reset-spinner {
-        animation: none;
+        width: 22px;
+        height: 22px;
+        border: 3px solid var(--edvibe-info-border);
+        border-top-color: var(--edvibe-primary);
+        border-radius: 50%;
+        animation: edvibe-reset-spinner-rotate .8s linear infinite;
     }
-}
 
+    .edvibe-reset-row {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 12px;
+        border: 0;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        background: var(--edvibe-surface);
+        color: var(--edvibe-text);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .edvibe-reset-row:last-child {
+        border-bottom: 0;
+    }
+
+    .edvibe-reset-row:hover,
+    .edvibe-reset-row.is-selected {
+        background: var(--edvibe-info-surface);
+    }
+
+    .edvibe-reset-row:focus-visible {
+        outline: 3px solid var(--edvibe-focus-outline);
+        outline-offset: -3px;
+    }
+
+    .edvibe-reset-row:disabled {
+        cursor: not-allowed;
+        opacity: .58;
+    }
+
+    .edvibe-reset-row-copy {
+        min-width: 0;
+    }
+
+    .edvibe-reset-row-name,
+    .edvibe-reset-row-email {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .edvibe-reset-row-name {
+        font-size: 14px;
+        font-weight: 650;
+    }
+
+    .edvibe-reset-row-email {
+        margin-top: 2px;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+    }
+
+    .edvibe-reset-select-all {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 650;
+    }
+
+    .edvibe-reset-select-all input:disabled {
+        cursor: not-allowed;
+        opacity: .58;
+    }
+
+    .edvibe-reset-lesson {
+        align-items: flex-start;
+        cursor: default;
+    }
+
+    .edvibe-reset-lesson input {
+        margin-top: 3px;
+    }
+
+    .edvibe-reset-empty {
+        margin: 0;
+    }
+
+    .edvibe-reset-status {
+        min-height: 38px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+        white-space: pre-line;
+    }
+
+    .edvibe-reset-live-region {
+        flex: 0 0 auto;
+        padding-top: 16px;
+    }
+
+    .edvibe-reset-status.is-error {
+        color: var(--edvibe-danger);
+    }
+
+    .edvibe-reset-status.is-success {
+        color: var(--edvibe-success);
+    }
+
+    .edvibe-reset-progress {
+        display: none;
+        height: 11px;
+        margin-top: 10px;
+        accent-color: var(--edvibe-danger);
+    }
+
+    .edvibe-reset-progress.is-visible {
+        display: block;
+    }
+
+    .edvibe-reset-footer {
+        margin-top: 18px;
+    }
+
+    .edvibe-reset-button {
+        font-size: 13px;
+    }
+
+    @keyframes edvibe-reset-spinner-rotate {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+        .edvibe-reset-spinner {
+            animation: none;
+        }
+}
 `,Tn=`edvibe-toolbox-reset-dialog`,En=`edvibe-toolbox-reset-overlay`,Dn=class extends ln{static styles=[pn,mn,hn,gn,_n,yn,bn,wn];static properties={currentStep:{state:!0},allPupils:{state:!0},pupilTotal:{state:!0},selectedPupil:{state:!0},lessons:{state:!0},selectedLessonIds:{state:!0},locked:{state:!0},loading:{state:!0},finished:{state:!0},pupilPageLoading:{state:!0},appliedSearchQuery:{state:!0},searchDebouncing:{state:!0},suppressPupilPageLoading:{state:!0},searchValue:{state:!0},statusMessage:{state:!0},statusState:{state:!0},progressVisible:{state:!0},progressIndeterminate:{state:!0},progressValue:{state:!0}};constructor(){super(),this.searchDelay=1e3,this.log=()=>{},this.loadLessons=null,this.loadNextPupils=null,this.currentStep=`user`,this.allPupils=[],this.pupilTotal=0,this.selectedPupil=null,this.loadedPupilId=null,this.lessons=[],this.selectedLessonIds=new Set,this.locked=!1,this.loading=!1,this.finished=!1,this.closed=!1,this.pupilPagePromise=null,this.pupilPageLoading=!1,this.searchTimer=null,this.searchGeneration=0,this.appliedSearchQuery=``,this.searchDebouncing=!1,this.suppressPupilPageLoading=!1,this.searchValue=``,this.statusMessage=``,this.statusState=``,this.progressVisible=!1,this.progressIndeterminate=!1,this.progressValue=0,this.elements=null,this.handleKeydownBound=e=>this.handleKeydown(e)}connectedCallback(){super.connectedCallback(),this.id||=En,this.ownerDocument?.addEventListener(`keydown`,this.handleKeydownBound)}disconnectedCallback(){this.cancelSearch(),this.ownerDocument?.removeEventListener(`keydown`,this.handleKeydownBound),super.disconnectedCallback()}configure(e={}){e=e&&typeof e==`object`?e:{};let{searchDelay:t=1e3,loadLessons:n,loadNextPupils:r,log:i=()=>{}}=e;return this.searchDelay=Number.isFinite(Number(t))?Math.max(0,Number(t)):1e3,this.loadLessons=typeof n==`function`?n:null,this.loadNextPupils=typeof r==`function`?r:null,this.log=typeof i==`function`?i:()=>{},this}updated(){this.cacheElements()}cacheElements(){if(!this.shadowRoot){this.elements=null;return}let e=e=>this.shadowRoot.querySelector(e);this.elements={backdrop:e(`.edvibe-reset-overlay`),search:e(`.edvibe-reset-search`),userStep:e(`.edvibe-reset-user-step`),lessonStep:e(`.edvibe-reset-lesson-step`),pupilsShell:e(`.edvibe-reset-pupils-shell`),pupilsList:e(`.edvibe-reset-pupils`),pupilsLoading:e(`.edvibe-reset-pupils-loading`),lessonsList:e(`.edvibe-reset-lessons`),selectAll:e(`.edvibe-reset-select-all-input`),status:e(`.edvibe-reset-status`),progress:e(`.edvibe-reset-progress`),close:e(`.edvibe-reset-close`),cancel:e(`.edvibe-reset-cancel`),back:e(`.edvibe-reset-back`),next:e(`.edvibe-reset-next`),submit:e(`.edvibe-reset-submit`)}}normalizeSearchQuery(e){return String(e||``).trim().toLowerCase()}filterPupils(e){let t=this.normalizeSearchQuery(e);return t?this.allPupils.filter(e=>String(e.Email||``).toLowerCase().includes(t)):this.allPupils}hasMorePupils(){return this.allPupils.length<this.pupilTotal}hasLoadedLessonsForSelectedPupil(){return!!this.selectedPupil&&this.selectedPupil.PupilId===this.loadedPupilId}isPupilLoadingVisible(){return this.loading||this.pupilPageLoading&&!this.suppressPupilPageLoading}getViewState(){let e=this.loading||this.locked||this.finished;return{showingUsers:this.currentStep===`user`,nextDisabled:e||!this.selectedPupil,backDisabled:this.loading||this.locked,submitDisabled:e||!this.selectedPupil||this.selectedLessonIds.size===0,closeDisabled:this.loading||this.locked}}setStatus(e,t=``){this.statusMessage=String(e||``),this.statusState=t===`error`||t===`success`?t:``}renderState(){this.requestUpdate()}renderPupilLoadingState(){this.requestUpdate()}renderPupils(){this.requestUpdate()}selectPupil(e){this.locked||this.finished||this.isPupilLoadingVisible()||e.PupilId===this.selectedPupil?.PupilId||(e.PupilId!==this.loadedPupilId&&(this.loadedPupilId=null,this.lessons=[],this.selectedLessonIds=new Set),this.selectedPupil=e,this.setStatus(`Выбран пользователь: ${e.Email||`email отсутствует`}`))}renderLessons(){this.requestUpdate()}toggleLesson(e,t){t?this.selectedLessonIds.add(e):this.selectedLessonIds.delete(e),this.requestUpdate()}handleSelectAll(e){let t=e?.currentTarget?.checked??this.elements?.selectAll?.checked;this.selectedLessonIds=t?new Set(this.lessons.map(e=>e.MarathonLessonId)):new Set}handleSearchInput(e){this.searchValue=String(e?.currentTarget?.value??this.searchValue),this.searchGeneration+=1,this.cancelSearchTimer(),this.searchDebouncing=!0,this.suppressPupilPageLoading=!0;let t=this.normalizeSearchQuery(this.searchValue),n=this.searchGeneration;this.searchTimer=globalThis.setTimeout(async()=>{if(!this.isCurrentSearch(n,t))return;this.searchTimer=null;let e=!!(t&&this.filterPupils(t).length===0&&this.hasMorePupils());this.searchDebouncing=!1,(e||!this.pupilPageLoading)&&(this.suppressPupilPageLoading=!1),!(e&&!await this.continueSearch(n,t))&&this.isCurrentSearch(n,t)&&(this.appliedSearchQuery=t)},this.searchDelay)}isCurrentSearch(e,t){return!this.closed&&e===this.searchGeneration&&t===this.normalizeSearchQuery(this.searchValue)}cancelSearchTimer(){this.searchTimer!==null&&(globalThis.clearTimeout(this.searchTimer),this.searchTimer=null)}cancelSearch(){this.searchGeneration+=1,this.cancelSearchTimer()}async continueSearch(e,t){for(;this.isCurrentSearch(e,t)&&this.filterPupils(t).length===0&&this.hasMorePupils();)if(!await this.loadNextPupilPage())return!1;return!0}async loadNextPupilPage(){return this.closed||!this.loadNextPupils||!this.hasMorePupils()?!1:this.pupilPagePromise?this.pupilPagePromise:(this.suppressPupilPageLoading=!1,this.pupilPageLoading=!0,this.pupilPagePromise=(async()=>{try{let e=await this.loadNextPupils();return!this.closed&&(this.allPupils=Array.isArray(e?.pupils)?e.pupils:[],this.pupilTotal=Number(e?.total)||0,this.currentStep===`user`&&!this.loading&&this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`),!0)}catch(e){return!this.closed&&this.currentStep===`user`&&!this.loading&&(this.log(`Failed to load another pupil page (${this.errorType(e)}).`),this.setStatus(e.message,`error`)),!1}finally{this.pupilPagePromise=null,this.pupilPageLoading=!1,this.searchDebouncing||(this.suppressPupilPageLoading=!1)}})(),this.pupilPagePromise)}handlePupilsScroll(e){if(this.searchDebouncing)return;let t=e?.currentTarget||this.elements?.pupilsList;t&&t.scrollHeight-t.scrollTop-t.clientHeight<=24&&this.loadNextPupilPage()}async handleNext(){if(!(this.getViewState().nextDisabled||!this.selectedPupil)){if(this.hasLoadedLessonsForSelectedPupil()){this.currentStep=`lessons`,await this.updateComplete,this.shadowRoot?.querySelector(`.edvibe-reset-lessons`)?.focus();return}if(this.loadLessons)try{this.setLoading(`Загрузка уроков для ${this.selectedPupil.Email}...`);let e=await this.loadLessons(this.selectedPupil);this.showLessons(this.selectedPupil,e)}catch(e){this.loading=!1,this.currentStep=`user`,this.log(`Failed to load lessons for PupilId ${this.selectedPupil.PupilId} (${this.errorType(e)}).`),this.setStatus(e.message,`error`)}}}handleBack(){if(!this.getViewState().backDisabled){if(this.finished){this.resetForAnotherUser();return}this.currentStep=`user`,this.setStatus(`Выбран пользователь: ${this.selectedPupil?.Email||`email отсутствует`}`),this.updateComplete.then(()=>this.shadowRoot?.querySelector(`.edvibe-reset-search`)?.focus())}}handleSubmit(){this.getViewState().submitDisabled||this.dispatchEvent(new CustomEvent(`edvibe-reset-request`,{detail:{pupil:this.selectedPupil,lessons:this.lessons.filter(e=>this.selectedLessonIds.has(e.MarathonLessonId))}}))}handleBackdropClick(e){e.target===e.currentTarget&&this.close()}handleKeydown(e){e.key===`Escape`&&this.close()}close(){this.locked||this.loading||this.closed||(this.closed=!0,this.cancelSearch(),this.dispatchEvent(new CustomEvent(`edvibe-dialog-close`)),this.remove())}resetForAnotherUser(){this.finished=!1,this.currentStep=`user`,this.selectedPupil=null,this.loadedPupilId=null,this.lessons=[],this.selectedLessonIds=new Set,this.searchValue=``,this.appliedSearchQuery=``,this.cancelSearch(),this.searchDebouncing=!1,this.suppressPupilPageLoading=!1,this.progressVisible=!1,this.progressIndeterminate=!1,this.progressValue=0,this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`),this.updateComplete.then(()=>this.shadowRoot?.querySelector(`.edvibe-reset-search`)?.focus())}showPupils(e={}){e=e&&typeof e==`object`?e:{};let t=Array.isArray(e.pupils)?e.pupils:[],n=Number.isFinite(Number(e.total))?Number(e.total):t.length;return this.allPupils=t,this.pupilTotal=n,this.currentStep=`user`,this.loading=!1,this.setStatus(`Загружено пользователей: ${t.length} из ${n}`),this.updateComplete.then(()=>this.shadowRoot?.querySelector(`.edvibe-reset-search`)?.focus()),this}showLessons(e,t){if(!e||typeof e!=`object`)return this;t=Array.isArray(t)?t:[];let n=this.loadedPupilId!==e.PupilId;return this.selectedPupil=e,this.loadedPupilId=e.PupilId,this.lessons=t,n&&(this.selectedLessonIds=new Set),this.loading=!1,this.currentStep=`lessons`,this.setStatus(`Загружено уроков: ${t.length}`),this.updateComplete.then(()=>this.shadowRoot?.querySelector(`.edvibe-reset-lessons`)?.focus()),this}setLoading(e){this.loading=!0,this.setStatus(e)}lock(){this.locked=!0,this.classList.toggle(`is-running`,!0)}completeRun(){this.locked=!1,this.finished=!0,this.classList.toggle(`is-running`,!1)}unlockAfterRun(){this.locked=!1,this.finished=!1,this.classList.toggle(`is-running`,!1)}showDiscovery(e){this.setStatus(e),this.progressVisible=!0,this.progressIndeterminate=!0}showProgress(e={}){e=e&&typeof e==`object`?e:{};let t=Number(e.completed)||0,n=Number(e.total)||0,r=e.lesson&&typeof e.lesson==`object`?e.lesson:{},i=e.exerciseId,a=n>0?Math.round(t/n*100):100,o=i?`Упражнение ${i}`:`Удаление запроса урока`;this.setStatus(`${r.Name||``}\n${o} — ${t} / ${n}`),this.progressVisible=!0,this.progressIndeterminate=!1,this.progressValue=a}showComplete(e){this.setStatus(e,`success`),this.progressVisible=!0,this.progressIndeterminate=!1,this.progressValue=100}showError(e){this.locked||(this.loading=!1),this.setStatus(e,`error`),this.progressIndeterminate=!1}errorType(e){return typeof e?.name==`string`?e.name:`Error`}renderPupilRows(){let e=this.filterPupils(this.appliedSearchQuery);if(e.length===0)return G`<p class="edvibe-reset-empty" data-part="empty-state">Пользователи не найдены.</p>`;let t=this.isPupilLoadingVisible();return e.map(e=>{let n=e.PupilId===this.selectedPupil?.PupilId;return G`<button type="button" class=${`edvibe-reset-row${n?` is-selected`:``}`} role="option" aria-selected=${String(n)} ?disabled=${t||this.locked||this.finished} @click=${()=>this.selectPupil(e)}><span class="edvibe-reset-row-copy"><span class="edvibe-reset-row-name">${e.Name||`Без имени`}</span><span class="edvibe-reset-row-email">${e.Email||`Email отсутствует`}</span></span></button>`})}renderLessonRows(e){return this.lessons.length===0?G`<p class="edvibe-reset-empty" data-part="empty-state">Для пользователя нет уроков.</p>`:this.lessons.map(t=>G`<label class="edvibe-reset-row edvibe-reset-lesson"><input type="checkbox" .value=${String(t.MarathonLessonId)} .checked=${this.selectedLessonIds.has(t.MarathonLessonId)} ?disabled=${e} @change=${e=>this.toggleLesson(t.MarathonLessonId,e.currentTarget.checked)}><span class="edvibe-reset-row-copy"><span class="edvibe-reset-row-name">${Number(t.Number)+1}. ${t.Name}</span><span class="edvibe-reset-row-email">${t.LastRequest?`Статус последнего запроса: ${t.LastRequest.Status}`:`Нет запросов на проверку`}</span></span></label>`)}render(){let e=this.getViewState(),t=this.locked||this.loading||this.finished,n=this.isPupilLoadingVisible(),r=this.lessons.length>0&&this.selectedLessonIds.size===this.lessons.length,i=this.selectedLessonIds.size>0&&this.selectedLessonIds.size<this.lessons.length,a=`edvibe-reset-status${this.statusState===`error`?` is-error`:this.statusState===`success`?` is-success`:``}`,o=`edvibe-reset-progress${this.progressVisible?` is-visible`:``}${this.progressIndeterminate?` is-indeterminate`:``}`,s=this.progressIndeterminate?K:this.progressValue,c=this.selectedPupil?`${this.selectedPupil.Name||`Без имени`} — ${this.selectedPupil.Email||``}`:``;return G`
             <div class="edvibe-reset-overlay" data-part="overlay" @click=${this.handleBackdropClick}>
                 <div class="edvibe-reset-card" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="edvibe-reset-title">
@@ -478,565 +500,564 @@ h2 {
                     <div class="edvibe-reset-footer" data-part="actions"><button class="edvibe-reset-button edvibe-reset-cancel" data-control="secondary" type="button" ?disabled=${e.closeDisabled} @click=${()=>this.close()}>Закрыть</button><button class="edvibe-reset-button edvibe-reset-back" data-control="secondary" type="button" ?hidden=${e.showingUsers} ?disabled=${e.backDisabled} @click=${this.handleBack}>${this.finished?`Сбросить для другого пользователя`:`Назад`}</button><button class="edvibe-reset-button edvibe-reset-next" data-control type="button" ?hidden=${!e.showingUsers} ?disabled=${e.nextDisabled} @click=${this.handleNext}>Далее</button><button class="edvibe-reset-button edvibe-reset-submit" data-control="danger" type="button" ?hidden=${e.showingUsers} ?disabled=${e.submitDisabled} @click=${this.handleSubmit}>Сбросить прогресс</button></div>
                 </div>
             </div>`}};customElements.get(`edvibe-toolbox-reset-dialog`)||customElements.define(Tn,Dn);var On=W`
-:host {
-    --history-accent: var(--edvibe-primary);
-    --history-text: var(--edvibe-text);
-    --history-muted: var(--edvibe-text-muted);
-    --history-border: var(--edvibe-border-subtle);
-    --history-surface: var(--edvibe-surface);
-    color: var(--history-text);
-}
+    :host {
+        --history-accent: var(--edvibe-primary);
+        --history-text: var(--edvibe-text);
+        --history-muted: var(--edvibe-text-muted);
+        --history-border: var(--edvibe-border-subtle);
+        --history-surface: var(--edvibe-surface);
+        color: var(--history-text);
+    }
+
+    .overlay {
+        backdrop-filter: blur(5px);
+    }
 
-.overlay {
-    backdrop-filter: blur(5px);
-}
-
-.dialog {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    width: min(1180px, 96vw);
-    height: min(820px, 94vh);
-    background: var(--edvibe-surface-app);
-}
-
-.dialog-header,
-.dialog-footer {
-    padding: 20px 24px;
-    background: var(--history-surface);
-}
-
-.dialog-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 24px;
-    border-bottom: 1px solid var(--history-border);
-}
-
-.eyebrow {
-    margin: 0 0 4px;
-    color: var(--history-accent);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-}
-
-h2,
-h3,
-h4,
-p {
-    margin: 0;
-}
-
-h2 {
-    font-size: 24px;
-    letter-spacing: -.025em;
-}
-
-.header-copy {
-    margin-top: 5px;
-    color: var(--history-muted);
-    font-size: 13px;
-}
-
-.icon-button {
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    font-size: 25px;
-    line-height: 1;
-}
-
-.workspace {
-    display: grid;
-    grid-template-columns: minmax(340px, 40%) minmax(0, 1fr);
-    min-height: 0;
-}
-
-.browser-panel {
-    display: flex;
-    min-height: 0;
-    flex-direction: column;
-    padding: 18px;
-    border-right: 1px solid var(--history-border);
-}
-
-.filters {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 14px;
-    border: 1px solid var(--history-border);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--history-surface);
-}
-
-.filters [data-field],
-.settings-grid [data-field] {
-    font-size: 11px;
-}
-
-.date-fields {
-    display: grid;
-    grid-column: 1 / -1;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.filter-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-}
-
-button.compact {
-    min-height: 32px;
-    padding: 6px 9px;
-    font-size: 11px;
-}
-
-.list-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 15px 2px 9px;
-}
-
-.list-toolbar strong {
-    font-size: 12px;
-}
-
-.state-card {
-    margin: 0;
-}
-
-.state-card.is-error {
-    border-color: var(--edvibe-danger-border);
-    color: var(--edvibe-danger);
-    background: var(--edvibe-danger-surface);
-}
-
-.record-list {
-    min-height: 0;
-    overflow: auto;
-    padding-right: 4px;
-}
-
-.record-card {
-    display: grid;
-    width: 100%;
-    gap: 5px;
-    margin-bottom: 8px;
-    padding: 13px;
-    border: 1px solid var(--history-border);
-    border-radius: var(--edvibe-radius-card);
-    color: var(--history-text);
-    background: var(--history-surface);
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-
-.record-card:hover,
-.record-card[aria-pressed="true"] {
-    border-color: var(--edvibe-info-border);
-    box-shadow: var(--edvibe-shadow-card);
-}
-
-.record-card:focus-visible,
-summary:focus-visible {
-    outline: 3px solid var(--edvibe-focus-outline);
-    outline-offset: 2px;
-}
-
-.record-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-}
-
-.record-heading strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.status-chip {
-    display: inline-flex;
-    flex: none;
-    padding: 3px 7px;
-    border-radius: var(--edvibe-radius-pill);
-    color: var(--history-muted);
-    background: var(--edvibe-surface-subtle);
-    font-size: 10px;
-    font-weight: 800;
-}
-
-.record-card[data-status="completed"] .status-chip {
-    color: var(--edvibe-success);
-    background: var(--edvibe-success-surface);
-}
-
-.record-card[data-status="completed_with_failures"] .status-chip {
-    color: var(--edvibe-warning);
-    background: var(--edvibe-warning-surface);
-}
-
-.record-card[data-status="interrupted"] .status-chip,
-.record-card[data-status="cancelled"] .status-chip {
-    color: var(--edvibe-danger);
-    background: var(--edvibe-danger-surface);
-}
-
-.record-context,
-.record-outcome,
-time {
-    color: var(--history-muted);
-    font-size: 11px;
-}
-
-time {
-    margin-top: 2px;
-}
-
-.detail-panel {
-    min-width: 0;
-    overflow: auto;
-    padding: 24px;
-    background: var(--history-surface);
-}
-
-.detail-placeholder {
-    display: grid;
-    height: 100%;
-    place-content: center;
-    justify-items: center;
-}
-
-.detail-placeholder span {
-    display: grid;
-    width: 52px;
-    height: 52px;
-    place-items: center;
-    margin-bottom: 12px;
-    border-radius: var(--edvibe-radius-panel);
-    color: var(--history-accent);
-    background: var(--edvibe-info-surface);
-    font-size: 24px;
-}
-
-.detail-placeholder h3 {
-    color: var(--history-text);
-}
-
-.detail-placeholder p {
-    margin-top: 5px;
-    font-size: 12px;
-}
-
-.detail-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: flex-start;
-}
-
-.detail-header h3 {
-    font-size: 20px;
-}
-
-.detail-header p {
-    margin-top: 4px;
-    color: var(--history-muted);
-    font-size: 12px;
-}
-
-.detail-actions {
-    flex-wrap: nowrap;
-}
-
-.summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.summary-grid div {
-    min-width: 0;
-    padding: 12px;
-    border: 1px solid var(--history-border);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface-subtle);
-}
-
-.summary-grid dt {
-    color: var(--history-muted);
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.summary-grid dd {
-    overflow-wrap: anywhere;
-    margin: 5px 0 0;
-    font-size: 12px;
-}
-
-.counts {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-}
-
-.counts div {
-    display: grid;
-    gap: 2px;
-    padding: 11px;
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface-subtle);
-}
-
-.counts strong {
-    font-size: 18px;
-}
-
-.counts span {
-    color: var(--history-muted);
-    font-size: 10px;
-    text-transform: capitalize;
-}
-
-.outcomes {
-    margin-top: 22px;
-}
-
-.outcomes h4 {
-    margin-bottom: 10px;
-}
-
-.outcome-card {
-    margin-bottom: 8px;
-    padding: 12px;
-    border: 1px solid var(--history-border);
-    border-radius: var(--edvibe-radius-panel);
-}
-
-.outcome-card > div {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.outcome-card p {
-    margin-top: 5px;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-    line-height: 1.45;
-}
-
-.outcome-card small {
-    display: block;
-    margin-top: 6px;
-    color: var(--history-muted);
-}
-
-.outcome-card details {
-    margin-top: 9px;
-    color: var(--history-muted);
-    font-size: 11px;
-}
-
-.outcome-card pre {
-    overflow: auto;
-    margin: 7px 0 0;
-    padding: 10px;
-    border-radius: var(--edvibe-radius-control);
-    color: var(--history-text);
-    background: var(--edvibe-surface-subtle);
-    font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
-    white-space: pre-wrap;
-}
-
-.interruptions {
-    margin-bottom: 22px;
-    padding: 14px;
-    border: 1px solid var(--edvibe-danger-border);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-danger-surface);
-}
-
-.interruptions > .muted {
-    margin: -4px 0 10px;
-}
-
-.diagnostics > summary {
-    cursor: pointer;
-    color: var(--edvibe-text-muted);
-    font-weight: 800;
-}
-
-.diagnostic-attempts {
-    display: grid;
-    gap: 10px;
-    margin-top: 9px;
-}
-
-.diagnostic-attempt {
-    min-width: 0;
-    padding: 11px;
-    border: 1px solid var(--history-border);
-    border-radius: var(--edvibe-radius-control);
-    background: var(--edvibe-surface-subtle);
-}
-
-.diagnostic-metadata {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin: 0;
-}
-
-.diagnostic-metadata div {
-    min-width: 0;
-}
-
-.diagnostic-metadata dt,
-.diagnostic-message strong,
-.diagnostic-summaries h5 {
-    color: var(--history-muted);
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.diagnostic-metadata dd {
-    overflow-wrap: anywhere;
-    margin: 2px 0 0;
-    color: var(--history-text);
-}
-
-.diagnostic-message {
-    margin-top: 10px;
-}
-
-.diagnostic-message p {
-    overflow-wrap: anywhere;
-    margin-top: 3px;
-}
-
-.diagnostic-summaries {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.diagnostic-summaries section {
-    min-width: 0;
-}
-
-.diagnostic-summaries h5 {
-    margin: 0;
-}
-
-.diagnostic-summaries pre {
-    max-width: 100%;
-    max-height: 240px;
-    overflow: auto;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    white-space: pre-wrap;
-}
-
-.muted {
-    color: var(--history-muted);
-    font-size: 12px;
-}
-
-.dialog-footer {
-    border-top: 1px solid var(--history-border);
-}
-
-.retention-settings summary {
-    cursor: pointer;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.settings-grid {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr 1.5fr auto;
-    gap: 10px;
-    align-items: end;
-    margin-top: 12px;
-}
-
-.settings-grid label.checkbox {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding-bottom: 9px;
-    color: var(--history-muted);
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.settings-grid label.checkbox input {
-    width: auto;
-}
-
-.footer-actions {
-    margin-top: 14px;
-}
-
-.toast {
-    margin-top: 10px;
-    font-size: 11px;
-}
-
-@media (max-width: 840px) {
     .dialog {
-        width: 100vw;
-        height: 100vh;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        width: min(1180px, 96vw);
+        height: min(820px, 94vh);
+        background: var(--edvibe-surface-app);
     }
 
-    .workspace {
-        grid-template-columns: 1fr;
-        overflow: auto;
+    .dialog-header,
+    .dialog-footer {
+        padding: 20px 24px;
+        background: var(--history-surface);
     }
 
-    .browser-panel {
-        min-height: 450px;
-        border-right: 0;
+    .dialog-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
         border-bottom: 1px solid var(--history-border);
     }
 
-    .detail-panel {
-        min-height: 500px;
+    .eyebrow {
+        margin: 0 0 4px;
+        color: var(--history-accent);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
     }
 
-    .diagnostic-metadata,
+    h2,
+    h3,
+    h4,
+    p {
+        margin: 0;
+    }
+
+    h2 {
+        font-size: 24px;
+        letter-spacing: -.025em;
+    }
+
+    .header-copy {
+        margin-top: 5px;
+        color: var(--history-muted);
+        font-size: 13px;
+    }
+
+    .icon-button {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        font-size: 25px;
+        line-height: 1;
+    }
+
+    .workspace {
+        display: grid;
+        grid-template-columns: minmax(340px, 40%) minmax(0, 1fr);
+        min-height: 0;
+    }
+
+    .browser-panel {
+        display: flex;
+        min-height: 0;
+        flex-direction: column;
+        padding: 18px;
+        border-right: 1px solid var(--history-border);
+    }
+
+    .filters {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid var(--history-border);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--history-surface);
+    }
+
+    .filters [data-field],
+    .settings-grid [data-field] {
+        font-size: 11px;
+    }
+
+    .date-fields {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .filter-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+    }
+
+    button.compact {
+        min-height: 32px;
+        padding: 6px 9px;
+        font-size: 11px;
+    }
+
+    .list-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 2px 9px;
+    }
+
+    .list-toolbar strong {
+        font-size: 12px;
+    }
+
+    .state-card {
+        margin: 0;
+    }
+
+    .state-card.is-error {
+        border-color: var(--edvibe-danger-border);
+        color: var(--edvibe-danger);
+        background: var(--edvibe-danger-surface);
+    }
+
+    .record-list {
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
+    }
+
+    .record-card {
+        display: grid;
+        width: 100%;
+        gap: 5px;
+        margin-bottom: 8px;
+        padding: 13px;
+        border: 1px solid var(--history-border);
+        border-radius: var(--edvibe-radius-card);
+        color: var(--history-text);
+        background: var(--history-surface);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .record-card:hover,
+    .record-card[aria-pressed="true"] {
+        border-color: var(--edvibe-info-border);
+        box-shadow: var(--edvibe-shadow-card);
+    }
+
+    .record-card:focus-visible,
+    summary:focus-visible {
+        outline: 3px solid var(--edvibe-focus-outline);
+        outline-offset: 2px;
+    }
+
+    .record-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .record-heading strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        flex: none;
+        padding: 3px 7px;
+        border-radius: var(--edvibe-radius-pill);
+        color: var(--history-muted);
+        background: var(--edvibe-surface-subtle);
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .record-card[data-status="completed"] .status-chip {
+        color: var(--edvibe-success);
+        background: var(--edvibe-success-surface);
+    }
+
+    .record-card[data-status="completed_with_failures"] .status-chip {
+        color: var(--edvibe-warning);
+        background: var(--edvibe-warning-surface);
+    }
+
+    .record-card[data-status="interrupted"] .status-chip,
+    .record-card[data-status="cancelled"] .status-chip {
+        color: var(--edvibe-danger);
+        background: var(--edvibe-danger-surface);
+    }
+
+    .record-context,
+    .record-outcome,
+    time {
+        color: var(--history-muted);
+        font-size: 11px;
+    }
+
+    time {
+        margin-top: 2px;
+    }
+
+    .detail-panel {
+        min-width: 0;
+        overflow: auto;
+        padding: 24px;
+        background: var(--history-surface);
+    }
+
+    .detail-placeholder {
+        display: grid;
+        height: 100%;
+        place-content: center;
+        justify-items: center;
+    }
+
+    .detail-placeholder span {
+        display: grid;
+        width: 52px;
+        height: 52px;
+        place-items: center;
+        margin-bottom: 12px;
+        border-radius: var(--edvibe-radius-panel);
+        color: var(--history-accent);
+        background: var(--edvibe-info-surface);
+        font-size: 24px;
+    }
+
+    .detail-placeholder h3 {
+        color: var(--history-text);
+    }
+
+    .detail-placeholder p {
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .detail-header h3 {
+        font-size: 20px;
+    }
+
+    .detail-header p {
+        margin-top: 4px;
+        color: var(--history-muted);
+        font-size: 12px;
+    }
+
+    .detail-actions {
+        flex-wrap: nowrap;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .summary-grid div {
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid var(--history-border);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .summary-grid dt {
+        color: var(--history-muted);
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .summary-grid dd {
+        overflow-wrap: anywhere;
+        margin: 5px 0 0;
+        font-size: 12px;
+    }
+
+    .counts {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .counts div {
+        display: grid;
+        gap: 2px;
+        padding: 11px;
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .counts strong {
+        font-size: 18px;
+    }
+
+    .counts span {
+        color: var(--history-muted);
+        font-size: 10px;
+        text-transform: capitalize;
+    }
+
+    .outcomes {
+        margin-top: 22px;
+    }
+
+    .outcomes h4 {
+        margin-bottom: 10px;
+    }
+
+    .outcome-card {
+        margin-bottom: 8px;
+        padding: 12px;
+        border: 1px solid var(--history-border);
+        border-radius: var(--edvibe-radius-panel);
+    }
+
+    .outcome-card > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .outcome-card p {
+        margin-top: 5px;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .outcome-card small {
+        display: block;
+        margin-top: 6px;
+        color: var(--history-muted);
+    }
+
+    .outcome-card details {
+        margin-top: 9px;
+        color: var(--history-muted);
+        font-size: 11px;
+    }
+
+    .outcome-card pre {
+        overflow: auto;
+        margin: 7px 0 0;
+        padding: 10px;
+        border-radius: var(--edvibe-radius-control);
+        color: var(--history-text);
+        background: var(--edvibe-surface-subtle);
+        font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+        white-space: pre-wrap;
+    }
+
+    .interruptions {
+        margin-bottom: 22px;
+        padding: 14px;
+        border: 1px solid var(--edvibe-danger-border);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-danger-surface);
+    }
+
+    .interruptions > .muted {
+        margin: -4px 0 10px;
+    }
+
+    .diagnostics > summary {
+        cursor: pointer;
+        color: var(--edvibe-text-muted);
+        font-weight: 800;
+    }
+
+    .diagnostic-attempts {
+        display: grid;
+        gap: 10px;
+        margin-top: 9px;
+    }
+
+    .diagnostic-attempt {
+        min-width: 0;
+        padding: 11px;
+        border: 1px solid var(--history-border);
+        border-radius: var(--edvibe-radius-control);
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .diagnostic-metadata {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin: 0;
+    }
+
+    .diagnostic-metadata div {
+        min-width: 0;
+    }
+
+    .diagnostic-metadata dt,
+    .diagnostic-message strong,
+    .diagnostic-summaries h5 {
+        color: var(--history-muted);
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .diagnostic-metadata dd {
+        overflow-wrap: anywhere;
+        margin: 2px 0 0;
+        color: var(--history-text);
+    }
+
+    .diagnostic-message {
+        margin-top: 10px;
+    }
+
+    .diagnostic-message p {
+        overflow-wrap: anywhere;
+        margin-top: 3px;
+    }
+
     .diagnostic-summaries {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .diagnostic-summaries section {
+        min-width: 0;
+    }
+
+    .diagnostic-summaries h5 {
+        margin: 0;
+    }
+
+    .diagnostic-summaries pre {
+        max-width: 100%;
+        max-height: 240px;
+        overflow: auto;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+
+    .muted {
+        color: var(--history-muted);
+        font-size: 12px;
+    }
+
+    .dialog-footer {
+        border-top: 1px solid var(--history-border);
+    }
+
+    .retention-settings summary {
+        cursor: pointer;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+        font-weight: 800;
     }
 
     .settings-grid {
-        grid-template-columns: 1fr 1fr;
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr 1.5fr auto;
+        gap: 10px;
+        align-items: end;
+        margin-top: 12px;
     }
-}
 
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition: none !important;
+    .settings-grid label.checkbox {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding-bottom: 9px;
+        color: var(--history-muted);
+        font-size: 11px;
+        font-weight: 700;
     }
-}
 
+    .settings-grid label.checkbox input {
+        width: auto;
+    }
+
+    .footer-actions {
+        margin-top: 14px;
+    }
+
+    .toast {
+        margin-top: 10px;
+        font-size: 11px;
+    }
+
+    @media (max-width: 840px) {
+        .dialog {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .workspace {
+            grid-template-columns: 1fr;
+            overflow: auto;
+        }
+
+        .browser-panel {
+            min-height: 450px;
+            border-right: 0;
+            border-bottom: 1px solid var(--history-border);
+        }
+
+        .detail-panel {
+            min-height: 500px;
+        }
+
+        .diagnostic-metadata,
+        .diagnostic-summaries {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            scroll-behavior: auto !important;
+            transition: none !important;
+        }
+    }
 `,kn=`edvibe-toolbox-execution-history-dialog`,An=Object.freeze({completed:`Completed`,completed_with_failures:`Completed with failures`,cancelled:`Cancelled`,interrupted:`Interrupted`});function jn(e){return An[e]||String(e||`Unknown`)}function Mn(e,t){let n=new Date(e);return Number.isNaN(n.getTime())?String(e||``):new Intl.DateTimeFormat(t||void 0,{dateStyle:`medium`,timeStyle:`short`}).format(n)}function Nn(e){return Object.freeze({title:e.operationType,subtitle:e.pageContext?.marathonName||(e.pageContext?.marathonId?`Marathon #${e.pageContext.marathonId}`:`No marathon context`),outcome:`${e.counts.successful} successful · ${e.counts.failed} failed · ${e.counts.skipped} skipped`})}var Pn=new Set([`failed`,`rejected`,`interrupted`]);function Fn(e){return e==null?`Not available`:JSON.stringify(e,null,2)}function In(e){return Pn.has(e.status)&&!e.itemId}var Ln=class extends ln{static styles=[pn,mn,hn,gn,_n,vn,bn,On];static properties={options:{state:!0},records:{state:!0},selectedRecord:{state:!0},operationTypes:{state:!0},filterOperationType:{state:!0},filterStatus:{state:!0},filterMarathonId:{state:!0},filterFrom:{state:!0},filterTo:{state:!0},listState:{state:!0},listMessage:{state:!0},preferences:{state:!0},toastMessage:{state:!0},toastError:{state:!0}};constructor(){super(),this.options=null,this.records=[],this.selectedRecord=null,this.operationTypes=[],this.filterOperationType=``,this.filterStatus=``,this.filterMarathonId=``,this.filterFrom=``,this.filterTo=``,this.listState=`loading`,this.listMessage=`Loading history…`,this.preferences={mode:`limits`,maxCount:``,maxAgeDays:``,autoExport:!1},this.toastMessage=``,this.toastError=!1,this.initializationPromise=null,this.handleKeydownBound=e=>{e.key===`Escape`&&this.options?.onClose?.()}}configure(e={}){return this.options=e&&typeof e==`object`?e:{},this.isConnected&&this.initialize(),this}connectedCallback(){super.connectedCallback(),this.addEventListener(`keydown`,this.handleKeydownBound),this.initialize()}disconnectedCallback(){this.removeEventListener(`keydown`,this.handleKeydownBound),super.disconnectedCallback()}initialize(){return this.options?(this.initializationPromise||=(async()=>{await this.updateComplete,this.shadowRoot?.querySelector(`[data-action="close"]`)?.focus(),await this.loadPreferences(),await this.loadRecords(),this.options.initialExecutionId&&await this.openRecord(this.options.initialExecutionId)})(),this.initializationPromise):Promise.resolve()}get filters(){let e={operationType:this.filterOperationType,status:this.filterStatus,marathonId:this.filterMarathonId,from:this.filterFrom,to:this.filterTo};return Object.fromEntries(Object.entries(e).filter(([,e])=>e!==``))}setFilter(e,t){let n=String(t||``);e===`operationType`&&(this.filterOperationType=n),e===`status`&&(this.filterStatus=n),e===`marathonId`&&(this.filterMarathonId=n),e===`from`&&(this.filterFrom=n),e===`to`&&(this.filterTo=n)}async loadRecords(){this.listState=`loading`,this.listMessage=`Loading history…`;try{this.records=await this.options.service.list(this.filters),this.operationTypes=[...new Set([...this.operationTypes,...this.records.map(e=>e.operationType)])].sort(),this.listState=this.records.length===0?`empty`:`ready`,this.listMessage=this.records.length===0?`No executions match these filters.`:``}catch(e){this.records=[],this.listState=`error`,this.listMessage=e.message||`Could not load execution history.`}}renderEmptyDetail(){this.selectedRecord=null}async openRecord(e){try{let t=await this.options.service.get(e);if(!t)throw Error(`Execution record was not found.`);this.selectedRecord=t}catch(e){this.showToast(e.message||`Could not open the execution.`,!0)}}async loadPreferences(){try{let e=await this.options.service.getPreferences();this.preferences={mode:e.mode,maxCount:e.maxCount,maxAgeDays:e.maxAgeDays,autoExport:!!e.autoExport}}catch(e){this.showToast(e.message||`Could not load retention settings.`,!0)}}updatePreference(e,t){this.preferences={...this.preferences,[e]:t}}async savePreferences(){let e={mode:this.preferences.mode,maxCount:Number(this.preferences.maxCount),maxAgeDays:Number(this.preferences.maxAgeDays),autoExport:!!this.preferences.autoExport};try{await this.options.service.setPreferences(e),this.showToast(`Retention settings saved.`)}catch(e){this.showToast(e.message||`Could not save retention settings.`,!0)}}async resetFilters(){this.filterOperationType=``,this.filterStatus=``,this.filterMarathonId=``,this.filterFrom=``,this.filterTo=``,await this.loadRecords()}confirm(e){return this.ownerDocument.defaultView.confirm(e)}async runAction(e,t,n){try{await e(),this.showToast(t)}catch(e){this.showToast(e.message||n,!0)}}async runMutation(e,t,n){try{await e(),this.renderEmptyDetail(),await this.loadRecords(),this.showToast(t)}catch(e){this.showToast(e.message||n,!0)}}async handleAction(e){e===`close`&&this.options.onClose?.(),e===`reset-filters`&&await this.resetFilters(),e===`export-filtered`&&await this.runAction(()=>this.options.service.exportFiltered(this.filters),`Filtered history exported.`,`Could not export history.`),e===`download-one`&&this.selectedRecord&&await this.runAction(()=>this.options.service.exportRecord(this.selectedRecord.id),`Execution exported.`,`Could not export execution.`),e===`delete-one`&&this.selectedRecord&&this.confirm(`Delete execution ${this.selectedRecord.id}?`)&&await this.runMutation(()=>this.options.service.delete(this.selectedRecord.id),`Execution deleted.`,`Could not delete the execution.`),e===`clear-all`&&this.confirm(`Clear all execution history? This cannot be undone.`)&&await this.runMutation(()=>this.options.service.clear(),`Execution history cleared.`,`Could not clear execution history.`),e===`save-preferences`&&await this.savePreferences()}showToast(e,t=!1){this.toastMessage=String(e||``),this.toastError=!!t}renderRecord(e){let t=Nn(e);return G`
             <button type="button" class="record-card" data-execution-id=${e.id}
                 data-status=${e.status}
@@ -1241,273 +1262,272 @@ Compressing archive...`:`Processing lesson content and archiving workspace...\n$
 `),`);`].join(`
 `)}function vi(e){let t=e.filter(e=>e.origin===`page`),n=[`// Recorded from Edvibe UI. Review IDs, ordering, and mutation effects before use.`,`// This code is intentionally not executable by the recorder.`,``];return t.forEach((e,r)=>{if(r>0){let i=t[r-1],a=e.startedAfterMs-i.startedAfterMs;a>=250&&n.push(`await wait(${Math.round(a)});`,``)}n.push(_i(e),``)}),n.join(`
 `).trimEnd()}function yi(e,t){let n=new Blob([t],{type:`application/json;charset=utf-8`}),r=URL.createObjectURL(n),i=document.createElement(`a`);i.href=r,i.download=e,document.body.appendChild(i),i.click(),i.remove(),URL.revokeObjectURL(r)}function bi({subscribeFrames:e,createPanel:t,getPageContext:n=()=>hi(window.location),downloadText:r=yi,copyText:i=e=>navigator.clipboard.writeText(e),createId:a=()=>crypto.randomUUID(),now:o=Date.now,setTimeoutFn:s=setTimeout,clearTimeoutFn:c=clearTimeout,limits:l=si,log:u=()=>{}}){if(typeof e!=`function`)throw Error(`Action recorder requires a frame subscription.`);if(typeof t!=`function`)throw Error(`Action recorder requires a panel factory.`);let d={...si,...l},f=`idle`,p=null,m=new Map,h=null,g=null,_=``,v=``;function y(){return{status:f,session:p,copyFallback:_,notice:v,limits:d}}function b(){g?.setState?.(y())}function x(e,t=``){f===`recording`&&(c(h),h=null,f=e,p.stoppedAt=new Date(o()).toISOString(),t&&(p.limits.limitReached=!0,p.limits.reason=t,v=`Recording stopped: ${t}.`),b())}function S(){if(f===`recording`)return;let e=o();f=`recording`,_=``,v=``,m=new Map,p={schemaVersion:1,sessionId:a(),startedAt:new Date(e).toISOString(),stoppedAt:null,page:n(),limits:{maxFrames:d.maxFrames,maxStoredBytes:d.maxStoredBytes,maxDurationMs:d.maxDurationMs,limitReached:!1},frameCount:0,storedBytes:0,operations:[],otherFrames:[],anomalies:[],redactions:[],_startedAtMs:e},h=s(()=>{x(`limit-reached`,`duration limit reached`)},d.maxDurationMs),b()}function C(){x(`stopped`)}function w(){f===`recording`&&(c(h),h=null),f=`idle`,p=null,m=new Map,_=``,v=``,b()}function T(e){return p.frameCount+1>d.maxFrames?`frame limit reached`:p.storedBytes+(e.dataType===`text`?Number(e.byteLength||0):0)>d.maxStoredBytes?`size limit reached`:``}function E(e,t,n){let r={sequence:p.frameCount,direction:e.direction,socketId:e.socketId,origin:e.origin,capturedAfterMs:e.capturedAt-p._startedAtMs,dataType:e.dataType,byteLength:e.byteLength};t!==void 0&&(r.envelope=t),n!==void 0&&(r.rawText=n),p.otherFrames.push(r)}function D(e,t){let n=t.RequestId;if(n===void 0||t.Controller===void 0&&t.Method===void 0&&t.ProjectName===void 0){E(e,t);return}let r=mi(e.socketId,n);if(m.has(r)){p.anomalies.push({type:`duplicate-outbound-request`,socketId:e.socketId,requestId:n}),E(e,t);return}let i={sequence:p.operations.length+1,socketId:e.socketId,origin:e.origin,requestId:n,startedAfterMs:e.capturedAt-p._startedAtMs,durationMs:null,controller:t.Controller||``,method:t.Method||``,projectName:t.ProjectName||``,requestValue:t.Value,response:null,extra:pi(t,new Set([`Controller`,`Method`,`ProjectName`,`RequestId`,`Value`])),_capturedAt:e.capturedAt};p.operations.push(i),m.set(r,i)}function O(e,t){let n=t.RequestId,r=n===void 0?``:mi(e.socketId,n),i=m.get(r);if(!i){E(e,t);return}i.durationMs=Math.max(0,e.capturedAt-i._capturedAt),i.response={isSuccess:typeof t.IsSuccess==`boolean`?t.IsSuccess:null,errorCode:t.ErrorCode??null,value:t.Value,extra:pi(t,new Set([`RequestId`,`IsSuccess`,`ErrorCode`,`Value`]))},m.delete(r)}function k(e){if(f!==`recording`||!p)return;let t=T(e);if(t){x(`limit-reached`,t);return}if(p.frameCount+=1,e.dataType===`text`&&(p.storedBytes+=Number(e.byteLength||0)),e.dataType!==`text`){E(e),b();return}let n=[],r=fi(e.data,n);p.redactions.push(...n.map(e=>({frame:p.frameCount,path:e}))),r.parsed?e.direction===`outbound`?D(e,r.value):O(e,r.value):E(e,void 0,r.value),b()}function A(){return p?{schemaVersion:p.schemaVersion,sessionId:p.sessionId,startedAt:p.startedAt,stoppedAt:p.stoppedAt,page:p.page,limits:p.limits,frameCount:p.frameCount,storedBytes:p.storedBytes,operations:p.operations.map(e=>{let{_capturedAt:t,...n}=e;return n}),otherFrames:p.otherFrames,anomalies:p.anomalies,redactions:p.redactions}:null}function j(){let e=A();if(!e)return;let t=`edvibe-ws-recording-${gi(e.startedAt)}.json`;r(t,JSON.stringify(e,null,2)),v=`Saved ${t}.`,b()}async function M(e){_=``;try{await i(e),v=`Copied to clipboard.`}catch(t){u(`Clipboard copy failed:`,t),_=e,v=`Clipboard unavailable. Copy the text below.`}b()}function N(e){let t=p?.operations.find(t=>t.sequence===e);return t?M(_i(t)):Promise.resolve()}function P(){return p?M(vi(p.operations)):Promise.resolve()}function F(){g?.remove?.(),g=null}function I(){g?(g.configure?.(),g.restore?.()):(g=t(),g.configure?.({onStart:S,onStop:C,onClear:w,onExport:j,onCopyRequest:N,onCopyRecipe:P,onClose:F}),g.mount?.()),b()}return e(k),{open:I,start:S,stop:C,clear:w,exportJson:j,copyRequest:N,copyRecipe:P,buildExport:A,getState:y}}var xi=W`
-:host {
-    color: var(--edvibe-text);
-    font-size: 13px;
-    line-height: 1.45;
-}
-
-.recorder-overlay[hidden],
-.recorder-indicator[hidden] {
-    display: none;
-}
-
-.recorder-panel {
-    display: flex;
-    width: min(920px, 100%);
-    max-height: calc(100vh - 56px);
-    margin: 0 auto;
-    flex-direction: column;
-    background: var(--edvibe-surface-app);
-}
-
-.recorder-header,
-.recorder-toolbar {
-    display: flex;
-    gap: 18px;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    background: var(--edvibe-surface);
-}
-
-.recorder-header h2,
-.recorder-header p,
-.recorder-body h3,
-.recorder-notice {
-    margin: 0;
-}
-
-.recorder-header h2 {
-    font-size: 17px;
-}
-
-.recorder-subtitle {
-    margin-top: 3px !important;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-}
-
-.header-actions,
-.toolbar-actions,
-.recorder-state,
-.recorder-summary {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.icon-button {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-}
-
-.recorder-toolbar {
-    padding-block: 11px;
-    background: var(--edvibe-surface-subtle);
-}
-
-.state-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--edvibe-text-muted);
-}
-
-.recorder-state[data-status="recording"] .state-dot {
-    background: var(--edvibe-danger);
-    box-shadow: 0 0 0 4px var(--edvibe-danger-border);
-}
-
-.recorder-state[data-status="limit-reached"] .state-dot {
-    background: var(--edvibe-warning);
-}
-
-.elapsed {
-    min-width: 34px;
-    color: var(--edvibe-text-muted);
-    font-variant-numeric: tabular-nums;
-}
-
-.recorder-body {
-    overflow: auto;
-    padding: 16px 18px 20px;
-}
-
-.recorder-summary {
-    margin: 13px 0;
-    flex-wrap: wrap;
-    color: var(--edvibe-text-muted);
-}
-
-.recorder-summary > span {
-    padding-right: 10px;
-    border-right: 1px solid var(--edvibe-border-subtle);
-}
-
-.recorder-summary label {
-    margin-left: auto;
-}
-
-.recorder-notice {
-    margin-bottom: 12px;
-}
-
-.recorder-body h3 {
-    margin-bottom: 8px;
-    font-size: 13px;
-}
-
-.operation-list {
-    display: grid;
-    gap: 7px;
-}
-
-.operation {
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-    box-shadow: var(--edvibe-shadow-card);
-}
-
-.operation > summary {
-    display: grid;
-    grid-template-columns: 32px minmax(0, 1fr) 76px 92px;
-    gap: 9px;
-    align-items: center;
-    padding: 11px 12px;
-    cursor: pointer;
-}
-
-.operation-sequence,
-.operation-duration {
-    color: var(--edvibe-text-muted);
-    font-variant-numeric: tabular-nums;
-}
-
-.operation-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.operation-result {
-    text-align: right;
-    color: var(--edvibe-success);
-}
-
-.operation-result.is-error {
-    color: var(--edvibe-danger);
-}
-
-.operation-content {
-    padding: 0 12px 12px;
-    border-top: 1px solid var(--edvibe-border-subtle);
-}
-
-.operation-content > p {
-    color: var(--edvibe-text-muted);
-    word-break: break-all;
-}
-
-.operation-content strong {
-    display: block;
-    margin: 10px 0 4px;
-}
-
-pre {
-    width: 100%;
-    overflow: auto;
-    padding: 10px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-control);
-    color: var(--edvibe-text);
-    background: var(--edvibe-surface-subtle);
-    font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.empty-operations[hidden],
-.copy-fallback[hidden],
-.recorder-notice[hidden] {
-    display: none;
-}
-
-.other-section {
-    margin-top: 14px;
-}
-
-.other-section > summary {
-    color: var(--edvibe-text-muted);
-    cursor: pointer;
-}
-
-.copy-fallback {
-    margin-top: 14px;
-    color: var(--edvibe-warning);
-}
-
-.copy-fallback textarea {
-    min-height: 150px;
-    margin-top: 5px;
-    font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.recorder-indicator {
-    position: fixed;
-    z-index: var(--edvibe-z-dialog);
-    right: 20px;
-    bottom: 20px;
-    display: flex;
-    gap: 7px;
-    align-items: center;
-    padding: 9px 12px;
-    border: 1px solid var(--edvibe-border);
-    border-radius: var(--edvibe-radius-pill);
-    color: var(--edvibe-text);
-    background: var(--edvibe-surface);
-    box-shadow: var(--edvibe-shadow-card);
-    cursor: pointer;
-}
-
-.recorder-indicator > span:first-child {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--edvibe-text-muted);
-}
-
-.recorder-indicator.is-recording > span:first-child {
-    background: var(--edvibe-danger);
-    box-shadow: 0 0 0 3px var(--edvibe-danger-border);
-}
-
-@media (max-width: 720px) {
-    .recorder-header,
-    .recorder-toolbar {
-        align-items: flex-start;
+    :host {
+        color: var(--edvibe-text);
+        font-size: 13px;
+        line-height: 1.45;
     }
 
-    .recorder-toolbar,
-    .toolbar-actions {
+    .recorder-overlay[hidden],
+    .recorder-indicator[hidden] {
+        display: none;
+    }
+
+    .recorder-panel {
+        display: flex;
+        width: min(920px, 100%);
+        max-height: calc(100vh - 56px);
+        margin: 0 auto;
+        flex-direction: column;
+        background: var(--edvibe-surface-app);
+    }
+
+    .recorder-header,
+    .recorder-toolbar {
+        display: flex;
+        gap: 18px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        background: var(--edvibe-surface);
+    }
+
+    .recorder-header h2,
+    .recorder-header p,
+    .recorder-body h3,
+    .recorder-notice {
+        margin: 0;
+    }
+
+    .recorder-header h2 {
+        font-size: 17px;
+    }
+
+    .recorder-subtitle {
+        margin-top: 3px !important;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+    }
+
+    .header-actions,
+    .toolbar-actions,
+    .recorder-state,
+    .recorder-summary {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .icon-button {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+    }
+
+    .recorder-toolbar {
+        padding-block: 11px;
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .state-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--edvibe-text-muted);
+    }
+
+    .recorder-state[data-status="recording"] .state-dot {
+        background: var(--edvibe-danger);
+        box-shadow: 0 0 0 4px var(--edvibe-danger-border);
+    }
+
+    .recorder-state[data-status="limit-reached"] .state-dot {
+        background: var(--edvibe-warning);
+    }
+
+    .elapsed {
+        min-width: 34px;
+        color: var(--edvibe-text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .recorder-body {
+        overflow: auto;
+        padding: 16px 18px 20px;
+    }
+
+    .recorder-summary {
+        margin: 13px 0;
         flex-wrap: wrap;
+        color: var(--edvibe-text-muted);
+    }
+
+    .recorder-summary > span {
+        padding-right: 10px;
+        border-right: 1px solid var(--edvibe-border-subtle);
+    }
+
+    .recorder-summary label {
+        margin-left: auto;
+    }
+
+    .recorder-notice {
+        margin-bottom: 12px;
+    }
+
+    .recorder-body h3 {
+        margin-bottom: 8px;
+        font-size: 13px;
+    }
+
+    .operation-list {
+        display: grid;
+        gap: 7px;
+    }
+
+    .operation {
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
+        box-shadow: var(--edvibe-shadow-card);
     }
 
     .operation > summary {
-        grid-template-columns: 28px minmax(0, 1fr);
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr) 76px 92px;
+        gap: 9px;
+        align-items: center;
+        padding: 11px 12px;
+        cursor: pointer;
     }
 
-    .operation-duration,
+    .operation-sequence,
+    .operation-duration {
+        color: var(--edvibe-text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .operation-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .operation-result {
-        text-align: left;
+        text-align: right;
+        color: var(--edvibe-success);
     }
-}
 
+    .operation-result.is-error {
+        color: var(--edvibe-danger);
+    }
+
+    .operation-content {
+        padding: 0 12px 12px;
+        border-top: 1px solid var(--edvibe-border-subtle);
+    }
+
+    .operation-content > p {
+        color: var(--edvibe-text-muted);
+        word-break: break-all;
+    }
+
+    .operation-content strong {
+        display: block;
+        margin: 10px 0 4px;
+    }
+
+    pre {
+        width: 100%;
+        overflow: auto;
+        padding: 10px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-control);
+        color: var(--edvibe-text);
+        background: var(--edvibe-surface-subtle);
+        font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .empty-operations[hidden],
+    .copy-fallback[hidden],
+    .recorder-notice[hidden] {
+        display: none;
+    }
+
+    .other-section {
+        margin-top: 14px;
+    }
+
+    .other-section > summary {
+        color: var(--edvibe-text-muted);
+        cursor: pointer;
+    }
+
+    .copy-fallback {
+        margin-top: 14px;
+        color: var(--edvibe-warning);
+    }
+
+    .copy-fallback textarea {
+        min-height: 150px;
+        margin-top: 5px;
+        font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .recorder-indicator {
+        position: fixed;
+        z-index: var(--edvibe-z-dialog);
+        right: 20px;
+        bottom: 20px;
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        padding: 9px 12px;
+        border: 1px solid var(--edvibe-border);
+        border-radius: var(--edvibe-radius-pill);
+        color: var(--edvibe-text);
+        background: var(--edvibe-surface);
+        box-shadow: var(--edvibe-shadow-card);
+        cursor: pointer;
+    }
+
+    .recorder-indicator > span:first-child {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--edvibe-text-muted);
+    }
+
+    .recorder-indicator.is-recording > span:first-child {
+        background: var(--edvibe-danger);
+        box-shadow: 0 0 0 3px var(--edvibe-danger-border);
+    }
+
+    @media (max-width: 720px) {
+        .recorder-header,
+        .recorder-toolbar {
+            align-items: flex-start;
+        }
+
+        .recorder-toolbar,
+        .toolbar-actions {
+            flex-wrap: wrap;
+        }
+
+        .operation > summary {
+            grid-template-columns: 28px minmax(0, 1fr);
+        }
+
+        .operation-duration,
+        .operation-result {
+            text-align: left;
+        }
+    }
 `,Si=`edvibe-toolbox-action-recorder`,Ci=`edvibe-toolbox-action-recorder`,wi=class extends ln{static styles=[pn,mn,hn,gn,_n,vn,bn,xi];static properties={state:{state:!0},minimized:{state:!0},showToolbox:{state:!0},elapsedLabel:{state:!0}};constructor(){super(),this.callbacks={},this.state={status:`idle`,session:null},this.minimized=!1,this.showToolbox=!1,this.elapsedLabel=``,this.elapsedTimer=null}connectedCallback(){super.connectedCallback(),this.id||=Ci,this.syncElapsedTimer()}disconnectedCallback(){this.stopElapsedTimer(),super.disconnectedCallback()}configure(e={}){e=e&&typeof e==`object`?e:{};for(let t of[`onStart`,`onStop`,`onClear`,`onExport`,`onCopyRequest`,`onCopyRecipe`,`onClose`])typeof e[t]==`function`&&(this.callbacks[t]=e[t]);return this}mount(){!this.isConnected&&globalThis.document?.body&&globalThis.document.body.appendChild(this)}restore(){this.minimized=!1}setState(e){return this.state=e&&typeof e==`object`?e:{status:`idle`,session:null},this.elapsedLabel=this.calculateElapsed(),this.syncElapsedTimer(),this}confirm(e){return globalThis.confirm(e)}handleStart(){this.state.session&&!this.confirm(`Удалить предыдущую запись и начать новую?`)||this.callbacks.onStart?.()}handleClear(){(!this.state.session||this.confirm(`Удалить текущую запись?`))&&this.callbacks.onClear?.()}handleClose(){if(this.state.status===`recording`){this.minimized=!0;return}this.callbacks.onClose?.()}formatBytes(e){return e<1024?`${e} Б`:e<1048576?`${(e/1024).toFixed(1)} КиБ`:`${(e/1024/1024).toFixed(1)} МиБ`}operationStatus(e){return e.response?e.response.isSuccess===!0?`Успешно`:e.response.isSuccess===!1?`Ошибка`:`Ответ получен`:`Ожидается`}visibleOperations(){return(this.state.session?.operations||[]).filter(e=>this.showToolbox||e.origin===`page`)}calculateElapsed(){let e=this.state.session?.startedAt;if(!e)return``;let t=Date.parse(e);if(Number.isNaN(t))return``;let n=this.state.session.stoppedAt?Date.parse(this.state.session.stoppedAt):Date.now(),r=Math.max(0,Math.floor((n-t)/1e3));return`${Math.floor(r/60)}:${String(r%60).padStart(2,`0`)}`}syncElapsedTimer(){this.stopElapsedTimer(),!(this.state.status!==`recording`||!this.isConnected)&&(this.elapsedTimer=globalThis.setInterval(()=>{this.elapsedLabel=this.calculateElapsed()},1e3))}stopElapsedTimer(){this.elapsedTimer!==null&&(globalThis.clearInterval(this.elapsedTimer),this.elapsedTimer=null)}renderJsonBlock(e,t){return G`<div><strong>${e}</strong><pre>${JSON.stringify(t,null,2)}</pre></div>`}renderOperation(e){let t=`operation-result is-${e.response?.isSuccess===!1?`error`:`normal`}`;return G`
             <details class="operation">
                 <summary>
@@ -1605,251 +1625,250 @@ pre {
             </div>
         `}};customElements.get(`edvibe-toolbox-action-recorder`)||customElements.define(Si,wi);var Ti=/^[^\s@]+@[^\s@]+\.[^\s@]+$/,Ei=new Set([`WS_UNAVAILABLE`,`REQUEST_TIMEOUT`,`SEND_FAILED`]);function J(e,t,n={}){let r=Error(t);return r.code=e,Object.assign(r,n),r}function Di(e){let t=String(e||``).match(/\/marathon\/(\d+)(?:\/|$)/);return t?Number(t[1]):null}function Oi(e,{includeItems:t=!1}={}){let n=[],r=[],i=[],a=new Set;for(let o of String(e||``).split(/[,;\r\n]+/)){let e=o.trim();if(!e)continue;let s=e.toLowerCase();if(a.has(s))continue;a.add(s);let c=Ti.test(e);c?n.push({input:e,normalized:s}):r.push(e),t&&i.push({input:e,normalized:s,isValid:c})}return t?{entries:n,malformed:r,items:i}:{entries:n,malformed:r}}function ki(e,t,n,r,i){if(!Array.isArray(n)||!Number.isInteger(r)||r<0||t!==null&&r!==t||n.length===0&&e.length<r||e.length+n.length>r)throw J(`INVALID_RESPONSE`,`${i} returned invalid pagination data.`);return{items:e.concat(n),total:r}}function Ai(e,t){return Ei.has(e?.code)?e.code!==`SEND_FAILED`||!!e.cause&&!t().isOpen:!1}async function ji(e,{wait:t,getConnectionState:n,retryDelays:r=[1e3,3e3]}){let i=0;for(;i<=r.length;){i+=1;try{if(i>1&&!n().isOpen)throw J(`WS_UNAVAILABLE`,`The Edvibe connection is unavailable.`);return{value:await e(),attempts:i}}catch(e){if(!Ai(e,n)||i>r.length)throw e.attempts=i,e;await t(r[i-1])}}throw J(`INTERNAL_ERROR`,`Retry loop ended unexpectedly.`)}function Mi(e){return typeof e==`object`&&!!e&&!Array.isArray(e)}function Ni(e){if(typeof e!=`function`)throw TypeError(`sendRequest is required`);return e}function Pi(e){if(!Mi(e))return{items:void 0,total:void 0};let t=Mi(e.Value)?e.Value:Mi(e.value)?e.value:null;if(!t)return{items:void 0,total:void 0};let n=Mi(t.Page)?t.Page:null;return{items:t.Items,total:n?.Count}}async function Fi({sendRequest:e,marathonId:t,pageSize:n=50}){let r=Ni(e),i=[],a=null;for(;a===null||i.length<a;){let e=Pi(await r(`MarathonPupilsWsController`,`GetMarathonPupils`,`Marathons`,{MarathonId:t,Skip:i.length,Take:n})),o=ki(i,a,e.items,e.total,`GetMarathonPupils`);i=o.items,a=o.total}return i}async function Ii({sendRequest:e,marathonId:t,pupilId:n,pageSize:r=20}){let i=Ni(e),a=[],o=null;for(;o===null||a.length<o;){let e=Pi(await i(`MarathonLessonWsController`,`GetMarathonLessonsForPupilPagination`,`Marathons`,{PupilId:n,MarathonId:t,SearchTerm:``,Page:{Skip:a.length,Take:r}})),s=ki(a,o,e.items,e.total,`GetMarathonLessonsForPupilPagination`);a=s.items,o=s.total}return a}async function Li({sendRequest:e,marathonId:t,pageSize:n=100}){let r=Ni(e),i=[],a=null;for(;a===null||i.length<a;){let e=Pi(await r(`MarathonLessonWsController`,`GetMarathonLessonsPagination`,`Marathons`,{MarathonId:t,SearchTerm:``,Page:{Skip:i.length,Take:n}})),o=ki(i,a,e.items,e.total,`GetMarathonLessonsPagination`);i=o.items,a=o.total}return i}async function Ri({sendRequest:e,lessonId:t}){let n=await Ni(e)(`LessonWsController`,`GetLessonWithId`,`Books`,{LessonId:t});if(!Mi(n))throw J(`INVALID_RESPONSE`,`GetLessonWithId returned an invalid response.`);return n}var zi=new Set([...Ei,`SERVER_REJECTED`,`INVALID_RESPONSE`]),Bi=`edvibe-toolbox-batch-access-dialog`,Vi=`edvibe-toolbox-batch-access-overlay`;function Hi(e){return e.PupilId===void 0?e.Id:e.PupilId}function Ui(e){return e.MarathonPupilId===void 0?e.Id:e.MarathonPupilId}function Wi(e,t){let n=new Map;for(let e of t){let t=String(e.Email||``).trim().toLowerCase(),r=n.get(t)||[];r.push(e),n.set(t,r)}let r=[],i=[];for(let t of e){let e=n.get(t.normalized)||[];e.length===1?r.push(e[0]):e.length===0?i.push({type:`missing`,input:t.input,message:`No marathon pupil found for ${t.input}.`}):i.push({type:`ambiguous`,input:t.input,count:e.length,message:`Multiple marathon pupils found for ${t.input}.`})}return{matches:r,errors:i}}function Gi({pupils:e,selectedLessonIds:t,lessonsByPupilId:n}){let r=[],i=[],a=[];for(let o of e){let e=Hi(o),s=n.get(e)||[],c=new Map,l=new Set;for(let n of s)if(t.includes(n.MarathonLessonId)){if(c.get(n.MarathonLessonId)){l.add(n.MarathonLessonId),a.push(J(`INVALID_RESPONSE`,`Multiple lesson states were returned for lesson ${n.MarathonLessonId}.`,{email:o.Email,pupilId:e,marathonLessonId:n.MarathonLessonId}));continue}c.set(n.MarathonLessonId,n)}for(let n of t){let t=c.get(n);if(l.has(n))continue;if(!t){a.push(J(`INVALID_RESPONSE`,`Lesson ${n} was not returned for ${o.Email}.`,{email:o.Email,pupilId:e,marathonLessonId:n}));continue}if(typeof t.IsOpen!=`boolean`){a.push(J(`INVALID_RESPONSE`,`Lesson ${n} returned an invalid access state.`,{email:o.Email,pupilId:e,marathonLessonId:n}));continue}let s={email:o.Email,pupilId:e,marathonPupilId:Ui(o),marathonLessonId:n,lessonNumber:t.Number+1,lessonName:t.Name};t.IsOpen===!0?r.push(s):i.push(s)}}return{alreadyOpen:r,needsOpening:i,errors:a}}function Ki({completed:e,total:t,opened:n,failures:r,alreadyOpen:i,item:a}){return Object.freeze({completed:e,total:t,opened:n,failures:r,alreadyOpen:i,current:Object.freeze({email:a.email,lessonName:a.lessonName})})}function qi(e,t,{code:n=t?.code||`UNKNOWN_ERROR`,message:r=t?.message||`The lesson access change failed.`,attempts:i=t?.attempts||1}={}){return{email:e.email,lessonNumber:e.lessonNumber,lessonName:e.lessonName,marathonLessonId:e.marathonLessonId,attempts:i,code:n,message:r}}function Ji({requestedEmails:e,matchedUsers:t,selectedLessons:n,opened:r,alreadyOpen:i,failures:a,attempts:o}){return{requestedEmails:e,matchedUsers:t,selectedLessons:n,opened:r,alreadyOpen:i.length,failures:a,attempts:o}}async function Yi({marathonId:e,requestedEmails:t,matchedUsers:n,selectedLessons:r,alreadyOpen:i=[],needsOpening:a=[],sendRequest:o,wait:s,getConnectionState:c,onProgress:l=()=>{}}){let u=[],d=[],f=0;for(let p=0;p<a.length;p+=1){let m=a[p],h=0;try{l(Ki({completed:p,total:a.length,opened:u.length,failures:d.length,alreadyOpen:i.length,item:m})),await s(300);try{h=(await ji(async()=>{let t=await o(`MarathonLessonWsController`,`ChangeIsOpenLessonForPupil`,`Marathons`,{IsOpen:!0,MarathonLessonId:m.marathonLessonId,MarathonPupilId:m.marathonPupilId,MarathonId:e});if(t?.Value!==!0)throw J(`INVALID_RESPONSE`,`The lesson access change was not confirmed.`);return t},{wait:s,getConnectionState:c})).attempts,f+=h,u.push(m)}catch(e){if(h=e.attempts||1,f+=h,!zi.has(e?.code))throw e;d.push(qi(m,e,{attempts:h}))}l(Ki({completed:p+1,total:a.length,opened:u.length,failures:d.length,alreadyOpen:i.length,item:m}))}catch(e){throw d.push(qi(m,e,{code:`INTERNAL_ERROR`,message:`An internal error stopped the batch operation.`,attempts:h})),J(`INTERNAL_ERROR`,`An internal error stopped the batch operation.`,{cause:e,partialResult:Ji({requestedEmails:t,matchedUsers:n,selectedLessons:r,opened:u,alreadyOpen:i,failures:d,attempts:f})})}}return Ji({requestedEmails:t,matchedUsers:n,selectedLessons:r,opened:u,alreadyOpen:i,failures:d,attempts:f})}function Xi(e){let t=[`Requested emails: ${e.requestedEmails.length}`,`Matched users: ${e.matchedUsers}`,`Selected lessons: ${e.selectedLessons}`,`Opened: ${e.opened.length}`,`Already open: ${e.alreadyOpen}`,`Failed: ${e.failures.length}`,`Attempts: ${e.attempts}`];for(let n of e.failures)t.push(`FAILED ${n.email} — ${n.lessonNumber}. ${n.lessonName} — ${n.attempts} attempts — ${n.code}: ${n.message}`);return t.join(`
 `)}function Zi(e){return Object.freeze(e.map(e=>Object.freeze({...e})))}function Qi({requestedEmails:e,matchedUsers:t,selectedLessonIds:n,alreadyOpen:r,needsOpening:i}){return Object.freeze({requestedEmails:Object.freeze([...e]),matchedUsers:t,selectedLessonIds:Object.freeze([...n]),alreadyOpen:Zi(r),needsOpening:Zi(i)})}function $i({sendRequest:e,getConnectionState:t,wait:n,canStart:r,onActiveChange:i,createDialog:a=()=>document.createElement(Bi),copyText:o=async()=>{},log:s=()=>{}}){let c=!1,l=!1,u=[],d=[],f=null,p=null,m=null,h=null;function g(){c&&(c=!1,i(!1))}function _(){l=!1,u=[],d=[],f=null,p=null,m=null,h=null,g()}function v(e){return typeof e?.code==`string`?e.code:`UNKNOWN_ERROR`}function y(e,t,n){let r=v(e),i=String(t?.Email||``).trim();return J(r,`Could not load lesson access for ${i||`the selected pupil`} (${r}).`,{email:i,pupilId:n,attempts:e?.attempts||1})}function b(e,t){let n=e.malformed.map(e=>J(`INVALID_EMAIL`,`Invalid email address: ${e}.`));return e.entries.length===0&&e.malformed.length===0&&n.push(J(`EMAILS_REQUIRED`,`Enter at least one email address.`)),t.length===0&&n.push(J(`LESSONS_REQUIRED`,`Select at least one lesson.`)),n}function x(e){p={requestedEmails:[...e.requestedEmails],matchedUsers:e.matchedUsers,selectedLessons:e.selectedLessonIds.length,opened:[],alreadyOpen:e.alreadyOpen.length,failures:[],attempts:0},f=null,h.showComplete(p)}async function S(r){if(l)return;l=!0,f=null,p=null;let i=String(r?.detail?.emailInput||``),a=Object.freeze(Array.isArray(r?.detail?.selectedLessonIds)?[...r.detail.selectedLessonIds]:[]);try{h.showValidation();let r=Oi(i),o=b(r,a),c=Wi(r.entries,u),l=o.concat(c.errors);if(l.length>0){s(`Batch access validation blocked for MarathonId ${m}; ${l.length} error(s).`),h.showValidationErrors(l);return}let d=new Map,p=[],g=[];for(let r of c.matches){let i=Hi(r);try{s(`Loading batch access state for PupilId ${i} in MarathonId ${m}.`);let a=await ji(()=>Ii({sendRequest:e,marathonId:m,pupilId:i}),{wait:n,getConnectionState:t});d.set(i,a.value),p.push(r),s(`Loaded ${a.value.length} lesson state(s) for PupilId ${i} after ${a.attempts} attempt(s).`)}catch(e){g.push(y(e,r,i)),s(`Batch access state read failed for PupilId ${i} in MarathonId ${m} (${v(e)}).`)}}let _=Gi({pupils:p,selectedLessonIds:a,lessonsByPupilId:d}),S=g.concat(_.errors);if(S.length>0){s(`Batch access preflight blocked for MarathonId ${m}; ${S.length} error(s), zero writes issued.`),h.showValidationErrors(S);return}if(f=Qi({requestedEmails:r.entries.map(e=>e.input),matchedUsers:c.matches.length,selectedLessonIds:a,alreadyOpen:_.alreadyOpen,needsOpening:_.needsOpening}),s(`Batch access preflight complete for MarathonId ${m}; ${f.needsOpening.length} pending, ${f.alreadyOpen.length} already open.`),f.needsOpening.length===0){x(f);return}h.showConfirmation(Object.freeze({matchedUsers:f.matchedUsers,selectedLessons:f.selectedLessonIds.length,needsOpening:f.needsOpening,alreadyOpen:f.alreadyOpen}))}catch(e){s(`Batch access preflight failed for MarathonId ${m} (${v(e)}).`),h.showValidationErrors([e])}finally{l=!1}}async function C(){if(l||!f)return;l=!0;let r=f;f=null;try{try{p=await Yi({marathonId:m,requestedEmails:r.requestedEmails,matchedUsers:r.matchedUsers,selectedLessons:r.selectedLessonIds.length,alreadyOpen:r.alreadyOpen,needsOpening:r.needsOpening,sendRequest:e,wait:n,getConnectionState:t,onProgress:e=>h.showExecution(e)})}catch(e){if(e?.code!==`INTERNAL_ERROR`||!e.partialResult)throw e;p=e.partialResult,s(`Batch access execution stopped for MarathonId ${m}; ${p.opened.length} opened, ${p.failures.length} failed (INTERNAL_ERROR).`)}s(`Batch access execution complete for MarathonId ${m}; ${p.opened.length} opened, ${p.alreadyOpen} already open, ${p.failures.length} failed.`);for(let e of p.failures)s(`Batch access write failed for MarathonLessonId ${e.marathonLessonId} (${e.code}).`);h.showComplete(p)}finally{l=!1}}async function w(){p&&await o(Xi(p))}function T(){f=null,p=null,l=!1}async function E(){if(!(c||document.getElementById(Vi))){if(!r()){window.alert(`Another Edvibe Toolbox operation is already running.`);return}if(m=Di(window.location.href),!m){window.alert(`Open an Edvibe marathon page before opening batch lesson access.`);return}c=!0,i(!0);try{if(h=a(),h.addEventListener(`edvibe-dialog-close`,_),h.addEventListener(`edvibe-batch-access-input-change`,e=>{let t=Oi(e?.detail?.emailInput);h.setEmailState({validCount:t.entries.length,malformedCount:t.malformed.length})}),h.addEventListener(`edvibe-batch-access-submit`,S),h.addEventListener(`edvibe-batch-access-confirm`,C),h.addEventListener(`edvibe-batch-access-copy-report`,w),h.addEventListener(`edvibe-batch-access-restart`,T),h.configure(),(document.body||document.documentElement).appendChild(h),h.showLoading(),s(`Initializing batch access for MarathonId ${m}.`),u=await Fi({sendRequest:e,marathonId:m}),u.length===0)throw J(`EMPTY_ROSTER`,`No pupils were found in this marathon.`);let t=Hi(u[0]);d=await Ii({sendRequest:e,marathonId:m,pupilId:t}),s(`Initialized batch access for MarathonId ${m}; ${u.length} pupil(s), ${d.length} lesson(s), catalogue PupilId ${t}.`),h.showConfigure({lessons:d})}catch(e){s(`Batch access initialization failed for MarathonId ${m} (${v(e)}).`);try{if(typeof h?.showFatalError==`function`)h.showFatalError(e);else throw e}finally{g()}}}}return{open:E,isRunning:()=>l}}var ea=s({OPERATION_TYPE:()=>ta,attemptKey:()=>ua,buildObservedPlan:()=>ya,createCapture:()=>fa,freezeObject:()=>Y,lessonKey:()=>la,normalizeEmail:()=>ra,observeRequest:()=>ma,recordWriteAttempt:()=>ha,sanitizeLesson:()=>sa,sanitizePupil:()=>oa,splitSubmittedInputs:()=>ca}),ta=`batch_lesson_access`;function Y(e){return Object.freeze({...e})}function na(e){return Object.freeze(e.map(e=>Y(e)))}function ra(e){return String(e||``).trim().toLowerCase()}function ia(e){return e?.PupilId??e?.Id??null}function aa(e){return e?.MarathonPupilId??e?.Id??null}function oa(e){return Y({email:String(e?.Email||``).trim()||null,pupilId:ia(e),marathonPupilId:aa(e)})}function sa(e){let t=Number(e?.Number);return Y({marathonLessonId:e?.MarathonLessonId??null,lessonNumber:Number.isFinite(t)?t+1:null,lessonName:String(e?.Name||``).trim()||null,isOpen:typeof e?.IsOpen==`boolean`?e.IsOpen:null})}function ca(e){let t=[],n=new Set;for(let r of String(e||``).split(/[,;\r\n]+/)){let e=r.trim();if(!e)continue;let i=ra(e);n.has(i)||(n.add(i),t.push(Y({submittedInput:e,normalizedEmail:i})))}return Object.freeze(t)}function la(e,t){return`${ra(e)}:${String(t)}`}function ua(e,t){return`${String(e)}:${String(t)}`}function da(e,t,n){return Y({code:typeof e?.code==`string`?e.code:t,message:String(e?.message||n),email:String(e?.email||``).trim()||null,pupilId:e?.pupilId??null,marathonLessonId:e?.marathonLessonId??null,attempts:Number.isInteger(e?.attempts)?e.attempts:0,type:typeof e?.type==`string`?e.type:null,count:Number.isInteger(e?.count)?e.count:null})}function fa(){return{pupils:[],lessonsByPupilId:new Map,lessonCatalogue:[],writeAttempts:new Map,attempt:null,sequence:0}}function pa(e,t,n){t===0&&(e.length=0);for(let r=0;r<n.length;r+=1)e[t+r]=n[r];for(;e.length>0&&e[e.length-1]===void 0;)e.pop()}function ma(e,t,n,r){if(t===`GetMarathonPupils`){let t=Array.isArray(r?.Value?.Items)?r.Value.Items.map(oa):[];pa(e.pupils,Number(n?.Skip)||0,t);return}if(t===`GetMarathonLessonsForPupilPagination`){let t=n?.PupilId??null,i=e.lessonsByPupilId.get(t)||[],a=Array.isArray(r?.Value?.Items)?r.Value.Items.map(sa):[];pa(i,Number(n?.Page?.Skip)||0,a),e.lessonsByPupilId.set(t,i)}}function ha(e,t,n){if(t!==`ChangeIsOpenLessonForPupil`)return;let r=ua(n?.MarathonPupilId,n?.MarathonLessonId);e.writeAttempts.set(r,(e.writeAttempts.get(r)||0)+1)}function ga({submittedEmailInput:e,pupils:t}){let n=ca(e),r=Oi(e),i=new Set(r.malformed.map(ra)),a=new Map;for(let e of t){let t=ra(e.email),n=a.get(t)||[];n.push(e),a.set(t,n)}return n.map(e=>{if(i.has(e.normalizedEmail))return Y({...e,resolution:`malformed`,resolvedEmail:null,pupilId:null,marathonPupilId:null,code:`USER_INPUT_MALFORMED`,message:`Invalid email address: ${e.submittedInput}.`});let t=a.get(e.normalizedEmail)||[];if(t.length===0)return Y({...e,resolution:`missing`,resolvedEmail:null,pupilId:null,marathonPupilId:null,code:`USER_NOT_FOUND`,message:`No marathon pupil found for ${e.submittedInput}.`});if(t.length>1)return Y({...e,resolution:`ambiguous`,resolvedEmail:null,pupilId:null,marathonPupilId:null,code:`USER_AMBIGUOUS`,message:`Multiple marathon pupils found for ${e.submittedInput}.`});let n=t[0];return Y({...e,resolution:`matched`,resolvedEmail:n.email,pupilId:n.pupilId,marathonPupilId:n.marathonPupilId,code:null,message:null})})}function _a(e,t){let n=new Map(t.map(e=>[e.marathonLessonId,e]));return na(e.map(e=>{let t=n.get(e);return{marathonLessonId:e,lessonNumber:t?.lessonNumber??null,lessonName:t?.lessonName||`Lesson ${e}`}}))}function va(e,t){return e.find(e=>t.pupilId!==null&&e.pupilId===t.pupilId||t.resolvedEmail&&ra(e.email)===ra(t.resolvedEmail))}function ya({submittedEmailInput:e,selectedLessonIds:t,pupils:n,lessonsByPupilId:r,lessonCatalogue:i,errors:a=[]}){let o=ga({submittedEmailInput:e,pupils:n}),s=_a(t,i),c=na(a.map(e=>da(e,`LESSON_ACCESS_PREFLIGHT_FAILED`,`The lesson-access preflight failed.`))),l=[],u=[],d=new Set([`INVALID_EMAIL`,`USER_INPUT_MALFORMED`,`USER_NOT_FOUND`,`USER_AMBIGUOUS`]),f=c.filter(e=>!e.email&&e.pupilId===null&&e.marathonLessonId===null&&!e.type&&!d.has(e.code)).map(e=>Y({code:e.code,message:e.message,attempts:e.attempts,kind:[`EMAILS_REQUIRED`,`LESSONS_REQUIRED`].includes(e.code)?`input`:`preflight`}));for(let e of o){if(e.resolution!==`matched`)continue;let t=r.get(e.pupilId);if(!Array.isArray(t)){let t=va(c,e);t&&u.push(Y({submittedEmail:e.submittedInput,resolvedEmail:e.resolvedEmail,pupilId:e.pupilId,marathonPupilId:e.marathonPupilId,code:t.code||`LESSON_STATE_DISCOVERY_FAILED`,message:t.message||`Could not load lesson access for ${e.resolvedEmail}.`,attempts:t.attempts||0}));for(let n of s)l.push(Y({...e,...n,preflightAccessState:`unknown`,plannedOutcome:`not_attempted`,code:t?`LESSON_STATE_UNAVAILABLE`:`PREFLIGHT_BLOCKED`,message:t?`The lesson state could not be loaded, so this combination was not attempted.`:`Validation stopped before this confirmed user and lesson combination could be prepared.`}));continue}let n=new Map;for(let e of t){let t=n.get(e.marathonLessonId)||[];t.push(e),n.set(e.marathonLessonId,t)}for(let t of s){let r=n.get(t.marathonLessonId)||[];if(r.length===0){l.push(Y({...e,...t,preflightAccessState:`unknown`,plannedOutcome:`rejected`,code:`LESSON_NOT_RETURNED`,message:`Lesson ${t.marathonLessonId} was not returned for ${e.resolvedEmail}.`}));continue}if(r.length>1){l.push(Y({...e,...t,preflightAccessState:`unknown`,plannedOutcome:`rejected`,code:`LESSON_STATE_AMBIGUOUS`,message:`Multiple lesson states were returned for lesson ${t.marathonLessonId}.`}));continue}let i=r[0];if(typeof i.isOpen!=`boolean`){l.push(Y({...e,...t,lessonNumber:i.lessonNumber??t.lessonNumber,lessonName:i.lessonName||t.lessonName,preflightAccessState:`unknown`,plannedOutcome:`rejected`,code:`INVALID_ACCESS_STATE`,message:`Lesson ${t.marathonLessonId} returned an invalid access state.`}));continue}l.push(Y({...e,...t,lessonNumber:i.lessonNumber??t.lessonNumber,lessonName:i.lessonName||t.lessonName,preflightAccessState:i.isOpen?`open`:`closed`,plannedOutcome:i.isOpen?`already_open`:`pending`,code:null,message:null}))}}return Object.freeze({identities:na(o),selectedLessons:s,matrix:na(l),discoveryFailures:na(u),operationFailures:na(f),errors:c})}var ba=`1970-01-01T00:00:00.000Z`;function xa(e,t=ba){return typeof e==`string`&&!Number.isNaN(Date.parse(e))||Number.isFinite(e)?new Date(e).toISOString():t}function Sa(e){return e?.diagnostics||e||{}}function Ca(e,{correlationId:t,operationName:n,attemptNumber:r=1,outcome:i}={}){let a=Sa(e),o=a.request||{},s=a.response||{},c=xa(o.startedAt),l=Number.isSafeInteger(s.elapsedMs)&&s.elapsedMs>=0?s.elapsedMs:null,u=s.completedAt==null&&l==null?null:xa(s.completedAt??Date.parse(c)+l,c),d=e instanceof Error||s.success===!1;return Object.freeze({correlationId:String(t||o.requestId||e?.requestId||n),operationName:String(n),controller:e?.controller||o.controller||null,method:String(e?.method||o.method||`UNKNOWN`),projectName:e?.projectName||o.projectName||null,requestId:e?.requestId||o.requestId||s.requestId||null,attemptNumber:r,startedAt:c,completedAt:u,durationMs:l,outcome:i||(d?`failure`:`success`),transportCode:d&&e?.code||null,serverErrorCode:e?.serverErrorCode||s.errorCode||null,serverErrorMessage:s.serverMessage||null,requestSummary:o.value??e?.requestValue??null,responseSummary:s.value??null})}function wa(e){let t=(Array.isArray(e)?e:[]).filter(Boolean);return t.length===0?void 0:Object.freeze({requestAttempts:Object.freeze(t)})}function Ta(e,t={}){return wa((Array.isArray(e)?e:[e]).filter(Boolean).map((e,n)=>Ca(e,{...t,attemptNumber:t.attemptNumber??n+1})))}function X(e,t={}){if(!e)return;if(Array.isArray(e.requestAttempts))return wa(e.requestAttempts);if(e.diagnostics&&Array.isArray(e.diagnostics.requestAttempts))return wa(e.diagnostics.requestAttempts);let n=e.observations||e.attemptsDiagnostics||e.diagnosticObservations;return n?Ta(n,t):void 0}var Ea=s({buildExecutionHistoryInput:()=>Fa}),Da=new Set([`SERVER_REJECTED`,`INVALID_RESPONSE`]);function Oa(e,t,n,r,i,a=null){let o={opened:`success`,already_open:`noop`,rejected:`rejected`,failed:`failed`,not_attempted:`not_attempted`}[t];return Y({itemId:la(e.resolvedEmail||e.submittedInput,e.marathonLessonId),label:`${e.resolvedEmail||e.submittedInput} — ${e.lessonNumber||`?`}. ${e.lessonName}`,status:o,code:r,message:i,attempts:n,...X(a)?{diagnostics:X(a)}:{},data:Y({submittedEmail:e.submittedInput,resolvedEmail:e.resolvedEmail,pupilId:e.pupilId,marathonPupilId:e.marathonPupilId,marathonLessonId:e.marathonLessonId,lessonNumber:e.lessonNumber,lessonName:e.lessonName,preflightAccessState:e.preflightAccessState,outcome:t})})}function ka(e,t={},n=new Map){let r=new Set((Array.isArray(t.opened)?t.opened:[]).map(e=>la(e.email,e.marathonLessonId))),i=new Map;for(let e of Array.isArray(t.failures)?t.failures:[])i.set(la(e.email,e.marathonLessonId),e);return e.matrix.map(e=>{if(e.plannedOutcome===`already_open`)return Oa(e,`already_open`,0,`LESSON_ALREADY_OPEN`,`Lesson access was already open.`);if(e.plannedOutcome===`rejected`)return Oa(e,`rejected`,0,e.code,e.message);if(e.plannedOutcome===`not_attempted`)return Oa(e,`not_attempted`,0,e.code,e.message);let t=la(e.resolvedEmail,e.marathonLessonId);if(r.has(t))return Oa(e,`opened`,n.get(ua(e.marathonPupilId,e.marathonLessonId))||1,`LESSON_ACCESS_OPENED`,`Lesson access was opened.`);let a=i.get(t);return a?Oa(e,Da.has(a.code)?`rejected`:`failed`,Number.isInteger(a.attempts)?a.attempts:1,a.code||`LESSON_ACCESS_WRITE_FAILED`,a.message||`The lesson access change failed.`,a):Oa(e,`not_attempted`,0,`LESSON_ACCESS_NOT_ATTEMPTED`,`The confirmed combination was not attempted.`)})}function Aa(e){return e.filter(e=>e.resolution!==`matched`).map(e=>Y({itemId:`input:${e.normalizedEmail||e.submittedInput}`,label:e.submittedInput,status:`rejected`,code:e.code,message:e.message,attempts:0,data:Y({submittedInput:e.submittedInput,normalizedEmail:e.normalizedEmail,resolution:e.resolution})}))}function ja(e){return e.map((e,t)=>Y({itemId:`operation:${t+1}:${e.code}`,label:e.kind===`input`?`Submitted request`:`Lesson-access preflight`,status:e.kind===`input`?`rejected`:`failed`,code:e.code,message:e.message,attempts:e.attempts,...X(e)?{diagnostics:X(e)}:{},data:Y({stage:e.kind===`input`?`input_validation`:`preflight`})}))}function Ma(e){return e.map(e=>Y({itemId:`discovery:${ra(e.resolvedEmail||e.submittedEmail)}`,label:e.resolvedEmail||e.submittedEmail,status:`failed`,code:e.code,message:e.message,attempts:e.attempts,...X(e)?{diagnostics:X(e)}:{},data:Y({submittedEmail:e.submittedEmail,resolvedEmail:e.resolvedEmail,pupilId:e.pupilId,marathonPupilId:e.marathonPupilId,stage:`lesson_state_discovery`})}))}function Na(e,t){let n=e.identities.filter(e=>e.resolution===`matched`).length,r=e=>t.filter(t=>t.data.outcome===e).length;return Object.freeze({requestedInputs:e.identities.length,matchedUsers:n,selectedLessons:e.selectedLessons.length,totalCombinations:e.matrix.length,newlyOpened:r(`opened`),alreadyOpen:r(`already_open`),rejected:r(`rejected`),failedWrites:r(`failed`),notAttempted:r(`not_attempted`),inputFailures:e.identities.filter(e=>e.resolution!==`matched`).length,discoveryFailures:e.discoveryFailures.length,operationFailures:e.operationFailures.length})}function Pa(e,t){return e===`cancelled`||e===`interrupted`?e:t.rejected>0||t.failedWrites>0||t.notAttempted>0||t.inputFailures>0||t.discoveryFailures>0||t.operationFailures>0?`completed_with_failures`:`completed`}function Fa({plan:e,summary:t={},writeAttempts:n=new Map,startedAt:r,completedAt:i,marathonId:a,marathonName:o=null,terminalStatus:s=null}){let c=ka(e,t,n),l=Aa(e.identities),u=Ma(e.discoveryFailures),d=ja(e.operationFailures),f=Na(e,c),p=f.newlyOpened+f.rejected+f.failedWrites,m=f.rejected+f.failedWrites;return Object.freeze({operationType:ta,startedAt:r,completedAt:i,status:Pa(s,f),pageContext:Object.freeze({marathonId:a,marathonName:o}),counts:Object.freeze({requested:f.requestedInputs,eligible:f.totalCombinations,attempted:p,successful:f.newlyOpened,noOp:f.alreadyOpen,skipped:f.inputFailures+f.discoveryFailures+f.operationFailures,failed:m,notAttempted:f.notAttempted}),results:Object.freeze([...l,...d,...u,...c]),message:JSON.stringify(f)})}var{createCapture:Ia,recordWriteAttempt:La,observeRequest:Ra,sanitizeLesson:za,buildObservedPlan:Ba}=ea,{buildExecutionHistoryInput:Va}=Ea;function Ha(e,t,n=!1){let r=e.elements?.status?.textContent||``;e.setStatus?.(`${r}${r?` `:``}${t}`,n?`error`:``)}function Ua(e,t,n){e.shadowRoot?.querySelector?.(`.edvibe-batch-access-history`)?.remove?.();let r=(e.ownerDocument||globalThis.document)?.createElement?.(`button`);r&&(r.type=`button`,r.className=`edvibe-batch-access-history`,r.textContent=`Открыть в истории`,r.addEventListener(`click`,()=>{e.close?.(),n(t)}),e.elements?.footer?.appendChild?.(r))}function Wa(e={}){let{createFeature:t=$i,sendRequest:n,createDialog:r,persistExecution:i,openHistory:a=()=>{},getLocationHref:o=()=>``,getMarathonName:s=()=>null,now:c=()=>new Date,log:l=()=>{},...u}=e;if(typeof t!=`function`)throw TypeError(`createFeature is required`);if(typeof n!=`function`)throw TypeError(`sendRequest is required`);if(typeof r!=`function`)throw TypeError(`createDialog is required`);if(typeof i!=`function`)throw TypeError(`persistExecution is required`);let d=null;async function f(e,t,r,i){let a=d;a&&La(a,t,i);let o=await n(e,t,r,i);return a&&Ra(a,t,i,o),o}function p(){let e=r(),t=Ia();d=t;let n=e.showConfigure.bind(e),u=e.showConfirmation.bind(e),f=e.showValidationErrors.bind(e),p=e.showComplete.bind(e),m=e.showFatalError.bind(e);function h(n={}){t.sequence+=1,t.writeAttempts.clear(),t.attempt={sequence:t.sequence,startedAt:c().toISOString(),submittedEmailInput:String(n.emailInput||``),selectedLessonIds:Array.isArray(n.selectedLessonIds)?[...n.selectedLessonIds]:[],plan:null,terminal:!1},e.shadowRoot?.querySelector?.(`.edvibe-batch-access-history`)?.remove?.()}function g(e=[]){let n=t.attempt;return n?Ba({submittedEmailInput:n.submittedEmailInput,selectedLessonIds:n.selectedLessonIds,pupils:t.pupils,lessonsByPupilId:t.lessonsByPupilId,lessonCatalogue:t.lessonCatalogue,errors:e}):null}function _(n,r,u=[]){let d=t.attempt;if(!d||d.terminal)return;d.terminal=!0;let f=d.sequence,p;try{let e=c().toISOString(),i=d.plan||g(u);if(!i)return;p=Va({plan:i,summary:n,writeAttempts:t.writeAttempts,startedAt:d.startedAt,completedAt:e,marathonId:Di(o()),marathonName:s(),terminalStatus:r})}catch(t){Ha(e,`Экранный результат сохранён, но записать историю не удалось.`,!0),l(`Batch lesson access history record creation failed:`,t);return}Promise.resolve().then(()=>i(p)).then(n=>{f===t.sequence&&(n?.stored?(Ha(e,`Результат сохранён в истории.`),n.record?.id&&Ua(e,n.record.id,a)):(Ha(e,`Экранный результат сохранён, но записать историю не удалось.`,!0),n?.persistenceError&&l(`Batch lesson access history persistence failed:`,n.persistenceError)))}).catch(n=>{f===t.sequence&&(Ha(e,`Экранный результат сохранён, но записать историю не удалось.`,!0),l(`Batch lesson access history persistence failed:`,n))})}return e.showConfigure=(e={})=>(t.lessonCatalogue=Array.isArray(e.lessons)?e.lessons.map(za):[],t.attempt=null,t.sequence+=1,n(e)),e.showConfirmation=(e={})=>(t.attempt&&(t.attempt.plan=g()),u(e)),e.showValidationErrors=(e=[])=>{let n=f(e);return t.attempt&&_({},null,Array.isArray(e)?e:[e]),n},e.showComplete=(e={})=>{let n=p(e);return t.attempt&&(t.attempt.plan||(t.attempt.plan=g()),_(e,(e.failures||[]).some(e=>e?.code===`INTERNAL_ERROR`)?`interrupted`:null)),n},e.showFatalError=e=>{let n=m(e);return t.attempt&&_({},`interrupted`,[e]),n},e.addEventListener(`edvibe-batch-access-submit`,e=>h(e?.detail)),e.addEventListener(`edvibe-batch-access-restart`,()=>{t.sequence+=1,t.attempt=null,e.shadowRoot?.querySelector?.(`.edvibe-batch-access-history`)?.remove?.()}),e.addEventListener(`edvibe-dialog-close`,()=>{t.attempt?.plan&&!t.attempt.terminal&&_({},`cancelled`)}),e}return t({...u,sendRequest:f,createDialog:p,log:l})}var Ga=W`
-[hidden] {
-    display: none !important;
-}
-
-.edvibe-batch-access-card {
-    display: flex;
-    flex-direction: column;
-    width: min(760px, calc(100vw - 32px));
-    max-height: min(820px, calc(100vh - 32px));
-    padding: 24px;
-}
-
-.edvibe-batch-access-header,
-.edvibe-batch-access-lesson-heading,
-.edvibe-batch-access-selection-actions,
-.edvibe-batch-access-email-state,
-.edvibe-batch-access-footer {
-    display: flex;
-    align-items: center;
-}
-
-.edvibe-batch-access-header,
-.edvibe-batch-access-lesson-heading {
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.edvibe-batch-access-header h2,
-.edvibe-batch-access-lesson-heading h3 {
-    margin: 0;
-    color: var(--edvibe-text-strong);
-}
-
-.edvibe-batch-access-header h2 {
-    font-size: 21px;
-    line-height: 1.3;
-}
-
-.edvibe-batch-access-description {
-    margin: 5px 0 0;
-    color: var(--edvibe-text-muted);
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.edvibe-batch-access-close {
-    min-width: 36px;
-    padding: 0;
-    font-size: 24px;
-    line-height: 1;
-}
-
-.edvibe-batch-access-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    margin-top: 18px;
-}
-
-.edvibe-batch-access-email-field,
-.edvibe-batch-access-lesson-heading h3 {
-    color: var(--edvibe-text);
-    font-size: 13px;
-}
-
-.edvibe-batch-access-emails {
-    min-height: 112px;
-    resize: vertical;
-    line-height: 1.45;
-}
-
-.edvibe-batch-access-email-state {
-    flex-wrap: wrap;
-    gap: 8px 16px;
-}
-
-.edvibe-batch-access-lesson-heading {
-    margin-top: 20px;
-}
-
-.edvibe-batch-access-selection-actions {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px 12px;
-    color: var(--edvibe-text);
-    font-size: 13px;
-}
-
-.edvibe-batch-access-selection-actions label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-}
-
-.edvibe-batch-access-clear-all {
-    min-height: 32px;
-    padding: 5px 9px;
-}
-
-.edvibe-batch-access-lessons {
-    overflow: auto;
-    max-height: 248px;
-    margin-top: 10px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-}
-
-.edvibe-batch-access-errors,
-.edvibe-batch-access-summary,
-.edvibe-batch-access-failures {
-    overflow: auto;
-    max-height: 248px;
-    margin-top: 10px;
-}
-
-.edvibe-batch-access-lesson {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 11px 12px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    color: var(--edvibe-text);
-    font-size: 14px;
-    line-height: 1.4;
-    cursor: pointer;
-}
-
-.edvibe-batch-access-lesson:last-child {
-    border-bottom: 0;
-}
-
-.edvibe-batch-access-lesson:hover {
-    background: var(--edvibe-info-surface);
-}
-
-.edvibe-batch-access-lesson:focus-within {
-    outline: 2px solid var(--edvibe-focus-outline);
-    outline-offset: -2px;
-}
-
-.edvibe-batch-access-lesson input {
-    flex: 0 0 auto;
-    margin-top: 3px;
-}
-
-.edvibe-batch-access-empty {
-    margin: 0;
-}
-
-.edvibe-batch-access-error,
-.edvibe-batch-access-failure {
-    margin: 0;
-    color: inherit;
-    font-size: 13px;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
-}
-
-.edvibe-batch-access-error + .edvibe-batch-access-error,
-.edvibe-batch-access-failure + .edvibe-batch-access-failure {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid currentColor;
-}
-
-.edvibe-batch-access-summary {
-    font-size: 13px;
-    line-height: 1.55;
-    white-space: pre-line;
-}
-
-.edvibe-batch-access-live-region {
-    flex: 0 0 auto;
-    padding-top: 16px;
-}
-
-.edvibe-batch-access-loading-indicator {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 7px;
-    border: 2px solid var(--edvibe-info-border);
-    border-top-color: var(--edvibe-primary);
-    border-radius: 50%;
-    vertical-align: -3px;
-    animation: edvibe-batch-access-spin .8s linear infinite;
-}
-
-@keyframes edvibe-batch-access-spin {
-    to {
-        transform: rotate(360deg);
+    [hidden] {
+        display: none !important;
     }
-}
 
-.edvibe-batch-access-status {
-    min-height: 20px;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.edvibe-batch-access-status.is-error {
-    color: var(--edvibe-danger);
-}
-
-.edvibe-batch-access-progress {
-    display: block;
-    width: 100%;
-    height: 11px;
-    margin-top: 10px;
-}
-
-.edvibe-batch-access-footer {
-    flex: 0 0 auto;
-    margin-top: 18px;
-}
-
-.edvibe-batch-access-selection-actions input:disabled {
-    cursor: not-allowed;
-    opacity: .58;
-}
-
-@media (max-width: 560px) {
     .edvibe-batch-access-card {
-        width: 100%;
-        max-height: 100vh;
-        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        width: min(760px, calc(100vw - 32px));
+        max-height: min(820px, calc(100vh - 32px));
+        padding: 24px;
+    }
+
+    .edvibe-batch-access-header,
+    .edvibe-batch-access-lesson-heading,
+    .edvibe-batch-access-selection-actions,
+    .edvibe-batch-access-email-state,
+    .edvibe-batch-access-footer {
+        display: flex;
+        align-items: center;
+    }
+
+    .edvibe-batch-access-header,
+    .edvibe-batch-access-lesson-heading {
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .edvibe-batch-access-header h2,
+    .edvibe-batch-access-lesson-heading h3 {
+        margin: 0;
+        color: var(--edvibe-text-strong);
+    }
+
+    .edvibe-batch-access-header h2 {
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .edvibe-batch-access-description {
+        margin: 5px 0 0;
+        color: var(--edvibe-text-muted);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .edvibe-batch-access-close {
+        min-width: 36px;
+        padding: 0;
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .edvibe-batch-access-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        margin-top: 18px;
+    }
+
+    .edvibe-batch-access-email-field,
+    .edvibe-batch-access-lesson-heading h3 {
+        color: var(--edvibe-text);
+        font-size: 13px;
+    }
+
+    .edvibe-batch-access-emails {
+        min-height: 112px;
+        resize: vertical;
+        line-height: 1.45;
+    }
+
+    .edvibe-batch-access-email-state {
+        flex-wrap: wrap;
+        gap: 8px 16px;
     }
 
     .edvibe-batch-access-lesson-heading {
-        align-items: flex-start;
-        flex-direction: column;
+        margin-top: 20px;
     }
 
     .edvibe-batch-access-selection-actions {
-        justify-content: flex-start;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px 12px;
+        color: var(--edvibe-text);
+        font-size: 13px;
     }
 
-    .edvibe-batch-access-footer button {
-        flex: 1 1 180px;
+    .edvibe-batch-access-selection-actions label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
     }
-}
 
+    .edvibe-batch-access-clear-all {
+        min-height: 32px;
+        padding: 5px 9px;
+    }
+
+    .edvibe-batch-access-lessons {
+        overflow: auto;
+        max-height: 248px;
+        margin-top: 10px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
+    }
+
+    .edvibe-batch-access-errors,
+    .edvibe-batch-access-summary,
+    .edvibe-batch-access-failures {
+        overflow: auto;
+        max-height: 248px;
+        margin-top: 10px;
+    }
+
+    .edvibe-batch-access-lesson {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        color: var(--edvibe-text);
+        font-size: 14px;
+        line-height: 1.4;
+        cursor: pointer;
+    }
+
+    .edvibe-batch-access-lesson:last-child {
+        border-bottom: 0;
+    }
+
+    .edvibe-batch-access-lesson:hover {
+        background: var(--edvibe-info-surface);
+    }
+
+    .edvibe-batch-access-lesson:focus-within {
+        outline: 2px solid var(--edvibe-focus-outline);
+        outline-offset: -2px;
+    }
+
+    .edvibe-batch-access-lesson input {
+        flex: 0 0 auto;
+        margin-top: 3px;
+    }
+
+    .edvibe-batch-access-empty {
+        margin: 0;
+    }
+
+    .edvibe-batch-access-error,
+    .edvibe-batch-access-failure {
+        margin: 0;
+        color: inherit;
+        font-size: 13px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .edvibe-batch-access-error + .edvibe-batch-access-error,
+    .edvibe-batch-access-failure + .edvibe-batch-access-failure {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid currentColor;
+    }
+
+    .edvibe-batch-access-summary {
+        font-size: 13px;
+        line-height: 1.55;
+        white-space: pre-line;
+    }
+
+    .edvibe-batch-access-live-region {
+        flex: 0 0 auto;
+        padding-top: 16px;
+    }
+
+    .edvibe-batch-access-loading-indicator {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        margin-right: 7px;
+        border: 2px solid var(--edvibe-info-border);
+        border-top-color: var(--edvibe-primary);
+        border-radius: 50%;
+        vertical-align: -3px;
+        animation: edvibe-batch-access-spin .8s linear infinite;
+    }
+
+    @keyframes edvibe-batch-access-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .edvibe-batch-access-status {
+        min-height: 20px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .edvibe-batch-access-status.is-error {
+        color: var(--edvibe-danger);
+    }
+
+    .edvibe-batch-access-progress {
+        display: block;
+        width: 100%;
+        height: 11px;
+        margin-top: 10px;
+    }
+
+    .edvibe-batch-access-footer {
+        flex: 0 0 auto;
+        margin-top: 18px;
+    }
+
+    .edvibe-batch-access-selection-actions input:disabled {
+        cursor: not-allowed;
+        opacity: .58;
+    }
+
+    @media (max-width: 560px) {
+        .edvibe-batch-access-card {
+            width: 100%;
+            max-height: 100vh;
+            padding: 18px;
+        }
+
+        .edvibe-batch-access-lesson-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .edvibe-batch-access-selection-actions {
+            justify-content: flex-start;
+        }
+
+        .edvibe-batch-access-footer button {
+            flex: 1 1 180px;
+        }
+    }
 `,Ka=`edvibe-toolbox-batch-access-dialog`,qa=`edvibe-toolbox-batch-access-overlay`,Ja=class extends ln{static styles=[pn,mn,hn,gn,_n,vn,yn,bn,Ga];static properties={lessons:{state:!0},selectedLessonIds:{state:!0},emailState:{state:!0},emailInput:{state:!0},mode:{state:!0},statusMessage:{state:!0},statusError:{state:!0},errors:{state:!0},summaryLines:{state:!0},failures:{state:!0},progress:{state:!0}};constructor(){super(),this.lessons=[],this.selectedLessonIds=new Set,this.emailState={validCount:0,malformedCount:0},this.emailInput=``,this.mode=`initializing`,this.statusMessage=``,this.statusError=!1,this.errors=[],this.summaryLines=[],this.failures=[],this.progress={visible:!1,indeterminate:!1,completed:0,total:0},this.handleKeydownBound=e=>this.handleKeydown(e)}connectedCallback(){super.connectedCallback(),this.id||=qa,this.ownerDocument?.addEventListener(`keydown`,this.handleKeydownBound)}disconnectedCallback(){this.ownerDocument?.removeEventListener(`keydown`,this.handleKeydownBound),super.disconnectedCallback()}configure(e={}){return e=e&&typeof e==`object`?e:{},(e.lessons!==void 0||e.emailState!==void 0)&&this.showConfigure(e),this}setEmailState(e={}){return e=e&&typeof e==`object`?e:{},this.emailState={validCount:Math.max(0,Number(e.validCount)||0),malformedCount:Math.max(0,Number(e.malformedCount)||0)},this}showConfigure(e={}){return Array.isArray(e)&&(e={lessons:e}),e=e&&typeof e==`object`?e:{},Array.isArray(e.lessons)&&(this.lessons=e.lessons,this.selectedLessonIds=new Set),e.emailInput!==void 0&&(this.emailInput=String(e.emailInput||``)),this.mode=`configure`,this.clearMessages(),this.progress={visible:!1,indeterminate:!1,completed:0,total:0},e.emailState!==void 0&&this.setEmailState(e.emailState),this}showLoading(e=`Загружаем уроки…`){return this.mode=`loading`,this.clearMessages(),this.setStatus(e),this.progress={visible:!0,indeterminate:!0,completed:0,total:0},this}showValidation(e=`Проверяем данные…`){return this.mode=`validating`,this.clearMessages(),this.progress={visible:!1,indeterminate:!1,completed:0,total:0},this.setStatus(e),this}showValidationErrors(e=[]){return this.mode=`validation-error`,this.errors=this.normalizeErrors(e),this.summaryLines=[],this.failures=[],this.progress={visible:!1,indeterminate:!1,completed:0,total:0},this.setStatus(`Исправьте ошибки и повторите проверку.`,`error`),this}showConfirmation(e={}){this.mode=`confirm`,this.clearMessages();let t=this.count(e.needsOpening,e.pendingCount),n=this.count(e.alreadyOpen,e.alreadyOpenCount),r=this.count(e.selectedLessons,e.selectedLessonCount),i=this.count(e.matchedUsers,e.matchedUserCount);return this.summaryLines=[`${i} пользователей сопоставлено`,`${r} уроков выбрано`,`${t} доступов нужно открыть`,`${n} уже открыт${n===1?``:`о`} и будет пропущено`],this.setStatus(`Подтвердите открытие доступа.`),this}showExecution(e={}){this.mode=`executing`;let t=Math.max(0,Number(e.completed)||0),n=Math.max(0,Number(e.total)||0),r=Math.max(0,Number(e.opened)||0),i=Math.max(0,Number(e.failures)||0),a=Math.max(0,Number(e.alreadyOpen)||0);this.progress={visible:!0,indeterminate:!1,completed:t,total:n};let o=e.current?.email&&e.current?.lessonName?` Сейчас: ${e.current.email} — ${e.current.lessonName}.`:``;return this.setStatus(`Выполнено: ${t} из ${n}. Открыто: ${r}. Ошибок: ${i}. Уже открыто: ${a}.${o}`),this}showComplete(e={}){let t=Array.isArray(e.failures)?e.failures:[];return this.mode=t.length?`partial-complete`:`complete`,this.clearMessages(),this.progress={visible:!1,indeterminate:!1,completed:0,total:0},this.summaryLines=[`Email запрошено: ${this.count(e.requestedEmails,e.requestedEmailCount)}`,`Пользователей сопоставлено: ${this.count(e.matchedUsers,e.matchedUserCount)}`,`Уроков выбрано: ${this.count(e.selectedLessons,e.selectedLessonCount)}`,`Доступов открыто: ${this.count(e.opened,e.openedCount)}`,`Уже открыто: ${this.count(e.alreadyOpen,e.alreadyOpenCount)}`,`Ошибок: ${this.count(t,e.failureCount)}`,`Попыток запросов: ${Math.max(0,Number(e.attempts)||0)}`],this.failures=t,this.setStatus(t.length?`Завершено с ошибками. Скопируйте отчёт для подробностей.`:`Готово.`),this}showFatalError(e){return this.mode=`fatal-error`,this.clearMessages(),this.errors=this.normalizeErrors([e]),this.setStatus(`Не удалось подготовить пакетное открытие доступа.`,`error`),this}normalizeErrors(e){return(Array.isArray(e)?e:[e]).map(e=>typeof e==`string`?e:String(e?.message||`Неизвестная ошибка.`))}clearMessages(){this.errors=[],this.summaryLines=[],this.failures=[],this.statusMessage=``,this.statusError=!1}setStatus(e,t=``){this.statusMessage=String(e||``),this.statusError=t===`error`}isEditingLocked(){return[`validating`,`confirm`,`executing`,`fatal-error`].includes(this.mode)}isLessonSelectionLocked(){return this.mode===`loading`||this.isEditingLocked()}canClose(){return[`configure`,`validation-error`,`complete`,`partial-complete`,`fatal-error`].includes(this.mode)}canSubmit(){return(this.mode===`configure`||this.mode===`validation-error`)&&this.emailState.validCount>0&&this.selectedLessonIds.size>0}selectLesson(e,t){if(this.isLessonSelectionLocked())return;let n=new Set(this.selectedLessonIds);t?n.add(e):n.delete(e),this.selectedLessonIds=n}handleInput(e){this.emailInput=String(e.currentTarget.value||``),this.dispatchEvent(new CustomEvent(`edvibe-batch-access-input-change`,{detail:{emailInput:this.emailInput}}))}handleSelectAll(e){this.isLessonSelectionLocked()||(this.selectedLessonIds=e.currentTarget.checked?new Set(this.lessons.map(e=>e.MarathonLessonId)):new Set)}handleClearAll(){this.isLessonSelectionLocked()||(this.selectedLessonIds=new Set)}handleSubmit(){this.canSubmit()&&this.dispatchEvent(new CustomEvent(`edvibe-batch-access-submit`,{detail:{emailInput:this.emailInput,selectedLessonIds:[...this.selectedLessonIds]}}))}handleConfirm(){this.mode===`confirm`&&this.dispatchEvent(new CustomEvent(`edvibe-batch-access-confirm`))}handleCopy(){[`complete`,`partial-complete`].includes(this.mode)&&this.dispatchEvent(new CustomEvent(`edvibe-batch-access-copy-report`))}handleRestart(){[`complete`,`partial-complete`].includes(this.mode)&&(this.mode=`configure`,this.selectedLessonIds=new Set,this.emailInput=``,this.setEmailState({validCount:0,malformedCount:0}),this.clearMessages(),this.progress={visible:!1,indeterminate:!1,completed:0,total:0},this.dispatchEvent(new CustomEvent(`edvibe-batch-access-restart`)))}handleBackdropClick(e){e.target===e.currentTarget&&this.close()}handleKeydown(e){e.key===`Escape`&&this.close()}close(){this.canClose()&&(this.dispatchEvent(new CustomEvent(`edvibe-dialog-close`)),this.remove())}count(e,t){return Array.isArray(e)?e.length:Number.isFinite(Number(e))?Math.max(0,Number(e)):Math.max(0,Number(t)||0)}renderLesson(e,t){let n=e.MarathonLessonId;return G`
             <label class="edvibe-batch-access-lesson">
                 ${Number(e.Number)+1}. ${e.Name||`Без названия`}
@@ -1933,197 +1952,196 @@ pre {
                 </section>
             </div>
         `}};customElements.get(`edvibe-toolbox-batch-access-dialog`)||customElements.define(Ka,Ja);var Ya=`edvibe-toolbox-batch-user-management-dialog`;function Xa(e){return Oi(e,{includeItems:!0})}function Za(e,t){let n=new Map;for(let e of Array.isArray(t)?t:[]){let t=String(e?.Email||``).trim().toLowerCase(),r=n.get(t)||[];r.push(e),n.set(t,r)}let r=[],i=[];for(let t of Array.isArray(e)?e:[]){let e=n.get(t.normalized)||[];if(e.length===1){r.push({email:t.input,normalizedEmail:t.normalized,pupil:e[0],status:`matched`,message:``});continue}let a=e.length===0?`missing`:`ambiguous`,o=e.length===0?`No marathon pupil found for ${t.input}.`:`Multiple marathon pupils found for ${t.input}.`;r.push({email:t.input,normalizedEmail:t.normalized,pupil:null,status:a,message:o}),i.push({type:a,input:t.input,count:e.length,message:o})}return{rows:r,errors:i}}function Qa({rows:e}){return(Array.isArray(e)?e:[]).map(e=>{let t=e.status===`matched`&&e.pupil,n=!!(t&&Array.isArray(e.pupil.Moderators)&&e.pupil.Moderators.length>0);return{email:e.email,normalizedEmail:e.normalizedEmail,pupil:t?e.pupil:null,marathonPupilId:t?e.pupil.MarathonPupilId:null,hasCurator:n,actionable:!!t,status:e.status,message:e.message,unassignSelected:!1,deleteSelected:!1,unassign:null,delete:null,result:{status:`pending`,message:t?`Not started`:e.message}}})}function $a(e){return{...e,unassign:null,delete:null,result:{...e.result}}}function eo(e){return{status:`failed`,attempts:e?.attempts||1,code:e?.code||`UNKNOWN_ERROR`,message:e?.message||`The operation failed.`}}function to(e){return{status:`success`,attempts:e}}function no(){return{status:`noop`,attempts:0,message:`No curator was assigned.`}}function ro(e){return{status:`skipped`,attempts:0,message:e}}function io(e){let t=[];return e.unassignSelected&&t.push(`unassign`),e.deleteSelected&&t.push(`delete`),t}function ao(e,t){return t?e===`unassign`?t.status===`noop`?`Curator already absent`:t.status===`success`?`Curator removed`:`Curator removal failed (${t.code||`UNKNOWN_ERROR`}): ${t.message||`The operation failed.`}`:t.status===`success`?`User deleted`:t.status===`skipped`?`Deletion skipped: ${t.message||`The operation was skipped.`}`:`Deletion failed (${t.code||`UNKNOWN_ERROR`}): ${t.message||`The operation failed.`}`:``}function oo(e){let t=io(e);e.result={status:t.some(t=>e[t]?.status===`failed`)?`failed`:`success`,message:t.map(t=>ao(t,e[t])).filter(Boolean).join(`; `)}}async function so({marathonId:e,rows:t,sendRequest:n,wait:r,getConnectionState:i,onProgress:a=()=>{}}){let o=(Array.isArray(t)?t:[]).filter(e=>e.actionable!==!1&&io(e).length>0).map($a),s=o.length,c=0,l=0,u=0,d=0;function f(e,t){try{a(Object.freeze({completed:c,total:s,successes:l,failures:u,current:Object.freeze({email:e.email,operation:t})}))}catch{}}for(let t of o){let a=io(t);try{if(t.unassignSelected){if(f(t,`unassign`),!t.hasCurator)t.unassign=no();else try{let a=await ji(async()=>{let r=await n(`MarathonPupilsWsController`,`AddModeratorsToPupil`,`Marathons`,{MarathonId:e,MarathonPupilId:t.marathonPupilId,SelectedModeratorsIds:[]});if(r?.Value?.IsSuccess!==!0)throw J(`INVALID_RESPONSE`,`The curator removal was not confirmed.`);return r},{wait:r,getConnectionState:i});t.unassign=to(a.attempts),d+=a.attempts}catch(e){t.unassign=eo(e),d+=t.unassign.attempts}}if(t.deleteSelected){if(t.unassign?.status===`failed`)t.delete=ro(`Skipped because curator removal failed.`);else{f(t,`delete`);try{let e=await ji(async()=>{let e=await n(`MarathonPupilsWsController`,`DeleteMarathonPupil`,`Marathons`,{MarathonPupilId:t.marathonPupilId});if(e?.Value!==t.marathonPupilId)throw J(`INVALID_RESPONSE`,`The user deletion was not confirmed.`);return e},{wait:r,getConnectionState:i});t.delete=to(e.attempts),d+=e.attempts}catch(e){t.delete=eo(e),d+=t.delete.attempts}}}}catch(e){let n=t.unassign?.status!==`success`&&t.unassign?.status!==`noop`?`unassign`:`delete`;t[n]||=eo(e)}oo(t),t.result.status===`failed`?u+=1:l+=1,c+=1,f(t,t.delete?.status===`skipped`?`unassign`:a[a.length-1])}return{rows:o,completed:c,total:s,successes:l,failures:u,attempts:d}}function co(e){return e.entries.length===0&&e.malformed.length===0?[J(`EMAILS_REQUIRED`,`Enter at least one email address.`)]:[]}function lo(e,t){let n=new Map(t.rows.map(e=>[e.normalizedEmail,e]));return e.items.map(e=>e.isValid?n.get(e.normalized):{email:e.input,normalizedEmail:e.normalized,pupil:null,status:`malformed`,message:`Invalid email address: ${e.input}.`})}function uo({sendRequest:e,getConnectionState:t,wait:n,canStart:r,onActiveChange:i,createDialog:a=()=>document.createElement(Ya),log:o=()=>{}}){let s=!1,c=!1,l=[],u=[],d=null,f=null;function p(){s&&(s=!1,i(!1))}function m(){c=!1,l=[],u=[],d=null,f=null,p()}function h(e){return typeof e?.code==`string`?e.code:`UNKNOWN_ERROR`}function g(e){let t=Xa(e?.detail?.emailInput);f.setEmailState({validCount:t.entries.length,malformedCount:t.malformed.length})}function _(e){let t=new Map((Array.isArray(e)?e:[]).map(e=>[e.normalizedEmail,{unassignSelected:!!e.unassignSelected,deleteSelected:!!e.deleteSelected}]));return u.map(e=>({...e,...t.get(e.normalizedEmail)||{unassignSelected:!1,deleteSelected:!1},result:{...e.result}}))}function v(e){let t=new Set(e.filter(e=>e.delete?.status===`success`).map(e=>e.marathonPupilId)),n=new Set(e.filter(e=>e.unassign?.status===`success`||e.unassign?.status===`noop`).map(e=>e.marathonPupilId));l=l.filter(e=>!t.has(e.MarathonPupilId)).map(e=>n.has(e.MarathonPupilId)?{...e,Moderators:[]}:e)}async function y(e){if(!c){c=!0;try{let t=Xa(e?.detail?.emailInput),n=co(t);if(n.length>0){f.showValidationErrors(n);return}f.showChecking(`Проверяем пользователей…`),u=Qa({rows:lo(t,Za(t.entries,l))}),f.showReview({rows:u}),o(`Batch user management checked ${u.length} row(s) for MarathonId ${d}.`)}catch(e){f.showValidationErrors([e])}finally{c=!1}}}function b(e){Array.isArray(e?.detail?.rows)&&(u=_(e.detail.rows))}async function x(r){if(c)return;let i=_(r?.detail?.rows||u);if(i.some(e=>e.actionable!==!1&&(e.unassignSelected||e.deleteSelected))){c=!0;try{let r=await so({marathonId:d,rows:i,sendRequest:e,wait:n,getConnectionState:t,onProgress:e=>f.showExecution(e)}),a=new Map(r.rows.map(e=>[e.normalizedEmail,e]));v(r.rows),u=i.map(e=>a.get(e.normalizedEmail)||e),f.showComplete({...r,rows:u})}catch(e){f.showComplete({rows:u,completed:0,total:0,successes:0,failures:1,attempts:e?.attempts||1,error:e})}finally{c=!1}}}function S(){u=[],c=!1}async function C(){if(!(s||document.getElementById(`edvibe-toolbox-batch-user-management-overlay`))){if(!r()){window.alert(`Another Edvibe Toolbox operation is already running.`);return}if(d=Di(window.location.href),!d){window.alert(`Open an Edvibe marathon page before managing users.`);return}s=!0,i(!0);try{if(f=a(),f.addEventListener(`edvibe-dialog-close`,m),f.addEventListener(`edvibe-batch-user-management-input-change`,g),f.addEventListener(`edvibe-batch-user-management-check`,y),f.addEventListener(`edvibe-batch-user-management-selection-change`,b),f.addEventListener(`edvibe-batch-user-management-start`,x),f.addEventListener(`edvibe-batch-user-management-restart`,S),f.configure(),(document.body||document.documentElement).appendChild(f),f.showChecking(`Загружаем пользователей…`),o(`Initializing batch user management for MarathonId ${d}.`),l=await Fi({sendRequest:e,marathonId:d}),l.length===0)throw J(`EMPTY_ROSTER`,`No pupils were found in this marathon.`);f.showConfigure()}catch(e){o(`Batch user management initialization failed for MarathonId ${d} (${h(e)}).`);try{f?.showFatalError?.(e)}catch(e){o(`Batch user management error rendering failed (${h(e)}).`)}finally{p()}}}}return{open:C,isRunning:()=>c}}var fo=`batch_user_management`,po=Object.freeze({unassign:`unassign_curator`,delete:`delete_user`});function mo(e){let t=String(e||``).match(/\/marathon\/(\d+)(?:\/|$)/);return t?String(t[1]):null}function ho(e){let t=[];return e?.unassignSelected&&t.push(po.unassign),e?.deleteSelected&&t.push(po.delete),t}function go(e){let t=e?.pupil||{};return Object.freeze({email:t.Email||e?.normalizedEmail||e?.email||null,displayName:t.DisplayName||t.FullName||t.Name||null,firstName:t.FirstName||null,lastName:t.LastName||null,pupilId:t.PupilId??t.Id??null,marathonPupilId:e?.marathonPupilId??t.MarathonPupilId??null})}function _o(e,t){if(!t)return Object.freeze({name:e,status:`not_attempted`,attemptCount:0,code:`NOT_ATTEMPTED`,message:`The operation was not attempted.`,dependency:null});let n=t.status===`skipped`&&/curator removal failed/i.test(t.message||``);return Object.freeze({name:e,status:t.status,attemptCount:Number.isInteger(t.attempts)?t.attempts:0,code:t.code||(n?`DEPENDENCY_FAILED`:null),message:t.message||null,dependency:n?Object.freeze({blockedBy:po.unassign}):null,...X(t)?{diagnostics:X(t)}:{}})}function vo(e,t){if(e?.status!==`matched`)return`rejected`;if(t.length===0)return`skipped`;let n=t.map(e=>e.status);return n.includes(`failed`)?`failed`:n.includes(`not_attempted`)?`not_attempted`:n.includes(`skipped`)?`skipped`:n.every(e=>e===`noop`)?`noop`:`success`}function yo(e,t){return t===`rejected`?{malformed:`USER_INPUT_MALFORMED`,missing:`USER_NOT_FOUND`,ambiguous:`USER_AMBIGUOUS`}[e?.status]||`USER_REJECTED`:{success:`USER_OPERATIONS_COMPLETED`,noop:`USER_OPERATIONS_NOOP`,skipped:`USER_OPERATIONS_SKIPPED`,failed:`USER_OPERATIONS_FAILED`,not_attempted:`USER_OPERATIONS_NOT_ATTEMPTED`}[t]}function bo(e,t,n){if(t===`rejected`)return e?.message||`The submitted user could not be resolved safely.`;if(n.length===0)return`No user-management operation was selected.`;let r=n.map(e=>e.message).filter(Boolean);return r.length>0?r.join(`; `):{success:`All selected operations completed successfully.`,noop:`All selected operations were already satisfied.`,skipped:`One or more selected operations were skipped.`,failed:`One or more selected operations failed.`,not_attempted:`One or more selected operations were not attempted.`}[t]}function xo(e,t){let n=ho(e),r=n.map(t=>t===po.unassign?_o(t,e?.unassign):_o(t,e?.delete)),i=vo(e,r),a=wa(r.flatMap(e=>X(e)?.requestAttempts||[]));return Object.freeze({itemId:e?.normalizedEmail||e?.email||`input-${t+1}`,label:e?.email||e?.normalizedEmail||`Input ${t+1}`,status:i,code:yo(e,i),message:bo(e,i,r),attempts:r.reduce((e,t)=>e+t.attemptCount,0),...a?{diagnostics:a}:{},data:Object.freeze({submittedInput:e?.email||null,normalizedEmail:e?.normalizedEmail||null,resolution:e?.status||`malformed`,resolutionMessage:e?.message||null,user:e?.status===`matched`?go(e):null,curatorPresent:e?.status===`matched`?!!e?.hasCurator:null,selectedOperations:Object.freeze(n),operations:Object.freeze(r)})})}function So(e){let t=e.filter(e=>e.data.resolution===`matched`&&e.data.selectedOperations.length>0).length,n=e.filter(e=>e.status===`not_attempted`).length,r=e.filter(e=>e.data.resolution===`matched`&&e.data.selectedOperations.length>0&&e.status!==`not_attempted`).length;return Object.freeze({requested:e.length,eligible:t,attempted:r,successful:e.filter(e=>e.status===`success`).length,noOp:e.filter(e=>e.status===`noop`).length,skipped:e.filter(e=>e.status===`skipped`||e.status===`rejected`).length,failed:e.filter(e=>e.status===`failed`).length,notAttempted:n})}function Co(e,t){return e?.error?`interrupted`:t.some(e=>e.status===`failed`||e.status===`skipped`||e.status===`rejected`)?`completed_with_failures`:`completed`}function wo({rows:e,summary:t={},startedAt:n,completedAt:r,marathonId:i,marathonName:a=null}){let o=(Array.isArray(e)?e:[]).map(xo),s={selected:0,attempted:0,successful:0,noOp:0,skipped:0,failed:0,notAttempted:0};for(let e of o)for(let t of e.data.operations)s.selected+=1,t.status!==`not_attempted`&&(s.attempted+=1),t.status===`success`&&(s.successful+=1),t.status===`noop`&&(s.noOp+=1),t.status===`skipped`&&(s.skipped+=1),t.status===`failed`&&(s.failed+=1),t.status===`not_attempted`&&(s.notAttempted+=1);let c=So(o);return Object.freeze({operationType:fo,startedAt:n,completedAt:r,status:Co(t,o),pageContext:Object.freeze({marathonId:i,marathonName:a}),counts:c,results:Object.freeze(o),message:JSON.stringify({userCounts:c,operationCounts:s})})}function To({createDialog:e,persistExecution:t,openHistory:n=()=>{},getLocationHref:r=()=>``,getMarathonName:i=()=>null,now:a=()=>new Date,log:o=()=>{}}){if(typeof e!=`function`)throw TypeError(`createDialog is required`);if(typeof t!=`function`)throw TypeError(`persistExecution is required`);return function(){let s=e(),c=null,l=0,u=s.showComplete.bind(s),d=s.showReview.bind(s),f=s.showConfigure.bind(s);function p(){s.shadowRoot?.querySelector?.(`.edvibe-batch-user-management-history`)?.remove?.()}function m(e){let t=s.elements?.status?.textContent||``;s.setStatus?.(`${t}${t?` `:``}${e}`)}function h(e){p();let t=(s.ownerDocument||globalThis.document)?.createElement?.(`button`);t&&(t.type=`button`,t.className=`edvibe-batch-user-management-history`,t.textContent=`Открыть в истории`,t.addEventListener(`click`,()=>{s.close?.(),n(e)}),s.elements?.footer?.appendChild?.(t),s.elements?.footer||s.shadowRoot?.querySelector?.(`.edvibe-batch-user-management-footer`)?.appendChild?.(t))}return s.showReview=e=>(c=null,l+=1,p(),d(e)),s.showConfigure=(...e)=>(c=null,l+=1,p(),f(...e)),s.addEventListener(`edvibe-batch-user-management-start`,()=>{c=a().toISOString(),l+=1,p()}),s.showComplete=(e={})=>{let n=u(e),d=l,f=a().toISOString(),p=wo({rows:e.rows||s.rows,summary:e,startedAt:c||f,completedAt:f,marathonId:mo(r()),marathonName:i()});return Promise.resolve().then(()=>t(p)).then(e=>{d===l&&(e?.stored?(m(`Результат сохранён в истории.`),e.record?.id&&h(e.record.id)):(m(`Экранный результат сохранён, но записать историю не удалось.`),e?.persistenceError&&o(`Batch user management history persistence failed:`,e.persistenceError)))}).catch(e=>{d===l&&(m(`Экранный результат сохранён, но записать историю не удалось.`),o(`Batch user management history persistence failed:`,e))}),n},s}}var Eo=W`
-[hidden] {
-    display: none !important;
-}
+    [hidden] {
+        display: none !important;
+    }
 
-.edvibe-batch-user-management-card {
-    display: flex;
-    flex-direction: column;
-    width: min(980px, calc(100vw - 32px));
-    max-height: min(820px, calc(100vh - 32px));
-    padding: 24px;
-}
-
-.edvibe-batch-user-management-header,
-.edvibe-batch-user-management-email-state,
-.edvibe-batch-user-management-footer {
-    display: flex;
-    align-items: center;
-}
-
-.edvibe-batch-user-management-header {
-    justify-content: space-between;
-    gap: 16px;
-}
-
-.edvibe-batch-user-management-header h2 {
-    margin: 0;
-    color: var(--edvibe-text-strong);
-    font-size: 21px;
-    line-height: 1.3;
-}
-
-.edvibe-batch-user-management-description {
-    margin: 5px 0 0;
-    color: var(--edvibe-text-muted);
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.edvibe-batch-user-management-close {
-    min-width: 36px;
-    padding: 0;
-    font-size: 24px;
-    line-height: 1;
-}
-
-.edvibe-batch-user-management-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    margin-top: 18px;
-}
-
-.edvibe-batch-user-management-email-field {
-    font-size: 13px;
-}
-
-.edvibe-batch-user-management-emails {
-    min-height: 112px;
-    resize: vertical;
-    line-height: 1.45;
-}
-
-.edvibe-batch-user-management-email-state {
-    flex-wrap: wrap;
-    gap: 8px 16px;
-}
-
-.edvibe-batch-user-management-table-wrap {
-    overflow: auto;
-    max-height: 350px;
-    margin-top: 18px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-}
-
-.edvibe-batch-user-management-table {
-    width: 100%;
-    border-collapse: collapse;
-    color: var(--edvibe-text);
-    font-size: 13px;
-}
-
-.edvibe-batch-user-management-table th,
-.edvibe-batch-user-management-table td {
-    padding: 11px 12px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    text-align: left;
-    vertical-align: top;
-}
-
-.edvibe-batch-user-management-table th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    color: var(--edvibe-text);
-    background: var(--edvibe-surface-subtle);
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.edvibe-batch-user-management-table tr:last-child td {
-    border-bottom: 0;
-}
-
-.edvibe-batch-user-management-table th:nth-child(2),
-.edvibe-batch-user-management-table th:nth-child(3),
-.edvibe-batch-user-management-table td:nth-child(2),
-.edvibe-batch-user-management-table td:nth-child(3) {
-    width: 150px;
-    text-align: center;
-}
-
-.edvibe-batch-user-management-table th button {
-    display: block;
-    min-height: 28px;
-    margin: 5px auto 0;
-    padding: 4px 8px;
-    font-size: 11px;
-}
-
-.edvibe-batch-user-management-user {
-    min-width: 220px;
-    overflow-wrap: anywhere;
-}
-
-.edvibe-batch-user-management-result {
-    min-width: 220px;
-    color: var(--edvibe-text-muted);
-    overflow-wrap: anywhere;
-}
-
-.edvibe-batch-user-management-errors {
-    overflow: auto;
-    max-height: 350px;
-    margin-top: 18px;
-}
-
-.edvibe-batch-user-management-error {
-    margin: 0;
-    color: inherit;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.edvibe-batch-user-management-error + .edvibe-batch-user-management-error {
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid currentColor;
-}
-
-.edvibe-batch-user-management-live-region {
-    flex: 0 0 auto;
-    padding-top: 16px;
-}
-
-.edvibe-batch-user-management-status {
-    min-height: 20px;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.edvibe-batch-user-management-status.is-error {
-    color: var(--edvibe-danger);
-}
-
-.edvibe-batch-user-management-progress {
-    display: block;
-    width: 100%;
-    height: 11px;
-    margin-top: 10px;
-}
-
-.edvibe-batch-user-management-footer {
-    flex: 0 0 auto;
-    margin-top: 18px;
-}
-
-@media (max-width: 680px) {
     .edvibe-batch-user-management-card {
-        width: 100%;
-        max-height: 100vh;
-        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        width: min(980px, calc(100vw - 32px));
+        max-height: min(820px, calc(100vh - 32px));
+        padding: 24px;
+    }
+
+    .edvibe-batch-user-management-header,
+    .edvibe-batch-user-management-email-state,
+    .edvibe-batch-user-management-footer {
+        display: flex;
+        align-items: center;
+    }
+
+    .edvibe-batch-user-management-header {
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .edvibe-batch-user-management-header h2 {
+        margin: 0;
+        color: var(--edvibe-text-strong);
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .edvibe-batch-user-management-description {
+        margin: 5px 0 0;
+        color: var(--edvibe-text-muted);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .edvibe-batch-user-management-close {
+        min-width: 36px;
+        padding: 0;
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .edvibe-batch-user-management-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        margin-top: 18px;
+    }
+
+    .edvibe-batch-user-management-email-field {
+        font-size: 13px;
+    }
+
+    .edvibe-batch-user-management-emails {
+        min-height: 112px;
+        resize: vertical;
+        line-height: 1.45;
+    }
+
+    .edvibe-batch-user-management-email-state {
+        flex-wrap: wrap;
+        gap: 8px 16px;
+    }
+
+    .edvibe-batch-user-management-table-wrap {
+        overflow: auto;
+        max-height: 350px;
+        margin-top: 18px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
     }
 
     .edvibe-batch-user-management-table {
-        min-width: 760px;
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--edvibe-text);
+        font-size: 13px;
     }
-}
 
+    .edvibe-batch-user-management-table th,
+    .edvibe-batch-user-management-table td {
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .edvibe-batch-user-management-table th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        color: var(--edvibe-text);
+        background: var(--edvibe-surface-subtle);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .edvibe-batch-user-management-table tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .edvibe-batch-user-management-table th:nth-child(2),
+    .edvibe-batch-user-management-table th:nth-child(3),
+    .edvibe-batch-user-management-table td:nth-child(2),
+    .edvibe-batch-user-management-table td:nth-child(3) {
+        width: 150px;
+        text-align: center;
+    }
+
+    .edvibe-batch-user-management-table th button {
+        display: block;
+        min-height: 28px;
+        margin: 5px auto 0;
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .edvibe-batch-user-management-user {
+        min-width: 220px;
+        overflow-wrap: anywhere;
+    }
+
+    .edvibe-batch-user-management-result {
+        min-width: 220px;
+        color: var(--edvibe-text-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .edvibe-batch-user-management-errors {
+        overflow: auto;
+        max-height: 350px;
+        margin-top: 18px;
+    }
+
+    .edvibe-batch-user-management-error {
+        margin: 0;
+        color: inherit;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .edvibe-batch-user-management-error + .edvibe-batch-user-management-error {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid currentColor;
+    }
+
+    .edvibe-batch-user-management-live-region {
+        flex: 0 0 auto;
+        padding-top: 16px;
+    }
+
+    .edvibe-batch-user-management-status {
+        min-height: 20px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .edvibe-batch-user-management-status.is-error {
+        color: var(--edvibe-danger);
+    }
+
+    .edvibe-batch-user-management-progress {
+        display: block;
+        width: 100%;
+        height: 11px;
+        margin-top: 10px;
+    }
+
+    .edvibe-batch-user-management-footer {
+        flex: 0 0 auto;
+        margin-top: 18px;
+    }
+
+    @media (max-width: 680px) {
+        .edvibe-batch-user-management-card {
+            width: 100%;
+            max-height: 100vh;
+            padding: 18px;
+        }
+
+        .edvibe-batch-user-management-table {
+            min-width: 760px;
+        }
+    }
 `,Do=`edvibe-toolbox-batch-user-management-dialog`,Oo=`edvibe-toolbox-batch-user-management-overlay`,ko=class extends ln{static styles=[pn,mn,hn,gn,_n,vn,yn,Eo];static properties={rows:{state:!0},emailState:{state:!0},emailInput:{state:!0},mode:{state:!0},errors:{state:!0},statusMessage:{state:!0},statusError:{state:!0},progress:{state:!0}};constructor(){super(),this.rows=[],this.emailState={validCount:0,malformedCount:0},this.emailInput=``,this.mode=`configure`,this.errors=[],this.statusMessage=``,this.statusError=!1,this.progress={visible:!1,completed:0,total:0},this.handleKeydownBound=e=>this.handleKeydown(e)}connectedCallback(){super.connectedCallback(),this.id||=Oo,this.ownerDocument?.addEventListener(`keydown`,this.handleKeydownBound)}disconnectedCallback(){this.ownerDocument?.removeEventListener(`keydown`,this.handleKeydownBound),super.disconnectedCallback()}configure(){return this}setEmailState(e={}){return this.emailState={validCount:Math.max(0,Number(e?.validCount)||0),malformedCount:Math.max(0,Number(e?.malformedCount)||0)},this}showConfigure(){return this.mode=`configure`,this.clearMessages(),this}showChecking(e=`Проверяем пользователей…`){return this.mode=`checking`,this.clearMessages(),this.setStatus(e),this}showValidationErrors(e=[]){return this.mode=`validation-error`,this.errors=this.normalizeErrors(e),this.progress={visible:!1,completed:0,total:0},this.setStatus(`Исправьте ошибки и повторите проверку.`,`error`),this}showReview({rows:e=[]}={}){return this.mode=`review`,this.rows=this.normalizeRows(e),this.clearMessages(),this.setStatus(`Выберите операции для пользователей.`),this}showExecution(e={}){this.mode=`executing`;let t=Math.max(0,Number(e.completed)||0),n=Math.max(0,Number(e.total)||0),r=Math.max(0,Number(e.successes)||0),i=Math.max(0,Number(e.failures)||0);this.progress={visible:!0,completed:t,total:n};let a=e.current?.email&&e.current?.operation?` Сейчас: ${e.current.email} — ${{unassign:`снятие куратора`,delete:`удаление пользователя`}[e.current.operation]||e.current.operation}.`:``;return this.setStatus(`Выполнено: ${t} из ${n}. Успешно: ${r}. Ошибок: ${i}.${a}`),this}showComplete(e={}){this.rows=this.normalizeRows(Array.isArray(e.rows)?e.rows:this.rows);let t=Math.max(0,Number(e.failures)||0);return this.mode=t>0?`partial-complete`:`complete`,this.clearMessages(),this.setStatus(t>0?`Завершено с ошибками. Успешно: ${Math.max(0,Number(e.successes)||0)}.`:`Готово.`),this}showFatalError(e){return this.mode=`fatal-error`,this.clearMessages(),this.errors=this.normalizeErrors([e]),this.setStatus(`Не удалось загрузить пользователей.`,`error`),this}normalizeRows(e){return e.map(e=>({...e,result:{...e.result||{status:`pending`,message:`Not started`}}}))}normalizeErrors(e){return(Array.isArray(e)?e:[e]).map(e=>typeof e==`string`?e:String(e?.message||`Неизвестная ошибка.`))}selectOperation(e,t,n){this.isLocked()||e.actionable===!1||(this.rows=this.rows.map(r=>r===e?{...r,[`${t}Selected`]:!!n,result:{...r.result||{}}}:r),this.dispatchSelectionChange())}selectAll(e,t){this.isLocked()||(this.rows=this.rows.map(n=>n.actionable===!1?n:{...n,[`${e}Selected`]:!!t,result:{...n.result||{}}}),this.dispatchSelectionChange())}allSelected(e){let t=this.rows.filter(e=>e.actionable!==!1);return t.length>0&&t.every(t=>t[`${e}Selected`])}dispatchSelectionChange(){this.dispatchEvent(new CustomEvent(`edvibe-batch-user-management-selection-change`,{detail:{rows:this.copyRows()}}))}handleInput(e){this.emailInput=String(e.currentTarget.value||``),this.dispatchEvent(new CustomEvent(`edvibe-batch-user-management-input-change`,{detail:{emailInput:this.emailInput}}))}handleCheck(){this.canCheck()&&this.dispatchEvent(new CustomEvent(`edvibe-batch-user-management-check`,{detail:{emailInput:this.emailInput}}))}handleStart(){this.canStart()&&this.dispatchEvent(new CustomEvent(`edvibe-batch-user-management-start`,{detail:{rows:this.copyRows()}}))}handleRestart(){[`complete`,`partial-complete`].includes(this.mode)&&(this.rows=[],this.mode=`configure`,this.emailInput=``,this.setEmailState({validCount:0,malformedCount:0}),this.clearMessages(),this.dispatchEvent(new CustomEvent(`edvibe-batch-user-management-restart`)))}handleBackdropClick(e){e.target===e.currentTarget&&this.close()}handleKeydown(e){e.key===`Escape`&&this.close()}close(){this.canClose()&&(this.dispatchEvent(new CustomEvent(`edvibe-dialog-close`)),this.remove())}copyRows(){return this.rows.map(e=>({...e,result:{...e.result||{}}}))}clearMessages(){this.errors=[],this.progress={visible:!1,completed:0,total:0},this.setStatus(``)}setStatus(e,t=``){this.statusMessage=String(e||``),this.statusError=t===`error`}isLocked(){return[`checking`,`executing`,`complete`,`partial-complete`].includes(this.mode)}canCheck(){return[`configure`,`validation-error`].includes(this.mode)&&this.emailInput.trim().length>0}canStart(){return this.mode===`review`&&this.rows.some(e=>e.actionable!==!1&&(e.unassignSelected||e.deleteSelected))}canClose(){return[`configure`,`validation-error`,`review`,`complete`,`partial-complete`,`fatal-error`].includes(this.mode)}renderRow(e){let t=this.isLocked();return G`
             <tr>
                 <td class="edvibe-batch-user-management-user">${e.pupil?.Name?`${e.pupil.Name} — `:``}${e.email}</td>
@@ -2191,277 +2209,277 @@ pre {
             </div>
         `}};customElements.get(`edvibe-toolbox-batch-user-management-dialog`)||customElements.define(Do,ko);function Ao(e,t,n={}){return J(e,t,n)}function jo(e){if(!e||typeof e!=`object`||Object.isFrozen(e))return e;Object.freeze(e);for(let t of Object.values(e))jo(t);return e}function Mo(e){let t=Number(e?.Id),n=Number(e?.TeacherId);if(!Number.isSafeInteger(t)||t<=0||!Number.isSafeInteger(n)||n<=0)throw Ao(`INVALID_MODERATOR_RESPONSE`,`The moderator catalogue contained an invalid identifier.`);return Object.freeze({id:t,teacherId:n,name:String(e?.Name||``).trim()||null,email:String(e?.Email||``).trim()||null})}function No(e){if(!Array.isArray(e))throw Ao(`INVALID_MODERATOR_RESPONSE`,`The moderator catalogue was not an array.`);let t=e.map(Mo),n=new Set,r=new Set;for(let e of t){if(n.has(e.id)||r.has(e.teacherId))throw Ao(`INVALID_MODERATOR_RESPONSE`,`The moderator catalogue contained ambiguous identifiers.`);n.add(e.id),r.add(e.teacherId)}return Object.freeze(t)}async function Po({sendRequest:e,marathonId:t}){return No((await e(`MarathonModeratorWsController`,`GetMarathonModerators`,`Marathons`,{MarathonId:t}))?.Value?.Items)}function Fo(e){return new Map((e||[]).map(e=>[e.teacherId,e]))}function Io(e,t){if(!Array.isArray(e))return Object.freeze({safe:!1,moderators:Object.freeze([]),code:`UNSAFE_MODERATOR_REPLACEMENT`,message:`Current curator assignments could not be interpreted safely.`});let n=Fo(t),r=[],i=new Set;for(let t of e){let e=Number(t?.TeacherId),a=n.get(e);if(!Number.isSafeInteger(e)||!a||i.has(a.id))return Object.freeze({safe:!1,moderators:Object.freeze([]),code:`UNSAFE_MODERATOR_REPLACEMENT`,message:`Existing curator assignments cannot be preserved without guessing.`});i.add(a.id),r.push(a)}return Object.freeze({safe:!0,moderators:Object.freeze(r),code:null,message:null})}function Lo(e){return e?Object.freeze({email:String(e.Email||``).trim()||null,name:String(e.Name||e.DisplayName||e.FullName||``).trim()||null,pupilId:Number.isSafeInteger(Number(e.PupilId))?Number(e.PupilId):null,marathonPupilId:Number.isSafeInteger(Number(e.MarathonPupilId))?Number(e.MarathonPupilId):null}):null}function Ro(e){let t=new Map;for(let n of Array.isArray(e)?e:[]){let e=String(n?.Email||``).trim().toLowerCase();if(!e)continue;let r=t.get(e)||[];r.push(n),t.set(e,r)}return t}function zo(e,t){let n=Number(t);return(e||[]).find(e=>e.id===n)||null}function Bo(e,t,n){let r=Ro(t),i=[];for(let t of e?.items||[]){if(!t.isValid){i.push(Object.freeze({email:t.input,normalizedEmail:t.normalized,resolution:`invalid`,membership:`unknown`,user:null,currentModerators:Object.freeze([]),moderatorStateSafe:!1,actionable:!1,message:`Invalid email address: ${t.input}.`,addSelected:!1,assignSelected:!1}));continue}let e=r.get(t.normalized)||[];if(e.length>1){i.push(Object.freeze({email:t.input,normalizedEmail:t.normalized,resolution:`ambiguous`,membership:`ambiguous`,user:null,currentModerators:Object.freeze([]),moderatorStateSafe:!1,actionable:!1,message:`Multiple marathon users matched ${t.input}.`,addSelected:!1,assignSelected:!1}));continue}if(e.length===0){i.push(Object.freeze({email:t.input,normalizedEmail:t.normalized,resolution:`resolvable_not_in_marathon`,membership:`not_in_marathon`,user:null,currentModerators:Object.freeze([]),moderatorStateSafe:!0,actionable:!0,message:`Not currently in the marathon; the recorded add-by-email workflow is available.`,addSelected:!1,assignSelected:!1}));continue}let a=Io(e[0].Moderators,n);i.push(Object.freeze({email:t.input,normalizedEmail:t.normalized,resolution:`in_marathon`,membership:`in_marathon`,user:Lo(e[0]),currentModerators:a.moderators,moderatorStateSafe:a.safe,actionable:!0,message:a.safe?`Already in the marathon.`:a.message,addSelected:!1,assignSelected:!1}))}return Object.freeze(i)}function Vo(e,t,n,r=null){return Object.freeze({status:e,code:t,message:n,dependency:r})}function Ho({rows:e,moderators:t,targetModeratorId:n}){let r=Array.isArray(e)?e:[],i=r.some(e=>!!e.assignSelected),a=i?zo(t,n):null;if(i&&!a)throw Ao(`CURATOR_REQUIRED`,`Select a curator before preparing the execution plan.`);let o=r.map(e=>{let t=!!e.addSelected,n=!!e.assignSelected,r=null,i=null;return t&&(r=e.actionable?e.membership===`in_marathon`?Vo(`noop`,`USER_ALREADY_IN_MARATHON`,`User is already in the marathon.`):Vo(`pending`,`USER_ADD_PENDING`,`User will be added to the marathon.`):Vo(`rejected`,`INVALID_USER_INPUT`,e.message||`The user is not actionable.`)),n&&(i=e.actionable?e.moderatorStateSafe?e.membership===`not_in_marathon`&&!t?Vo(`rejected`,`USER_NOT_IN_MARATHON`,`Curator assignment requires adding this user first.`):e.membership===`in_marathon`&&e.currentModerators.some(e=>e.teacherId===a.teacherId)?Vo(`noop`,`CURATOR_ALREADY_ASSIGNED`,`Target curator is already assigned.`):Vo(`pending`,`CURATOR_ASSIGNMENT_PENDING`,e.membership===`not_in_marathon`?`The curator will be assigned by the recorded add-user request.`:`The curator will be added while preserving all current curators.`,e.membership===`not_in_marathon`?Object.freeze({blockedBy:`add_user`}):null):Vo(`rejected`,`UNSAFE_MODERATOR_REPLACEMENT`,`Existing curator assignments cannot be preserved safely.`):Vo(`rejected`,`INVALID_USER_INPUT`,e.message||`The user is not actionable.`)),jo({itemId:e.normalizedEmail||e.email,email:e.email,normalizedEmail:e.normalizedEmail,resolution:e.resolution,membership:e.membership,user:e.user?{...e.user}:null,currentModerators:(e.currentModerators||[]).map(e=>({...e})),moderatorStateSafe:!!e.moderatorStateSafe,actionable:!!e.actionable,message:e.message||``,selectedOperations:Object.freeze([...t?[`add_user`]:[],...n?[`assign_curator`]:[]]),addSelected:t,assignSelected:n,add:r,assign:i,targetModerator:a?{...a}:null})}),s=e=>o.reduce((t,n)=>t+ +(n.add?.status===e)+ +(n.assign?.status===e),0);return jo({rows:o,targetModerator:a?{...a}:null,counts:{requested:o.length,selectedOperations:o.reduce((e,t)=>e+t.selectedOperations.length,0),additions:o.filter(e=>e.addSelected).length,assignments:o.filter(e=>e.assignSelected).length,noOps:s(`noop`),rejectedOperations:s(`rejected`),dependentAssignments:o.filter(e=>e.assign?.dependency?.blockedBy===`add_user`).length}})}function Uo(e,t=2){return String(e).padStart(t,`0`)}function Wo(e){let t=e instanceof Date?e:new Date(e);if(Number.isNaN(t.getTime()))throw Ao(`INVALID_CLIENT_TIME`,`Could not build the Edvibe client timestamp.`);return`${t.getFullYear()}-${Uo(t.getMonth()+1)}-${Uo(t.getDate())}T${Uo(t.getHours())}:${Uo(t.getMinutes())}:${Uo(t.getSeconds())}.${Uo(t.getMilliseconds(),3)}`}function Go({marathonId:e,emails:t,moderatorIds:n=[],host:r=`edvibe.com`,now:i=new Date,userId:a=null}){let o=(t||[]).map(e=>String(e||``).trim()).filter(Boolean);if(o.length===0)throw Ao(`EMAILS_REQUIRED`,`At least one email is required for addition.`);let s=String(r||``).trim()||`edvibe.com`,c={MarathonId:e,Emails:o,MailMessageLanguageId:0,ModeratorsIds:[...n],AccessGroups:[],Domain:s,ApiHost:s,ClientTime:Wo(i),DeviceType:`desktop`},l=Number(a);return Number.isSafeInteger(l)&&l>0&&(c.UserId=l),jo({controller:`MarathonPupilsWsController`,method:`AddMarathonPupil`,projectName:`Marathons`,value:c})}function Ko({marathonId:e,marathonPupilId:t,existingModeratorIds:n,targetModeratorId:r}){let i=[...new Set([...(n||[]).map(Number),Number(r)])];if(i.some(e=>!Number.isSafeInteger(e)||e<=0))throw Ao(`UNSAFE_MODERATOR_REPLACEMENT`,`A safe complete curator list could not be constructed.`);return jo({controller:`MarathonPupilsWsController`,method:`AddModeratorsToPupil`,projectName:`Marathons`,value:{MarathonId:e,MarathonPupilId:t,SelectedModeratorsIds:i}})}var qo=256,Jo=/(?:authorization|cookie|token|credential|password|secret|session|email|user|pupil|binary|image|photo|file|blob)/i;function Yo(e,t=0,n=new WeakSet){if(typeof e==`string`)return e.length<=qo?e:`${e.slice(0,qo)}…[truncated]`;if(e===null||[`number`,`boolean`].includes(typeof e))return e;if(!e||typeof e!=`object`)return`[${typeof e}]`;if(t>=4)return`[depth limit]`;if(n.has(e))return`[circular]`;n.add(e);let r=Array.isArray(e)?[]:{},i=Object.entries(e);for(let[e,a]of i.slice(0,25))r[e]=Jo.test(e)?`[redacted]`:Yo(a,t+1,n);return i.length>25&&(r.__truncatedEntries=i.length-25),n.delete(e),r}function Xo(e,t,n){let r=e?.diagnostics||{};return Yo({operation:t,attempt:n,code:e?.code,controller:e?.controller||r.request?.controller,method:e?.method||r.request?.method,requestId:e?.requestId||r.request?.requestId,serverErrorCode:e?.serverErrorCode||r.response?.errorCode,serverMessage:r.response?.serverMessage,startedAt:r.request?.startedAt,elapsedMs:r.response?.elapsedMs,requestSummary:r.request?.value,responseSummary:r.response?.value})}function Zo(e,t){return t.length?Yo({operation:e,attempts:t.slice(-3)}):null}var Qo=new Set([`SERVER_REJECTED`,`INVALID_RESPONSE`,`REQUEST_TIMEOUT`,`SEND_FAILED`]);function Z(e,t,n,r=0,i=null,a=null){return{status:e,code:t,message:n,attempts:r,dependency:i,diagnostics:a?Yo(a):null}}function $o(e){let t=(e,t)=>e?Z(e.status===`pending`?`not_attempted`:e.status,e.status===`pending`?`NOT_ATTEMPTED`:e.code,e.status===`pending`?`${t} has not been attempted yet.`:e.message,0,e.dependency):null;return e.rows.map(e=>({...e,currentModerators:e.currentModerators.map(e=>({...e})),runtimePupil:e.user?{...e.user}:null,addResult:t(e.add,`The addition`),assignResult:t(e.assign,`The curator assignment`)}))}function es(e){return e?.status===`not_attempted`}function ts(e){return e&&![`rejected`,`failed`,`skipped`].includes(e.status)}function ns(e){return(e||[]).map(e=>e.teacherId).sort((e,t)=>e-t)}function rs(e,t){return e.length===t.length&&e.every((e,n)=>e===t[n])}function is(e,t,n){e.addSelected&&ts(e.addResult)&&(e.addResult=Z(`rejected`,t,n)),e.assignSelected&&ts(e.assignResult)&&(e.assignResult=Z(`rejected`,t,n))}function as({rows:e,pupils:t,moderators:n,targetModerator:r}){let i=Ro(t);for(let t of e){if(!t.actionable||t.selectedOperations.length===0)continue;let e=i.get(t.normalizedEmail)||[];if(e.length>1){is(t,`USER_AMBIGUOUS`,`The user became ambiguous before execution.`);continue}if(t.membership===`in_marathon`){if(e.length!==1||Number(e[0].MarathonPupilId)!==Number(t.user?.marathonPupilId)){is(t,`STATE_CHANGED`,`Marathon membership changed after preflight.`);continue}let i=e[0];if(t.runtimePupil=Lo(i),t.addSelected&&ts(t.addResult)&&(t.addResult=Z(`noop`,`USER_ALREADY_IN_MARATHON`,`User is already in the marathon.`)),!t.assignSelected||!ts(t.assignResult))continue;let a=Io(i.Moderators,n);if(!a.safe){t.assignResult=Z(`rejected`,a.code,a.message);continue}if(!rs(ns(t.currentModerators),ns(a.moderators))){t.assignResult=Z(`rejected`,`STATE_CHANGED`,`Current curator assignments changed after preflight.`);continue}t.currentModerators=a.moderators.map(e=>({...e})),t.assignResult=a.moderators.some(e=>e.teacherId===r?.teacherId)?Z(`noop`,`CURATOR_ALREADY_ASSIGNED`,`Target curator is already assigned.`):Z(`not_attempted`,`NOT_ATTEMPTED`,`The curator assignment has not been attempted yet.`);continue}if(t.membership!==`not_in_marathon`||e.length===0)continue;let a=e[0];if(t.runtimePupil=Lo(a),t.addSelected&&ts(t.addResult)&&(t.addResult=Z(`noop`,`USER_ALREADY_IN_MARATHON`,`User entered the marathon after preflight; no duplicate add was sent.`)),t.assignSelected&&ts(t.assignResult)){let e=Io(a.Moderators,n);t.assignResult=e.safe&&e.moderators.some(e=>e.teacherId===r?.teacherId)?Z(`noop`,`CURATOR_ALREADY_ASSIGNED`,`Target curator was assigned after preflight.`):Z(`rejected`,`STATE_CHANGED`,`The user entered the marathon after preflight; curator state was not part of the confirmed plan.`)}}return e}function os(e,t){return!e?.code||e.code===`WS_UNAVAILABLE`||e.code===`SEND_FAILED`&&!t().isOpen||!Qo.has(e.code)}function ss(e){let t=e.flatMap(e=>[e.addResult,e.assignResult]).filter(Boolean);return{completed:t.filter(e=>e.status!==`not_attempted`).length,total:t.length,successes:t.filter(e=>[`success`,`noop`].includes(e.status)).length,failures:t.filter(e=>[`failed`,`rejected`,`skipped`].includes(e.status)).length}}function cs(e,t,n=null){try{e?.({...ss(t),current:n})}catch{}}async function ls({rows:e,marathonId:t,targetModerator:n,includeModerator:r,sendRequest:i,wait:a,getConnectionState:o,getRequestContext:s,now:c}){let l=e.filter(e=>es(e.addResult)&&e.membership===`not_in_marathon`&&!!e.assignSelected===r);if(l.length===0)return{targets:l,confirmed:!1,fatalError:null};let u=r?`add-group-with-curator`:`add-group`;for(let e of l)e.addDiagnosticRef=u;let d=s?.()||{},f=Go({marathonId:t,emails:l.map(e=>e.email),moderatorIds:r?[n.id]:[],host:d.host,userId:d.userId,now:c()}),p=[];try{let e=await ji(async()=>{try{let e=await i(f.controller,f.method,f.projectName,f.value);if(e?.Value?.IsSuccess!==!0)throw Ao(`INVALID_RESPONSE`,`User addition was not positively confirmed.`);return e}catch(e){throw p.push(Xo(e,`add_user`,p.length+1)),e}},{wait:a,getConnectionState:o});for(let t of l)t.addRequestAttempts=e.attempts;return{targets:l,confirmed:!0,fatalError:null,diagnosticId:u,diagnostics:Zo(`add_user`,p)}}catch(e){let t=Zo(`add_user`,p);for(let t of l)t.addResult=Z(`failed`,e.code||`USER_ADD_FAILED`,e.message||`User addition failed.`,e.attempts||1,null,{reference:u}),es(t.assignResult)&&(t.assignResult=Z(`skipped`,`ASSIGNMENT_BLOCKED_BY_ADD_FAILURE`,`Curator assignment was skipped because user addition failed.`,0,{blockedBy:`add_user`}));return{targets:l,confirmed:!1,diagnosticId:u,fatalError:os(e,o)?Object.assign(e,{diagnostics:t}):null,diagnostics:t}}}function us({groups:e,pupils:t,targetModerator:n}){let r=Ro(t);for(let t of e.filter(e=>e.confirmed))for(let e of t.targets){let t=r.get(e.normalizedEmail)||[];if(t.length!==1){e.addResult=Z(`failed`,`INVALID_USER_RESPONSE`,t.length===0?`The add request succeeded, but the user was not found in the refreshed marathon roster.`:`The add request succeeded, but the refreshed user identity was ambiguous.`,e.addRequestAttempts||1,null,{reference:e.addDiagnosticRef}),es(e.assignResult)&&(e.assignResult=Z(`skipped`,`ASSIGNMENT_BLOCKED_BY_ADD_FAILURE`,`Curator assignment was skipped because the added user could not be resolved safely.`,0,{blockedBy:`add_user`}));continue}let i=t[0];e.runtimePupil=Lo(i),e.addResult=Z(`success`,`USER_ADDED`,`User was added to the marathon.`,e.addRequestAttempts||1,null,{reference:e.addDiagnosticRef}),es(e.assignResult)&&e.assignSelected&&(e.assignResult=Array.isArray(i.Moderators)&&i.Moderators.some(e=>Number(e?.TeacherId)===Number(n?.teacherId))?Z(`success`,`CURATOR_ASSIGNED`,`Target curator was assigned during user addition.`,e.addRequestAttempts||1,{blockedBy:`add_user`}):Z(`failed`,`INVALID_MODERATOR_RESPONSE`,`The user was added, but the target curator was not confirmed on the refreshed roster.`,e.addRequestAttempts||1,{blockedBy:`add_user`}))}}function ds(e,t){for(let n of e.filter(e=>e.confirmed))for(let e of n.targets)es(e.addResult)&&(e.addResult=Z(`failed`,`ADD_VERIFICATION_FAILED`,`The add request was accepted, but per-user verification could not finish: ${t?.message||`operation interrupted`}`,e.addRequestAttempts||1,null,{reference:e.addDiagnosticRef}),es(e.assignResult)&&(e.assignResult=Z(`skipped`,`ASSIGNMENT_BLOCKED_BY_ADD_FAILURE`,`Curator assignment could not be verified because the added user was not safely resolved.`,0,{blockedBy:`add_user`})))}async function fs({rows:e,marathonId:t,targetModerator:n,sendRequest:r,wait:i,getConnectionState:a,requestDelayMs:o,onProgress:s}){let c=null,l=e.filter(e=>es(e.assignResult)&&e.membership===`in_marathon`&&e.runtimePupil?.marathonPupilId);for(let[u,d]of l.entries()){if(c)break;let f=Ko({marathonId:t,marathonPupilId:d.runtimePupil.marathonPupilId,existingModeratorIds:d.currentModerators.map(e=>e.id),targetModeratorId:n.id}),p=[];try{d.assignResult=Z(`success`,`CURATOR_ASSIGNED`,`Target curator was assigned while preserving existing curators.`,(await ji(async()=>{try{let e=await r(f.controller,f.method,f.projectName,f.value);if(e?.Value?.IsSuccess!==!0)throw Ao(`INVALID_RESPONSE`,`Curator assignment was not positively confirmed.`);return e}catch(e){throw p.push(Xo(e,`assign_curator`,p.length+1)),e}},{wait:i,getConnectionState:a})).attempts,null,Zo(`assign_curator`,p))}catch(e){d.assignResult=Z(`failed`,e.code||`CURATOR_ASSIGNMENT_FAILED`,e.message||`Curator assignment failed.`,e.attempts||1,null,Zo(`assign_curator`,p)),os(e,a)&&(c=Object.assign(e,{diagnostics:Zo(`assign_curator`,p)}))}cs(s,e,{email:d.email,operation:`assign_curator`}),u<l.length-1&&o>0&&!c&&await i(o)}return c}function ps(e,t=`Not attempted because the operation stopped.`){for(let n of e)es(n.addResult)&&(n.addResult=Z(`not_attempted`,`NOT_ATTEMPTED`,t)),es(n.assignResult)&&(n.assignResult=Z(`not_attempted`,`NOT_ATTEMPTED`,t))}function ms(e,t){for(let n of e){is(n,t?.code||`STATE_CHANGED`,t?.message||`The confirmed plan could not be revalidated.`);let e=Zo(`revalidate`,[Xo(t,`revalidate`,1)]);n.addResult?.status===`rejected`&&(n.addResult.diagnostics=e),n.assignResult?.status===`rejected`&&(n.assignResult.diagnostics=e)}}async function hs({plan:e,marathonId:t,sendRequest:n,wait:r,getConnectionState:i,getRequestContext:a=()=>({host:`edvibe.com`}),now:o=()=>new Date,requestDelayMs:s=250,onProgress:c=()=>{}}){let l=$o(e),u=[],d=null,f=!1,p=`revalidate`;try{let[m,h]=await Promise.all([Fi({sendRequest:n,marathonId:t}),Po({sendRequest:n,marathonId:t})]),g=e.targetModerator?zo(h,e.targetModerator.id):null;if(e.targetModerator&&(!g||g.teacherId!==e.targetModerator.teacherId))throw Ao(`STATE_CHANGED`,`The selected curator changed or disappeared after preflight.`);as({rows:l,pupils:m,moderators:h,targetModerator:g}),cs(c,l,{operation:`revalidate`});for(let e of[!1,!0]){if(!l.some(t=>es(t.addResult)&&t.membership===`not_in_marathon`&&!!t.assignSelected===e))continue;f=!0,p=e?`add_user_with_curator`:`add_user`;let m=await ls({rows:l,marathonId:t,targetModerator:g,includeModerator:e,sendRequest:n,wait:r,getConnectionState:i,getRequestContext:a,now:o});if(u.push(m),d||=m.fatalError,cs(c,l,{operation:e?`add_user_with_curator`:`add_user`}),d)break;s>0&&await r(s)}!d&&u.some(e=>e.confirmed)&&(p=`verify_additions`,us({groups:u,pupils:await Fi({sendRequest:n,marathonId:t}),targetModerator:g}),cs(c,l,{operation:`verify_additions`})),!d&&g&&(p=`assign_curator`,l.some(e=>es(e.assignResult)&&e.membership===`in_marathon`)&&(f=!0),d=await fs({rows:l,marathonId:t,targetModerator:g,sendRequest:n,wait:r,getConnectionState:i,requestDelayMs:s,onProgress:c}))}catch(e){d=Object.assign(e,{diagnostics:e?.diagnostics?.attempts?e.diagnostics:Zo(p,[Xo(e,p,1)])})}return d&&u.some(e=>e.confirmed)&&ds(u,d),d&&!f&&ms(l,d),ps(l,d?`Not attempted because the operation stopped.`:`The selected operation was not applicable after revalidation.`),cs(c,l,null),jo({plan:e,diagnostics:u.map(e=>e.diagnostics?{id:e.diagnosticId,...e.diagnostics}:null).filter(Boolean),rows:l.map(e=>({itemId:e.itemId,email:e.email,normalizedEmail:e.normalizedEmail,resolution:e.resolution,membership:e.membership,user:e.runtimePupil?{...e.runtimePupil}:e.user?{...e.user}:null,currentModerators:e.currentModerators.map(e=>({...e})),targetModerator:e.targetModerator?{...e.targetModerator}:null,selectedOperations:[...e.selectedOperations],addResult:e.addResult?{...e.addResult}:null,assignResult:e.assignResult?{...e.assignResult}:null,message:e.message})),fatalError:d?Object.freeze({code:d.code||`INTERNAL_ERROR`,message:d.message||`The operation stopped unexpectedly.`,diagnostics:d.diagnostics||Zo(`fatal`,[Xo(d,`fatal`,1)])}):null})}var gs=`batch_user_onboarding`;function _s(e){let t=[e.addResult,e.assignResult].filter(Boolean);return e.resolution===`invalid`||e.resolution===`ambiguous`?`rejected`:t.length===0?`skipped`:t.some(e=>e.status===`failed`)?`failed`:t.some(e=>e.status===`not_attempted`)?`not_attempted`:t.some(e=>e.status===`rejected`)?`rejected`:t.some(e=>e.status===`skipped`)?`skipped`:t.every(e=>e.status===`noop`)?`noop`:`success`}function vs(e,t,n){for(let r of t?.attempts||[]){let t=[r.controller,r.method].filter(Boolean).join(`.`),i=[`attempt ${r.attempt}`,t,r.requestId?`request ${r.requestId}`:null,r.serverErrorCode==null?null:`server ${r.serverErrorCode}`,r.serverMessage,r.elapsedMs==null?null:`${r.elapsedMs}ms`].filter(Boolean);i.length>1&&e.push(`${n}diagnostic: ${i.join(` | `)}`)}}function ys(e){let t=new Map((e.diagnostics||[]).map(e=>[e.id,e])),n=[`Edvibe Toolbox: batch user onboarding`,`Requested users: ${e.plan.counts.requested}`,`Selected additions: ${e.plan.counts.additions}`,`Selected assignments: ${e.plan.counts.assignments}`,e.plan.targetModerator?`Target curator: ${e.plan.targetModerator.name||e.plan.targetModerator.email||e.plan.targetModerator.id}`:`Target curator: not selected`,``];for(let t of e.rows){let e=t.user?.name?`${t.user.name} <${t.email}>`:t.email;n.push(`[${_s(t)}] ${e}`),t.addResult&&(n.push(`  add_user: ${t.addResult.status} ${t.addResult.code} — ${t.addResult.message}`),t.addResult.diagnostics?.reference||vs(n,t.addResult.diagnostics,`    `)),t.assignResult&&(n.push(`  assign_curator: ${t.assignResult.status} ${t.assignResult.code} — ${t.assignResult.message}`),vs(n,t.assignResult.diagnostics,`    `)),!t.addResult&&!t.assignResult&&n.push(`  discovery: ${t.resolution} — ${t.message||`No operation selected.`}`)}for(let[e,r]of t)n.push(``,`Shared request diagnostic: ${e}`),vs(n,r,`  `);return e.fatalError&&(n.push(``,`Interrupted: ${e.fatalError.code} — ${e.fatalError.message}`),vs(n,e.fatalError.diagnostics,`  `)),n.join(`
 `)}function bs(e){let t=e.map(_s);return Object.freeze({requested:e.length,eligible:e.filter(e=>![`invalid`,`ambiguous`].includes(e.resolution)&&e.selectedOperations.length>0).length,attempted:e.filter(e=>[e.addResult,e.assignResult].filter(Boolean).some(e=>![`not_attempted`,`rejected`].includes(e.status))).length,successful:t.filter(e=>e===`success`).length,noOp:t.filter(e=>e===`noop`).length,skipped:t.filter(e=>e===`skipped`||e===`rejected`).length,failed:t.filter(e=>e===`failed`).length,notAttempted:t.filter(e=>e===`not_attempted`).length})}function xs(e,t){return t?Object.freeze({name:e,status:t.status,attemptCount:Number(t.attempts)||0,code:t.code||null,message:t.message||null,dependency:t.dependency?Object.freeze({...t.dependency}):null,diagnostics:t.diagnostics?jo(Yo(t.diagnostics)):null}):null}function Ss({marathonId:e,marathonName:t=null,startedAt:n,completedAt:r,result:i}){let a=i.rows||[],o=bs(a),s={selected:0,attempted:0,successful:0,noOp:0,skipped:0,rejected:0,failed:0,notAttempted:0},c=a.map(e=>{let t=[xs(`add_user`,e.addResult),xs(`assign_curator`,e.assignResult)].filter(Boolean);for(let e of t)s.selected+=1,[`not_attempted`,`rejected`].includes(e.status)||(s.attempted+=1),e.status===`success`&&(s.successful+=1),e.status===`noop`&&(s.noOp+=1),e.status===`skipped`&&(s.skipped+=1),e.status===`rejected`&&(s.rejected+=1),e.status===`failed`&&(s.failed+=1),e.status===`not_attempted`&&(s.notAttempted+=1);let n=_s(e);return Object.freeze({itemId:e.itemId,label:e.email,status:n,code:{success:`USER_ONBOARDING_COMPLETED`,noop:`USER_ONBOARDING_NOOP`,skipped:`USER_ONBOARDING_SKIPPED`,rejected:`USER_ONBOARDING_REJECTED`,failed:`USER_ONBOARDING_FAILED`,not_attempted:`NOT_ATTEMPTED`}[n],message:t.map(e=>e.message).filter(Boolean).join(`; `)||e.message||`No operation selected.`,attempts:t.reduce((e,t)=>e+t.attemptCount,0),data:Object.freeze({submittedInput:e.email,normalizedEmail:e.normalizedEmail,resolution:e.resolution,membershipPreflight:e.membership,user:e.user?Object.freeze({...e.user}):null,existingCurators:Object.freeze(e.currentModerators.map(e=>Object.freeze({...e}))),targetCurator:e.targetModerator?Object.freeze({...e.targetModerator}):null,selectedOperations:Object.freeze([...e.selectedOperations]),operations:Object.freeze(t)})})});return jo({operationType:gs,startedAt:n,completedAt:r,status:i.fatalError?`interrupted`:o.failed>0||o.skipped>0?`completed_with_failures`:`completed`,pageContext:{marathonId:String(e),marathonName:t},counts:o,results:c,diagnostics:Object.freeze((i.diagnostics||[]).map(e=>jo(Yo(e)))),fatalError:i.fatalError?jo(Yo(i.fatalError)):null,message:JSON.stringify({userCounts:o,operationCounts:s})})}var Cs=`edvibe-toolbox-batch-user-onboarding-dialog`;function ws(e){return Oi(e,{includeItems:!0})}function Ts({sendRequest:e,getConnectionState:t,wait:n,canStart:r,onActiveChange:i,createDialog:a=()=>document.createElement(Cs),copyText:o=e=>navigator.clipboard.writeText(e),persistExecution:s=async()=>Object.freeze({stored:!1}),openHistory:c=()=>{},getLocationHref:l=()=>window.location.href,getMarathonName:u=()=>document.querySelector(`h1`)?.textContent?.trim()||document.title||null,getRequestContext:d=()=>({host:window.location.hostname}),now:f=()=>new Date,log:p=()=>{}}){let m=!1;function h(){m&&(m=!1,i(!1))}async function g(){if(m||!r()){window.alert(`Another Edvibe Toolbox operation is already running.`);return}let g=Di(l());if(!g){window.alert(`Open an Edvibe marathon page before adding users.`);return}m=!0,i(!0);let _=a();(document.body||document.documentElement).appendChild(_);try{_.showLoading?.(`Loading marathon users and curators…`);let[r,i]=await Promise.all([Fi({sendRequest:e,marathonId:g}),Po({sendRequest:e,marathonId:g})]),a=[];_.configure({moderators:i,parseEmailInput:ws,onDiscover({emailInput:e}){let t=ws(e);if(t.items.length===0)throw J(`EMAILS_REQUIRED`,`Enter at least one email address.`);return a=Bo(t,r,i),a},onPreflight({rows:e,targetModeratorId:t}){let n=new Map((e||[]).map(e=>[e.normalizedEmail,{addSelected:!!e.addSelected,assignSelected:!!e.assignSelected}])),r=Ho({rows:a.map(e=>({...e,...n.get(e.normalizedEmail)||{addSelected:!1,assignSelected:!1}})),moderators:i,targetModeratorId:t});if(r.counts.selectedOperations===0)throw J(`OPERATIONS_REQUIRED`,`Select at least one add or curator-assignment operation.`);return r},async onExecute(r,i){let a=f().toISOString(),o=await hs({plan:r,marathonId:g,sendRequest:e,wait:n,getConnectionState:t,getRequestContext:d,now:f,onProgress:i}),c=ys(o),l=f().toISOString(),m;try{m=await s(Ss({marathonId:g,marathonName:u(),startedAt:a,completedAt:l,result:o}))}catch(e){m=Object.freeze({stored:!1,persistenceError:e}),p(`Batch user onboarding history persistence failed:`,e)}return{...o,report:c,history:m}},onCopy:o,onOpenHistory(e){_.remove(),h(),c(e)},onClose(){_.remove(),h()}}),_.showConfigure?.(),p(`Batch user onboarding initialized for MarathonId ${g}.`)}catch(e){p(`Batch user onboarding initialization failed (${e.code||`UNKNOWN_ERROR`}).`),_.remove(),h(),window.alert(e.message||`Could not initialize batch user onboarding.`)}}return Object.freeze({open:g})}var Es=W`
-[hidden] {
-    display: none !important;
-}
+    [hidden] {
+        display: none !important;
+    }
 
-.dialog {
-    display: flex;
-    flex-direction: column;
-    width: min(1180px, calc(100vw - 32px));
-    max-height: min(880px, calc(100vh - 32px));
-    padding: 24px;
-}
-
-.header,
-.footer,
-.email-state,
-.review-toolbar,
-.result-actions {
-    display: flex;
-    align-items: center;
-}
-
-.header {
-    justify-content: space-between;
-    gap: 18px;
-}
-
-.eyebrow {
-    margin: 0 0 4px;
-    color: var(--edvibe-primary);
-    font-size: 11px;
-    font-weight: 750;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-}
-
-.header h2 {
-    margin: 0;
-    color: var(--edvibe-text-strong);
-    font-size: 21px;
-    line-height: 1.3;
-}
-
-.description {
-    margin: 5px 0 0;
-    color: var(--edvibe-text-muted);
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.icon {
-    min-width: 36px;
-    padding: 0;
-    font-size: 24px;
-    line-height: 1;
-}
-
-.body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    margin-top: 18px;
-}
-
-.configure {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
-    gap: 14px 18px;
-}
-
-.field {
-    font-size: 13px;
-}
-
-.emails,
-.report {
-    resize: vertical;
-}
-
-.emails {
-    min-height: 112px;
-}
-
-.report {
-    min-height: 190px;
-    white-space: pre;
-}
-
-.email-state {
-    grid-column: 1;
-    flex-wrap: wrap;
-    gap: 8px 16px;
-    margin-top: -8px;
-}
-
-.curator-field {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-}
-
-.errors {
-    margin-top: 14px;
-}
-
-.errors p {
-    margin: 0;
-}
-
-.review {
-    margin-top: 18px;
-}
-
-.review-toolbar {
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 8px;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-}
-
-.review-toolbar strong {
-    color: var(--edvibe-text);
-}
-
-.table-wrap {
-    overflow: auto;
-    max-height: 390px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-}
-
-table {
-    width: 100%;
-    min-width: 1020px;
-    border-collapse: collapse;
-    color: var(--edvibe-text);
-    font-size: 12px;
-}
-
-th,
-td {
-    padding: 10px 11px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    text-align: left;
-    vertical-align: top;
-}
-
-th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: var(--edvibe-surface-subtle);
-    color: var(--edvibe-text);
-    font-weight: 700;
-}
-
-th:nth-child(4),
-th:nth-child(5),
-td:nth-child(4),
-td:nth-child(5) {
-    width: 110px;
-    text-align: center;
-}
-
-th button {
-    display: block;
-    min-height: 28px;
-    margin: 5px auto 0;
-    padding: 4px 8px;
-    font-size: 10px;
-}
-
-td strong,
-td small {
-    display: block;
-    overflow-wrap: anywhere;
-}
-
-td small {
-    margin-top: 3px;
-    color: var(--edvibe-text-muted);
-}
-
-.is-error,
-.row-status {
-    overflow-wrap: anywhere;
-}
-
-.is-error {
-    color: var(--edvibe-danger);
-}
-
-.row-status {
-    min-width: 190px;
-    color: var(--edvibe-text-muted);
-}
-
-.preflight,
-.result {
-    margin-top: 18px;
-    padding: 14px;
-    border: 1px solid var(--edvibe-info-border);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-info-surface);
-}
-
-.preflight h3 {
-    margin: 0 0 7px;
-    color: var(--edvibe-text-strong);
-    font-size: 15px;
-}
-
-.preflight p,
-.preflight ul {
-    margin: 7px 0 0;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-    line-height: 1.45;
-}
-
-.preflight ul {
-    max-height: 190px;
-    overflow: auto;
-    padding-left: 20px;
-}
-
-.result-actions {
-    margin-top: 10px;
-}
-
-.live-region {
-    flex: 0 0 auto;
-    padding-top: 14px;
-}
-
-.status {
-    min-height: 20px;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.progress {
-    display: block;
-    width: 100%;
-    height: 10px;
-    margin-top: 9px;
-}
-
-.footer {
-    flex: 0 0 auto;
-    margin-top: 18px;
-}
-
-@media (max-width: 760px) {
     .dialog {
-        width: 100%;
-        max-height: 100vh;
-        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        width: min(1180px, calc(100vw - 32px));
+        max-height: min(880px, calc(100vh - 32px));
+        padding: 24px;
+    }
+
+    .header,
+    .footer,
+    .email-state,
+    .review-toolbar,
+    .result-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .header {
+        justify-content: space-between;
+        gap: 18px;
+    }
+
+    .eyebrow {
+        margin: 0 0 4px;
+        color: var(--edvibe-primary);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .header h2 {
+        margin: 0;
+        color: var(--edvibe-text-strong);
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .description {
+        margin: 5px 0 0;
+        color: var(--edvibe-text-muted);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .icon {
+        min-width: 36px;
+        padding: 0;
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        margin-top: 18px;
     }
 
     .configure {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+        gap: 14px 18px;
     }
 
-    .email-state,
-    .curator-field {
-        grid-column: 1;
-        grid-row: auto;
+    .field {
+        font-size: 13px;
     }
-}
+
+    .emails,
+    .report {
+        resize: vertical;
+    }
+
+    .emails {
+        min-height: 112px;
+    }
+
+    .report {
+        min-height: 190px;
+        white-space: pre;
+    }
+
+    .email-state {
+        grid-column: 1;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin-top: -8px;
+    }
+
+    .curator-field {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+    }
+
+    .errors {
+        margin-top: 14px;
+    }
+
+    .errors p {
+        margin: 0;
+    }
+
+    .review {
+        margin-top: 18px;
+    }
+
+    .review-toolbar {
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+    }
+
+    .review-toolbar strong {
+        color: var(--edvibe-text);
+    }
+
+    .table-wrap {
+        overflow: auto;
+        max-height: 390px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
+    }
+
+    table {
+        width: 100%;
+        min-width: 1020px;
+        border-collapse: collapse;
+        color: var(--edvibe-text);
+        font-size: 12px;
+    }
+
+    th,
+    td {
+        padding: 10px 11px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--edvibe-surface-subtle);
+        color: var(--edvibe-text);
+        font-weight: 700;
+    }
+
+    th:nth-child(4),
+    th:nth-child(5),
+    td:nth-child(4),
+    td:nth-child(5) {
+        width: 110px;
+        text-align: center;
+    }
+
+    th button {
+        display: block;
+        min-height: 28px;
+        margin: 5px auto 0;
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    td strong,
+    td small {
+        display: block;
+        overflow-wrap: anywhere;
+    }
+
+    td small {
+        margin-top: 3px;
+        color: var(--edvibe-text-muted);
+    }
+
+    .is-error,
+    .row-status {
+        overflow-wrap: anywhere;
+    }
+
+    .is-error {
+        color: var(--edvibe-danger);
+    }
+
+    .row-status {
+        min-width: 190px;
+        color: var(--edvibe-text-muted);
+    }
+
+    .preflight,
+    .result {
+        margin-top: 18px;
+        padding: 14px;
+        border: 1px solid var(--edvibe-info-border);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-info-surface);
+    }
+
+    .preflight h3 {
+        margin: 0 0 7px;
+        color: var(--edvibe-text-strong);
+        font-size: 15px;
+    }
+
+    .preflight p,
+    .preflight ul {
+        margin: 7px 0 0;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .preflight ul {
+        max-height: 190px;
+        overflow: auto;
+        padding-left: 20px;
+    }
+
+    .result-actions {
+        margin-top: 10px;
+    }
+
+    .live-region {
+        flex: 0 0 auto;
+        padding-top: 14px;
+    }
+
+    .status {
+        min-height: 20px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .progress {
+        display: block;
+        width: 100%;
+        height: 10px;
+        margin-top: 9px;
+    }
+
+    .footer {
+        flex: 0 0 auto;
+        margin-top: 18px;
+    }
+
+    @media (max-width: 760px) {
+        .dialog {
+            width: 100%;
+            max-height: 100vh;
+            padding: 18px;
+        }
+
+        .configure {
+            grid-template-columns: 1fr;
+        }
+
+        .email-state,
+        .curator-field {
+            grid-column: 1;
+            grid-row: auto;
+        }
+    }
 `,Ds=`edvibe-toolbox-batch-user-onboarding-dialog`,Os=class extends ln{static styles=[pn,mn,hn,gn,_n,vn,yn,Es];static properties={options:{state:!0},rows:{state:!0},plan:{state:!0},mode:{state:!0},executionId:{state:!0},emailInput:{state:!0},targetModeratorId:{state:!0},emailCounts:{state:!0},errors:{state:!0},report:{state:!0},statusMessage:{state:!0},progress:{state:!0}};constructor(){super(),this.options=null,this.rows=[],this.plan=null,this.mode=`loading`,this.executionId=null,this.emailInput=``,this.targetModeratorId=``,this.emailCounts={valid:0,invalid:0},this.errors=[],this.report=``,this.statusMessage=``,this.progress={visible:!1,completed:0,total:1},this.handleKeydownBound=e=>{e.key===`Escape`&&this.close()}}connectedCallback(){super.connectedCallback(),this.ownerDocument?.addEventListener(`keydown`,this.handleKeydownBound)}disconnectedCallback(){this.ownerDocument?.removeEventListener(`keydown`,this.handleKeydownBound),super.disconnectedCallback()}configure(e={}){return this.options=e&&typeof e==`object`?e:{},this}showLoading(e=`Загрузка…`){return this.mode=`loading`,this.showStatus(e),this}showConfigure(){return this.mode=`configure`,this.plan=null,this.executionId=null,this.clearErrors(),this.report=``,this.progress={visible:!1,completed:0,total:1},this.showStatus(`Введите email пользователей и проверьте список.`),this.updateEmailCounts(),this}updateEmailCounts(){if(!this.options?.parseEmailInput)return;let e=this.options.parseEmailInput(this.emailInput);this.emailCounts={valid:e.entries?.length||0,invalid:e.malformed?.length||0}}async discover(){if(!(!this.options?.onDiscover||this.mode===`executing`)){this.clearErrors(),this.mode=`loading`,this.showStatus(`Проверяем пользователей…`);try{let e=await this.options.onDiscover({emailInput:this.emailInput});this.rows=e.map(e=>({...e,addSelected:!1,assignSelected:!1})),this.plan=null,this.mode=`review`,this.showStatus(`Проверьте найденные состояния и выберите операции.`)}catch(e){this.showError(e),this.mode=`configure`}}}canAssign(e){return!e.actionable||!e.moderatorStateSafe?!1:e.membership===`in_marathon`||e.membership===`not_in_marathon`&&!!e.addSelected}setRowSelection(e,t,n){this.mode===`review`&&(this.rows=this.rows.map(r=>{if(r.normalizedEmail!==e)return r;let i={...r,[t]:!!n};return t===`addSelected`&&!n&&r.membership===`not_in_marathon`&&(i.assignSelected=!1),i}),this.plan=null)}selectAll(e){this.mode===`review`&&(this.rows=this.rows.map(t=>e===`addSelected`&&t.actionable?{...t,addSelected:!0}:e===`assignSelected`&&this.canAssign(t)?{...t,assignSelected:!0}:t),this.plan=null)}async preparePlan(){if(!(!this.options?.onPreflight||this.mode!==`review`)){this.clearErrors();try{this.plan=await this.options.onPreflight({rows:this.rows.map(e=>({normalizedEmail:e.normalizedEmail,addSelected:!!e.addSelected,assignSelected:!!e.assignSelected})),targetModeratorId:this.targetModeratorId}),this.mode=`preflight`,this.showStatus(`План зафиксирован. Проверьте его и подтвердите выполнение.`)}catch(e){this.showError(e)}}}returnToReview(){this.mode===`preflight`&&(this.plan=null,this.mode=`review`,this.showStatus(`Измените выбор и подготовьте новый план.`))}async execute(){if(!(!this.plan||!this.options?.onExecute||this.mode!==`preflight`)){this.mode=`executing`,this.showStatus(`Выполняем подтверждённый план…`),this.progress={visible:!0,completed:0,total:1};try{let e=await this.options.onExecute(this.plan,e=>this.showProgress(e));this.report=e.report||``,this.executionId=e.history?.stored&&e.history.record?.id||null,this.mode=e.fatalError?`partial-complete`:`complete`;let t=e.history?.stored?` Результат сохранён в истории.`:e.history?.persistenceError?` Видимый отчёт сохранён, но историю записать не удалось.`:``;this.showStatus(`${e.fatalError?`Операция прервана, частичные результаты сохранены.`:`Обработка завершена.`}${t}`)}catch(e){this.mode=`partial-complete`,this.showError(e)}finally{this.progress={...this.progress,visible:!1}}}}showProgress(e={}){let t=Math.max(0,Number(e.completed)||0),n=Math.max(0,Number(e.total)||0);this.progress={visible:!0,completed:Math.min(t,Math.max(n,1)),total:Math.max(n,1)};let r=e.current?.operation?` Сейчас: ${e.current.email?`${e.current.email}, `:``}${e.current.operation}.`:``;this.showStatus(`Готово операций: ${t}/${n}. Успешных/no-op: ${e.successes||0}. Проблем: ${e.failures||0}.${r}`)}restart(){this.mode!==`executing`&&(this.rows=[],this.plan=null,this.executionId=null,this.emailInput=``,this.targetModeratorId=``,this.report=``,this.mode=`configure`,this.updateEmailCounts(),this.showStatus(`Введите следующую группу пользователей.`))}close(){this.mode!==`executing`&&this.mode!==`loading`&&this.options?.onClose?.()}clearErrors(){this.errors=[]}showError(e){let t=e?.message||String(e||`Неизвестная ошибка.`);this.errors=[t],this.showStatus(t)}showStatus(e){this.statusMessage=String(e||``)}membershipLabel(e){return{in_marathon:`В марафоне`,resolvable_not_in_marathon:`Можно добавить по email`,ambiguous:`Неоднозначно`,invalid:`Некорректный email`}[e.resolution]||e.resolution}curatorLabel(e){return!e.moderatorStateSafe&&e.membership===`in_marathon`?`Нельзя безопасно прочитать`:e.currentModerators?.length?e.currentModerators.map(e=>e.name||e.email||`#${e.id}`).join(`, `):`Нет`}renderRow(e){return G`
             <tr data-email=${e.normalizedEmail}>
                 <td><strong>${e.user?.name||e.email}</strong><small>${e.user?.name?e.email:``}</small></td>
@@ -2518,461 +2536,460 @@ td small {
                 </section>
             </div>`}};customElements.get(`edvibe-toolbox-batch-user-onboarding-dialog`)||customElements.define(Ds,Os);var ks=`edvibe-toolbox-batch-section-creation-dialog`,As=new Set([...new Set([`WS_UNAVAILABLE`,`REQUEST_TIMEOUT`,`SEND_FAILED`]),`SERVER_REJECTED`,`INVALID_RESPONSE`]),js=/\{\{\s*([^{}]+?)\s*\}\}/g;function Ms(e){let t=String(e||``).trim();if(!t)return``;try{let e=new URL(t);return e.protocol===`http:`||e.protocol===`https:`?e.href:``}catch{return``}}function Ns(e,t){let n=String(e?.type||``).trim(),r=String(e?.id||`block-${t+1}`).trim();return Object.freeze(n===`image`?{id:r,type:n,url:String(e?.url||``).trim(),alt:String(e?.alt||``).trim()}:n===`text`?{id:r,type:n,text:String(e?.text||``).trim()}:n===`link`?{id:r,type:n,label:String(e?.label||``).trim(),url:String(e?.url||``).trim()}:{id:r,type:n})}function Ps(e={}){let t=[],n=String(e?.name||``).trim(),r=Array.isArray(e?.blocks)?e.blocks.map(Ns):[],i=new Set;n||t.push(J(`SECTION_NAME_REQUIRED`,`Section name is required.`)),r.length===0&&t.push(J(`SECTION_BLOCK_REQUIRED`,`Add at least one section block.`));for(let[e,n]of r.entries())i.has(n.id)&&t.push(J(`DUPLICATE_BLOCK_ID`,`Block ${e+1} has a duplicate ID.`)),i.add(n.id),n.type===`image`?Ms(n.url)||t.push(J(`IMAGE_URL_REQUIRED`,`Image block ${e+1} requires an HTTP(S) URL.`)):n.type===`text`?n.text||t.push(J(`TEXT_REQUIRED`,`Text block ${e+1} cannot be empty.`)):n.type===`link`?(n.label||t.push(J(`LINK_LABEL_REQUIRED`,`Link block ${e+1} requires a label.`)),Ms(n.url)||t.push(J(`LINK_URL_REQUIRED`,`Link block ${e+1} requires an HTTP(S) URL.`))):t.push(J(`UNSUPPORTED_BLOCK_TYPE`,`Block ${e+1} has unsupported type "${n.type||`unknown`}".`));return{definition:Object.freeze({name:n,blocks:Object.freeze(r)}),errors:t}}function Fs(e,t=0){let n=e?.LessonId??e?.lessonId??e?.Id,r=e?.MarathonLessonId??e?.marathonLessonId??e?.Id;return Object.freeze({lessonId:Number(n),marathonLessonId:Number(r),number:Number(e?.Number??e?.number??t)+(e?.Number===void 0?0:1),name:String(e?.Name??e?.name??`Lesson ${t+1}`)})}function Is(e){let t=e?.Value??e;if(!t||!Array.isArray(t.Sections))throw J(`INVALID_LESSON_RESPONSE`,`The lesson response did not contain a normal sections array.`);return t.Sections}function Ls(e){return Object.freeze(e.map(e=>Object.freeze({...e})))}function Rs({lessons:e,selectedLessonIds:t,definition:n,inspectionsByLessonId:r}){let i=Ps(n);if(i.errors.length>0)throw J(`INVALID_SECTION_DEFINITION`,`The section definition is invalid.`,{validationErrors:i.errors});let a=new Set((t||[]).map(Number)),o=[],s=[];for(let t of(e||[]).filter(e=>a.has(Number(e.lessonId)))){let e=r.get(Number(t.lessonId));if(!e||e.error){let n=e?.error||J(`INVALID_LESSON_RESPONSE`,`The lesson was not inspected.`);s.push({...t,code:n.code||`INVALID_LESSON_RESPONSE`,message:n.message||`The lesson could not be inspected.`});continue}try{Is(e.structure).some(e=>String(e?.Name||``).trim()===i.definition.name)?s.push({...t,code:`SECTION_NAME_COLLISION`,message:`A section named "${i.definition.name}" already exists.`}):o.push({...t})}catch(e){s.push({...t,code:e.code||`INVALID_LESSON_RESPONSE`,message:e.message})}}let c=i.definition.blocks.map((e,t)=>Object.freeze({index:t,type:e.type,id:e.id}));return Object.freeze({definition:i.definition,selectedLessonIds:Object.freeze([...a]),eligible:Ls(o),rejected:Ls(s),blockSummary:Object.freeze(c)})}function zs(e,t){return String(t||``).split(`.`).filter(Boolean).reduce((e,t)=>e?.[t],e)}function Bs(e,t){if(e.startsWith(`generated.`)){let n=e.slice(10),r=t.block?t.blockGenerated:t.generated;return n in r||(r[n]=t.createId()),r[n]}return zs(t,e)}function Vs(e,t){if(Array.isArray(e))return e.map(e=>Vs(e,t));if(e&&typeof e==`object`)return Object.fromEntries(Object.entries(e).map(([e,n])=>[e,Vs(n,t)]));if(typeof e!=`string`)return e;let n=e.match(/^\{\{\s*([^{}]+?)\s*\}\}$/);return n?Bs(n[1],t):e.replace(js,(e,n)=>{let r=Bs(n,t);return r==null?``:String(r)})}function Hs(e){let t=[];(!e||e.version!==1)&&t.push(J(`RECIPE_MISSING`,`A version 1 recording recipe is required.`)),e&&e.reviewedDynamicFields!==!0&&t.push(J(`RECIPE_NOT_REVIEWED`,`The recording recipe must explicitly confirm reviewed dynamic fields.`)),e&&!Array.isArray(e.steps)&&t.push(J(`RECIPE_STEPS_REQUIRED`,`The recording recipe requires steps.`));for(let n of e?.steps||[])(!n.controller||!n.method||!n.projectName||!n.valueTemplate)&&t.push(J(`INVALID_RECIPE_STEP`,`Recipe step "${n.id||n.method||`unknown`}" is incomplete.`));return t}function Us({recipe:e=null,cryptoApi:t=globalThis.crypto,requestDelayMs:n=300}={}){let r=Hs(e),i=()=>t?.randomUUID?.()||`${Date.now()}-${Math.random().toString(16).slice(2)}`;function a(e,t){let n=[];for(let r=0;r<e.length;){let i=e[r];if(i.forEach!==`blocks`){n.push({step:i,block:null,blockIndex:null}),r+=1;continue}let a=[];for(;r<e.length&&e[r].forEach===`blocks`;)a.push(e[r]),r+=1;t.blocks.forEach((e,t)=>{let r=a.find(t=>!Array.isArray(t.blockTypes)||t.blockTypes.includes(e.type));r&&n.push({step:r,block:e,blockIndex:t})})}return n}async function o({steps:e,marathonId:t,lesson:r,definition:o,sendRequest:s,wait:c,captured:l={},generated:u={}}){let d=new Map,f=a(e,o),p=!1;for(let[e,a]of f.entries()){let m=a.block?d.get(a.block.id)||{}:u;a.block&&d.set(a.block.id,m);let h={marathonId:t,lesson:r,section:o,block:a.block,blockIndex:a.blockIndex,captured:l,generated:u,blockGenerated:m,createId:i};try{let t=await s(a.step.controller,a.step.method,a.step.projectName,Vs(a.step.valueTemplate,h));for(let[e,n]of Object.entries(a.step.capture||{})){let r=zs(t,n);if(r===void 0)throw J(`INVALID_RESPONSE`,`Recipe capture "${e}" was missing after ${a.step.id||a.step.method}.`);l[e]=r}a.step.marksSectionCreated===!0&&(p=!0),e<f.length-1&&n>0&&await c(n)}catch(e){throw e.partialCreated=p,e.captured={...l},e.generated={...u},e}}return{captured:{...l},generated:{...u}}}return Object.freeze({isReady:r.length===0,errors:Object.freeze(r),async createSection(t){if(r.length>0)throw J(`RECIPE_UNAVAILABLE`,r[0].message);return o({...t,steps:e.steps})},async cleanupSection(t){if(!Array.isArray(e?.cleanupSteps)||e.cleanupSteps.length===0)return{attempted:!1,status:`unavailable`};try{return await o({...t,steps:e.cleanupSteps}),{attempted:!0,status:`success`}}catch(e){return{attempted:!0,status:`failed`,code:e.code||`CLEANUP_FAILED`,message:e.message}}}})}async function Ws({sendRequest:e,marathonId:t,pageSize:n=100}){return(await Li({sendRequest:e,marathonId:t,pageSize:n})).map(Fs)}async function Gs({lessons:e,selectedLessonIds:t,sendRequest:n,wait:r,delayMs:i=300}){let a=new Set((t||[]).map(Number)),o=(e||[]).filter(e=>a.has(Number(e.lessonId))),s=new Map;for(let[e,t]of o.entries()){try{let e=await Ri({sendRequest:n,lessonId:t.lessonId});s.set(Number(t.lessonId),{structure:e})}catch(e){s.set(Number(t.lessonId),{error:e})}e<o.length-1&&i>0&&await r(i)}return s}function Ks(e,t,n={}){return{lessonId:e.lessonId,marathonLessonId:e.marathonLessonId,lessonNumber:e.number,lessonName:e.name,status:t,...n}}function qs(e,t){return e?.code===`WS_UNAVAILABLE`||e?.code===`SEND_FAILED`&&!t().isOpen||!As.has(e?.code)}async function Js({marathonId:e,plan:t,adapter:n,sendRequest:r,wait:i,getConnectionState:a,lessonDelayMs:o=300,onProgress:s=()=>{}}){if(!n?.isReady)throw J(`RECIPE_UNAVAILABLE`,n?.errors?.[0]?.message||`Recording recipe unavailable.`);let c=t.rejected.map(e=>Ks(e,`rejected`,{code:e.code,message:e.message})),l=0;for(let[u,d]of t.eligible.entries()){s({completed:u,total:t.eligible.length,lesson:d,results:[...c]});try{l+=1;let a=await n.createSection({marathonId:e,lesson:d,definition:t.definition,sendRequest:r,wait:i});c.push(Ks(d,`created`,{captured:a.captured,generated:a.generated,attempts:1}))}catch(o){let s=!!o.partialCreated,f=qs(o,a),p=null;if(s&&!f&&(p=await n.cleanupSection({marathonId:e,lesson:d,definition:t.definition,sendRequest:r,wait:i,captured:o.captured||{},generated:o.generated||{}})),c.push(Ks(d,s?`partially_created`:`failed`,{code:o.code||`UNKNOWN_ERROR`,message:o.message||`Section creation failed.`,captured:o.captured,generated:o.generated,cleanup:p,attempts:o.attempts||1})),f){for(let e of t.eligible.slice(u+1))c.push(Ks(e,`not_attempted`,{code:`OPERATION_INTERRUPTED`,message:`Not attempted because the batch operation stopped.`}));throw o.partialResult={definition:t.definition,results:c,attempts:l,fatalError:o},o}}s({completed:u+1,total:t.eligible.length,lesson:d,results:[...c]}),u<t.eligible.length-1&&o>0&&await i(o)}return{definition:t.definition,results:c,attempts:l}}function Ys(e){let t=Array.isArray(e?.results)?e.results:[],n=e=>t.filter(t=>t.status===e).length,r=[`Section: ${e?.definition?.name||`Unknown`}`,`Blocks: ${e?.definition?.blocks?.length||0}`,`Created: ${n(`created`)}`,`Rejected in preflight: ${n(`rejected`)}`,`Failed: ${n(`failed`)}`,`Partially created: ${n(`partially_created`)}`,`Not attempted: ${n(`not_attempted`)}`,``];for(let e of t)r.push(`${e.lessonNumber||`?`}. ${e.lessonName} — ${e.status}`+(e.code?` — ${e.code}: ${e.message||``}`:``)),e.captured?.sectionId!==void 0&&r.push(`  Captured sectionId: ${e.captured.sectionId}`),e.cleanup&&r.push(`  Cleanup: ${e.cleanup.status}`);return r.join(`
 `).trim()}function Xs({sendRequest:e,getConnectionState:t,wait:n,canStart:r,onActiveChange:i,adapter:a,createDialog:o=()=>document.createElement(ks),copyText:s=async()=>{},log:c=()=>{}}){let l=!1,u=!1,d=null,f=null,p=[],m=null,h=null;function g(){l&&(l=!1,i(!1))}function _(){u=!1,d=null,p=[],m=null,h=null,g()}async function v(t){if(!u){u=!0;try{let r=t?.detail?.definition||{},i=t?.detail?.selectedLessonIds||[],a=Ps(r),o=[...a.errors];if(i.length===0&&o.push(J(`LESSON_SELECTION_REQUIRED`,`Select at least one lesson.`)),o.length>0){d.showValidationErrors(o);return}d.showLoading(`Проверяем выбранные уроки…`);let s=await Gs({lessons:p,selectedLessonIds:i,sendRequest:e,wait:n});m=Rs({lessons:p,selectedLessonIds:i,definition:a.definition,inspectionsByLessonId:s}),d.showConfirmation(m)}catch(e){d.showValidationErrors([e])}finally{u=!1}}}async function y(){if(!(u||!m?.eligible?.length)){u=!0;try{h=await Js({marathonId:f,plan:m,adapter:a,sendRequest:e,wait:n,getConnectionState:t,onProgress:e=>d.showExecution(e)}),d.showComplete(h)}catch(e){h=e.partialResult||{definition:m.definition,results:m.rejected,fatalError:e},d.showComplete(h,e)}finally{u=!1}}}async function b(){h&&await s(Ys(h))}function x(){m=null,h=null,d.showConfigure({lessons:p,recipeReady:a?.isReady,recipeErrors:a?.errors||[]})}async function S(){if(!(l||document.getElementById(`edvibe-toolbox-batch-section-creation-overlay`))){if(!r()){window.alert(`Another Edvibe Toolbox operation is already running.`);return}if(f=Di(window.location.href),!f){window.alert(`Open an Edvibe marathon page before creating sections.`);return}l=!0,i(!0);try{if(d=o(),d.addEventListener(`edvibe-dialog-close`,_),d.addEventListener(`edvibe-batch-section-preflight`,v),d.addEventListener(`edvibe-batch-section-confirm`,y),d.addEventListener(`edvibe-batch-section-copy`,b),d.addEventListener(`edvibe-batch-section-restart`,x),d.configure(),(document.body||document.documentElement).appendChild(d),d.showLoading(`Загружаем уроки марафона…`),p=await Ws({sendRequest:e,marathonId:f}),p.length===0)throw J(`EMPTY_LESSON_CATALOGUE`,`No lessons were found.`);d.showConfigure({lessons:p,recipeReady:a?.isReady,recipeErrors:a?.errors||[]}),c(`Batch section creation ready for MarathonId ${f}.`)}catch(e){c(`Batch section creation initialization failed (${e.code||`UNKNOWN_ERROR`}).`);try{d?.showFatalError?.(e)}finally{g()}}}}return{open:S,isRunning:()=>u}}var Zs=`batch_section_creation`,Qs=Object.freeze([`completed`,`completed_with_failures`,`cancelled`,`interrupted`]),$s=Object.freeze([`created`,`failed`,`partially_created`]),ec=Object.freeze([`failed`,`partially_created`]),tc=new Set([`auth`,`authorization`,`cookie`,`credential`,`credentials`,`password`,`response`,`session`,`token`,`transport`,`websocket`]);function nc(e){let t=String(e||``).match(/\/marathon\/(\d+)(?:\/|$)/);return t?String(t[1]):null}function rc(e,t=``,n=4e3){let r=String(e??``).trim();return r?r.length<=n?r:`${r.slice(0,Math.max(0,n-1))}…`:t}function ic(e){let t=rc(e);if(!t)return null;try{let e=new URL(t);return e.protocol===`http:`||e.protocol===`https:`?e.href:null}catch{return null}}function ac(e,t){return rc(e,``,t).replace(/data:image\/[^;,<>"'\s]+(?:;[^,<>"'\s]+)*;base64,[a-z0-9+/=\r\n]+/gi,`[redacted image data]`)}function oc(e){return Object.freeze(e.map(e=>Object.freeze(e)))}function sc(e,t){let n=rc(e?.type,`unknown`,80),r={order:t,blockId:rc(e?.id,`block-${t+1}`,160),type:n},i=rc(e?.clientId,``,500);return i&&(r.clientId=i),n===`image`?(r.url=ic(e?.url),r.alt=ac(e?.alt,1e3)||null):n===`text`?r.content=ac(e?.text,1e4)||null:n===`link`&&(r.label=ac(e?.label,1e3)||null,r.url=ic(e?.url)),r}function cc(e={}){let t=Array.isArray(e?.blocks)?e.blocks.map(sc):[];return Object.freeze({name:rc(e?.name,`Unnamed section`,500),blocks:oc(t)})}function lc(e){return String(e||``).replace(/([a-z0-9])([A-Z])/g,`$1_$2`).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)}function uc(e){let t=lc(e.at(-1)),n=e.flatMap(lc);return t.includes(`id`)&&!n.some(e=>tc.has(e))}function dc(e,t,n,r=[],i=0,a=new WeakSet){if(!(e==null||i>5)){if(typeof e!=`object`){if(!uc(r))return;let i=typeof e==`number`||typeof e==`boolean`?e:rc(e,``,500);if(i===``)return;n.push({source:t,name:r.join(`.`),value:i});return}if(!a.has(e)){a.add(e);try{if(Array.isArray(e)){e.forEach((e,o)=>dc(e,t,n,[...r,String(o)],i+1,a));return}for(let[o,s]of Object.entries(e))dc(s,t,n,[...r,o],i+1,a)}finally{a.delete(e)}}}}function fc(e={}){let t=[];dc(e?.captured,`captured`,t),dc(e?.generated,`generated`,t),dc(e?.blockGenerated,`block_generated`,t);let n=[],r=new Set;for(let e of t){let t=`${e.source}\u0000${e.name}\u0000${String(e.value)}`;r.has(t)||(r.add(t),n.push(e))}return oc(n)}function pc(e={},t=null){let n=e.lessonId??e.LessonId??t,r=e.marathonLessonId??e.MarathonLessonId??null,i=e.lessonNumber??e.number??e.Number??null,a=e.lessonName??e.name??e.Name??null;return Object.freeze({lessonId:n??null,marathonLessonId:r===void 0?null:r,number:i===void 0?null:i,name:rc(a,`Unnamed lesson`,500)})}function mc(e){let t=e?.lessonId??e?.LessonId;return t==null?null:String(t)}function hc(e,t,n){return{lessonId:e?.lessonId??e?.LessonId??null,marathonLessonId:e?.marathonLessonId??e?.MarathonLessonId??null,lessonNumber:e?.lessonNumber??e?.number??e?.Number??null,lessonName:e?.lessonName??e?.name??e?.Name??null,status:e?.status||t,code:e?.code,message:e?.message,attempts:e?.attempts,captured:e?.captured,generated:e?.generated,blockGenerated:e?.blockGenerated,cleanup:e?.cleanup,terminalStatus:n}}function gc(e={},t={},n=null){let r=new Map;for(let t of e?.rejected||[]){let e=mc(t);e!==null&&r.set(e,hc(t,`rejected`,n))}let i=new Map;for(let e of t?.results||[]){let t=mc(e);if(t===null)continue;let a=e?.status||(r.has(t)?`rejected`:null);i.set(t,hc(e,a,n))}let a=new Map;for(let t of e?.eligible||[]){let e=mc(t);e!==null&&a.set(e,t)}let o=Array.isArray(e?.selectedLessonIds)?e.selectedLessonIds.map(String):[],s=[],c=new Set;for(let e of o){let t=i.get(e)||r.get(e);!t&&a.has(e)&&(t=hc(a.get(e),`not_attempted`,n)),t||=hc({lessonId:e,lessonName:`Lesson ${e}`},`not_attempted`,n),s.push(t),c.add(e)}for(let e of[...r.values(),...i.values()]){let t=mc(e);t!==null&&c.has(t)||(s.push(e),t!==null&&c.add(t))}for(let[e,t]of a.entries())c.has(e)||(s.push(hc(t,`not_attempted`,n)),c.add(e));return s}function _c(e){return $s.includes(e)}function vc(e){return ec.includes(e)}function yc(e,t={}){let n=e.filter(e=>_c(e.status)).length,r=e.filter(e=>e.status===`not_attempted`).length,i=n+r,a=Array.isArray(t?.eligible)?t.eligible.length:0;return Object.freeze({requested:e.length,eligible:Math.max(a,i),attempted:n,successful:e.filter(e=>e.status===`created`).length,noOp:0,skipped:e.filter(e=>e.status===`rejected`).length,failed:e.filter(e=>vc(e.status)).length,notAttempted:r})}var bc=new Set(Qs);function xc(e,t){return e?.code?rc(e.code,`UNKNOWN_ERROR`,120):{created:`SECTION_CREATED`,rejected:`PREFLIGHT_REJECTED`,failed:`SECTION_CREATION_FAILED`,partially_created:`SECTION_PARTIALLY_CREATED`,not_attempted:t===`cancelled`?`OPERATION_CANCELLED`:`OPERATION_INTERRUPTED`}[e?.status]||`UNKNOWN_RESULT`}function Sc(e,t){return e?.message?rc(e.message,`No message was provided.`,1e3):{created:`Section created successfully.`,rejected:`The lesson was rejected during preflight.`,failed:`Section creation failed.`,partially_created:`Section creation failed after the section had been created.`,not_attempted:t===`cancelled`?`Not attempted because the confirmed run was cancelled.`:`Not attempted because the confirmed run was interrupted.`}[e?.status]||`The operation produced an unknown result.`}function Cc(e,t){if(e?.status!==`partially_created`)return null;let n=e?.cleanup;if(!n)return Object.freeze({attempted:!1,status:`unavailable`,code:t===`interrupted`?`CLEANUP_UNAVAILABLE_AFTER_INTERRUPTION`:`CLEANUP_UNAVAILABLE`,message:t===`interrupted`?`Cleanup was unavailable after the batch was interrupted.`:`Cleanup was unavailable for this partially created section.`});let r=!!n.attempted,i=[`success`,`failed`,`unavailable`].includes(n.status)?n.status:r?`failed`:`unavailable`;return Object.freeze({attempted:r,status:i,code:n.code?rc(n.code,`CLEANUP_FAILED`,120):i===`success`?`CLEANUP_SUCCEEDED`:i===`unavailable`?`CLEANUP_UNAVAILABLE`:`CLEANUP_FAILED`,message:n.message?rc(n.message,`Cleanup failed.`,1e3):i===`success`?`Cleanup completed successfully.`:i===`unavailable`?`Cleanup was unavailable.`:`Cleanup failed.`})}function wc(e,t){return vc(e?.status)?Object.freeze({code:xc(e,t),message:Sc(e,t),attemptCount:Number.isSafeInteger(e?.attempts)&&e.attempts>=0?e.attempts:1}):null}function Tc(e,t,n){let r=pc(e),i=rc(e?.status,`not_attempted`,80),a=Number.isSafeInteger(e?.attempts)&&e.attempts>=0?e.attempts:+!!_c(i),o={...e,status:i},s=xc(o,n),c=Sc(o,n);return Object.freeze({itemId:r.lessonId===null?null:String(r.lessonId),label:`${r.number??`?`}. ${r.name}`,status:i,code:s,message:c,attempts:a,...X(e)?{diagnostics:X(e)}:{},data:Object.freeze({lesson:r,section:t,preflight:Object.freeze({status:i===`rejected`?`rejected`:`eligible`,code:i===`rejected`?s:`PREFLIGHT_ELIGIBLE`,message:i===`rejected`?c:`The lesson passed preflight and was included in the confirmed plan.`}),creationFailure:wc(o,n),cleanup:Cc(o,n),identifiers:fc(e)})})}function Ec(e,t,n){return bc.has(e)?e:t?`interrupted`:n.some(e=>[`rejected`,`failed`,`partially_created`,`not_attempted`].includes(e.status))?`completed_with_failures`:`completed`}function Dc({plan:e,result:t={},startedAt:n,completedAt:r,marathonId:i,marathonName:a=null,terminalStatus:o=null,fatalError:s=null}){let c=bc.has(o)?o:s?`interrupted`:null,l=cc(e?.definition||t?.definition||{}),u=gc(e,t,c).map(e=>Tc(e,l,c)),d=Ec(o,s||t?.fatalError,u),f=yc(u,e);return Object.freeze({operationType:Zs,startedAt:n,completedAt:r,status:d,pageContext:Object.freeze({marathonId:i,marathonName:a}),counts:f,results:Object.freeze(u),message:JSON.stringify({sectionName:l.name,blockCount:l.blocks.length,counts:f})})}function Oc(e,t,n=!1){let r=e.elements?.status?.textContent||``;e.setStatus?.(`${r}${r?` `:``}${t}`,n?`error`:``)}function kc(e,t,n){e.shadowRoot?.querySelector?.(`.edvibe-batch-section-history`)?.remove?.();let r=(e.ownerDocument||globalThis.document)?.createElement?.(`button`);r&&(r.type=`button`,r.className=`edvibe-batch-section-history`,r.textContent=`Открыть в истории`,r.addEventListener(`click`,()=>{e.close?.(),n(t)}),(e.elements?.footer||e.shadowRoot?.querySelector?.(`.edvibe-batch-section-footer`))?.appendChild?.(r))}function Ac({createDialog:e,persistExecution:t,openHistory:n=()=>{},getLocationHref:r=()=>``,getMarathonName:i=()=>null,now:a=()=>new Date,log:o=()=>{}}){if(typeof e!=`function`)throw TypeError(`createDialog is required`);if(typeof t!=`function`)throw TypeError(`persistExecution is required`);return function(){let s=e(),c=null,l=null,u=null,d=!1,f=0,p=s.showConfigure.bind(s),m=s.showConfirmation.bind(s),h=s.showExecution.bind(s),g=s.showComplete.bind(s),_=s.showFatalError.bind(s);function v(){s.shadowRoot?.querySelector?.(`.edvibe-batch-section-history`)?.remove?.()}function y(){f+=1,c=null,l=null,u=null,d=!1,v()}function b(e,p=null,m=null){if(!c||d)return;d=!0;let h=f,g;try{let t=a().toISOString();g=Dc({plan:c,result:e||l||{},startedAt:u||t,completedAt:t,marathonId:nc(r()),marathonName:i(),terminalStatus:p,fatalError:m})}catch(e){Oc(s,`Экранный результат сохранён, но записать историю не удалось.`,!0),o(`Batch section creation history record creation failed:`,e);return}Promise.resolve().then(()=>t(g)).then(e=>{h===f&&(e?.stored?(Oc(s,`Результат сохранён в истории.`),e.record?.id&&kc(s,e.record.id,n)):(Oc(s,`Экранный результат сохранён, но записать историю не удалось.`,!0),e?.persistenceError&&o(`Batch section creation history persistence failed:`,e.persistenceError)))}).catch(e=>{h===f&&(Oc(s,`Экранный результат сохранён, но записать историю не удалось.`,!0),o(`Batch section creation history persistence failed:`,e))})}return s.showConfigure=(...e)=>(y(),p(...e)),s.showConfirmation=e=>{f+=1,v(),c=e,l={definition:e?.definition,results:Array.isArray(e?.rejected)?e.rejected.map(e=>hc(e,`rejected`)):[]},u=a().toISOString(),d=!1;let t=m(e);return e?.eligible?.length||b(l),t},s.showExecution=(e={})=>(c&&Array.isArray(e?.results)&&(l={definition:c.definition,results:[...e.results]}),h(e)),s.showComplete=(e={},t=null)=>{let n=g(e,t);return l=e,b(e,t?`interrupted`:null,t),n},s.showFatalError=e=>{let t=_(e);return c&&b(l,`interrupted`,e),t},s.addEventListener(`edvibe-batch-section-restart`,y),s.addEventListener(`edvibe-dialog-close`,()=>{c&&!d&&b(l,`cancelled`)}),s}}var jc=W`
-[hidden] {
-    display: none !important;
-}
-
-.edvibe-batch-section-card {
-    display: flex;
-    flex-direction: column;
-    width: min(1120px, calc(100vw - 36px));
-    max-height: min(900px, calc(100vh - 36px));
-}
-
-.edvibe-batch-section-header,
-.edvibe-batch-section-footer,
-.edvibe-batch-section-heading-row,
-.edvibe-batch-section-selection-actions,
-.edvibe-batch-section-block header,
-.edvibe-batch-section-block-actions,
-.edvibe-batch-section-add-actions {
-    display: flex;
-    align-items: center;
-}
-
-.edvibe-batch-section-header {
-    flex: 0 0 auto;
-    justify-content: space-between;
-    gap: 22px;
-    padding: 22px 24px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    background: var(--edvibe-surface-subtle);
-}
-
-.edvibe-batch-section-eyebrow {
-    margin: 0 0 4px;
-    color: var(--edvibe-primary);
-    font-size: 11px;
-    font-weight: 750;
-    letter-spacing: .09em;
-    text-transform: uppercase;
-}
-
-.edvibe-batch-section-header h2,
-.edvibe-batch-section-heading-row h3,
-.edvibe-batch-section-preview h3,
-.edvibe-batch-section-summary h3,
-.edvibe-batch-section-results h3,
-.edvibe-batch-section-errors h3 {
-    margin: 0;
-    color: var(--edvibe-text-strong);
-}
-
-.edvibe-batch-section-header h2 {
-    font-size: 22px;
-    line-height: 1.25;
-}
-
-.edvibe-batch-section-description,
-.edvibe-batch-section-heading-row p {
-    margin: 5px 0 0;
-    color: var(--edvibe-text-muted);
-    font-size: 13px;
-    line-height: 1.45;
-}
-
-.edvibe-batch-section-close {
-    flex: 0 0 auto;
-    min-width: 36px;
-    padding: 0;
-    font-size: 25px;
-    line-height: 1;
-}
-
-.edvibe-batch-section-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    padding: 22px 24px 0;
-}
-
-.edvibe-batch-section-grid {
-    display: grid;
-    grid-template-columns: minmax(280px, .82fr) minmax(380px, 1.18fr);
-    gap: 22px;
-}
-
-.edvibe-batch-section-column {
-    min-width: 0;
-}
-
-.edvibe-batch-section-field {
-    font-size: 13px;
-}
-
-.edvibe-batch-section-field textarea {
-    resize: vertical;
-    min-height: 92px;
-}
-
-.edvibe-batch-section-lesson:focus-within {
-    outline: 2px solid var(--edvibe-focus-outline);
-    outline-offset: -2px;
-}
-
-.edvibe-batch-section-heading-row {
-    justify-content: space-between;
-    gap: 14px;
-    margin: 20px 0 10px;
-}
-
-.edvibe-batch-section-heading-row h3,
-.edvibe-batch-section-preview h3 {
-    font-size: 14px;
-}
-
-.edvibe-batch-section-selection-actions,
-.edvibe-batch-section-add-actions {
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.edvibe-batch-section-selection-actions {
-    justify-content: flex-end;
-}
-
-.edvibe-batch-section-add-actions {
-    justify-content: flex-start;
-    margin-bottom: 10px;
-}
-
-.edvibe-batch-section-selection-actions button,
-.edvibe-batch-section-add-actions button {
-    min-height: 34px;
-    padding: 7px 10px;
-    font-size: 12px;
-}
-
-.edvibe-batch-section-lessons {
-    overflow: auto;
-    max-height: 390px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-}
-
-.edvibe-batch-section-lesson {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 11px 12px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    color: var(--edvibe-text);
-    font-size: 13px;
-    line-height: 1.4;
-    cursor: pointer;
-}
-
-.edvibe-batch-section-lesson:last-child {
-    border-bottom: 0;
-}
-
-.edvibe-batch-section-lesson:hover {
-    background: var(--edvibe-surface-subtle);
-}
-
-.edvibe-batch-section-lesson input {
-    flex: 0 0 auto;
-    margin-top: 2px;
-}
-
-.edvibe-batch-section-blocks {
-    display: grid;
-    gap: 10px;
-}
-
-.edvibe-batch-section-block {
-    padding: 13px;
-    border: 1px solid var(--edvibe-info-border);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-info-surface);
-}
-
-.edvibe-batch-section-block header {
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 11px;
-}
-
-.edvibe-batch-section-block strong {
-    color: var(--edvibe-info);
-    font-size: 13px;
-}
-
-.edvibe-batch-section-block > .edvibe-batch-section-field + .edvibe-batch-section-field {
-    margin-top: 10px;
-}
-
-.edvibe-batch-section-block-actions {
-    gap: 5px;
-}
-
-.edvibe-batch-section-block-actions button {
-    min-width: 31px;
-    min-height: 31px;
-    padding: 5px 8px;
-    font-size: 12px;
-}
-
-.edvibe-batch-section-preview {
-    margin-top: 14px;
-    padding: 14px;
-    border: 1px dashed var(--edvibe-border);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface-subtle);
-}
-
-.edvibe-batch-section-preview-name {
-    margin: 8px 0;
-    color: var(--edvibe-text-strong);
-    font-size: 14px;
-    font-weight: 700;
-}
-
-.edvibe-batch-section-preview ol,
-.edvibe-batch-section-summary ul,
-.edvibe-batch-section-errors ul {
-    margin: 8px 0 0;
-    padding-left: 20px;
-}
-
-.edvibe-batch-section-preview li,
-.edvibe-batch-section-summary li,
-.edvibe-batch-section-errors li {
-    margin: 4px 0;
-    overflow-wrap: anywhere;
-}
-
-.edvibe-batch-section-protocol,
-.edvibe-batch-section-errors,
-.edvibe-batch-section-summary {
-    margin-top: 18px;
-}
-
-.edvibe-batch-section-protocol p {
-    margin: 5px 0 0;
-}
-
-.edvibe-batch-section-summary-group {
-    margin-top: 13px;
-    padding-top: 11px;
-    border-top: 1px solid currentColor;
-}
-
-.edvibe-batch-section-summary-group h4 {
-    margin: 0;
-    color: inherit;
-    font-size: 13px;
-}
-
-.edvibe-batch-section-results {
-    margin-top: 18px;
-    padding: 14px 16px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    font-size: 13px;
-    line-height: 1.48;
-}
-
-.edvibe-batch-section-result-list {
-    display: grid;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.edvibe-batch-section-result {
-    display: grid;
-    grid-template-columns: minmax(160px, 1fr) auto;
-    gap: 4px 12px;
-    padding: 11px 12px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-}
-
-.edvibe-batch-section-result strong {
-    color: var(--edvibe-text-strong);
-}
-
-.edvibe-batch-section-result > span {
-    color: var(--edvibe-text-muted);
-    font-weight: 700;
-}
-
-.edvibe-batch-section-result p,
-.edvibe-batch-section-result small {
-    grid-column: 1 / -1;
-    margin: 0;
-    color: var(--edvibe-text-muted);
-    overflow-wrap: anywhere;
-}
-
-.edvibe-batch-section-result.is-created {
-    border-color: var(--edvibe-success-border);
-    background: var(--edvibe-success-surface);
-}
-
-.edvibe-batch-section-result.is-failed,
-.edvibe-batch-section-result.is-partially_created {
-    border-color: var(--edvibe-warning-border);
-    background: var(--edvibe-warning-surface);
-}
-
-.edvibe-batch-section-result.is-rejected,
-.edvibe-batch-section-result.is-not_attempted {
-    background: var(--edvibe-surface-subtle);
-}
-
-.edvibe-batch-section-fatal-note {
-    margin: 12px 0 0;
-    font-weight: 650;
-}
-
-.edvibe-batch-section-empty {
-    margin: 0;
-}
-
-.edvibe-batch-section-live-region {
-    flex: 0 0 auto;
-    padding: 14px 24px 0;
-}
-
-.edvibe-batch-section-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 7px;
-    border: 2px solid var(--edvibe-info-border);
-    border-top-color: var(--edvibe-primary);
-    border-radius: 50%;
-    vertical-align: -3px;
-    animation: edvibe-batch-section-spin .8s linear infinite;
-}
-
-@keyframes edvibe-batch-section-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.edvibe-batch-section-status {
-    min-height: 19px;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.edvibe-batch-section-status[data-state="error"] {
-    color: var(--edvibe-danger);
-}
-
-.edvibe-batch-section-status[data-state="warning"] {
-    color: var(--edvibe-warning);
-}
-
-.edvibe-batch-section-progress {
-    display: block;
-    width: 100%;
-    height: 10px;
-    margin-top: 9px;
-}
-
-.edvibe-batch-section-footer {
-    flex: 0 0 auto;
-    padding: 18px 24px 22px;
-}
-
-@media (max-width: 820px) {
-    .edvibe-batch-section-grid {
-        grid-template-columns: 1fr;
+    [hidden] {
+        display: none !important;
     }
 
-    .edvibe-batch-section-lessons {
-        max-height: 260px;
-    }
-}
-
-@media (max-width: 560px) {
     .edvibe-batch-section-card {
-        width: 100%;
-        max-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        width: min(1120px, calc(100vw - 36px));
+        max-height: min(900px, calc(100vh - 36px));
     }
 
     .edvibe-batch-section-header,
-    .edvibe-batch-section-body,
-    .edvibe-batch-section-live-region,
-    .edvibe-batch-section-footer {
-        padding-left: 16px;
-        padding-right: 16px;
+    .edvibe-batch-section-footer,
+    .edvibe-batch-section-heading-row,
+    .edvibe-batch-section-selection-actions,
+    .edvibe-batch-section-block header,
+    .edvibe-batch-section-block-actions,
+    .edvibe-batch-section-add-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .edvibe-batch-section-header {
+        flex: 0 0 auto;
+        justify-content: space-between;
+        gap: 22px;
+        padding: 22px 24px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .edvibe-batch-section-eyebrow {
+        margin: 0 0 4px;
+        color: var(--edvibe-primary);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+    }
+
+    .edvibe-batch-section-header h2,
+    .edvibe-batch-section-heading-row h3,
+    .edvibe-batch-section-preview h3,
+    .edvibe-batch-section-summary h3,
+    .edvibe-batch-section-results h3,
+    .edvibe-batch-section-errors h3 {
+        margin: 0;
+        color: var(--edvibe-text-strong);
+    }
+
+    .edvibe-batch-section-header h2 {
+        font-size: 22px;
+        line-height: 1.25;
+    }
+
+    .edvibe-batch-section-description,
+    .edvibe-batch-section-heading-row p {
+        margin: 5px 0 0;
+        color: var(--edvibe-text-muted);
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .edvibe-batch-section-close {
+        flex: 0 0 auto;
+        min-width: 36px;
+        padding: 0;
+        font-size: 25px;
+        line-height: 1;
+    }
+
+    .edvibe-batch-section-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        padding: 22px 24px 0;
+    }
+
+    .edvibe-batch-section-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, .82fr) minmax(380px, 1.18fr);
+        gap: 22px;
+    }
+
+    .edvibe-batch-section-column {
+        min-width: 0;
+    }
+
+    .edvibe-batch-section-field {
+        font-size: 13px;
+    }
+
+    .edvibe-batch-section-field textarea {
+        resize: vertical;
+        min-height: 92px;
+    }
+
+    .edvibe-batch-section-lesson:focus-within {
+        outline: 2px solid var(--edvibe-focus-outline);
+        outline-offset: -2px;
     }
 
     .edvibe-batch-section-heading-row {
-        align-items: flex-start;
-        flex-direction: column;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 20px 0 10px;
+    }
+
+    .edvibe-batch-section-heading-row h3,
+    .edvibe-batch-section-preview h3 {
+        font-size: 14px;
+    }
+
+    .edvibe-batch-section-selection-actions,
+    .edvibe-batch-section-add-actions {
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .edvibe-batch-section-selection-actions {
-        justify-content: flex-start;
+        justify-content: flex-end;
     }
 
-    .edvibe-batch-section-footer button {
-        flex: 1 1 170px;
+    .edvibe-batch-section-add-actions {
+        justify-content: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .edvibe-batch-section-selection-actions button,
+    .edvibe-batch-section-add-actions button {
+        min-height: 34px;
+        padding: 7px 10px;
+        font-size: 12px;
+    }
+
+    .edvibe-batch-section-lessons {
+        overflow: auto;
+        max-height: 390px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
+    }
+
+    .edvibe-batch-section-lesson {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        color: var(--edvibe-text);
+        font-size: 13px;
+        line-height: 1.4;
+        cursor: pointer;
+    }
+
+    .edvibe-batch-section-lesson:last-child {
+        border-bottom: 0;
+    }
+
+    .edvibe-batch-section-lesson:hover {
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .edvibe-batch-section-lesson input {
+        flex: 0 0 auto;
+        margin-top: 2px;
+    }
+
+    .edvibe-batch-section-blocks {
+        display: grid;
+        gap: 10px;
+    }
+
+    .edvibe-batch-section-block {
+        padding: 13px;
+        border: 1px solid var(--edvibe-info-border);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-info-surface);
+    }
+
+    .edvibe-batch-section-block header {
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 11px;
+    }
+
+    .edvibe-batch-section-block strong {
+        color: var(--edvibe-info);
+        font-size: 13px;
+    }
+
+    .edvibe-batch-section-block > .edvibe-batch-section-field + .edvibe-batch-section-field {
+        margin-top: 10px;
+    }
+
+    .edvibe-batch-section-block-actions {
+        gap: 5px;
+    }
+
+    .edvibe-batch-section-block-actions button {
+        min-width: 31px;
+        min-height: 31px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    .edvibe-batch-section-preview {
+        margin-top: 14px;
+        padding: 14px;
+        border: 1px dashed var(--edvibe-border);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .edvibe-batch-section-preview-name {
+        margin: 8px 0;
+        color: var(--edvibe-text-strong);
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .edvibe-batch-section-preview ol,
+    .edvibe-batch-section-summary ul,
+    .edvibe-batch-section-errors ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+    }
+
+    .edvibe-batch-section-preview li,
+    .edvibe-batch-section-summary li,
+    .edvibe-batch-section-errors li {
+        margin: 4px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .edvibe-batch-section-protocol,
+    .edvibe-batch-section-errors,
+    .edvibe-batch-section-summary {
+        margin-top: 18px;
+    }
+
+    .edvibe-batch-section-protocol p {
+        margin: 5px 0 0;
+    }
+
+    .edvibe-batch-section-summary-group {
+        margin-top: 13px;
+        padding-top: 11px;
+        border-top: 1px solid currentColor;
+    }
+
+    .edvibe-batch-section-summary-group h4 {
+        margin: 0;
+        color: inherit;
+        font-size: 13px;
+    }
+
+    .edvibe-batch-section-results {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        font-size: 13px;
+        line-height: 1.48;
+    }
+
+    .edvibe-batch-section-result-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
     }
 
     .edvibe-batch-section-result {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: minmax(160px, 1fr) auto;
+        gap: 4px 12px;
+        padding: 11px 12px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
     }
-}
+
+    .edvibe-batch-section-result strong {
+        color: var(--edvibe-text-strong);
+    }
+
+    .edvibe-batch-section-result > span {
+        color: var(--edvibe-text-muted);
+        font-weight: 700;
+    }
+
+    .edvibe-batch-section-result p,
+    .edvibe-batch-section-result small {
+        grid-column: 1 / -1;
+        margin: 0;
+        color: var(--edvibe-text-muted);
+        overflow-wrap: anywhere;
+    }
+
+    .edvibe-batch-section-result.is-created {
+        border-color: var(--edvibe-success-border);
+        background: var(--edvibe-success-surface);
+    }
+
+    .edvibe-batch-section-result.is-failed,
+    .edvibe-batch-section-result.is-partially_created {
+        border-color: var(--edvibe-warning-border);
+        background: var(--edvibe-warning-surface);
+    }
+
+    .edvibe-batch-section-result.is-rejected,
+    .edvibe-batch-section-result.is-not_attempted {
+        background: var(--edvibe-surface-subtle);
+    }
+
+    .edvibe-batch-section-fatal-note {
+        margin: 12px 0 0;
+        font-weight: 650;
+    }
+
+    .edvibe-batch-section-empty {
+        margin: 0;
+    }
+
+    .edvibe-batch-section-live-region {
+        flex: 0 0 auto;
+        padding: 14px 24px 0;
+    }
+
+    .edvibe-batch-section-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        margin-right: 7px;
+        border: 2px solid var(--edvibe-info-border);
+        border-top-color: var(--edvibe-primary);
+        border-radius: 50%;
+        vertical-align: -3px;
+        animation: edvibe-batch-section-spin .8s linear infinite;
+    }
+
+    @keyframes edvibe-batch-section-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .edvibe-batch-section-status {
+        min-height: 19px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .edvibe-batch-section-status[data-state="error"] {
+        color: var(--edvibe-danger);
+    }
+
+    .edvibe-batch-section-status[data-state="warning"] {
+        color: var(--edvibe-warning);
+    }
+
+    .edvibe-batch-section-progress {
+        display: block;
+        width: 100%;
+        height: 10px;
+        margin-top: 9px;
+    }
+
+    .edvibe-batch-section-footer {
+        flex: 0 0 auto;
+        padding: 18px 24px 22px;
+    }
+
+    @media (max-width: 820px) {
+        .edvibe-batch-section-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .edvibe-batch-section-lessons {
+            max-height: 260px;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .edvibe-batch-section-card {
+            width: 100%;
+            max-height: 100vh;
+        }
+
+        .edvibe-batch-section-header,
+        .edvibe-batch-section-body,
+        .edvibe-batch-section-live-region,
+        .edvibe-batch-section-footer {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        .edvibe-batch-section-heading-row {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .edvibe-batch-section-selection-actions {
+            justify-content: flex-start;
+        }
+
+        .edvibe-batch-section-footer button {
+            flex: 1 1 170px;
+        }
+
+        .edvibe-batch-section-result {
+            grid-template-columns: 1fr;
+        }
+    }
 `,Mc=W`
-.edvibe-batch-section-file-input {
-    cursor: pointer;
-}
+    .edvibe-batch-section-file-input {
+        cursor: pointer;
+    }
 
-.edvibe-batch-section-file-details {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-top: 8px;
-    color: var(--edvibe-text-muted);
-    font-size: 12px;
-    line-height: 1.4;
-}
+    .edvibe-batch-section-file-details {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 8px;
+        color: var(--edvibe-text-muted);
+        font-size: 12px;
+        line-height: 1.4;
+    }
 
-.edvibe-batch-section-file-details button {
-    flex: 0 0 auto;
-    min-height: 32px;
-    padding: 5px 9px;
-    font-size: 12px;
-}
+    .edvibe-batch-section-file-details button {
+        flex: 0 0 auto;
+        min-height: 32px;
+        padding: 5px 9px;
+        font-size: 12px;
+    }
 
-.edvibe-batch-section-file-error {
-    margin: 8px 0 0;
-    font-size: 12px;
-    line-height: 1.4;
-}
+    .edvibe-batch-section-file-error {
+        margin: 8px 0 0;
+        font-size: 12px;
+        line-height: 1.4;
+    }
 
-.edvibe-batch-section-image-preview {
-    display: block;
-    width: 100%;
-    max-height: 240px;
-    margin-top: 10px;
-    object-fit: contain;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface-subtle);
-}
-
+    .edvibe-batch-section-image-preview {
+        display: block;
+        width: 100%;
+        max-height: 240px;
+        margin-top: 10px;
+        object-fit: contain;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface-subtle);
+    }
 `,Nc=`https://media-files-y.edvibe.com/local-upload/`;function Pc(e=globalThis.crypto){return e?.randomUUID?.()||`${Date.now()}-${Math.random().toString(16).slice(2)}`}function Fc(e){return`${Nc}${encodeURIComponent(String(e||``))}`}function Ic(e){let t=String(e||``);if(!t.startsWith(`https://media-files-y.edvibe.com/local-upload/`))return``;try{return decodeURIComponent(t.slice(46))}catch{return``}}function Lc(e){let t=Math.max(0,Number(e)||0);return t<1024?`${t} Б`:t<1048576?`${(t/1024).toFixed(1)} КБ`:`${(t/1048576).toFixed(1)} МБ`}function Rc(){let e=new Map;return Object.freeze({register(t,n){t&&n&&e.set(String(t),n)},get(t){return e.get(String(t||``))||null},remove(t){e.delete(String(t||``))},clear(){e.clear()},size(){return e.size}})}function zc(e,t=globalThis.crypto){let n=e?.clientId||Ic(e?.url)||Pc(t);return{...e,clientId:n,url:Fc(n),alt:String(e?.alt||``),fileName:String(e?.fileName||``),fileSize:Math.max(0,Number(e?.fileSize)||0),fileType:String(e?.fileType||``),previewUrl:String(e?.previewUrl||``),fileError:String(e?.fileError||``)}}var Bc=class{constructor({registry:e=Rc(),urlApi:t=globalThis.URL,cryptoApi:n=globalThis.crypto}={}){this.registry=e,this.urlApi=t,this.cryptoApi=n}createBlock(e={}){return zc(e,this.cryptoApi)}hasSelectedFile(e){return!e||e.type!==`image`||!!this.registry.get(e.clientId||Ic(e.url))}canSubmit(e=[]){return!e.some(e=>e.type===`image`&&!this.hasSelectedFile(e))}selectFile(e,t){let n=this.releaseBlock(e);if(!t)return n;if(!String(t.type||``).startsWith(`image/`))return{...n,fileError:`Выберите файл изображения.`};let r=n.clientId||Pc(this.cryptoApi),i=this.urlApi?.createObjectURL?.(t)||``;return this.registry.register(r,t),{...n,clientId:r,url:Fc(r),fileName:String(t.name||``),fileSize:Math.max(0,Number(t.size)||0),fileType:String(t.type||``),previewUrl:i,fileError:``}}clearFile(e){return this.releaseBlock(e)}releaseBlock(e){if(!e||e.type!==`image`)return e;let t=e.clientId||Ic(e.url);return t&&this.registry.remove(t),e.previewUrl&&this.urlApi?.revokeObjectURL?.(e.previewUrl),{...zc({...e,clientId:t},this.cryptoApi),fileName:``,fileSize:0,fileType:``,previewUrl:``,fileError:``}}releaseAll(e=[]){return e.map(e=>this.releaseBlock(e))}},Vc=Rc(),Hc=new Bc({registry:Vc}),Uc=`edvibe-toolbox-batch-section-creation-dialog`,Wc=`edvibe-toolbox-batch-section-creation-overlay`,Gc=class extends ln{static styles=[pn,mn,hn,gn,_n,vn,yn,bn,jc,Mc];static properties={lessons:{state:!0},selectedLessonIds:{state:!0},blocks:{state:!0},sectionName:{state:!0},mode:{state:!0},recipeReady:{state:!0},recipeErrors:{state:!0},currentPlan:{state:!0},errors:{state:!0},result:{state:!0},fatalResultError:{state:!0},statusMessage:{state:!0},statusState:{state:!0},progress:{state:!0}};constructor(){super(),this.imageController=Hc,this.lessons=[],this.selectedLessonIds=new Set,this.blocks=[],this.sectionName=``,this.nextBlockId=1,this.mode=`initializing`,this.recipeReady=!1,this.recipeErrors=[],this.currentPlan=null,this.errors=[],this.result=null,this.fatalResultError=null,this.statusMessage=``,this.statusState=``,this.progress={visible:!1,completed:0,total:0},this.onKeydownBound=e=>this.onKeydown(e)}connectedCallback(){super.connectedCallback(),this.id||=Wc,this.ownerDocument?.addEventListener(`keydown`,this.onKeydownBound)}disconnectedCallback(){this.releaseImageFiles(),this.ownerDocument?.removeEventListener(`keydown`,this.onKeydownBound),super.disconnectedCallback()}configure(e={}){return e=e&&typeof e==`object`?e:{},e.imageController&&(this.imageController=e.imageController),this}showLoading(e=`Загрузка…`){return this.mode=`loading`,this.clearMessages(),this.setStatus(e),this}showConfigure({lessons:e=this.lessons,recipeReady:t=!1,recipeErrors:n=[]}={}){return this.mode=`configure`,this.lessons=Array.isArray(e)?e:[],this.recipeReady=!!t,this.recipeErrors=Array.isArray(n)?n:[],this.selectedLessonIds=new Set,this.currentPlan=null,this.progress={visible:!1,completed:0,total:0},this.clearMessages(),this.setStatus(`Настройте раздел и выберите уроки.`),this}showValidationErrors(e=[]){return this.mode=`validation-error`,this.errors=this.normalizeErrors(e),this.currentPlan=null,this.result=null,this.setStatus(`Исправьте ошибки и повторите проверку.`,`error`),this}showConfirmation(e){return this.mode=`confirm`,this.currentPlan=e,this.clearMessages(),this.setStatus(e?.eligible?.length?`Проверка завершена. Подтвердите создание.`:`Нет уроков, подходящих для создания.`,`warning`),this}showExecution(e={}){this.mode=`executing`;let t=Math.max(0,Number(e.completed)||0),n=Math.max(0,Number(e.total)||0);this.progress={visible:!0,completed:t,total:n};let r=e.lesson?` Сейчас: ${e.lesson.number}. ${e.lesson.name}.`:``;return this.setStatus(`Выполнено ${t} из ${n}.${r}`),this}showComplete(e={},t=null){return this.mode=`complete`,this.clearMessages(),this.result=e,this.fatalResultError=t,this.progress={visible:!1,completed:0,total:0},this.setStatus(t?`Операция остановлена. Частичный результат сохранён.`:`Пакетная операция завершена.`,t?`error`:``),this}showFatalError(e){return this.mode=`fatal-error`,this.clearMessages(),this.errors=this.normalizeErrors([e]),this.setStatus(`Не удалось открыть инструмент.`,`error`),this}clearMessages(){this.errors=[],this.result=null,this.fatalResultError=null,this.statusMessage=``,this.statusState=``}normalizeErrors(e){return(Array.isArray(e)?e:[e]).map(e=>({code:e?.code||`ERROR`,message:e?.message||String(e)}))}setStatus(e,t=``){this.statusMessage=String(e||``),this.statusState=String(t||``)}createBlock(e){let t={id:`block-${this.nextBlockId++}`,type:e};return e===`image`?this.imageController.createBlock({...t,url:``,alt:``}):e===`text`?{...t,text:``}:{...t,label:``,url:``}}blockLabel(e){return{image:`Баннер`,text:`Текст`,link:`Ссылка`}[e]||e}collectDefinition(){return{name:this.sectionName,blocks:this.blocks.map(e=>({...e}))}}updateBlock(e,t,n){this.blocks=this.blocks.map(r=>r.id===e?{...r,[t]:n}:r)}replaceBlock(e,t){this.blocks=this.blocks.map(n=>n.id===e?t:n)}onImageFileChange(e,t){let n=t.currentTarget.files?.[0]||null;this.replaceBlock(e.id,this.imageController.selectFile(e,n)),t.currentTarget.value=``}onClearImage(e){this.replaceBlock(e.id,this.imageController.clearFile(e))}releaseImageFiles(){!this.imageController||this.blocks.length===0||(this.blocks=this.imageController.releaseAll(this.blocks))}onLessonChange(e){let t=Number(e.currentTarget.value),n=new Set(this.selectedLessonIds);e.currentTarget.checked?n.add(t):n.delete(t),this.selectedLessonIds=n}onSelectAll(){this.selectedLessonIds=new Set(this.lessons.map(e=>Number(e.lessonId)))}onClearAll(){this.selectedLessonIds=new Set}onAddBlock(e){[`image`,`text`,`link`].includes(e)&&(this.blocks=[...this.blocks,this.createBlock(e)])}onBlockAction(e,t){let n=this.blocks.findIndex(t=>t.id===e);if(n<0)return;let r=[...this.blocks];if(t===`remove`){let[e]=r.splice(n,1);e?.type===`image`&&this.imageController.releaseBlock(e)}else if(t===`up`&&n>0){let[e]=r.splice(n,1);r.splice(n-1,0,e)}else if(t===`down`&&n<r.length-1){let[e]=r.splice(n,1);r.splice(n+1,0,e)}this.blocks=r}canPreflight(){return[`configure`,`validation-error`].includes(this.mode)&&this.selectedLessonIds.size>0&&this.sectionName.trim().length>0&&this.blocks.length>0&&this.imageController.canSubmit(this.blocks)}onPreflight(){this.canPreflight()&&this.dispatchEvent(new CustomEvent(`edvibe-batch-section-preflight`,{bubbles:!0,composed:!0,detail:{definition:this.collectDefinition(),selectedLessonIds:[...this.selectedLessonIds]}}))}onConfirm(){this.dispatchEvent(new CustomEvent(`edvibe-batch-section-confirm`,{bubbles:!0,composed:!0}))}onCopy(){this.dispatchEvent(new CustomEvent(`edvibe-batch-section-copy`,{bubbles:!0,composed:!0}))}onRestart(){this.releaseImageFiles(),this.sectionName=``,this.blocks=[],this.selectedLessonIds=new Set,this.dispatchEvent(new CustomEvent(`edvibe-batch-section-restart`,{bubbles:!0,composed:!0}))}close(){this.releaseImageFiles(),this.dispatchEvent(new CustomEvent(`edvibe-dialog-close`,{bubbles:!0,composed:!0})),this.remove()}onBackdrop(e){e.target===e.currentTarget&&!this.isBusy()&&this.close()}onKeydown(e){e.key===`Escape`&&!this.isBusy()&&this.close()}isBusy(){return[`loading`,`executing`].includes(this.mode)}resultStatusLabel(e){return{created:`Создано`,rejected:`Отклонено`,failed:`Ошибка`,partially_created:`Нужна ручная проверка`,not_attempted:`Не выполнено`}[e]||e}renderLesson(e,t){let n=Number(e.lessonId);return G`
             <label class="edvibe-batch-section-lesson">
                 <input type="checkbox" .value=${String(n)}
@@ -3149,146 +3166,146 @@ td small {
             </div>
         `}};customElements.get(`edvibe-toolbox-batch-section-creation-dialog`)||customElements.define(Uc,Gc);var Kc=new Date().toISOString(),qc=Object.freeze({version:1,reviewedDynamicFields:!0,steps:Object.freeze([Object.freeze({id:`create-section`,controller:`LessonSectionWsController`,method:`AddStageSection`,projectName:`Books`,valueTemplate:Object.freeze({LessonId:`{{lesson.lessonId}}`,StageSectionName:`{{section.name}}`,SortId:4}),capture:Object.freeze({sectionId:`Value.StageSectionId`}),marksSectionCreated:!0}),Object.freeze({id:`confirm-section-name`,controller:`LessonSectionWsController`,method:`EditStageSection`,projectName:`Books`,valueTemplate:Object.freeze({LessonId:`{{lesson.lessonId}}`,StageSectionId:`{{captured.sectionId}}`,StageSectionName:`{{section.name}}`,SortId:4})}),Object.freeze({id:`save-image`,controller:`SaveExerciseWsController`,method:`SaveExercise`,projectName:`Exercises`,forEach:`blocks`,blockTypes:Object.freeze([`image`]),valueTemplate:Object.freeze({ClassId:null,Domain:`edvibe.com`,ExerciseView:Object.freeze({Id:0,Number:`{{blockIndex}}`,Name:``,IsHidePupil:!1,Type:27,HomeworkLessonId:null,PersonalMaterialId:null,LessonSectionId:`{{captured.sectionId}}`,Descriptions:Object.freeze([``]),ChangeExerciseImages:Object.freeze([Object.freeze({ImageId:687640222,FullImageId:687640223,ImageUrl:`https://media-y.edvibe.com/files/LessonExerciseImages/b455a98f-ef63-49b5-a6f4-2111c7edebc6.png`,FullImageUrl:`https://media-y.edvibe.com/files/LessonExerciseImages/035f9f67-1474-4eb3-8359-5eb93ea68a2e.png`,cropped:!1})])}),AiUsed:!1,UsedNewConstructor:!0,ClientTime:Kc,DeviceType:`desktop`})}),Object.freeze({id:`save-cta`,controller:`SaveExerciseWsController`,method:`SaveExercise`,projectName:`Exercises`,forEach:`blocks`,blockTypes:Object.freeze([`link`]),valueTemplate:Object.freeze({ClassId:null,Domain:`edvibe.com`,ExerciseView:Object.freeze({Id:0,Number:`{{blockIndex}}`,Name:``,IsHidePupil:!1,Type:29,HomeworkLessonId:null,PersonalMaterialId:null,LessonSectionId:`{{captured.sectionId}}`,Button:Object.freeze({Link:`{{block.url}}`,Text:`{{block.label}}`})}),AiUsed:!1,UsedNewConstructor:!0,ClientTime:Kc,DeviceType:`desktop`})})])}),Jc=`https://media-files-y.edvibe.com/api/MediaFile/create-multiple`;function Yc(e,t,n={}){let r=Error(t);return r.code=e,Object.assign(r,n),r}function Xc(e){let t=String(e||``);if(!t.startsWith(`https://media-files-y.edvibe.com/local-upload/`))return``;try{return decodeURIComponent(t.slice(46))}catch{return``}}function Zc(e,t){let n=typeof e==`string`||e instanceof URL?String(e):String(e?.url||``);try{return new URL(n,t||`https://edvibe.com/`)}catch{return null}}function Qc(e,t){let n=Zc(e,t);return!!n&&n.protocol===`https:`&&(n.hostname===`edvibe.com`||n.hostname.endsWith(`.edvibe.com`))}function $c(e,t,n=globalThis.Headers){if(!e)return``;try{if(n)return new n(e).get(t)||``}catch{}let r=String(t).toLowerCase();if(Array.isArray(e)){let t=e.find(([e])=>String(e).toLowerCase()===r);return t?String(t[1]||``):``}for(let[t,n]of Object.entries(e))if(String(t).toLowerCase()===r)return String(n||``);return``}function el(e){let t=``,n=e.location?.href||`https://edvibe.com/`,r=e.fetch,i=e.Headers;function a(e,r){if(!Qc(e,n))return;let a=$c(r,`authorization`,i);a&&(t=a)}typeof r==`function`&&(e.fetch=function(e,t){return a(e,t?.headers||e?.headers),r.apply(this,arguments)});let o=e.XMLHttpRequest?.prototype;if(o?.open&&o?.setRequestHeader){let e=o.open,r=o.setRequestHeader,i=new WeakMap;o.open=function(t,n){return i.set(this,n),e.apply(this,arguments)},o.setRequestHeader=function(e,a){return String(e).toLowerCase()===`authorization`&&Qc(i.get(this),n)&&a&&(t=String(a)),r.apply(this,arguments)}}return Object.freeze({getAuthorization:()=>t,capture:a})}function tl(e){if(!e||!Array.isArray(e.steps))return e;let t=e.steps.map(e=>{if(e.id!==`save-image`)return e;let t=e.valueTemplate?.ExerciseView||{};return Object.freeze({...e,valueTemplate:Object.freeze({...e.valueTemplate,ExerciseView:Object.freeze({...t,ChangeExerciseImages:Object.freeze([Object.freeze({ImageId:`{{block.asset.imageId}}`,FullImageId:`{{block.asset.fullImageId}}`,ImageUrl:`{{block.asset.imageUrl}}`,FullImageUrl:`{{block.asset.fullImageUrl}}`,cropped:!1})])})})})});return Object.freeze({...e,steps:Object.freeze(t)})}async function nl({definition:e,registry:t,authorization:n,fetchFn:r,FormDataCtor:i}){let a=(e?.blocks||[]).filter(e=>e.type===`image`);if(a.length===0)return e;if(!n)throw Yc(`AUTH_CONTEXT_UNAVAILABLE`,`Edvibe authorization context is unavailable. Reload the page and try again.`);let o=new i;o.append(`Type`,`8`),o.append(`SaveOriginal`,`true`),o.append(`IsOriginalSizeOutputImage`,`true`);let s=[];a.forEach((e,n)=>{let r=Xc(e.url),i=t?.get?.(r);if(!r||!i)throw Yc(`IMAGE_FILE_REQUIRED`,`Image block ${n+1} requires a selected file.`);s.push(r),o.append(`Files[${n}]`,i,i.name),o.append(`Selections[${n}].X`,`0`),o.append(`Selections[${n}].Y`,`0`),o.append(`Selections[${n}].Width`,`0`),o.append(`Selections[${n}].Height`,`0`),o.append(`Ids[${n}]`,r)});let c;try{c=await r(Jc,{method:`POST`,headers:{accept:`*/*`,authorization:n},body:o,mode:`cors`,credentials:`include`})}catch(e){throw Yc(`MEDIA_UPLOAD_FAILED`,`Could not upload the selected image.`,{cause:e})}if(!c?.ok)throw Yc(`MEDIA_UPLOAD_FAILED`,`Edvibe image upload failed with HTTP ${c?.status||`unknown`}.`);let l;try{l=await c.json()}catch(e){throw Yc(`INVALID_MEDIA_RESPONSE`,`Edvibe returned an invalid image response.`,{cause:e})}if(!l?.IsSuccess)throw Yc(`MEDIA_UPLOAD_REJECTED`,l?.ErrorMessage||`Edvibe rejected the selected image.`);if((l?.Data?.ErrorItems||[]).length>0)throw Yc(`MEDIA_UPLOAD_PARTIAL`,`Edvibe failed to upload one or more selected images.`,{errorItems:l.Data.ErrorItems});let u=new Map((l?.Data?.Items||[]).map(e=>[String(e.OldId||``),Object.freeze({imageId:e.Id,fullImageId:e.IdFull,imageUrl:e.Url,fullImageUrl:e.UrlFull})]));for(let e of s)if(!u.has(e))throw Yc(`INVALID_MEDIA_RESPONSE`,`Edvibe did not return an asset for every selected image.`);let d=e.blocks.map(e=>{if(e.type!==`image`)return e;let t=Xc(e.url);return Object.freeze({...e,asset:u.get(t)})});return Object.freeze({...e,blocks:Object.freeze(d)})}function rl({originalFactory:e,registry:t,authorizationCapture:n,fetchFn:r,FormDataCtor:i}){return typeof e==`function`?function(a){let o=e(a),s=new WeakMap;async function c(e){if(!e||typeof e!=`object`)return e;let a=s.get(e);return a||(a=nl({definition:e,registry:t,authorization:n.getAuthorization(),fetchFn:r,FormDataCtor:i}),s.set(e,a)),a}return Object.freeze({...o,async createSection(e){let t=await c(e.definition);return o.createSection({...e,definition:t})},async cleanupSection(e){let t=await c(e.definition);return o.cleanupSection({...e,definition:t})}})}:null}var il=globalThis.document?el(globalThis):null,al=tl(qc),ol=il?rl({originalFactory:Us,registry:Vc,authorizationCapture:il,fetchFn:globalThis.fetch.bind(globalThis),FormDataCtor:globalThis.FormData}):Us,sl=s({DIALOG_TAG:()=>cl,buildDeleteRequest:()=>gl,buildExecutionHistoryInput:()=>xl,buildExecutionPlan:()=>hl,createBatchSectionDeletionFeature:()=>Sl,executePlan:()=>yl,extractNormalSections:()=>fl,findExactSectionMatches:()=>pl,formatReport:()=>bl,inspectLessonsSequentially:()=>vl,loadLessonCatalogue:()=>_l,normalizeLesson:()=>dl,normalizeSectionName:()=>ul,parseMarathonId:()=>Di}),cl=`edvibe-toolbox-batch-section-deletion-dialog`,ll=new Set([`SERVER_REJECTED`,`INVALID_RESPONSE`,`REQUEST_TIMEOUT`,`SEND_FAILED`,`WS_UNAVAILABLE`]);function ul(e){let t=String(e||``).trim();if(!t)throw J(`SECTION_NAME_REQUIRED`,`Enter the exact section name.`);return t}function dl(e,t=0){let n=Number(e?.LessonId??e?.lessonId??e?.Id);return Object.freeze({lessonId:n,marathonLessonId:Number(e?.MarathonLessonId??e?.marathonLessonId??e?.Id),number:Number(e?.Number??e?.number??t+1),name:String(e?.Name??e?.name??`Lesson ${t+1}`)})}function fl(e){let t=e?.Value??e?.value??e;if(!t||!Array.isArray(t.Sections))throw J(`INVALID_LESSON_RESPONSE`,`The lesson response did not contain a normal Sections array.`);return t.Sections}function pl(e,t){let n=ul(t);if(!Array.isArray(e))throw J(`INVALID_LESSON_RESPONSE`,`Sections must be an array.`);return e.filter(e=>String(e?.Name??``)===n)}function ml(e,t,n){return Object.freeze({...e,status:`rejected`,code:t,message:n})}function hl({lessons:e,selectedLessonIds:t,sectionName:n,inspectionsByLessonId:r}){let i=ul(n),a=new Set((t||[]).map(Number)),o=[],s=[];for(let t of(e||[]).filter(e=>a.has(Number(e.lessonId)))){let e=r.get(Number(t.lessonId));if(!e||e.error){let n=e?.error;s.push(ml(t,n?.code||`INVALID_LESSON_RESPONSE`,n?.message||`The lesson could not be inspected.`));continue}try{let n=pl(fl(e.response),i);if(n.length===0)s.push(ml(t,`SECTION_NOT_FOUND`,`Section "${i}" was not found.`));else if(n.length>1)s.push(ml(t,`SECTION_NAME_AMBIGUOUS`,`Found ${n.length} sections named "${i}".`));else{let e=Number(n[0]?.Id);!Number.isSafeInteger(e)||e<=0?s.push(ml(t,`UNSUPPORTED_SECTION_TYPE`,`The matching section has no safe normal-section ID.`)):o.push(Object.freeze({...t,sectionName:i,sectionId:e}))}}catch(e){s.push(ml(t,e.code||`INVALID_LESSON_RESPONSE`,e.message))}}return Object.freeze({sectionName:i,selectedCount:a.size,eligible:Object.freeze(o),rejected:Object.freeze(s)})}function gl(e){return Object.freeze({controller:`LessonSectionWsController`,method:`DeleteStageSection`,projectName:`Books`,value:Object.freeze({StageSectionId:e.sectionId})})}async function _l({sendRequest:e,marathonId:t,pageSize:n=100}){return(await Li({sendRequest:e,marathonId:t,pageSize:n})).map(dl)}async function vl({lessons:e,selectedLessonIds:t,sendRequest:n,wait:r,requestDelayMs:i=250,onProgress:a}){let o=new Set((t||[]).map(Number)),s=e.filter(e=>o.has(Number(e.lessonId))),c=new Map;for(let[e,t]of s.entries()){try{let e=await Ri({sendRequest:n,lessonId:t.lessonId});fl(e),c.set(t.lessonId,{response:e})}catch(e){c.set(t.lessonId,{error:J(e.code||`INVALID_LESSON_RESPONSE`,e.message||`Inspection failed.`)})}a?.({current:e+1,total:s.length,lesson:t}),e<s.length-1&&i>0&&await r(i)}return c}async function yl({plan:e,sendRequest:t,wait:n,requestDelayMs:r=300,onProgress:i}){let a=e.rejected.map(e=>({...e})),o=null;for(let[s,c]of e.eligible.entries()){if(o){a.push({...c,status:`not_attempted`,code:`OPERATION_INTERRUPTED`,message:`Not attempted because the operation stopped.`});continue}try{let e=gl(c),n=await t(e.controller,e.method,e.projectName,e.value),r=n?.Value??n?.value;if(n?.IsSuccess===!1||n?.isSuccess===!1||r===!1||r==null)throw J(`INVALID_RESPONSE`,`Deletion was not positively confirmed.`);a.push({...c,status:`deleted`,code:`DELETED`,message:`Section deleted.`})}catch(e){let t=e.code||`DELETE_FAILED`;a.push({...c,status:`failed`,code:t,message:e.message||`Deletion failed.`,diagnosticObservations:[e]}),ll.has(t)||(o=e)}i?.({current:s+1,total:e.eligible.length,entry:c,results:[...a]}),s<e.eligible.length-1&&r>0&&!o&&await n(r)}return Object.freeze({plan:e,results:Object.freeze(a.map(Object.freeze)),fatalError:o})}function bl(e){let t=[`Edvibe Toolbox: batch section deletion`,`Section: ${e.plan.sectionName}`,`Selected: ${e.plan.selectedCount}`,`Eligible: ${e.plan.eligible.length}`,`Rejected: ${e.plan.rejected.length}`,``];for(let n of e.results){let e=`#${n.number} ${n.name} (lesson ${n.lessonId})`,r=n.sectionId?`, section ${n.sectionId}`:``;t.push(`[${n.status}] ${e}${r}: ${n.code} — ${n.message}`)}return t.join(`
 `)}function xl({marathonId:e,startedAt:t,completedAt:n,result:r}){let i=r.results.filter(e=>e.status===`deleted`).length,a=r.results.filter(e=>e.status===`failed`).length,o=r.results.filter(e=>e.status===`rejected`).length,s=r.results.filter(e=>e.status===`not_attempted`).length,c=r.fatalError?`interrupted`:a>0||o>0?`completed_with_failures`:`completed`;return Object.freeze({operationType:`batch-section-deletion`,startedAt:t,completedAt:n,status:c,pageContext:Object.freeze({marathonId:e}),counts:Object.freeze({requested:r.plan.selectedCount,eligible:r.plan.eligible.length,attempted:i+a,successful:i,noOp:0,skipped:o,failed:a,notAttempted:s}),results:Object.freeze(r.results.map(e=>Object.freeze({itemId:`lesson-${e.lessonId}`,label:`#${e.number} ${e.name}`,status:e.status,code:e.code,message:e.message,attempts:e.status===`not_attempted`||e.status===`rejected`?0:1,...X(e,{correlationId:`delete-section:${e.lessonId}`,operationName:`delete_section`})?{diagnostics:X(e,{correlationId:`delete-section:${e.lessonId}`,operationName:`delete_section`})}:{},data:Object.freeze({lessonId:e.lessonId,marathonLessonId:e.marathonLessonId,sectionId:e.sectionId||null,sectionName:r.plan.sectionName})})))})}function Sl({sendRequest:e,getConnectionState:t,wait:n,canStart:r,onActiveChange:i,createDialog:a,copyText:o,persistExecution:s=async()=>Object.freeze({stored:!1}),openHistory:c=()=>{},log:l=()=>{}}){let u=!1;async function d(){if(u||!r()){window.alert(`Another Edvibe Toolbox operation is already running.`);return}let d=Di(window.location.href);if(!d){window.alert(`Open an Edvibe marathon page first.`);return}if(t?.()?.ready===!1){window.alert(`Edvibe WebSocket connection is not ready.`);return}u=!0,i(!0);let f=a();document.body.append(f);try{let t=await _l({sendRequest:e,marathonId:d});f.configure({marathonId:d,lessons:t,async onInspect(r){let i=await vl({lessons:t,selectedLessonIds:r.selectedLessonIds,sendRequest:e,wait:n,onProgress:r.onProgress});return hl({lessons:t,selectedLessonIds:r.selectedLessonIds,sectionName:r.sectionName,inspectionsByLessonId:i})},async onExecute(t,r){let i=new Date().toISOString(),a=await yl({plan:t,sendRequest:e,wait:n,onProgress:r}),o=new Date().toISOString(),c;try{c=await s(xl({marathonId:d,startedAt:i,completedAt:o,result:a}))}catch(e){c=Object.freeze({stored:!1,persistenceError:e}),l(`Batch section deletion history persistence failed:`,e)}return{...a,report:bl(a),history:c}},onCopy:o,onOpenHistory(e){f.remove(),u=!1,i(!1),c(e)},onClose(){f.remove(),u=!1,i(!1)}})}catch(e){l(`Failed to open batch section deletion:`,e),f.remove(),u=!1,i(!1),window.alert(e.message||`Failed to load lessons.`)}}return Object.freeze({open:d})}var Cl=`batch-section-deletion`,wl=new Set([`completed`,`completed_with_failures`,`cancelled`,`interrupted`]),Tl=new Set([`deleted`,`failed`]);function El(e,t=``,n=1e3){let r=String(e??``).trim();return r?r.length<=n?r:`${r.slice(0,n-1)}…`:t}function Dl(e){let t=String(e||``).match(/\/marathon\/(\d+)(?:\/|$)/);return t?String(t[1]):null}function Ol(e){let t=e?.lessonId??e?.LessonId;return t==null?null:String(t)}function kl(e={}){return e.discoveryOutcome?El(e.discoveryOutcome,`inspection_failed`,120):{SECTION_NOT_FOUND:`not_found`,SECTION_NAME_AMBIGUOUS:`ambiguous`,UNSUPPORTED_SECTION_TYPE:`unsupported_section_type`,INVALID_LESSON_RESPONSE:`invalid_lesson_response`}[e.code]||(e.sectionId?`matched`:`inspection_failed`)}function Al(e={},t=[]){let n=El(e.sectionName,`Unnamed section`,500),r=(e.eligible||[]).map(e=>Object.freeze({...e,sectionName:n,sectionType:`normal`,discoveryOutcome:`matched`,matchCount:1})),i=(e.rejected||[]).map(e=>Object.freeze({...e,sectionName:n,sectionId:null,sectionType:null,discoveryOutcome:kl(e),matchCount:e.code===`SECTION_NOT_FOUND`?0:null,attempts:0}));return Object.freeze({...e,sectionName:n,selectedLessonIds:Object.freeze([...t]),selectedCount:Number.isSafeInteger(e.selectedCount)?e.selectedCount:t.length,eligible:Object.freeze(r),rejected:Object.freeze(i)})}function jl(e,t){return e.code?El(e.code,`UNKNOWN_RESULT`,120):e.status===`deleted`?`DELETED`:e.status===`rejected`?`PREFLIGHT_REJECTED`:e.status===`failed`?`DELETE_FAILED`:t===`cancelled`?`OPERATION_CANCELLED`:`OPERATION_INTERRUPTED`}function Ml(e,t){return e.message?El(e.message,`No message was provided.`):e.status===`deleted`?`Section deleted.`:e.status===`rejected`?`The lesson was rejected during discovery.`:e.status===`failed`?`The validated deletion request failed.`:t===`cancelled`?`Not attempted because the confirmed run was cancelled.`:`Not attempted because the confirmed run was interrupted.`}function Nl(e={},t={},n=null){let r=new Map;for(let t of e.rejected||[])r.set(Ol(t),{...t,status:`rejected`,attempts:0});for(let e of t.results||[])r.set(Ol(e),{...e});let i=new Map((e.eligible||[]).map(e=>[Ol(e),e])),a=[],o=new Set;for(let t of e.selectedLessonIds||[]){let n=String(t),s=r.get(n);!s&&i.has(n)&&(s={...i.get(n),status:`not_attempted`,attempts:0}),s||={lessonId:t,name:`Lesson ${t}`,status:`not_attempted`,attempts:0,sectionName:e.sectionName},a.push(s),o.add(n)}for(let e of[...r.values(),...i.values()]){let t=Ol(e);t!==null&&o.has(t)||(a.push(r.get(t)||{...e,status:`not_attempted`,attempts:0}),t!==null&&o.add(t))}return a.map(e=>{let t=El(e.status,`not_attempted`,80);return{...e,status:t,attempts:Number.isSafeInteger(e.attempts)&&e.attempts>=0?e.attempts:+!!Tl.has(t),terminalStatus:n}})}function Pl(e){if(Number.isSafeInteger(e.matchCount)&&e.matchCount>=0)return e.matchCount;if(e.sectionId)return 1;if(e.code===`SECTION_NOT_FOUND`)return 0;let t=String(e.message||``).match(/Found (\d+) sections/);return t?Number(t[1]):null}function Fl(e,t,n){let r=e.status,i=jl(e,n),a=Ml(e,n),o=kl(e),s=Object.freeze({lessonId:e.lessonId??null,marathonLessonId:e.marathonLessonId??null,number:e.number??null,name:El(e.name,`Unnamed lesson`,500)});return Object.freeze({itemId:s.lessonId===null?null:`lesson-${s.lessonId}`,label:`${s.number??`?`}. ${s.name}`,status:r,code:i,message:a,attempts:e.attempts,...X(e)?{diagnostics:X(e)}:{},data:Object.freeze({lesson:s,section:Object.freeze({requestedName:El(e.sectionName||t.sectionName,`Unnamed section`,500),matchedId:e.sectionId??null,supportedType:e.sectionId?`normal`:null}),discovery:Object.freeze({outcome:o,code:o===`matched`?`DISCOVERY_MATCHED`:i,message:o===`matched`?`Exactly one supported normal lesson section matched the requested name.`:a,matchCount:Pl(e)}),finalOutcome:r,deletionFailure:r===`failed`?Object.freeze({code:i,message:a,attemptCount:e.attempts}):null})})}function Il(e,t,n){return wl.has(e)?e:t?`interrupted`:n.some(e=>[`rejected`,`failed`,`not_attempted`].includes(e.status))?`completed_with_failures`:`completed`}function Ll({plan:e,result:t={},startedAt:n,completedAt:r,marathonId:i,marathonName:a=null,terminalStatus:o=null,fatalError:s=null}){let c=wl.has(o)?o:s||t.fatalError?`interrupted`:null,l=Nl(e,t,c).map(t=>Fl(t,e,c)),u=Il(o,s||t.fatalError,l),d=l.filter(e=>Tl.has(e.status)).length,f=l.filter(e=>e.status===`not_attempted`).length,p=Object.freeze({requested:l.length,eligible:Math.max(e.eligible?.length||0,d+f),attempted:d,successful:l.filter(e=>e.status===`deleted`).length,noOp:0,skipped:l.filter(e=>e.status===`rejected`).length,failed:l.filter(e=>e.status===`failed`).length,notAttempted:f});return Object.freeze({operationType:Cl,startedAt:n,completedAt:r,status:u,pageContext:Object.freeze({marathonId:i,marathonName:a}),counts:p,results:Object.freeze(l),message:JSON.stringify({sectionName:e.sectionName,counts:p})})}function Rl(e,t){let n=e.shadowRoot?.querySelector?.(`.status`)?.textContent||``;e.showStatus?.(`${n}${n?` `:``}${t}`)}function zl(e,t,n){let r=(e.ownerDocument||globalThis.document)?.createElement?.(`button`);r&&(r.type=`button`,r.className=`edvibe-batch-section-deletion-history`,r.textContent=`Open in history`,r.addEventListener(`click`,()=>n?.(t)),e.shadowRoot?.querySelector?.(`footer`)?.appendChild?.(r))}function Bl(e={}){let{createFeature:t=Sl,createDialog:n,persistExecution:r,getLocationHref:i=()=>``,getMarathonName:a=()=>null,now:o=()=>new Date,log:s=()=>{},...c}=e;if(typeof n!=`function`)throw TypeError(`createDialog is required`);if(typeof r!=`function`)throw TypeError(`persistExecution is required`);function l(){let e=n(),t=e.configure.bind(e),c=null,l=null,u=null,d=!1,f=0;async function p(e,t=null,n=null){let d=f;try{let s=o().toISOString(),p=Ll({plan:c,result:e||l||{},startedAt:u||s,completedAt:s,marathonId:Dl(i()),marathonName:a(),terminalStatus:t,fatalError:n}),m=await r(p);return d===f?m:Object.freeze({stored:!1,stale:!0})}catch(e){return s(`Batch section deletion history persistence failed:`,e),Object.freeze({stored:!1,persistenceError:e})}}return e.configure=(n={})=>{let r=n.onInspect,i=n.onExecute,a=n.onClose,s=n.onOpenHistory;return t({...n,async onInspect(t){let n=await r(t);return f+=1,c=Al(n,t?.selectedLessonIds||[]),l={plan:c,results:[]},u=o().toISOString(),d=!1,c.eligible.length||(d=!0,p(l).then(t=>{t?.stored?(Rl(e,`Result saved to execution history.`),t.record?.id&&zl(e,t.record.id,s)):t?.persistenceError&&Rl(e,`The visible preflight is intact, but history could not be saved.`)})),c},async onExecute(e,t){c=Al(e,e.selectedLessonIds||[]),u||=o().toISOString(),d=!1;try{let e=await i(c,(e={})=>{Array.isArray(e.results)&&(l={plan:c,results:[...e.results],fatalError:e.fatalError||null}),t?.(e)});l=e,d=!0;let n=await p(e,e.fatalError?`interrupted`:null,e.fatalError||null);return{...e,history:n}}catch(e){throw d=!0,await p(l,`interrupted`,e),e}},onOpenHistory:s,onClose(){c&&!d&&(d=!0,p(l,`cancelled`)),a?.()}})},e}return t({...c,createDialog:l,log:s})}function Vl(e=sl){return Object.freeze({...e,createBatchSectionDeletionFeature(t={}){return Bl({...t,createFeature:e.createBatchSectionDeletionFeature,getLocationHref:t.getLocationHref||(()=>globalThis.location?.href||``),getMarathonName:t.getMarathonName||(()=>globalThis.document?.querySelector?.(`h1`)?.textContent?.trim()||globalThis.document?.title||null)})}})}function Hl(e={}){return Vl(sl).createBatchSectionDeletionFeature(e)}var Ul=W`
-.dialog {
-    display: flex;
-    flex-direction: column;
-    width: min(900px, 96vw);
-    max-height: 92vh;
-}
-
-.dialog header,
-.dialog footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 18px 22px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-}
-
-.dialog footer {
-    border-bottom: 0;
-    border-top: 1px solid var(--edvibe-border-subtle);
-}
-
-.dialog h2,
-.dialog p {
-    margin: 0;
-}
-
-.dialog header p {
-    margin-top: 4px;
-    color: var(--edvibe-text-muted);
-}
-
-.icon {
-    min-width: 36px;
-    padding: 0;
-    font-size: 24px;
-    line-height: 1;
-}
-
-.dialog main {
-    display: grid;
-    gap: 16px;
-    overflow: auto;
-    padding: 20px 22px;
-}
-
-.toolbar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.selection {
-    margin-left: auto;
-    color: var(--edvibe-text-muted);
-}
-
-.lessons {
-    max-height: 280px;
-    overflow: auto;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-    background: var(--edvibe-surface);
-}
-
-.lesson {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--edvibe-border-subtle);
-    font-weight: 400;
-}
-
-.lesson:last-child {
-    border-bottom: 0;
-}
-
-.preflight,
-.result {
-    padding: 14px;
-    border: 1px solid var(--edvibe-border-subtle);
-    border-radius: var(--edvibe-radius-panel);
-}
-
-.preflight {
-    border: 0;
-}
-
-.preflight h3,
-.preflight h4 {
-    margin: 0 0 8px;
-}
-
-.preflight dl {
-    display: flex;
-    gap: 20px;
-    margin: 0 0 14px;
-}
-
-.preflight dl div {
-    display: flex;
-    gap: 6px;
-}
-
-.preflight dd {
-    margin: 0;
-    font-weight: 700;
-}
-
-.preflight ul {
-    margin: 0 0 14px;
-    padding-left: 20px;
-}
-
-.result textarea {
-    min-height: 220px;
-    resize: vertical;
-    font: 12px/1.5 ui-monospace, monospace;
-}
-
-.result-actions {
-    margin-top: 8px;
-}
-
-@media(max-width:640px) {
     .dialog {
-        max-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        width: min(900px, 96vw);
+        max-height: 92vh;
     }
 
     .dialog header,
-    .dialog footer,
+    .dialog footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+    }
+
+    .dialog footer {
+        border-bottom: 0;
+        border-top: 1px solid var(--edvibe-border-subtle);
+    }
+
+    .dialog h2,
+    .dialog p {
+        margin: 0;
+    }
+
+    .dialog header p {
+        margin-top: 4px;
+        color: var(--edvibe-text-muted);
+    }
+
+    .icon {
+        min-width: 36px;
+        padding: 0;
+        font-size: 24px;
+        line-height: 1;
+    }
+
     .dialog main {
+        display: grid;
+        gap: 16px;
+        overflow: auto;
+        padding: 20px 22px;
+    }
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .selection {
+        margin-left: auto;
+        color: var(--edvibe-text-muted);
+    }
+
+    .lessons {
+        max-height: 280px;
+        overflow: auto;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+        background: var(--edvibe-surface);
+    }
+
+    .lesson {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--edvibe-border-subtle);
+        font-weight: 400;
+    }
+
+    .lesson:last-child {
+        border-bottom: 0;
+    }
+
+    .preflight,
+    .result {
         padding: 14px;
+        border: 1px solid var(--edvibe-border-subtle);
+        border-radius: var(--edvibe-radius-panel);
+    }
+
+    .preflight {
+        border: 0;
+    }
+
+    .preflight h3,
+    .preflight h4 {
+        margin: 0 0 8px;
     }
 
     .preflight dl {
-        flex-wrap: wrap;
+        display: flex;
+        gap: 20px;
+        margin: 0 0 14px;
     }
-}
+
+    .preflight dl div {
+        display: flex;
+        gap: 6px;
+    }
+
+    .preflight dd {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .preflight ul {
+        margin: 0 0 14px;
+        padding-left: 20px;
+    }
+
+    .result textarea {
+        min-height: 220px;
+        resize: vertical;
+        font: 12px/1.5 ui-monospace, monospace;
+    }
+
+    .result-actions {
+        margin-top: 8px;
+    }
+
+    @media(max-width:640px) {
+        .dialog {
+            max-height: 100vh;
+        }
+
+        .dialog header,
+        .dialog footer,
+        .dialog main {
+            padding: 14px;
+        }
+
+        .preflight dl {
+            flex-wrap: wrap;
+        }
+    }
 `,Wl=`edvibe-toolbox-batch-section-deletion-dialog`,Gl=class extends ln{static styles=[pn,mn,hn,gn,_n,vn,Ul];static properties={options:{state:!0},sectionName:{state:!0},selectedLessonIds:{state:!0},plan:{state:!0},executionId:{state:!0},busy:{state:!0},statusMessage:{state:!0},statusVisible:{state:!0},resultReport:{state:!0},resultVisible:{state:!0}};constructor(){super(),this.options=null,this.sectionName=``,this.selectedLessonIds=new Set,this.plan=null,this.executionId=null,this.busy=!1,this.statusMessage=``,this.statusVisible=!1,this.resultReport=``,this.resultVisible=!1}configure(e={}){return this.options=e&&typeof e==`object`?e:{},this.selectedLessonIds=new Set,this.plan=null,this.executionId=null,this.resultReport=``,this.resultVisible=!1,this}selectedIds(){return[...this.selectedLessonIds]}setLessonSelected(e,t){if(this.busy)return;let n=new Set(this.selectedLessonIds);t?n.add(Number(e)):n.delete(Number(e)),this.selectedLessonIds=n}selectAll(){this.busy||(this.selectedLessonIds=new Set((this.options?.lessons||[]).map(e=>Number(e.lessonId))))}clearSelection(){this.busy||(this.selectedLessonIds=new Set)}setBusy(e){this.busy=!0,this.showStatus(e)}clearBusy(){this.busy=!1}async inspect(){let e=this.selectedIds();if(!this.sectionName.trim()||e.length===0){this.showStatus(`Enter a section name and select at least one lesson.`);return}this.setBusy(`Inspecting lessons…`);try{this.plan=await this.options.onInspect({sectionName:this.sectionName,selectedLessonIds:e,onProgress:({current:e,total:t})=>this.showStatus(`Inspecting ${e}/${t}…`)})}catch(e){this.showStatus(e.message||`Inspection failed.`)}finally{this.clearBusy()}}async execute(){if(!(!this.plan||this.plan.eligible.length===0)){this.setBusy(`Deleting sections…`);try{let e=await this.options.onExecute(this.plan,({current:e,total:t})=>this.showStatus(`Deleting ${e}/${t}…`));this.resultReport=String(e.report||``),this.resultVisible=!0,this.executionId=e.history?.stored&&e.history.record?.id||null;let t=e.fatalError?`Stopped after an operation-wide error. Partial results retained.`:`Deletion finished.`,n=e.history?.stored?` Saved to execution history.`:e.history?.persistenceError?` The visible report is intact, but history could not be saved.`:``;this.showStatus(`${t}${n}`)}catch(e){this.showStatus(e.message||`Deletion failed.`)}finally{this.clearBusy()}}}showStatus(e){this.statusMessage=String(e||``),this.statusVisible=!0}close(){this.busy||this.options?.onClose?.()}openHistory(){this.executionId&&this.options?.onOpenHistory?.(this.executionId)}renderPlanGroup(e,t,n){return G`
             <h4>${e}</h4>
             <ul>${t.length?t.map(e=>G`<li>${n(e)}</li>`):G`<li>None</li>`}</ul>

@@ -76,7 +76,7 @@ function createWebSocketTransport({
     setTimeoutFn = setTimeout,
     clearTimeoutFn = clearTimeout,
     now = Date.now,
-    log = () => {}
+    log = () => { }
 }) {
     let activeSocket = null;
     let nextSocketId = 1;
@@ -245,23 +245,22 @@ function createWebSocketTransport({
             const outcome = data.IsSuccess === true
                 ? 'success'
                 : `failed (${data.ErrorCode})`;
-            log(
-                `← ${pending.controller}.${pending.method} `
-                + `[${data.RequestId}] ${outcome} in ${elapsedMs}ms`
-            );
+            log(`← ${pending.controller}.${pending.method} [${data.RequestId}] ${outcome} in ${elapsedMs}ms`);
 
             if (data.IsSuccess !== true) {
-                pending.reject(createTransportError('SERVER_REJECTED',
-                    `${response.className || 'Edvibe'}:${response.method || 'request'} `
-                    + `failed with ErrorCode ${response.errorCode ?? 'unknown'}`,
-                    {
-                        controller: pending.controller,
-                        method: pending.method,
-                        requestId: data.RequestId,
-                        serverErrorCode: response.errorCode,
-                        diagnostics
-                    }
-                ));
+                pending.reject(
+                    createTransportError(
+                        'SERVER_REJECTED',
+                        `${response.className || 'Edvibe'}:${response.method || 'request'} failed with ErrorCode ${response.errorCode ?? 'unknown'}`,
+                        {
+                            controller: pending.controller,
+                            method: pending.method,
+                            requestId: data.RequestId,
+                            serverErrorCode: response.errorCode,
+                            diagnostics
+                        }
+                    )
+                );
                 return;
             }
 
@@ -304,9 +303,9 @@ function createWebSocketTransport({
 
     function requireOpenSocket(controller, method) {
         if (!activeSocket || activeSocket.readyState !== WebSocketClass.OPEN) {
-            throw createTransportError('WS_UNAVAILABLE',
-                'Active WebSocket connection is missing. '
-                + 'Please reload the Edvibe tab context.',
+            throw createTransportError(
+                'WS_UNAVAILABLE',
+                'Active WebSocket connection is missing. Please reload the Edvibe tab context.',
                 { controller, method }
             );
         }
@@ -338,10 +337,7 @@ function createWebSocketTransport({
             const diagnostics = createRequestDiagnostics(packet, startedAt, valueObject);
             const timeoutId = setTimeoutFn(() => {
                 pendingRequests.delete(packet.RequestId);
-                log(
-                    `✕ ${controller}.${method} `
-                    + `[${packet.RequestId}] timed out after ${requestTimeoutMs}ms`
-                );
+                log(`✕ ${controller}.${method} [${packet.RequestId}] timed out after ${requestTimeoutMs}ms`);
                 reject(createTransportError(
                     'REQUEST_TIMEOUT',
                     `${controller}:${method} timed out after ${requestTimeoutMs}ms.`,
@@ -366,10 +362,7 @@ function createWebSocketTransport({
                 requestValue: diagnostics.value,
                 diagnostics
             });
-            log(
-                `→ ${controller}.${method} `
-                + `[${packet.RequestId}]`
-            );
+            log(`→ ${controller}.${method} [${packet.RequestId}]`);
 
             try {
                 internalSendDepth += 1;
@@ -381,10 +374,7 @@ function createWebSocketTransport({
             } catch (error) {
                 clearTimeoutFn(timeoutId);
                 pendingRequests.delete(packet.RequestId);
-                log(
-                    `✕ ${controller}.${method} `
-                    + `[${packet.RequestId}] send failed: ${error.message}`
-                );
+                log(`✕ ${controller}.${method} [${packet.RequestId}] send failed: ${error.message}`);
                 reject(createTransportError('SEND_FAILED', error.message, {
                     controller,
                     method,
@@ -405,10 +395,7 @@ function createWebSocketTransport({
     function sendWithoutResponse(controller, method, projectName, valueObject) {
         const socket = requireOpenSocket(controller, method);
         const packet = createPacket(controller, method, projectName, valueObject);
-        log(
-            `→ ${controller}.${method} `
-            + `[${packet.RequestId}] (no response expected)`
-        );
+        log(`→ ${controller}.${method} [${packet.RequestId}] (no response expected)`);
         internalSendDepth += 1;
         try {
             socket.send(JSON.stringify(packet));
