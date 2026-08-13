@@ -30,7 +30,7 @@ describe('validateEmail', () => {
         // Then
         assert.equal(result.isValid, false);
         assert.equal(result.code, 'EMAIL_NON_ASCII');
-        assert.match(result.message, /«о» \(кириллица, U\+043E\)/);
+        assert.equal(result.message, 'Недопустимые символы: «о» (кириллица).');
         assert.deepEqual(result.offendingCharacters, [{
             character: 'о',
             index: 12,
@@ -68,7 +68,7 @@ describe('validateEmail', () => {
         // Then
         assert.equal(result.isValid, false);
         assert.equal(result.code, 'INVALID_EMAIL_FORMAT');
-        assert.equal(result.message, 'Некорректный формат email: «not-an-email».');
+        assert.equal(result.message, 'Некорректный формат email.');
     });
 });
 

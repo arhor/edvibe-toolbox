@@ -9,6 +9,11 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 import { batchLessonAccessDialogStyles } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-dialog.styles.js';
+import {
+    EMAIL_VALIDATION_CODES,
+    emailValidationSummaryStyles,
+    renderEmailValidationSummary
+} from '#src/content/main/components/email-validation-summary.js';
 
 const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
 const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
@@ -23,6 +28,7 @@ class BatchLessonAccessDialog extends LitElement {
         noticeStyles,
         progressStyles,
         emptyStateStyles,
+        emailValidationSummaryStyles,
         batchLessonAccessDialogStyles
     ];
 
@@ -120,7 +126,11 @@ class BatchLessonAccessDialog extends LitElement {
 
     showValidationErrors(errors = []) {
         this.mode = 'validation-error';
-        this.errors = this.normalizeErrors(errors);
+        const values = Array.isArray(errors) ? errors : [errors];
+        const visibleErrors = this.emailState.invalidEntries.length > 0
+            ? values.filter((error) => !EMAIL_VALIDATION_CODES.has(error?.code))
+            : values;
+        this.errors = this.normalizeErrors(visibleErrors);
         this.summaryLines = [];
         this.failures = [];
         this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
@@ -366,9 +376,7 @@ class BatchLessonAccessDialog extends LitElement {
                                 <div class="edvibe-batch-access-email-state" data-part="help" aria-live="polite">
                                     <span class="edvibe-batch-access-email-count">Уникальных email: ${this.emailState.validCount}</span>
                                     <span class="edvibe-batch-access-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
-                                    ${this.emailState.invalidEntries.map((entry) => html`
-                                        <span class="edvibe-batch-access-email-error">${entry.message}</span>
-                                    `)}
+                                    ${renderEmailValidationSummary(this.emailState.invalidEntries)}
                                 </div>
                             </div>
                             <div class="edvibe-batch-access-lesson-heading"><h3>Уроки</h3>

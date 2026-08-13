@@ -8,6 +8,10 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 import { batchUserManagementDialogStyles } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.styles.js';
+import {
+    emailValidationSummaryStyles,
+    renderEmailValidationSummary
+} from '#src/content/main/components/email-validation-summary.js';
 
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
 const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
@@ -21,6 +25,7 @@ class BatchUserManagementDialog extends LitElement {
         fieldStyles,
         noticeStyles,
         progressStyles,
+        emailValidationSummaryStyles,
         batchUserManagementDialogStyles
     ];
 
@@ -294,9 +299,7 @@ class BatchUserManagementDialog extends LitElement {
                                 <div class="edvibe-batch-user-management-email-state" data-part="help" aria-live="polite">
                                     <span class="edvibe-batch-user-management-email-count">Уникальных email: ${this.emailState.validCount}</span>
                                     <span class="edvibe-batch-user-management-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
-                                    ${this.emailState.invalidEntries.map((entry) => html`
-                                        <span class="edvibe-batch-user-management-email-error">${entry.message}</span>
-                                    `)}
+                                    ${renderEmailValidationSummary(this.emailState.invalidEntries)}
                                 </div>
                             </div>
                         </section>

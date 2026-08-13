@@ -22,7 +22,8 @@ function resolveOnboardingRows(parsed, pupils, moderators) {
                 moderatorStateSafe: false,
                 actionable: false,
                 validationCode: item.validation?.code || 'INVALID_EMAIL_FORMAT',
-                message: item.validation?.message || `Некорректный формат email: «${item.input}».`,
+                offendingCharacters: item.validation?.offendingCharacters || Object.freeze([]),
+                message: item.validation?.message || 'Некорректный формат email.',
                 addSelected: false,
                 assignSelected: false
             }));
@@ -151,6 +152,7 @@ function buildExecutionPlan({ rows, moderators, targetModeratorId }) {
             moderatorStateSafe: Boolean(row.moderatorStateSafe),
             actionable: Boolean(row.actionable),
             validationCode: row.validationCode || null,
+            offendingCharacters: row.offendingCharacters || Object.freeze([]),
             message: row.message || '',
             selectedOperations: Object.freeze([
                 ...(addSelected ? ['add_user'] : []),

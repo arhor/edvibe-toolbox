@@ -160,6 +160,7 @@ function buildExecutionHistoryInput({
                 normalizedEmail: row.normalizedEmail,
                 resolution: row.resolution,
                 validationCode: row.validationCode,
+                offendingCharacters: row.offendingCharacters,
                 membershipPreflight: row.membership,
                 user: row.user ? Object.freeze({ ...row.user }) : null,
                 existingCurators: Object.freeze(

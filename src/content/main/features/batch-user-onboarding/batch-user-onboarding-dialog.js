@@ -8,6 +8,10 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 import { batchUserOnboardingDialogStyles } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-dialog.styles.js';
+import {
+    emailValidationSummaryStyles,
+    renderEmailValidationSummary
+} from '#src/content/main/components/email-validation-summary.js';
 
 const BATCH_USER_ONBOARDING_DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 
@@ -20,6 +24,7 @@ class BatchUserOnboardingDialog extends LitElement {
         fieldStyles,
         noticeStyles,
         progressStyles,
+        emailValidationSummaryStyles,
         batchUserOnboardingDialogStyles
     ];
 
@@ -303,7 +308,7 @@ class BatchUserOnboardingDialog extends LitElement {
                             <label class="field" data-field><span>Email пользователей</span><textarea class="emails" rows="5" placeholder="user@example.com"
                                 .value=${this.emailInput} ?disabled=${this.mode !== 'configure'}
                                 @input=${(event) => { this.emailInput = event.currentTarget.value; this.updateEmailCounts(); }}></textarea></label>
-                            <div class="email-state" data-part="help" aria-live="polite"><span class="valid-count">Уникальных email: ${this.emailCounts.valid}</span><span class="invalid-count">Некорректных: ${this.emailCounts.invalid}</span>${this.emailCounts.invalidEntries.map((entry) => html`<span class="email-error">${entry.message}</span>`)}</div>
+                            <div class="email-state" data-part="help" aria-live="polite"><span class="valid-count">Уникальных email: ${this.emailCounts.valid}</span><span class="invalid-count">Некорректных: ${this.emailCounts.invalid}</span>${renderEmailValidationSummary(this.emailCounts.invalidEntries)}</div>
                             <label class="field curator-field" data-field><span>Целевой куратор</span>
                                 <select class="curator" .value=${this.targetModeratorId} ?disabled=${!['configure', 'review'].includes(this.mode)}
                                     @change=${(event) => { this.targetModeratorId = event.currentTarget.value; this.plan = null; }}>

@@ -18,7 +18,8 @@ test('preserves the specific email validation code and message', () => {
         normalizedEmail: 'test@gmail.cоm',
         status: 'malformed',
         validationCode: 'EMAIL_NON_ASCII',
-        message: 'Email содержит «о» (кириллица, U+043E).'
+        message: 'Недопустимые символы: «о» (кириллица).',
+        offendingCharacters: [{character: 'о', index: 12, codePoint: 'U+043E', script: 'кириллица'}]
     };
 
     // When
@@ -28,4 +29,5 @@ test('preserves the specific email validation code and message', () => {
     assert.equal(row.code, 'EMAIL_NON_ASCII');
     assert.equal(row.message, source.message);
     assert.equal(row.data.validationCode, 'EMAIL_NON_ASCII');
+    assert.deepEqual(row.data.offendingCharacters, source.offendingCharacters);
 });

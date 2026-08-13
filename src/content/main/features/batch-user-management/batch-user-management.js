@@ -288,7 +288,8 @@ function orderResolvedRows(parsed, resolution) {
             pupil: null,
             status: 'malformed',
             validationCode: item.validation?.code || 'INVALID_EMAIL_FORMAT',
-            message: item.validation?.message || `Некорректный формат email: «${item.input}».`
+            offendingCharacters: item.validation?.offendingCharacters || [],
+            message: item.validation?.message || 'Некорректный формат email.'
         });
 }
 

@@ -99,7 +99,10 @@ function inputFailureResults(identities) {
             data: freezeObject({
                 submittedInput: identity.submittedInput,
                 normalizedEmail: identity.normalizedEmail,
-                resolution: identity.resolution
+                resolution: identity.resolution,
+                ...(identity.offendingCharacters?.length
+                    ? {offendingCharacters: identity.offendingCharacters}
+                    : {})
             })
         }));
 }

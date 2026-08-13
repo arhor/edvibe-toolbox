@@ -40,12 +40,12 @@ function validateEmail(input) {
     const offendingCharacters = describeNonAsciiCharacters(input);
     if (offendingCharacters.length > 0) {
         const details = offendingCharacters
-            .map(({ character, script, codePoint }) => `«${character}» (${script}, ${codePoint})`)
+            .map(({ character, script }) => `«${character}» (${script})`)
             .join(', ');
         return Object.freeze({
             isValid: false,
             code: 'EMAIL_NON_ASCII',
-            message: `Email «${input}» содержит недопустимые символы: ${details}. Используйте только латинские буквы, цифры и стандартные символы email.`,
+            message: `Недопустимые символы: ${details}.`,
             offendingCharacters
         });
     }
@@ -53,7 +53,7 @@ function validateEmail(input) {
         return Object.freeze({
             isValid: false,
             code: 'INVALID_EMAIL_FORMAT',
-            message: `Некорректный формат email: «${input}».`,
+            message: 'Некорректный формат email.',
             offendingCharacters
         });
     }

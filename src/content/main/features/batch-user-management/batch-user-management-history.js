@@ -120,6 +120,9 @@ function serializeRow(row, index) {
             resolution: row?.status || 'malformed',
             validationCode: row?.validationCode || null,
             resolutionMessage: row?.message || null,
+            ...(row?.offendingCharacters?.length
+                ? {offendingCharacters: Object.freeze([...row.offendingCharacters])}
+                : {}),
             user: row?.status === 'matched' ? serializeIdentity(row) : null,
             curatorPresent: row?.status === 'matched' ? Boolean(row?.hasCurator) : null,
             selectedOperations: Object.freeze(names),

@@ -140,7 +140,8 @@ function buildIdentityResolution({ submittedEmailInput, pupils }) {
                 pupilId: null,
                 marathonPupilId: null,
                 code: invalid.code,
-                message: invalid.message
+                message: invalid.message,
+                offendingCharacters: invalid.offendingCharacters
             });
         }
         const candidates = pupilsByEmail.get(entry.normalizedEmail) || [];

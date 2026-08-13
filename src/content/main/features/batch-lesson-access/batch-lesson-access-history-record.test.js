@@ -27,5 +27,11 @@ test('reconstructs the specific non-ASCII email diagnostic', () => {
 
     // Then
     assert.equal(plan.identities[0].code, 'EMAIL_NON_ASCII');
-    assert.match(plan.identities[0].message, /«о» \(кириллица, U\+043E\)/);
+    assert.equal(plan.identities[0].message, 'Недопустимые символы: «о» (кириллица).');
+    assert.deepEqual(plan.identities[0].offendingCharacters, [{
+        character: 'о',
+        index: 12,
+        codePoint: 'U+043E',
+        script: 'кириллица'
+    }]);
 });

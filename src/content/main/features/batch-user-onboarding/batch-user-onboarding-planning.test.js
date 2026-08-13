@@ -22,7 +22,9 @@ test('row discovery preserves non-ASCII validation diagnostics', () => {
 
     // Then
     assert.equal(rows[0].validationCode, 'EMAIL_NON_ASCII');
-    assert.match(rows[0].message, /«о» \(кириллица, U\+043E\)/);
+    assert.equal(rows[0].message, 'Недопустимые символы: «о» (кириллица).');
+    assert.equal(rows[0].offendingCharacters[0].codePoint, 'U+043E');
+    assert.equal(rows[0].offendingCharacters[0].index, 12);
     assert.equal(rows[0].actionable, false);
 });
 
