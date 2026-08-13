@@ -4,13 +4,13 @@ import test from 'node:test';
 import {
     normalizeModeratorCatalogue,
     resolvePupilModerators
-} from './batch-user-onboarding-domain.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-domain.js';
 import {
     buildAddRequest,
     buildAssignRequest,
     buildExecutionPlan,
     resolveOnboardingRows
-} from './batch-user-onboarding-planning.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-planning.js';
 
 test('moderator catalogue normalization rejects ambiguous identities', () => {
     const catalogue = normalizeModeratorCatalogue([

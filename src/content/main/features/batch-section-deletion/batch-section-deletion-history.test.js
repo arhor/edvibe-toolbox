@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { serializeResult } from './batch-section-deletion-history.js';
-import { buildExecutionHistoryInput as buildLegacyHistory } from './batch-section-deletion.js';
+import { serializeResult } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-history.js';
+import { buildExecutionHistoryInput as buildLegacyHistory } from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 function attempt(correlationId, requestId, transportCode = 'SERVER_REJECTED') {
     return { correlationId, operationName: 'write', controller: 'C', method: 'POST', projectName: 'P', requestId, attemptNumber: 1, startedAt: '2026-01-01T00:00:00.000Z', completedAt: null, durationMs: null, outcome: 'failure', transportCode, serverErrorCode: 'DENIED', serverErrorMessage: null, requestSummary: null, responseSummary: null };
 }

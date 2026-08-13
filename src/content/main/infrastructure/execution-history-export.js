@@ -1,4 +1,4 @@
-import * as recordApi from './execution-history-record.js';
+import * as recordApi from '#src/content/main/infrastructure/execution-history-record.js';
 
 function serializeExecutionRecord(record) {
     return `${JSON.stringify(recordApi.cloneExecutionRecord(record), null, 2)}\n`;

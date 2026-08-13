@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { buildExecutionRecord } from './execution-history-record.js';
-import { createExecutionHistoryService } from './execution-history-service.js';
+import { buildExecutionRecord } from '#src/content/main/infrastructure/execution-history-record.js';
+import { createExecutionHistoryService } from '#src/content/main/infrastructure/execution-history-service.js';
 
 function input({ id = 'execution-1', diagnostics = true } = {}) {
     const result = { label: 'Lesson', status: 'failed', code: 'ERROR', message: 'Failed' };

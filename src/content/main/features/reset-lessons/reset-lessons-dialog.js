@@ -2,15 +2,15 @@ import { LitElement, html, nothing } from 'lit';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
-} from '../../styles/foundations.js';
+} from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
     emptyStateStyles,
     fieldStyles,
     progressStyles
-} from '../../styles/primitives.js';
-import { resetLessonsDialogStyles } from './reset-lessons-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { resetLessonsDialogStyles } from '#src/content/main/features/reset-lessons/reset-lessons-dialog.styles.js';
 
 const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';

@@ -2,7 +2,7 @@ import { css, unsafeCSS } from 'lit';
 import {
     TOOLBOX_DESIGN_TOKENS,
     createDesignTokenDeclarations
-} from '../../../shared/ui-design-tokens.js';
+} from '#src/shared/ui-design-tokens.js';
 
 const tokenDeclarations = unsafeCSS(createDesignTokenDeclarations());
 

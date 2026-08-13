@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { diagnosticEnvelope } from './batch-user-onboarding-diagnostics.js';
+import { diagnosticEnvelope } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-diagnostics.js';
 
 describe('diagnosticEnvelope', () => {
     test('retains every retry and complete request and response summaries', () => {

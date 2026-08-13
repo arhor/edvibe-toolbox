@@ -1,13 +1,13 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
     fieldStyles,
     noticeStyles,
     progressStyles
-} from '../../styles/primitives.js';
-import { batchUserOnboardingDialogStyles } from './batch-user-onboarding-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { batchUserOnboardingDialogStyles } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-dialog.styles.js';
 
 const BATCH_USER_ONBOARDING_DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 

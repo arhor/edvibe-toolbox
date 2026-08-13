@@ -6,9 +6,9 @@ import {
     buildExecutionRecord,
     cloneExecutionRecord,
     validateExecutionRecord
-} from './execution-history-record.js';
-import { serializeExecutionRecord } from './execution-history-export.js';
-import { createExecutionHistoryRepository } from './execution-history-repository.js';
+} from '#src/content/main/infrastructure/execution-history-record.js';
+import { serializeExecutionRecord } from '#src/content/main/infrastructure/execution-history-export.js';
+import { createExecutionHistoryRepository } from '#src/content/main/infrastructure/execution-history-repository.js';
 
 function recordInput(overrides = {}) {
     return {

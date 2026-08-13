@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
@@ -7,8 +7,8 @@ import {
     fieldStyles,
     noticeStyles,
     progressStyles
-} from '../../styles/primitives.js';
-import { batchLessonAccessDialogStyles } from './batch-lesson-access-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { batchLessonAccessDialogStyles } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-dialog.styles.js';
 
 const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
 const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';

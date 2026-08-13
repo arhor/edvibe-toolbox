@@ -5,7 +5,7 @@ import {
     TOOLBOX_DESIGN_TOKENS,
     applyDesignTokens,
     createDesignTokenDeclarations
-} from './ui-design-tokens.js';
+} from '#src/shared/ui-design-tokens.js';
 
 test('exposes the audited semantic token vocabulary as CSS custom properties', () => {
     assert.equal(TOOLBOX_DESIGN_TOKENS['--edvibe-primary'], '#2563eb');

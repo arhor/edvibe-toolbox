@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Chrome extension utilities for Edvibe workflows",
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build",

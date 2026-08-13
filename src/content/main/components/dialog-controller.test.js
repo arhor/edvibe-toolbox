@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { DialogController } from './dialog-controller.js';
+import { DialogController } from '#src/content/main/components/dialog-controller.js';
 
 function createFixture(options = {}) {
     const listeners = new Map();

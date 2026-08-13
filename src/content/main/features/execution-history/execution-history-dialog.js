@@ -2,15 +2,15 @@ import { LitElement, html } from 'lit';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
-} from '../../styles/foundations.js';
+} from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
     emptyStateStyles,
     fieldStyles,
     noticeStyles
-} from '../../styles/primitives.js';
-import { executionHistoryDialogStyles } from './execution-history-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { executionHistoryDialogStyles } from '#src/content/main/features/execution-history/execution-history-dialog.styles.js';
 
 const EXECUTION_HISTORY_DIALOG_TAG = 'edvibe-toolbox-execution-history-dialog';
 const STATUS_LABELS = Object.freeze({

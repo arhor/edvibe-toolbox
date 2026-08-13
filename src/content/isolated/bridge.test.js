@@ -11,8 +11,8 @@ import {
     createRuntimeExportStatusMessage,
     createStorageRequest,
     createStorageResponse
-} from '../../shared/message-protocol.js';
-import { initializeIsolatedBridge } from './bridge.js';
+} from '#src/shared/message-protocol.js';
+import { initializeIsolatedBridge } from '#src/content/isolated/bridge.js';
 
 function createHarness(initialStorage = {}) {
     const windowListeners = new Set();

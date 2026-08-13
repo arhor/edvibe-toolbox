@@ -1,5 +1,5 @@
-import * as modelApi from './batch-section-creation-history-model.js';
-import * as recordApi from './batch-section-creation-history-record.js';
+import * as modelApi from '#src/content/main/features/batch-section-creation/batch-section-creation-history-model.js';
+import * as recordApi from '#src/content/main/features/batch-section-creation/batch-section-creation-history-record.js';
 
 function appendStatus(dialog, message, isError = false) {
     const current = dialog.elements?.status?.textContent || '';
@@ -157,6 +157,6 @@ function createHistoryAwareDialog({
     };
 }
 
-export * from './batch-section-creation-history-model.js';
-export * from './batch-section-creation-history-record.js';
+export * from '#src/content/main/features/batch-section-creation/batch-section-creation-history-model.js';
+export * from '#src/content/main/features/batch-section-creation/batch-section-creation-history-record.js';
 export { createHistoryAwareDialog };

@@ -2,15 +2,15 @@ import { LitElement, html } from 'lit';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
-} from '../../styles/foundations.js';
+} from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
     emptyStateStyles,
     fieldStyles,
     noticeStyles
-} from '../../styles/primitives.js';
-import { actionRecorderDialogStyles } from './action-recorder-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { actionRecorderDialogStyles } from '#src/content/main/features/action-recorder/action-recorder-dialog.styles.js';
 
 const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
 const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { createActionRecorderFeature } from './action-recorder.js';
+import { createActionRecorderFeature } from '#src/content/main/features/action-recorder/action-recorder.js';
 
 function createHarness() {
     let observer;

@@ -62,10 +62,8 @@ export default defineConfig([
             'no-restricted-imports': ['error', {
                 patterns: [{
                     group: [
-                        '../content/**',
-                        '../popup/**',
-                        '@/content/**',
-                        '@/popup/**'
+                        '#src/content/**',
+                        '#src/popup/**'
                     ],
                     message: 'Shared modules cannot depend on runtime-owned implementations.'
                 }]

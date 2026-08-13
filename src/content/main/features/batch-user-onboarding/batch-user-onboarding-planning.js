@@ -5,7 +5,7 @@ import {
     findTargetModerator,
     resolvePupilModerators,
     serializePupil
-} from './batch-user-onboarding-domain.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-domain.js';
 
 function resolveOnboardingRows(parsed, pupils, moderators) {
     const pupilIndex = buildPupilEmailIndex(pupils);

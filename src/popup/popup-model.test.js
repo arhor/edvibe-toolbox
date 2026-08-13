@@ -7,7 +7,7 @@ import {
     getToolDefinition,
     getToolViewModel,
     resolvePageContext
-} from './popup-model.js';
+} from '#src/popup/popup-model.js';
 
 describe('resolvePageContext', () => {
     test('identifies supported Edvibe contexts', () => {

@@ -1,6 +1,6 @@
 import { html, LitElement } from 'lit';
 
-import './popup-tool-card.js';
+import '#src/popup/components/popup-tool-card.js';
 
 export class PopupToolGroup extends LitElement {
     static properties = {

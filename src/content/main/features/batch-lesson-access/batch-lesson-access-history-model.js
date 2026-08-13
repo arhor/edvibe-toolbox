@@ -1,4 +1,4 @@
-import * as batchAccessApi from './batch-lesson-access.js';
+import * as batchAccessApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access.js';
 
 const OPERATION_TYPE = 'batch_lesson_access';
 

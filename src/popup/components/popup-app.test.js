@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, test } from 'node:test';
 
-import { POPUP_COMMANDS } from '../../shared/message-protocol.js';
+import { POPUP_COMMANDS } from '#src/shared/message-protocol.js';
 
 function createChromeApi() {
     const listeners = new Set();
@@ -27,7 +27,7 @@ function createChromeApi() {
 }
 
 const originalChrome = globalThis.chrome;
-const { PopupApp } = await import('./popup-app.js');
+const { PopupApp } = await import('#src/popup/components/popup-app.js');
 
 class TestPopupApp extends PopupApp {
     scheduleUpdate() {

@@ -5,7 +5,7 @@ import {
     ExecutionHistoryDialog,
     formatDiagnosticSummary,
     isExecutionInterruption
-} from './execution-history-dialog.js';
+} from '#src/content/main/features/execution-history/execution-history-dialog.js';
 
 function attempt(overrides = {}) {
     return {

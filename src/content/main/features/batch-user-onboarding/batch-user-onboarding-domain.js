@@ -1,4 +1,4 @@
-import { createFeatureError } from '../batch-workflow-primitives.js';
+import { createFeatureError } from '#src/content/main/features/batch-workflow-primitives.js';
 
 function featureError(code, message, details = {}) {
     return createFeatureError(code, message, details);

@@ -4,8 +4,8 @@ import {
     normalizeEmail,
     lessonKey,
     attemptKey
-} from './batch-lesson-access-history-model.js';
-import { historyDiagnostics } from '../../infrastructure/history-diagnostics.js';
+} from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
+import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 const REJECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE']);
 

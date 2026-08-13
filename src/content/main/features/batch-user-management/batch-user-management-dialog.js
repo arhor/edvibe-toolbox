@@ -1,13 +1,13 @@
 import { LitElement, html } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
     fieldStyles,
     noticeStyles,
     progressStyles
-} from '../../styles/primitives.js';
-import { batchUserManagementDialogStyles } from './batch-user-management-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { batchUserManagementDialogStyles } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.styles.js';
 
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
 const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';

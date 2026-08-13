@@ -1,5 +1,5 @@
-import { createFeatureError, parseMarathonId } from '../batch-workflow-primitives.js';
-import { getLessonById, loadAllMarathonLessons } from '../edvibe-marathon-api.js';
+import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
+import { getLessonById, loadAllMarathonLessons } from '#src/content/main/features/edvibe-marathon-api.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';

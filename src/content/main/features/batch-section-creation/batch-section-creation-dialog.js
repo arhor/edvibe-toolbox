@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
@@ -7,13 +7,13 @@ import {
     fieldStyles,
     noticeStyles,
     progressStyles
-} from '../../styles/primitives.js';
-import { batchSectionCreationDialogStyles } from './batch-section-creation-dialog.styles.js';
-import { batchSectionImageUploadStyles } from './image-upload/batch-section-image-upload.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { batchSectionCreationDialogStyles } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.styles.js';
+import { batchSectionImageUploadStyles } from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.styles.js';
 import {
     controller as defaultImageController,
     formatFileSize,
-} from './image-upload/batch-section-image-upload.js';
+} from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.js';
 
 const BATCH_SECTION_DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';

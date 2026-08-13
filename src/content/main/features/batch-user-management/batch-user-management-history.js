@@ -1,4 +1,4 @@
-import { diagnosticsFromAttempts, historyDiagnostics } from '../../infrastructure/history-diagnostics.js';
+import { diagnosticsFromAttempts, historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 const OPERATION_TYPE = 'batch_user_management';
 const OPERATION_NAMES = Object.freeze({

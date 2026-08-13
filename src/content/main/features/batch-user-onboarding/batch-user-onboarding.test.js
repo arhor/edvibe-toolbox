@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseEmailInput } from './batch-user-onboarding.js';
+import { parseEmailInput } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding.js';
 import {
     buildExecutionPlan,
     resolveOnboardingRows
-} from './batch-user-onboarding-planning.js';
-import { executePlan } from './batch-user-onboarding-execution.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-planning.js';
+import { executePlan } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-execution.js';
 import {
     buildExecutionHistoryInput,
     formatReport
-} from './batch-user-onboarding-reporting.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-reporting.js';
 
 const moderators = [{ Id: 7, TeacherId: 70, Name: 'Curator' }];
 const catalogueResponse = { Value: { Items: moderators } };

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { requestAttemptFromObservation, diagnosticsFromObservations } from './history-diagnostics.js';
+import { requestAttemptFromObservation, diagnosticsFromObservations } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 function error(code, requestId, response = {}) {
     return Object.assign(new Error(code), { code, requestId, diagnostics: {

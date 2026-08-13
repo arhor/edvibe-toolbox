@@ -1,5 +1,5 @@
-import * as modelApi from './batch-section-creation-history-model.js';
-import { historyDiagnostics } from '../../infrastructure/history-diagnostics.js';
+import * as modelApi from '#src/content/main/features/batch-section-creation/batch-section-creation-history-model.js';
+import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 const TERMINAL_STATUSES = new Set(modelApi.TERMINAL_STATUSES);
 

@@ -1,4 +1,4 @@
-import { appendPage, createFeatureError } from './batch-workflow-primitives.js';
+import { appendPage, createFeatureError } from '#src/content/main/features/batch-workflow-primitives.js';
 
 /**
  * @callback EdvibeSendRequest

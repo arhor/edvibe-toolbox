@@ -10,7 +10,7 @@ import {
     isExportStatusMessage,
     isPopupCommandMessage,
     isStorageRequestMessage
-} from '../../shared/message-protocol.js';
+} from '#src/shared/message-protocol.js';
 
 function initializeIsolatedBridge(options = {}) {
     const windowApi = options.windowApi || globalThis.window;

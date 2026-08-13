@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createWebSocketTransport } from './websocket-transport.js';
+import { createWebSocketTransport } from '#src/content/main/infrastructure/websocket-transport.js';
 
 class FakeWebSocket {
     static OPEN = 1;

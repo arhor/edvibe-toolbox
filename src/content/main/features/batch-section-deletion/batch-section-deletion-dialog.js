@@ -1,12 +1,12 @@
 import { LitElement, html, nothing } from 'lit';
-import { componentFoundationStyles, dialogFoundationStyles } from '../../styles/foundations.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
     fieldStyles,
     noticeStyles
-} from '../../styles/primitives.js';
-import { batchSectionDeletionDialogStyles } from './batch-section-deletion-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { batchSectionDeletionDialogStyles } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-dialog.styles.js';
 
 const BATCH_SECTION_DELETION_DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
 

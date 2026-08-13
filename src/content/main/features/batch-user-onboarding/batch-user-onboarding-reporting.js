@@ -1,4 +1,4 @@
-import { deepFreeze } from './batch-user-onboarding-domain.js';
+import { deepFreeze } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-domain.js';
 
 const OPERATION_TYPE = 'batch_user_onboarding';
 

@@ -2,13 +2,13 @@ import { LitElement, html, nothing } from 'lit';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
-} from '../../styles/foundations.js';
+} from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
     dialogShellStyles,
     progressStyles
-} from '../../styles/primitives.js';
-import { exportProgressDialogStyles } from './export-progress-dialog.styles.js';
+} from '#src/content/main/styles/primitives.js';
+import { exportProgressDialogStyles } from '#src/content/main/features/marathon-export/export-progress-dialog.styles.js';
 
 const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';
 

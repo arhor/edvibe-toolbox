@@ -1,6 +1,6 @@
 import { html, LitElement, nothing } from 'lit';
 
-import { getToolViewModel } from '../popup-model.js';
+import { getToolViewModel } from '#src/popup/popup-model.js';
 
 export class PopupToolCard extends LitElement {
     static properties = {

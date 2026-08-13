@@ -1,5 +1,5 @@
-import { loadAllPupils } from '../edvibe-marathon-api.js';
-import { runWithRetry } from '../batch-workflow-primitives.js';
+import { loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
+import { runWithRetry } from '#src/content/main/features/batch-workflow-primitives.js';
 import {
     buildPupilEmailIndex,
     deepFreeze,
@@ -8,15 +8,15 @@ import {
     loadModerators,
     resolvePupilModerators,
     serializePupil
-} from './batch-user-onboarding-domain.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-domain.js';
 import {
     buildAddRequest,
     buildAssignRequest
-} from './batch-user-onboarding-planning.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-planning.js';
 import {
     diagnosticAttempt,
     diagnosticEnvelope
-} from './batch-user-onboarding-diagnostics.js';
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-diagnostics.js';
 
 const EXPECTED_WRITE_CODES = new Set([
     'SERVER_REJECTED',

@@ -1,16 +1,16 @@
 import { html, LitElement, nothing } from 'lit';
 
-import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '../../shared/message-protocol.js';
+import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/message-protocol.js';
 import {
     TOOL_GROUPS,
     getPageContextContent,
     getToolDefinition,
     getUnavailableReason,
     resolvePageContext
-} from '../popup-model.js';
+} from '#src/popup/popup-model.js';
 
-import './popup-tool-group.js';
-import './popup-app.css';
+import '#src/popup/components/popup-tool-group.js';
+import '#src/popup/components/popup-app.css';
 
 async function getPageContext() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

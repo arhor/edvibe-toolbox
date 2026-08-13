@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildExecutionHistoryInput } from './batch-lesson-access-history-record.js';
+import { buildExecutionHistoryInput } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
 function attempt(correlationId, requestId, transportCode = 'SERVER_REJECTED') {
     return { correlationId, operationName: 'write', controller: 'C', method: 'POST', projectName: 'P', requestId, attemptNumber: 1, startedAt: '2026-01-01T00:00:00.000Z', completedAt: null, durationMs: null, outcome: 'failure', transportCode, serverErrorCode: 'DENIED', serverErrorMessage: null, requestSummary: null, responseSummary: null };
 }
