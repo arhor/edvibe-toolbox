@@ -95,6 +95,11 @@ export const batchUserOnboardingDialogStyles = css`
         margin-top: -8px;
     }
 
+    .email-error {
+        flex-basis: 100%;
+        color: var(--edvibe-danger);
+    }
+
     .curator-field {
         grid-column: 2;
         grid-row: 1 / span 2;

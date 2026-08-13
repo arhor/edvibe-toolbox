@@ -141,14 +141,16 @@ function buildExecutionHistoryInput({
             itemId: row.itemId,
             label: row.email,
             status,
-            code: {
+            code: row.resolution === 'invalid' && row.validationCode
+                ? row.validationCode
+                : {
                 success: 'USER_ONBOARDING_COMPLETED',
                 noop: 'USER_ONBOARDING_NOOP',
                 skipped: 'USER_ONBOARDING_SKIPPED',
                 rejected: 'USER_ONBOARDING_REJECTED',
                 failed: 'USER_ONBOARDING_FAILED',
                 not_attempted: 'NOT_ATTEMPTED'
-            }[status],
+                }[status],
             message: operations.map((operation) => operation.message).filter(Boolean).join('; ')
                 || row.message
                 || 'No operation selected.',
@@ -157,6 +159,7 @@ function buildExecutionHistoryInput({
                 submittedInput: row.email,
                 normalizedEmail: row.normalizedEmail,
                 resolution: row.resolution,
+                validationCode: row.validationCode,
                 membershipPreflight: row.membership,
                 user: row.user ? Object.freeze({ ...row.user }) : null,
                 existingCurators: Object.freeze(

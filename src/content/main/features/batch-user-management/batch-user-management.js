@@ -287,7 +287,8 @@ function orderResolvedRows(parsed, resolution) {
             normalizedEmail: item.normalized,
             pupil: null,
             status: 'malformed',
-            message: `Invalid email address: ${item.input}.`
+            validationCode: item.validation?.code || 'INVALID_EMAIL_FORMAT',
+            message: item.validation?.message || `Некорректный формат email: «${item.input}».`
         });
 }
 
@@ -330,7 +331,8 @@ function createBatchUserManagementFeature({
         const parsed = parseEmailInput(event?.detail?.emailInput);
         dialog.setEmailState({
             validCount: parsed.entries.length,
-            malformedCount: parsed.malformed.length
+            malformedCount: parsed.malformed.length,
+            invalidEntries: parsed.invalidEntries
         });
     }
 

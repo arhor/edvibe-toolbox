@@ -77,6 +77,11 @@ export const batchLessonAccessDialogStyles = css`
         gap: 8px 16px;
     }
 
+    .edvibe-batch-access-email-error {
+        flex-basis: 100%;
+        color: var(--edvibe-danger);
+    }
+
     .edvibe-batch-access-lesson-heading {
         margin-top: 20px;
     }

@@ -10,3 +10,22 @@ test('preserves correlated server rejection and transport failure diagnostics', 
     assert.deepEqual(row.diagnostics.requestAttempts.map(({ requestId }) => requestId), ['reject-1', 'timeout-2']);
     assert.equal(row.diagnostics.requestAttempts[0].correlationId, 'user:a');
 });
+
+test('preserves the specific email validation code and message', () => {
+    // Given
+    const source = {
+        email: 'test@gmail.cоm',
+        normalizedEmail: 'test@gmail.cоm',
+        status: 'malformed',
+        validationCode: 'EMAIL_NON_ASCII',
+        message: 'Email содержит «о» (кириллица, U+043E).'
+    };
+
+    // When
+    const row = serializeRow(source, 0);
+
+    // Then
+    assert.equal(row.code, 'EMAIL_NON_ASCII');
+    assert.equal(row.message, source.message);
+    assert.equal(row.data.validationCode, 'EMAIL_NON_ASCII');
+});

@@ -249,15 +249,15 @@ const mainCommandHandlers = new Map([
     [WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT, () => batchUserManagementFeature.open()],
     [WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_CREATION, () => batchSectionCreationFeature.open()],
     [WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_DELETION, () => batchSectionDeletionFeature.open()],
-    [WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY, (data) => executionHistoryFeature.open({
-        executionId: data.executionId || null
-    })],
+    [WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY, (data) => executionHistoryFeature.open({ executionId: data.executionId || null })],
     [WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER, openActionRecorder]
 ]);
 
-window.addEventListener('message', (event) => {
-    if (event.source !== window || !isMainCommandMessage(event.data)) return;
-    mainCommandHandlers.get(event.data.type)?.(event.data);
+window.addEventListener('message', ({ source, data }) => {
+    if (source !== window || !isMainCommandMessage(data)) {
+        return;
+    }
+    mainCommandHandlers.get(data.type)?.(data);
 });
 
 log('Toolbox modules ready.');

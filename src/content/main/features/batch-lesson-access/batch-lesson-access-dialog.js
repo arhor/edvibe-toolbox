@@ -27,24 +27,24 @@ class BatchLessonAccessDialog extends LitElement {
     ];
 
     static properties = {
-        lessons: {state: true},
-        selectedLessonIds: {state: true},
-        emailState: {state: true},
-        emailInput: {state: true},
-        mode: {state: true},
-        statusMessage: {state: true},
-        statusError: {state: true},
-        errors: {state: true},
-        summaryLines: {state: true},
-        failures: {state: true},
-        progress: {state: true}
+        lessons: { state: true },
+        selectedLessonIds: { state: true },
+        emailState: { state: true },
+        emailInput: { state: true },
+        mode: { state: true },
+        statusMessage: { state: true },
+        statusError: { state: true },
+        errors: { state: true },
+        summaryLines: { state: true },
+        failures: { state: true },
+        progress: { state: true }
     };
 
     constructor() {
         super();
         this.lessons = [];
         this.selectedLessonIds = new Set();
-        this.emailState = {validCount: 0, malformedCount: 0};
+        this.emailState = { validCount: 0, malformedCount: 0, invalidEntries: [] };
         this.emailInput = '';
         this.mode = 'initializing';
         this.statusMessage = '';
@@ -52,7 +52,7 @@ class BatchLessonAccessDialog extends LitElement {
         this.errors = [];
         this.summaryLines = [];
         this.failures = [];
-        this.progress = {visible: false, indeterminate: false, completed: 0, total: 0};
+        this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
         this.handleKeydownBound = (event) => this.handleKeydown(event);
     }
 
@@ -79,13 +79,14 @@ class BatchLessonAccessDialog extends LitElement {
         state = state && typeof state === 'object' ? state : {};
         this.emailState = {
             validCount: Math.max(0, Number(state.validCount) || 0),
-            malformedCount: Math.max(0, Number(state.malformedCount) || 0)
+            malformedCount: Math.max(0, Number(state.malformedCount) || 0),
+            invalidEntries: Array.isArray(state.invalidEntries) ? [...state.invalidEntries] : []
         };
         return this;
     }
 
     showConfigure(options = {}) {
-        if (Array.isArray(options)) options = {lessons: options};
+        if (Array.isArray(options)) options = { lessons: options };
         options = options && typeof options === 'object' ? options : {};
         if (Array.isArray(options.lessons)) {
             this.lessons = options.lessons;
@@ -96,7 +97,7 @@ class BatchLessonAccessDialog extends LitElement {
         }
         this.mode = 'configure';
         this.clearMessages();
-        this.progress = {visible: false, indeterminate: false, completed: 0, total: 0};
+        this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
         if (options.emailState !== undefined) this.setEmailState(options.emailState);
         return this;
     }
@@ -105,14 +106,14 @@ class BatchLessonAccessDialog extends LitElement {
         this.mode = 'loading';
         this.clearMessages();
         this.setStatus(message);
-        this.progress = {visible: true, indeterminate: true, completed: 0, total: 0};
+        this.progress = { visible: true, indeterminate: true, completed: 0, total: 0 };
         return this;
     }
 
     showValidation(message = 'Проверяем данные…') {
         this.mode = 'validating';
         this.clearMessages();
-        this.progress = {visible: false, indeterminate: false, completed: 0, total: 0};
+        this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
         this.setStatus(message);
         return this;
     }
@@ -122,7 +123,7 @@ class BatchLessonAccessDialog extends LitElement {
         this.errors = this.normalizeErrors(errors);
         this.summaryLines = [];
         this.failures = [];
-        this.progress = {visible: false, indeterminate: false, completed: 0, total: 0};
+        this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
         this.setStatus('Исправьте ошибки и повторите проверку.', 'error');
         return this;
     }
@@ -151,7 +152,7 @@ class BatchLessonAccessDialog extends LitElement {
         const opened = Math.max(0, Number(progress.opened) || 0);
         const failures = Math.max(0, Number(progress.failures) || 0);
         const alreadyOpen = Math.max(0, Number(progress.alreadyOpen) || 0);
-        this.progress = {visible: true, indeterminate: false, completed, total};
+        this.progress = { visible: true, indeterminate: false, completed, total };
         const current = progress.current?.email && progress.current?.lessonName
             ? ` Сейчас: ${progress.current.email} — ${progress.current.lessonName}.`
             : '';
@@ -166,7 +167,7 @@ class BatchLessonAccessDialog extends LitElement {
         const failures = Array.isArray(summary.failures) ? summary.failures : [];
         this.mode = failures.length ? 'partial-complete' : 'complete';
         this.clearMessages();
-        this.progress = {visible: false, indeterminate: false, completed: 0, total: 0};
+        this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
         this.summaryLines = [
             `Email запрошено: ${this.count(summary.requestedEmails, summary.requestedEmailCount)}`,
             `Пользователей сопоставлено: ${this.count(summary.matchedUsers, summary.matchedUserCount)}`,
@@ -241,7 +242,7 @@ class BatchLessonAccessDialog extends LitElement {
     handleInput(event) {
         this.emailInput = String(event.currentTarget.value || '');
         this.dispatchEvent(new CustomEvent('edvibe-batch-access-input-change', {
-            detail: {emailInput: this.emailInput}
+            detail: { emailInput: this.emailInput }
         }));
     }
 
@@ -284,9 +285,9 @@ class BatchLessonAccessDialog extends LitElement {
         this.mode = 'configure';
         this.selectedLessonIds = new Set();
         this.emailInput = '';
-        this.setEmailState({validCount: 0, malformedCount: 0});
+        this.setEmailState({ validCount: 0, malformedCount: 0, invalidEntries: [] });
         this.clearMessages();
-        this.progress = {visible: false, indeterminate: false, completed: 0, total: 0};
+        this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
         this.dispatchEvent(new CustomEvent('edvibe-batch-access-restart'));
     }
 
@@ -365,6 +366,9 @@ class BatchLessonAccessDialog extends LitElement {
                                 <div class="edvibe-batch-access-email-state" data-part="help" aria-live="polite">
                                     <span class="edvibe-batch-access-email-count">Уникальных email: ${this.emailState.validCount}</span>
                                     <span class="edvibe-batch-access-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
+                                    ${this.emailState.invalidEntries.map((entry) => html`
+                                        <span class="edvibe-batch-access-email-error">${entry.message}</span>
+                                    `)}
                                 </div>
                             </div>
                             <div class="edvibe-batch-access-lesson-heading"><h3>Уроки</h3>
@@ -380,8 +384,8 @@ class BatchLessonAccessDialog extends LitElement {
                             </div>
                             <div class="edvibe-batch-access-lessons" aria-label="Список уроков">
                                 ${lessonCount === 0
-                                    ? html`<p class="edvibe-batch-access-empty" data-part="empty-state">Уроки не найдены.</p>`
-                                    : this.lessons.map((lesson) => this.renderLesson(lesson, lessonsLocked))}
+                ? html`<p class="edvibe-batch-access-empty" data-part="empty-state">Уроки не найдены.</p>`
+                : this.lessons.map((lesson) => this.renderLesson(lesson, lessonsLocked))}
                             </div>
                         </section>
                         <section class="edvibe-batch-access-errors" data-notice="danger" aria-live="polite" ?hidden=${this.errors.length === 0}>
@@ -423,4 +427,4 @@ if (!customElements.get(BATCH_ACCESS_DIALOG_TAG)) {
     customElements.define(BATCH_ACCESS_DIALOG_TAG, BatchLessonAccessDialog);
 }
 
-export {BATCH_ACCESS_DIALOG_TAG, BATCH_ACCESS_OVERLAY_ID, BatchLessonAccessDialog};
+export { BATCH_ACCESS_DIALOG_TAG, BATCH_ACCESS_OVERLAY_ID, BatchLessonAccessDialog };

@@ -61,10 +61,13 @@ test('public email parser preserves onboarding item metadata', () => {
         normalized: 'first@example.com'
     }]);
     assert.deepEqual(parsed.malformed, ['invalid']);
-    assert.deepEqual(parsed.items, [
-        { input: 'First@Example.com', normalized: 'first@example.com', isValid: true },
-        { input: 'invalid', normalized: 'invalid', isValid: false }
+    assert.deepEqual(parsed.items.map(({input, normalized, isValid}) => ({
+        input, normalized, isValid
+    })), [
+        {input: 'First@Example.com', normalized: 'first@example.com', isValid: true},
+        {input: 'invalid', normalized: 'invalid', isValid: false}
     ]);
+    assert.equal(parsed.invalidEntries[0].code, 'INVALID_EMAIL_FORMAT');
 });
 
 test('server-rejected grouped additions retain full shared retry diagnostics', async () => {

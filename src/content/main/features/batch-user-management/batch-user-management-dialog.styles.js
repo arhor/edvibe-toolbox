@@ -68,6 +68,11 @@ export const batchUserManagementDialogStyles = css`
         gap: 8px 16px;
     }
 
+    .edvibe-batch-user-management-email-error {
+        flex-basis: 100%;
+        color: var(--edvibe-danger);
+    }
+
     .edvibe-batch-user-management-table-wrap {
         overflow: auto;
         max-height: 350px;

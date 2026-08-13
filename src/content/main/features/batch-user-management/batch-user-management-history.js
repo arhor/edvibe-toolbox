@@ -70,7 +70,7 @@ function inferItemStatus(row, operations) {
 function resultCode(row, status) {
     if (status === 'rejected') {
         return {
-            malformed: 'USER_INPUT_MALFORMED',
+            malformed: row?.validationCode || 'USER_INPUT_MALFORMED',
             missing: 'USER_NOT_FOUND',
             ambiguous: 'USER_AMBIGUOUS'
         }[row?.status] || 'USER_REJECTED';
@@ -118,6 +118,7 @@ function serializeRow(row, index) {
             submittedInput: row?.email || null,
             normalizedEmail: row?.normalizedEmail || null,
             resolution: row?.status || 'malformed',
+            validationCode: row?.validationCode || null,
             resolutionMessage: row?.message || null,
             user: row?.status === 'matched' ? serializeIdentity(row) : null,
             curatorPresent: row?.status === 'matched' ? Boolean(row?.hasCurator) : null,

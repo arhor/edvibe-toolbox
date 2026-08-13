@@ -385,9 +385,10 @@ function createBatchLessonAccessFeature({
     }
 
     function createInputErrors(parsed, selectedLessonIds) {
-        const errors = parsed.malformed.map((input) => createFeatureError(
-            'INVALID_EMAIL',
-            `Invalid email address: ${input}.`
+        const errors = parsed.invalidEntries.map((entry) => createFeatureError(
+            entry.code,
+            entry.message,
+            {email: entry.input, offendingCharacters: entry.offendingCharacters}
         ));
         if (parsed.entries.length === 0 && parsed.malformed.length === 0) {
             errors.push(createFeatureError(
@@ -628,7 +629,8 @@ function createBatchLessonAccessFeature({
                 const parsed = parseEmailInput(event?.detail?.emailInput);
                 dialog.setEmailState({
                     validCount: parsed.entries.length,
-                    malformedCount: parsed.malformed.length
+                    malformedCount: parsed.malformed.length,
+                    invalidEntries: parsed.invalidEntries
                 });
             });
             dialog.addEventListener('edvibe-batch-access-submit', handleSubmit);

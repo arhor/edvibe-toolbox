@@ -1,4 +1,5 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CYRILLIC_PATTERN = /\p{Script=Cyrillic}/u;
 const TRANSIENT_CODES = new Set([
     'WS_UNAVAILABLE',
     'REQUEST_TIMEOUT',
@@ -17,26 +18,88 @@ function parseMarathonId(url) {
     return match ? Number(match[1]) : null;
 }
 
+function describeNonAsciiCharacters(value) {
+    const characters = [];
+    let index = 0;
+    for (const character of value) {
+        const codePoint = character.codePointAt(0);
+        if (codePoint > 0x7F) {
+            characters.push(Object.freeze({
+                character,
+                index,
+                codePoint: `U+${codePoint.toString(16).toUpperCase().padStart(4, '0')}`,
+                script: CYRILLIC_PATTERN.test(character) ? 'кириллица' : 'не-ASCII символ'
+            }));
+        }
+        index += character.length;
+    }
+    return Object.freeze(characters);
+}
+
+function validateEmail(input) {
+    const offendingCharacters = describeNonAsciiCharacters(input);
+    if (offendingCharacters.length > 0) {
+        const details = offendingCharacters
+            .map(({ character, script, codePoint }) => `«${character}» (${script}, ${codePoint})`)
+            .join(', ');
+        return Object.freeze({
+            isValid: false,
+            code: 'EMAIL_NON_ASCII',
+            message: `Email «${input}» содержит недопустимые символы: ${details}. Используйте только латинские буквы, цифры и стандартные символы email.`,
+            offendingCharacters
+        });
+    }
+    if (!EMAIL_PATTERN.test(input)) {
+        return Object.freeze({
+            isValid: false,
+            code: 'INVALID_EMAIL_FORMAT',
+            message: `Некорректный формат email: «${input}».`,
+            offendingCharacters
+        });
+    }
+    return Object.freeze({
+        isValid: true,
+        code: null,
+        message: null,
+        offendingCharacters
+    });
+}
+
 function parseEmailInput(value, { includeItems = false } = {}) {
     const entries = [];
     const malformed = [];
+    const invalidEntries = [];
     const items = [];
     const seen = new Set();
 
     for (const token of String(value || '').split(/[,;\r\n]+/)) {
         const input = token.trim();
-        if (!input) continue;
+        if (!input) {
+            continue;
+        }
+
         const normalized = input.toLowerCase();
-        if (seen.has(normalized)) continue;
+        if (seen.has(normalized)) {
+            continue;
+        }
         seen.add(normalized);
 
-        const isValid = EMAIL_PATTERN.test(input);
-        if (!isValid) malformed.push(input);
-        else entries.push({ input, normalized });
-        if (includeItems) items.push({ input, normalized, isValid });
+        const validation = validateEmail(input);
+        if (!validation.isValid) {
+            malformed.push(input);
+            invalidEntries.push({ input, normalized, ...validation });
+        } else {
+            entries.push({ input, normalized });
+        }
+
+        if (includeItems) {
+            items.push({ input, normalized, isValid: validation.isValid, validation });
+        }
     }
 
-    return includeItems ? { entries, malformed, items } : { entries, malformed };
+    return includeItems
+        ? { entries, malformed, invalidEntries, items }
+        : { entries, malformed, invalidEntries };
 }
 
 function appendPage(items, total, nextItems, nextTotal, label) {
@@ -92,5 +155,6 @@ export {
     createFeatureError,
     parseEmailInput,
     parseMarathonId,
-    runWithRetry
+    runWithRetry,
+    validateEmail
 };

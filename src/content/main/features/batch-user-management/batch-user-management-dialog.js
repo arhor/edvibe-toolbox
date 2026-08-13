@@ -38,7 +38,7 @@ class BatchUserManagementDialog extends LitElement {
     constructor() {
         super();
         this.rows = [];
-        this.emailState = {validCount: 0, malformedCount: 0};
+        this.emailState = {validCount: 0, malformedCount: 0, invalidEntries: []};
         this.emailInput = '';
         this.mode = 'configure';
         this.errors = [];
@@ -66,7 +66,8 @@ class BatchUserManagementDialog extends LitElement {
     setEmailState(state = {}) {
         this.emailState = {
             validCount: Math.max(0, Number(state?.validCount) || 0),
-            malformedCount: Math.max(0, Number(state?.malformedCount) || 0)
+            malformedCount: Math.max(0, Number(state?.malformedCount) || 0),
+            invalidEntries: Array.isArray(state?.invalidEntries) ? [...state.invalidEntries] : []
         };
         return this;
     }
@@ -201,7 +202,7 @@ class BatchUserManagementDialog extends LitElement {
         this.rows = [];
         this.mode = 'configure';
         this.emailInput = '';
-        this.setEmailState({validCount: 0, malformedCount: 0});
+        this.setEmailState({validCount: 0, malformedCount: 0, invalidEntries: []});
         this.clearMessages();
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-restart'));
     }
@@ -293,6 +294,9 @@ class BatchUserManagementDialog extends LitElement {
                                 <div class="edvibe-batch-user-management-email-state" data-part="help" aria-live="polite">
                                     <span class="edvibe-batch-user-management-email-count">Уникальных email: ${this.emailState.validCount}</span>
                                     <span class="edvibe-batch-user-management-malformed-count">Некорректных: ${this.emailState.malformedCount}</span>
+                                    ${this.emailState.invalidEntries.map((entry) => html`
+                                        <span class="edvibe-batch-user-management-email-error">${entry.message}</span>
+                                    `)}
                                 </div>
                             </div>
                         </section>

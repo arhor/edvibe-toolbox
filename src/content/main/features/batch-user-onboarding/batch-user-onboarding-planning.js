@@ -21,7 +21,8 @@ function resolveOnboardingRows(parsed, pupils, moderators) {
                 currentModerators: Object.freeze([]),
                 moderatorStateSafe: false,
                 actionable: false,
-                message: `Invalid email address: ${item.input}.`,
+                validationCode: item.validation?.code || 'INVALID_EMAIL_FORMAT',
+                message: item.validation?.message || `Некорректный формат email: «${item.input}».`,
                 addSelected: false,
                 assignSelected: false
             }));
@@ -149,6 +150,7 @@ function buildExecutionPlan({ rows, moderators, targetModeratorId }) {
             currentModerators: (row.currentModerators || []).map((moderator) => ({ ...moderator })),
             moderatorStateSafe: Boolean(row.moderatorStateSafe),
             actionable: Boolean(row.actionable),
+            validationCode: row.validationCode || null,
             message: row.message || '',
             selectedOperations: Object.freeze([
                 ...(addSelected ? ['add_user'] : []),

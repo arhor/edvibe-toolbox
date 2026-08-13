@@ -11,6 +11,20 @@ import {
     buildExecutionPlan,
     resolveOnboardingRows
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-planning.js';
+import {parseEmailInput} from '#src/content/main/features/batch-workflow-primitives.js';
+
+test('row discovery preserves non-ASCII validation diagnostics', () => {
+    // Given
+    const parsed = parseEmailInput('test@gmail.cоm', {includeItems: true});
+
+    // When
+    const rows = resolveOnboardingRows(parsed, [], []);
+
+    // Then
+    assert.equal(rows[0].validationCode, 'EMAIL_NON_ASCII');
+    assert.match(rows[0].message, /«о» \(кириллица, U\+043E\)/);
+    assert.equal(rows[0].actionable, false);
+});
 
 test('moderator catalogue normalization rejects ambiguous identities', () => {
     const catalogue = normalizeModeratorCatalogue([

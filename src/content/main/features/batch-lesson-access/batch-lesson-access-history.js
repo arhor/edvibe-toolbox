@@ -44,18 +44,33 @@ function createHistoryAwareFeature(options = {}) {
         log = () => {},
         ...featureOptions
     } = options;
-    if (typeof createFeature !== 'function') throw new TypeError('createFeature is required');
-    if (typeof sendRequest !== 'function') throw new TypeError('sendRequest is required');
-    if (typeof createDialog !== 'function') throw new TypeError('createDialog is required');
-    if (typeof persistExecution !== 'function') throw new TypeError('persistExecution is required');
+
+    if (typeof createFeature !== 'function') {
+        throw new TypeError('createFeature is required');
+    }
+    if (typeof sendRequest !== 'function') {
+        throw new TypeError('sendRequest is required');
+    }
+    if (typeof createDialog !== 'function') {
+        throw new TypeError('createDialog is required');
+    }
+    if (typeof persistExecution !== 'function') {
+        throw new TypeError('persistExecution is required');
+    }
 
     let capture = null;
 
     async function trackedSendRequest(controller, method, projectName, value) {
         const current = capture;
-        if (current) recordWriteAttempt(current, method, value);
+        if (current) {
+            recordWriteAttempt(current, method, value);
+        }
+
         const result = await sendRequest(controller, method, projectName, value);
-        if (current) observeRequest(current, method, value, result);
+        if (current) {
+            observeRequest(current, method, value, result);
+        }
+
         return result;
     }
 
@@ -124,7 +139,9 @@ function createHistoryAwareFeature(options = {}) {
             Promise.resolve()
                 .then(() => persistExecution(input))
                 .then((history) => {
-                    if (sequence !== current.sequence) return;
+                    if (sequence !== current.sequence) {
+                        return;
+                    }
                     if (history?.stored) {
                         appendStatus(dialog, 'Результат сохранён в истории.');
                         if (history.record?.id) {
@@ -132,7 +149,9 @@ function createHistoryAwareFeature(options = {}) {
                         }
                     } else {
                         appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                        if (history?.persistenceError) log('Batch lesson access history persistence failed:', history.persistenceError);
+                        if (history?.persistenceError) {
+                            log('Batch lesson access history persistence failed:', history.persistenceError);
+                        }
                     }
                 })
                 .catch((error) => {

@@ -118,7 +118,10 @@ function recordWriteAttempt(capture, method, value) {
 function buildIdentityResolution({ submittedEmailInput, pupils }) {
     const submitted = splitSubmittedInputs(submittedEmailInput);
     const valid = batchAccessApi.parseEmailInput(submittedEmailInput);
-    const malformed = new Set(valid.malformed.map(normalizeEmail));
+    const malformed = new Map(valid.invalidEntries.map((entry) => [
+        normalizeEmail(entry.input),
+        entry
+    ]));
     const pupilsByEmail = new Map();
     for (const pupil of pupils) {
         const key = normalizeEmail(pupil.email);
@@ -129,14 +132,15 @@ function buildIdentityResolution({ submittedEmailInput, pupils }) {
 
     return submitted.map((entry) => {
         if (malformed.has(entry.normalizedEmail)) {
+            const invalid = malformed.get(entry.normalizedEmail);
             return freezeObject({
                 ...entry,
                 resolution: 'malformed',
                 resolvedEmail: null,
                 pupilId: null,
                 marathonPupilId: null,
-                code: 'USER_INPUT_MALFORMED',
-                message: `Invalid email address: ${entry.submittedInput}.`
+                code: invalid.code,
+                message: invalid.message
             });
         }
         const candidates = pupilsByEmail.get(entry.normalizedEmail) || [];
@@ -214,6 +218,8 @@ function buildObservedPlan({
     const discoveryFailures = [];
     const representedErrorCodes = new Set([
         'INVALID_EMAIL',
+        'EMAIL_NON_ASCII',
+        'INVALID_EMAIL_FORMAT',
         'USER_INPUT_MALFORMED',
         'USER_NOT_FOUND',
         'USER_AMBIGUOUS'

@@ -128,7 +128,9 @@ function createMainCommandMessage(action, payload = {}) {
 }
 
 function isMainCommandMessage(value) {
-    if (!isRecord(value) || !MAIN_COMMAND_TYPES.has(value.type)) return false;
+    if (!isRecord(value) || !MAIN_COMMAND_TYPES.has(value.type)) {
+        return false;
+    }
     if (value.type === WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY) {
         return hasOnlyKeys(value, new Set(['type', 'executionId']))
             && (value.executionId === undefined || value.executionId === null || isNonEmptyString(value.executionId));
@@ -137,8 +139,12 @@ function isMainCommandMessage(value) {
 }
 
 function createExportStatusMessage(state, message = '') {
-    if (!EXPORT_STATE_VALUES.has(state)) throw new TypeError(`Unsupported export state: ${String(state)}`);
-    if (typeof message !== 'string') throw new TypeError('Export status message must be a string');
+    if (!EXPORT_STATE_VALUES.has(state)) {
+        throw new TypeError(`Unsupported export state: ${String(state)}`);
+    }
+    if (typeof message !== 'string') {
+        throw new TypeError('Export status message must be a string');
+    }
     return Object.freeze({ type: WINDOW_MESSAGE_TYPES.EXPORT_STATUS, state, message });
 }
 

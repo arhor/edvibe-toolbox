@@ -47,7 +47,7 @@ class BatchUserOnboardingDialog extends LitElement {
         this.executionId = null;
         this.emailInput = '';
         this.targetModeratorId = '';
-        this.emailCounts = {valid: 0, invalid: 0};
+        this.emailCounts = {valid: 0, invalid: 0, invalidEntries: []};
         this.errors = [];
         this.report = '';
         this.statusMessage = '';
@@ -95,7 +95,8 @@ class BatchUserOnboardingDialog extends LitElement {
         const parsed = this.options.parseEmailInput(this.emailInput);
         this.emailCounts = {
             valid: parsed.entries?.length || 0,
-            invalid: parsed.malformed?.length || 0
+            invalid: parsed.malformed?.length || 0,
+            invalidEntries: Array.isArray(parsed.invalidEntries) ? [...parsed.invalidEntries] : []
         };
     }
 
@@ -302,7 +303,7 @@ class BatchUserOnboardingDialog extends LitElement {
                             <label class="field" data-field><span>Email пользователей</span><textarea class="emails" rows="5" placeholder="user@example.com"
                                 .value=${this.emailInput} ?disabled=${this.mode !== 'configure'}
                                 @input=${(event) => { this.emailInput = event.currentTarget.value; this.updateEmailCounts(); }}></textarea></label>
-                            <div class="email-state" data-part="help" aria-live="polite"><span class="valid-count">Уникальных email: ${this.emailCounts.valid}</span><span class="invalid-count">Некорректных: ${this.emailCounts.invalid}</span></div>
+                            <div class="email-state" data-part="help" aria-live="polite"><span class="valid-count">Уникальных email: ${this.emailCounts.valid}</span><span class="invalid-count">Некорректных: ${this.emailCounts.invalid}</span>${this.emailCounts.invalidEntries.map((entry) => html`<span class="email-error">${entry.message}</span>`)}</div>
                             <label class="field curator-field" data-field><span>Целевой куратор</span>
                                 <select class="curator" .value=${this.targetModeratorId} ?disabled=${!['configure', 'review'].includes(this.mode)}
                                     @change=${(event) => { this.targetModeratorId = event.currentTarget.value; this.plan = null; }}>
