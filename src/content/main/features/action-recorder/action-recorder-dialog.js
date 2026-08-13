@@ -204,8 +204,7 @@ class ActionRecorderDialog extends LitElement {
         const labels = {
             idle: 'Готово к записи',
             recording: 'Идёт запись',
-            stopped: 'Запись остановлена',
-            'limit-reached': 'Достигнут лимит'
+            stopped: 'Запись остановлена'
         };
         const indicatorClass = `recorder-indicator${recording ? ' is-recording' : ''}`;
         const copyFallback = String(this.state.copyFallback || '');
@@ -257,10 +256,6 @@ class ActionRecorderDialog extends LitElement {
                         </div>
                     </div>
                     <div class="recorder-body">
-                        <aside class="privacy-warning" data-notice="warning">
-                            Запись может содержать данные учеников, уроки, ответы и идентификаторы.
-                            Проверьте файл перед отправкой или коммитом.
-                        </aside>
                         <div class="recorder-summary">
                             <span><strong class="operation-count">${visibleOperations.length}</strong> операций</span>
                             <span><strong class="frame-count">${this.state.session?.frameCount || 0}</strong> кадров</span>

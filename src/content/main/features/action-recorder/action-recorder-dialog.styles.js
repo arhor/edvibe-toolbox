@@ -81,10 +81,6 @@ export const actionRecorderDialogStyles = css`
         box-shadow: 0 0 0 4px var(--edvibe-danger-border);
     }
 
-    .recorder-state[data-status="limit-reached"] .state-dot {
-        background: var(--edvibe-warning);
-    }
-
     .elapsed {
         min-width: 34px;
         color: var(--edvibe-text-muted);

@@ -39,18 +39,17 @@ function serviceHarness(records, autoExport = false) {
     return { service, downloads };
 }
 
-function assertSafeDiagnosticExport(json) {
+function assertFullDiagnosticExport(json) {
     const text = json;
     const record = Array.isArray(JSON.parse(text)) ? JSON.parse(text)[0] : JSON.parse(text);
     const attempt = record.results[0].diagnostics.requestAttempts[0];
-    assert.equal(attempt.requestSummary.authorization, '[REDACTED]');
-    assert.equal(attempt.responseSummary.token, '[REDACTED]');
-    assert.equal(attempt.requestSummary.note.length, 500);
-    assert.equal(attempt.responseSummary.values.length, 25);
-    assert.doesNotMatch(text, /Bearer secret|secret-token/);
+    assert.equal(attempt.requestSummary.authorization, 'Bearer secret');
+    assert.equal(attempt.responseSummary.token, 'secret-token');
+    assert.equal(attempt.requestSummary.note.length, 800);
+    assert.equal(attempt.responseSummary.values.length, 100);
 }
 
-test('individual and filtered exports contain faithful sanitized diagnostics and preserve legacy records', async () => {
+test('individual and filtered exports contain exact diagnostics and preserve legacy records', async () => {
     const diagnosticRecord = buildExecutionRecord(input());
     const legacyRecord = buildExecutionRecord(input({ id: 'legacy', diagnostics: false }));
     const { service, downloads } = serviceHarness([diagnosticRecord, legacyRecord]);
@@ -58,20 +57,20 @@ test('individual and filtered exports contain faithful sanitized diagnostics and
     await service.exportRecord(diagnosticRecord.id);
     await service.exportFiltered({ status: 'completed_with_failures' });
 
-    assertSafeDiagnosticExport(downloads[0].json);
-    assertSafeDiagnosticExport(downloads[1].json);
+    assertFullDiagnosticExport(downloads[0].json);
+    assertFullDiagnosticExport(downloads[1].json);
     const filtered = JSON.parse(downloads[1].json);
     assert.equal(filtered[1].id, 'legacy');
     assert.equal(filtered[1].results[0].diagnostics, undefined);
 });
 
-test('automatic exports contain the same bounded sanitized diagnostics as the persisted record', async () => {
+test('automatic exports contain the same full diagnostics as the persisted record', async () => {
     const records = [];
     const { service, downloads } = serviceHarness(records, true);
     const persisted = await service.persistTerminal(input({ id: 'automatic' }));
 
     assert.equal(persisted.stored, true);
     assert.equal(downloads.length, 1);
-    assertSafeDiagnosticExport(downloads[0].json);
+    assertFullDiagnosticExport(downloads[0].json);
     assert.deepEqual(JSON.parse(downloads[0].json), JSON.parse(JSON.stringify(persisted.record)));
 });

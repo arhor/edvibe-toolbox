@@ -22,7 +22,7 @@ function getMarathonPupilId(pupil) {
     return pupil?.MarathonPupilId ?? pupil?.Id ?? null;
 }
 
-function sanitizePupil(pupil) {
+function serializePupil(pupil) {
     return freezeObject({
         email: String(pupil?.Email || '').trim() || null,
         pupilId: getPupilId(pupil),
@@ -30,7 +30,7 @@ function sanitizePupil(pupil) {
     });
 }
 
-function sanitizeLesson(lesson) {
+function serializeLesson(lesson) {
     const number = Number(lesson?.Number);
     return freezeObject({
         marathonLessonId: lesson?.MarathonLessonId ?? null,
@@ -96,14 +96,14 @@ function replacePage(target, offset, values) {
 
 function observeRequest(capture, method, value, result) {
     if (method === 'GetMarathonPupils') {
-        const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(sanitizePupil) : [];
+        const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(serializePupil) : [];
         replacePage(capture.pupils, Number(value?.Skip) || 0, items);
         return;
     }
     if (method === 'GetMarathonLessonsForPupilPagination') {
         const pupilId = value?.PupilId ?? null;
         const lessons = capture.lessonsByPupilId.get(pupilId) || [];
-        const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(sanitizeLesson) : [];
+        const items = Array.isArray(result?.Value?.Items) ? result.Value.Items.map(serializeLesson) : [];
         replacePage(lessons, Number(value?.Page?.Skip) || 0, items);
         capture.lessonsByPupilId.set(pupilId, lessons);
     }
@@ -334,8 +334,8 @@ export {
     OPERATION_TYPE,
     freezeObject,
     normalizeEmail,
-    sanitizePupil,
-    sanitizeLesson,
+    serializePupil,
+    serializeLesson,
     splitSubmittedInputs,
     lessonKey,
     attemptKey,

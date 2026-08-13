@@ -94,8 +94,8 @@ For manifest or runtime-entry changes, additionally verify the standalone `docum
 
 ## Safety And Data Handling
 
-- Treat Edvibe lesson exports, execution history, recordings, and pupil/user data as potentially sensitive educational content.
-- Avoid logging full payloads when concise IDs or counts are enough.
+- Diagnostic artifacts, recordings, execution history, reports, and exports are local, full-fidelity records. Do not add redaction or content-based truncation to them.
+- Keep console logging concise even though persisted and exported diagnostic artifacts retain complete values.
 - Keep cross-world `window.postMessage` traffic minimal and validate incoming message shapes before acting.
 - Preserve current throttling behavior in scraping and batch-operation loops unless there is a clear reason to adjust it.
 - Do not commit generated export or recording files unless the user explicitly requests it and confirms the data is safe to include.

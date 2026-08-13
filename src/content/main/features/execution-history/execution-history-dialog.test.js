@@ -25,7 +25,7 @@ function templateText(value) {
         `${output}${string}${templateText(value.values[index])}`, '');
 }
 
-test('renders sanitized diagnostics beneath a failed outcome', () => {
+test('renders diagnostics beneath a failed outcome', () => {
     const dialog = new ExecutionHistoryDialog();
     const markup = templateText(dialog.renderOutcome({
         itemId: '7', label: 'Lesson', status: 'failed', code: 'SERVER_ERROR',

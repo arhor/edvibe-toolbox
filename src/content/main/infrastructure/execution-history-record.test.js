@@ -47,16 +47,22 @@ function requestAttempt(overrides = {}) {
 }
 
 test('keeps legacy version-1 records viewable, exportable, and cloneable', () => {
-    const legacy = buildExecutionRecord(recordInput());
-    assert.equal(EXECUTION_RECORD_SCHEMA_VERSION, 1);
+    // Given
+    const legacy = { ...JSON.parse(JSON.stringify(buildExecutionRecord(recordInput()))), schemaVersion: 1 };
+
+    // When
+    const clone = cloneExecutionRecord(legacy);
+
+    // Then
+    assert.equal(EXECUTION_RECORD_SCHEMA_VERSION, 2);
     assert.equal(validateExecutionRecord(legacy), true);
-    assert.deepEqual(cloneExecutionRecord(legacy), JSON.parse(JSON.stringify(legacy)));
+    assert.deepEqual(clone, JSON.parse(JSON.stringify(legacy)));
     assert.deepEqual(JSON.parse(serializeExecutionRecord(legacy)), legacy);
     assert.equal(legacy.results[0].diagnostics, undefined);
 });
 
 test('keeps legacy version-1 records listable and removable from IndexedDB repositories', async () => {
-    const legacy = buildExecutionRecord(recordInput());
+    const legacy = { ...JSON.parse(JSON.stringify(buildExecutionRecord(recordInput()))), schemaVersion: 1 };
     const records = new Map([[legacy.id, JSON.parse(JSON.stringify(legacy))]]);
     const repository = createExecutionHistoryRepository({
         indexedDbApi: {
@@ -79,7 +85,7 @@ test('keeps legacy version-1 records listable and removable from IndexedDB repos
     assert.equal(await repository.get(legacy.id), null);
 });
 
-test('normalizes and round-trips bounded request-attempt diagnostics', () => {
+test('normalizes and round-trips request-attempt diagnostics', () => {
     const input = recordInput({
         results: [{
             itemId: '7', label: 'Lesson', status: 'completed', code: 'OK', message: 'Done',
@@ -93,48 +99,68 @@ test('normalizes and round-trips bounded request-attempt diagnostics', () => {
     assert.deepEqual(JSON.parse(serializeExecutionRecord(record)), cloneExecutionRecord(record));
 });
 
-test('continues to reject forbidden raw fields and transport objects outside diagnostics', () => {
-    assert.throws(() => buildExecutionRecord(recordInput({
+test('preserves credential, response, image, session, and transport fields in result data', () => {
+    // Given
+    const data = {
+        authorization: 'Bearer secret', token: 'token', response: { ok: true },
+        rawResponse: { session: 'session' }, image: 'data:image/png;base64,AAAA',
+        transport: { socketId: 3 }
+    };
+
+    // When
+    const record = buildExecutionRecord(recordInput({
         results: [{
             label: 'Lesson', status: 'completed', code: 'OK', message: 'Done',
-            data: { rawResponse: { secret: true } }
+            data
         }]
-    })), /Unsafe field is not allowed/);
-    assert.throws(() => buildExecutionRecord(recordInput({ transport: { socket: true } })), /Unsafe field is not allowed/);
+    }));
+
+    // Then
+    assert.deepEqual(record.results[0].data, data);
 });
 
-test('redacts unsafe summary fields and truncates bounded diagnostic content', () => {
+test('preserves complete diagnostic content', () => {
+    // Given
     const long = 'x'.repeat(800);
+    const values = Array.from({ length: 40 }, (_, index) => index);
+
+    // When
     const record = buildExecutionRecord(recordInput({
         results: [{
             label: 'Lesson', status: 'completed', code: 'OK', message: 'Done',
             diagnostics: { requestAttempts: [requestAttempt({
                 serverErrorMessage: long,
                 requestSummary: { authorization: 'Bearer secret', nested: { response: { token: 'secret' } } },
-                responseSummary: { message: long, values: Array.from({ length: 40 }, (_, index) => index) }
+                responseSummary: { message: long, values }
             })] }
         }]
     }));
     const attempt = record.results[0].diagnostics.requestAttempts[0];
-    assert.equal(attempt.requestSummary.authorization, '[REDACTED]');
-    assert.equal(attempt.requestSummary.nested.response, '[REDACTED]');
-    assert.equal(attempt.serverErrorMessage.length, 500);
-    assert.equal(attempt.responseSummary.message.length, 500);
-    assert.equal(attempt.responseSummary.values.length, 25);
-    assert.doesNotMatch(JSON.stringify(record), /Bearer secret/);
+    // Then
+    assert.equal(attempt.requestSummary.authorization, 'Bearer secret');
+    assert.equal(attempt.requestSummary.nested.response.token, 'secret');
+    assert.equal(attempt.serverErrorMessage, long);
+    assert.equal(attempt.responseSummary.message, long);
+    assert.deepEqual(attempt.responseSummary.values, values);
 });
 
-test('rejects malformed, unknown, oversized, and raw diagnostic fields', () => {
+test('rejects malformed and unknown diagnostic fields while allowing unlimited attempts', () => {
+    // Given
     const withDiagnostics = (diagnostics) => recordInput({
         results: [{ label: 'Lesson', status: 'completed', code: 'OK', message: 'Done', diagnostics }]
     });
+    // When
+    const record = buildExecutionRecord(withDiagnostics({ requestAttempts: Array.from({ length: 30 }, (_, index) => requestAttempt({ attemptNumber: index + 1 })) }));
+
+    // Then
     assert.throws(() => buildExecutionRecord(withDiagnostics({ requestAttempts: {} })), /Expected an array/);
     assert.throws(() => buildExecutionRecord(withDiagnostics({ requestAttempts: [requestAttempt({ outcome: 'maybe' })] })), /Unsupported diagnostic outcome/);
     assert.throws(() => buildExecutionRecord(withDiagnostics({ requestAttempts: [requestAttempt({ rawResponse: {} })] })), /Unexpected field/);
-    assert.throws(() => buildExecutionRecord(withDiagnostics({ requestAttempts: Array.from({ length: 21 }, requestAttempt) })), /Collection exceeds/);
+    assert.equal(record.results[0].diagnostics.requestAttempts.length, 30);
 });
 
-test('exports a sanitized clone rather than the caller-owned diagnostic values', () => {
+test('exports an exact clone of persisted diagnostic values', () => {
+    // Given
     const record = buildExecutionRecord(recordInput({
         results: [{
             label: 'Lesson', status: 'completed', code: 'OK', message: 'Done',
@@ -143,5 +169,9 @@ test('exports a sanitized clone rather than the caller-owned diagnostic values',
     }));
     const storedShape = JSON.parse(JSON.stringify(record));
     storedShape.results[0].diagnostics.requestAttempts[0].method = 'get';
-    assert.equal(JSON.parse(serializeExecutionRecord(storedShape)).results[0].diagnostics.requestAttempts[0].method, 'GET');
+    // When
+    const exported = JSON.parse(serializeExecutionRecord(storedShape));
+
+    // Then
+    assert.equal(exported.results[0].diagnostics.requestAttempts[0].method, 'get');
 });

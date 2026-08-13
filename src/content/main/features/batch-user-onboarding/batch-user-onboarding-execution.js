@@ -15,8 +15,7 @@ import {
 } from './batch-user-onboarding-planning.js';
 import {
     diagnosticAttempt,
-    diagnosticEnvelope,
-    sanitizeDiagnostics
+    diagnosticEnvelope
 } from './batch-user-onboarding-diagnostics.js';
 
 const EXPECTED_WRITE_CODES = new Set([
@@ -27,8 +26,7 @@ const EXPECTED_WRITE_CODES = new Set([
 ]);
 
 function operationResult(status, code, message, attempts = 0, dependency = null, diagnostics = null) {
-    return { status, code, message, attempts, dependency, diagnostics: diagnostics
-        ? sanitizeDiagnostics(diagnostics) : null };
+    return { status, code, message, attempts, dependency, diagnostics };
 }
 
 function initializeExecutionRows(plan) {

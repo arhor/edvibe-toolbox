@@ -1,19 +1,3 @@
-const DEFAULT_LIMITS = Object.freeze({
-    maxFrames: 1000,
-    maxStoredBytes: 5 * 1024 * 1024,
-    maxDurationMs: 10 * 60 * 1000
-});
-const REDACTED_VALUE = '[REDACTED_BY_TOOLBOX]';
-const SENSITIVE_KEYS = new Set([
-    'authorization',
-    'accesstoken',
-    'refreshtoken',
-    'token',
-    'cookie',
-    'password',
-    'secret'
-]);
-
 function parseJson(value) {
     if (typeof value !== 'string') {
         return { parsed: false, value };
@@ -25,30 +9,7 @@ function parseJson(value) {
     }
 }
 
-function redactValue(value, path = '', redactions = []) {
-    if (Array.isArray(value)) {
-        return value.map((item, index) =>
-            redactValue(item, `${path}[${index}]`, redactions)
-        );
-    }
-    if (!value || typeof value !== 'object') {
-        return value;
-    }
-
-    const redacted = {};
-    for (const [key, entry] of Object.entries(value)) {
-        const entryPath = path ? `${path}.${key}` : key;
-        if (SENSITIVE_KEYS.has(key.toLowerCase())) {
-            redacted[key] = REDACTED_VALUE;
-            redactions.push(entryPath);
-        } else {
-            redacted[key] = redactValue(entry, entryPath, redactions);
-        }
-    }
-    return redacted;
-}
-
-function parseEnvelope(rawText, redactions) {
+function parseEnvelope(rawText) {
     const outer = parseJson(rawText);
     if (!outer.parsed || !outer.value || typeof outer.value !== 'object') {
         return { parsed: false, value: rawText };
@@ -61,7 +22,7 @@ function parseEnvelope(rawText, redactions) {
     }
     return {
         parsed: true,
-        value: redactValue(envelope, '', redactions)
+        value: envelope
     };
 }
 
@@ -155,9 +116,6 @@ function createActionRecorderFeature({
     copyText = (text) => navigator.clipboard.writeText(text),
     createId = () => crypto.randomUUID(),
     now = Date.now,
-    setTimeoutFn = setTimeout,
-    clearTimeoutFn = clearTimeout,
-    limits = DEFAULT_LIMITS,
     log = () => {}
 }) {
     if (typeof subscribeFrames !== 'function') {
@@ -167,11 +125,9 @@ function createActionRecorderFeature({
         throw new Error('Action recorder requires a panel factory.');
     }
 
-    const configuredLimits = { ...DEFAULT_LIMITS, ...limits };
     let status = 'idle';
     let session = null;
     let pendingOperations = new Map();
-    let durationTimer = null;
     let panel = null;
     let copyFallback = '';
     let notice = '';
@@ -181,8 +137,7 @@ function createActionRecorderFeature({
             status,
             session,
             copyFallback,
-            notice,
-            limits: configuredLimits
+            notice
         };
     }
 
@@ -190,19 +145,12 @@ function createActionRecorderFeature({
         panel?.setState?.(getState());
     }
 
-    function finish(nextStatus, reason = '') {
+    function finish(nextStatus) {
         if (status !== 'recording') {
             return;
         }
-        clearTimeoutFn(durationTimer);
-        durationTimer = null;
         status = nextStatus;
         session.stoppedAt = new Date(now()).toISOString();
-        if (reason) {
-            session.limits.limitReached = true;
-            session.limits.reason = reason;
-            notice = `Recording stopped: ${reason}.`;
-        }
         render();
     }
 
@@ -216,28 +164,18 @@ function createActionRecorderFeature({
         notice = '';
         pendingOperations = new Map();
         session = {
-            schemaVersion: 1,
+            schemaVersion: 2,
             sessionId: createId(),
             startedAt: new Date(startedAtMs).toISOString(),
             stoppedAt: null,
             page: getPageContext(),
-            limits: {
-                maxFrames: configuredLimits.maxFrames,
-                maxStoredBytes: configuredLimits.maxStoredBytes,
-                maxDurationMs: configuredLimits.maxDurationMs,
-                limitReached: false
-            },
             frameCount: 0,
             storedBytes: 0,
             operations: [],
             otherFrames: [],
             anomalies: [],
-            redactions: [],
             _startedAtMs: startedAtMs
         };
-        durationTimer = setTimeoutFn(() => {
-            finish('limit-reached', 'duration limit reached');
-        }, configuredLimits.maxDurationMs);
         render();
     }
 
@@ -246,28 +184,12 @@ function createActionRecorderFeature({
     }
 
     function clear() {
-        if (status === 'recording') {
-            clearTimeoutFn(durationTimer);
-            durationTimer = null;
-        }
         status = 'idle';
         session = null;
         pendingOperations = new Map();
         copyFallback = '';
         notice = '';
         render();
-    }
-
-    function limitReason(frame) {
-        if (session.frameCount + 1 > configuredLimits.maxFrames) {
-            return 'frame limit reached';
-        }
-        const nextBytes = session.storedBytes
-            + (frame.dataType === 'text' ? Number(frame.byteLength || 0) : 0);
-        if (nextBytes > configuredLimits.maxStoredBytes) {
-            return 'size limit reached';
-        }
-        return '';
     }
 
     function storeOtherFrame(frame, envelope, rawText) {
@@ -362,12 +284,6 @@ function createActionRecorderFeature({
         if (status !== 'recording' || !session) {
             return;
         }
-        const reason = limitReason(frame);
-        if (reason) {
-            finish('limit-reached', reason);
-            return;
-        }
-
         session.frameCount += 1;
         if (frame.dataType === 'text') {
             session.storedBytes += Number(frame.byteLength || 0);
@@ -379,12 +295,7 @@ function createActionRecorderFeature({
             return;
         }
 
-        const frameRedactions = [];
-        const parsed = parseEnvelope(frame.data, frameRedactions);
-        session.redactions.push(...frameRedactions.map((path) => ({
-            frame: session.frameCount,
-            path
-        })));
+        const parsed = parseEnvelope(frame.data);
 
         if (!parsed.parsed) {
             storeOtherFrame(frame, undefined, parsed.value);
@@ -406,7 +317,6 @@ function createActionRecorderFeature({
             startedAt: session.startedAt,
             stoppedAt: session.stoppedAt,
             page: session.page,
-            limits: session.limits,
             frameCount: session.frameCount,
             storedBytes: session.storedBytes,
             operations: session.operations.map((operation) => {
@@ -414,8 +324,7 @@ function createActionRecorderFeature({
                 return exported;
             }),
             otherFrames: session.otherFrames,
-            anomalies: session.anomalies,
-            redactions: session.redactions
+            anomalies: session.anomalies
         };
     }
 
@@ -503,12 +412,9 @@ function createActionRecorderFeature({
 }
 
 export {
-    DEFAULT_LIMITS,
-    REDACTED_VALUE,
     createActionRecorderFeature,
     makeRecipe,
     makeRequestSnippet,
     parseEnvelope,
-    redactValue,
     safePageContext
 };

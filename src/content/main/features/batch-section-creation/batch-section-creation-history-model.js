@@ -7,22 +7,16 @@ const TERMINAL_STATUSES = Object.freeze([
 ]);
 const ATTEMPTED_STATUSES = Object.freeze(['created', 'failed', 'partially_created']);
 const FAILURE_STATUSES = Object.freeze(['failed', 'partially_created']);
-const SENSITIVE_IDENTIFIER_WORDS = new Set([
-    'auth', 'authorization', 'cookie', 'credential', 'credentials',
-    'password', 'response', 'session', 'token', 'transport', 'websocket'
-]);
 
 function parseMarathonId(url) {
     const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
     return match ? String(match[1]) : null;
 }
 
-function text(value, fallback = '', maxLength = 4000) {
+function text(value, fallback = '') {
     const normalized = String(value ?? '').trim();
     if (!normalized) return fallback;
-    return normalized.length <= maxLength
-        ? normalized
-        : `${normalized.slice(0, Math.max(0, maxLength - 1))}…`;
+    return normalized;
 }
 
 function safeUrl(value) {
@@ -36,11 +30,8 @@ function safeUrl(value) {
     }
 }
 
-function safeBlockText(value, maxLength) {
-    return text(value, '', maxLength).replace(
-        /data:image\/[^;,<>"'\s]+(?:;[^,<>"'\s]+)*;base64,[a-z0-9+/=\r\n]+/gi,
-        '[redacted image data]'
-    );
+function safeBlockText(value) {
+    return text(value);
 }
 
 function freezeArray(entries) {
@@ -86,17 +77,15 @@ function words(value) {
         .filter(Boolean);
 }
 
-function isSafeIdentifierPath(path) {
+function isIdentifierPath(path) {
     const leaf = words(path.at(-1));
-    const allParts = path.flatMap(words);
-    return leaf.includes('id')
-        && !allParts.some((part) => SENSITIVE_IDENTIFIER_WORDS.has(part));
+    return leaf.includes('id');
 }
 
-function collectIdentifiers(source, sourceName, output, path = [], depth = 0, seen = new WeakSet()) {
-    if (source === null || source === undefined || depth > 5) return;
+function collectIdentifiers(source, sourceName, output, path = [], seen = new WeakSet()) {
+    if (source === null || source === undefined) return;
     if (typeof source !== 'object') {
-        if (!isSafeIdentifierPath(path)) return;
+        if (!isIdentifierPath(path)) return;
         const value = typeof source === 'number' || typeof source === 'boolean'
             ? source
             : text(source, '', 500);
@@ -113,13 +102,12 @@ function collectIdentifiers(source, sourceName, output, path = [], depth = 0, se
                 sourceName,
                 output,
                 [...path, String(index)],
-                depth + 1,
                 seen
             ));
             return;
         }
         for (const [key, value] of Object.entries(source)) {
-            collectIdentifiers(value, sourceName, output, [...path, key], depth + 1, seen);
+            collectIdentifiers(value, sourceName, output, [...path, key], seen);
         }
     } finally {
         seen.delete(source);

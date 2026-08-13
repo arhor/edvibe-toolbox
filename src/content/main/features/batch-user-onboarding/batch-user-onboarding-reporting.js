@@ -1,5 +1,4 @@
 import { deepFreeze } from './batch-user-onboarding-domain.js';
-import { sanitizeDiagnostics } from './batch-user-onboarding-diagnostics.js';
 
 const OPERATION_TYPE = 'batch_user_onboarding';
 
@@ -99,7 +98,7 @@ function serializeHistoryOperation(name, result) {
         code: result.code || null,
         message: result.message || null,
         dependency: result.dependency ? Object.freeze({ ...result.dependency }) : null,
-        diagnostics: result.diagnostics ? deepFreeze(sanitizeDiagnostics(result.diagnostics)) : null
+        diagnostics: result.diagnostics ? deepFreeze(result.diagnostics) : null
     }) : null;
 }
 
@@ -181,8 +180,8 @@ function buildExecutionHistoryInput({
         pageContext: { marathonId: String(marathonId), marathonName },
         counts,
         results: historyRows,
-        diagnostics: Object.freeze((result.diagnostics || []).map((item) => deepFreeze(sanitizeDiagnostics(item)))),
-        fatalError: result.fatalError ? deepFreeze(sanitizeDiagnostics(result.fatalError)) : null,
+        diagnostics: Object.freeze((result.diagnostics || []).map((item) => deepFreeze(item))),
+        fatalError: result.fatalError ? deepFreeze(result.fatalError) : null,
         message: JSON.stringify({ userCounts: counts, operationCounts })
     });
 }

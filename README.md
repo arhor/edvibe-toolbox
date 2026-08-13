@@ -13,7 +13,7 @@
 
 Open any Edvibe page, select **Запись действий WebSocket** in the extension popup, and start recording in the in-page panel. Perform one logical operation, stop the recording, then inspect its requests and responses. Individual requests and a review-only recipe can be copied; the complete trace can be downloaded as JSON.
 
-The recorder never replays traffic. Generated code contains the exact observed values and must be reviewed for dynamic IDs, sequencing, and mutation effects. Recordings stay in page memory until exported and are lost on navigation or reload. Common credential fields are redacted, but traces may still contain pupil data, names, answers, lesson content, email addresses, and stable IDs. Review recordings before sharing or committing them.
+The recorder never replays traffic. Recorder exports and generated code contain the exact observed values and are intentionally unredacted, including credentials, pupil data, lesson content, and identifiers. They must be reviewed for dynamic IDs, sequencing, and mutation effects. Recordings stay in page memory until exported and are lost on navigation or reload.
 
 ## 🚀 Installation (Developer Mode)
 

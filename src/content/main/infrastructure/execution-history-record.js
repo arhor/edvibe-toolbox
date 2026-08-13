@@ -1,4 +1,5 @@
-const EXECUTION_RECORD_SCHEMA_VERSION = 1;
+const EXECUTION_RECORD_SCHEMA_VERSION = 2;
+const SUPPORTED_EXECUTION_RECORD_SCHEMA_VERSIONS = new Set([1, 2]);
 const TERMINAL_STATUSES = Object.freeze([
     'completed',
     'completed_with_failures',
@@ -15,18 +16,6 @@ const COUNT_KEYS = Object.freeze([
     'failed',
     'notAttempted'
 ]);
-const UNSAFE_FIELD_WORDS = new Set([
-    'auth', 'authorization', 'binary', 'bytes', 'cookie', 'credential',
-    'credentials', 'frame', 'frames', 'image', 'password', 'recording',
-    'response', 'session', 'token', 'transport', 'websocket'
-]);
-const DIAGNOSTIC_LIMITS = Object.freeze({
-    attempts: 20,
-    summaryDepth: 4,
-    summaryEntries: 25,
-    stringLength: 500,
-    serializedSize: 32 * 1024
-});
 const DIAGNOSTIC_FIELDS = new Set(['requestAttempts']);
 const REQUEST_ATTEMPT_FIELDS = new Set([
     'correlationId', 'operationName', 'controller', 'method', 'projectName', 'requestId',
@@ -80,54 +69,9 @@ function normalizeCount(value, path) {
     return count;
 }
 
-function isUnsafeFieldName(key) {
-    const words = String(key)
-        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-        .toLowerCase()
-        .split(/[^a-z0-9]+/)
-        .filter(Boolean);
-    return words.includes('raw') || words.some((word) => UNSAFE_FIELD_WORDS.has(word));
-}
-
 function assertAllowedFields(value, allowedFields, path) {
     for (const key of Object.keys(value)) {
         if (!allowedFields.has(key)) throw validationError('Unexpected field is not allowed', `${path}.${key}`);
-    }
-}
-
-function truncateString(value, maxLength = DIAGNOSTIC_LIMITS.stringLength) {
-    const string = String(value);
-    return string.length <= maxLength ? string : `${string.slice(0, maxLength - 1)}…`;
-}
-
-function sanitizeDiagnosticSummary(value, path, depth = 0, seen = new WeakSet()) {
-    if (value === null || typeof value === 'boolean') return value;
-    if (typeof value === 'string') return truncateString(value);
-    if (typeof value === 'number') {
-        if (!Number.isFinite(value)) throw validationError('Expected a finite number', path);
-        return value;
-    }
-    if (value === undefined) return null;
-    if (typeof value !== 'object') throw validationError('Unsupported diagnostic value', path);
-    if (depth >= DIAGNOSTIC_LIMITS.summaryDepth) return '[TRUNCATED]';
-    if (seen.has(value)) throw validationError('Circular values are not supported', path);
-    seen.add(value);
-    try {
-        if (Array.isArray(value)) {
-            return value.slice(0, DIAGNOSTIC_LIMITS.summaryEntries)
-                .map((entry, index) => sanitizeDiagnosticSummary(entry, `${path}[${index}]`, depth + 1, seen));
-        }
-        assertPlainObject(value, path);
-        const output = {};
-        for (const [key, entry] of Object.entries(value).slice(0, DIAGNOSTIC_LIMITS.summaryEntries)) {
-            const safeKey = truncateString(key, 120);
-            output[safeKey] = isUnsafeFieldName(key)
-                ? '[REDACTED]'
-                : sanitizeDiagnosticSummary(entry, `${path}.${key}`, depth + 1, seen);
-        }
-        return output;
-    } finally {
-        seen.delete(value);
     }
 }
 
@@ -162,9 +106,9 @@ function normalizeRequestAttempt(value, index, resultIndex) {
         outcome,
         transportCode: normalizeOptionalString(value.transportCode, `${path}.transportCode`, 120),
         serverErrorCode: normalizeOptionalString(value.serverErrorCode, `${path}.serverErrorCode`, 120),
-        serverErrorMessage: value.serverErrorMessage == null ? null : truncateString(value.serverErrorMessage),
-        requestSummary: sanitizeDiagnosticSummary(value.requestSummary ?? null, `${path}.requestSummary`),
-        responseSummary: sanitizeDiagnosticSummary(value.responseSummary ?? null, `${path}.responseSummary`)
+        serverErrorMessage: value.serverErrorMessage == null ? null : String(value.serverErrorMessage),
+        requestSummary: normalizeJsonValue(value.requestSummary ?? null, `${path}.requestSummary`),
+        responseSummary: normalizeJsonValue(value.responseSummary ?? null, `${path}.responseSummary`)
     };
     return Object.freeze(attempt);
 }
@@ -174,20 +118,14 @@ function normalizeDiagnostics(value, resultIndex) {
     assertPlainObject(value, path);
     assertAllowedFields(value, DIAGNOSTIC_FIELDS, path);
     if (!Array.isArray(value.requestAttempts)) throw validationError('Expected an array', `${path}.requestAttempts`);
-    if (value.requestAttempts.length > DIAGNOSTIC_LIMITS.attempts) {
-        throw validationError(`Collection exceeds ${DIAGNOSTIC_LIMITS.attempts} entries`, `${path}.requestAttempts`);
-    }
     const diagnostics = Object.freeze({
         requestAttempts: Object.freeze(value.requestAttempts.map((attempt, index) =>
             normalizeRequestAttempt(attempt, index, resultIndex)))
     });
-    if (JSON.stringify(diagnostics).length > DIAGNOSTIC_LIMITS.serializedSize) {
-        throw validationError('Diagnostics exceed serialized-size limit', path);
-    }
     return diagnostics;
 }
 
-function sanitizeJsonValue(value, path = 'value', seen = new WeakSet()) {
+function normalizeJsonValue(value, path = 'value', seen = new WeakSet()) {
     if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
     if (typeof value === 'number') {
         if (!Number.isFinite(value)) throw validationError('Expected a finite number', path);
@@ -202,13 +140,12 @@ function sanitizeJsonValue(value, path = 'value', seen = new WeakSet()) {
     seen.add(value);
     try {
         if (Array.isArray(value)) {
-            return value.map((entry, index) => sanitizeJsonValue(entry, `${path}[${index}]`, seen));
+            return value.map((entry, index) => normalizeJsonValue(entry, `${path}[${index}]`, seen));
         }
         assertPlainObject(value, path);
         const output = {};
         for (const [key, entry] of Object.entries(value)) {
-            if (isUnsafeFieldName(key)) throw validationError('Unsafe field is not allowed', `${path}.${key}`);
-            output[key] = sanitizeJsonValue(entry, `${path}.${key}`, seen);
+            output[key] = normalizeJsonValue(entry, `${path}.${key}`, seen);
         }
         return output;
     } finally {
@@ -243,7 +180,7 @@ function normalizeCounts(value = {}) {
 function normalizeResult(value, index) {
     assertPlainObject(value, `results[${index}]`);
     const attempts = value.attempts === undefined ? 1 : normalizeCount(value.attempts, `results[${index}].attempts`);
-    const data = value.data === undefined ? {} : sanitizeJsonValue(value.data, `results[${index}].data`);
+    const data = value.data === undefined ? {} : normalizeJsonValue(value.data, `results[${index}].data`);
     const result = {
         order: index,
         itemId: normalizeOptionalString(value.itemId, `results[${index}].itemId`, 160),
@@ -274,7 +211,7 @@ function fallbackExecutionId(now, operationType) {
 
 function buildExecutionRecord(input, options = {}) {
     assertPlainObject(input, 'record');
-    sanitizeJsonValue(withoutDiagnostics(input), 'record');
+    normalizeJsonValue(withoutDiagnostics(input), 'record');
     const now = options.now instanceof Date ? options.now : new Date(options.now || Date.now());
     const operationType = normalizeNonEmptyString(input.operationType, 'operationType', 120);
     const cryptoApi = options.cryptoApi;
@@ -310,7 +247,7 @@ function buildExecutionRecord(input, options = {}) {
 
 function validateExecutionRecord(record) {
     assertPlainObject(record, 'record');
-    if (record.schemaVersion !== EXECUTION_RECORD_SCHEMA_VERSION) {
+    if (!SUPPORTED_EXECUTION_RECORD_SCHEMA_VERSIONS.has(record.schemaVersion)) {
         throw validationError('Unsupported execution record schema version', 'schemaVersion');
     }
     normalizeNonEmptyString(record.id, 'id', 200);
@@ -322,26 +259,20 @@ function validateExecutionRecord(record) {
     normalizeCounts(record.counts || {});
     if (!Array.isArray(record.results)) throw validationError('Expected an array', 'results');
     record.results.forEach((result, index) => normalizeResult(result, index));
-    sanitizeJsonValue(withoutDiagnostics(record), 'record');
+    normalizeJsonValue(withoutDiagnostics(record), 'record');
     return true;
 }
 
 function cloneExecutionRecord(record) {
     validateExecutionRecord(record);
-    const clone = JSON.parse(JSON.stringify(record));
-    clone.pageContext = normalizePageContext(clone.pageContext);
-    clone.counts = normalizeCounts(clone.counts);
-    clone.results = clone.results.map(normalizeResult);
-    return JSON.parse(JSON.stringify(clone));
+    return JSON.parse(JSON.stringify(record));
 }
 
 export {
     EXECUTION_RECORD_SCHEMA_VERSION,
     TERMINAL_STATUSES,
     COUNT_KEYS,
-    DIAGNOSTIC_LIMITS,
     buildExecutionRecord,
     validateExecutionRecord,
-    cloneExecutionRecord,
-    sanitizeJsonValue
+    cloneExecutionRecord
 };

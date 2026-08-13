@@ -6,7 +6,7 @@ const {
     createCapture,
     recordWriteAttempt,
     observeRequest,
-    sanitizeLesson,
+    serializeLesson,
     buildObservedPlan
 } = modelApi;
 const { buildExecutionHistoryInput } = recordApi;
@@ -142,7 +142,7 @@ function createHistoryAwareFeature(options = {}) {
                 });
         }
         dialog.showConfigure = (value = {}) => {
-            current.lessonCatalogue = Array.isArray(value.lessons) ? value.lessons.map(sanitizeLesson) : [];
+            current.lessonCatalogue = Array.isArray(value.lessons) ? value.lessons.map(serializeLesson) : [];
             current.attempt = null;
             current.sequence += 1;
             return originalShowConfigure(value);

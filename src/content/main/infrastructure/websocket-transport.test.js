@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-    createWebSocketTransport,
-    sanitizeDiagnosticValue
-} from './websocket-transport.js';
+import { createWebSocketTransport } from './websocket-transport.js';
 
 class FakeWebSocket {
     static OPEN = 1;
@@ -50,7 +47,7 @@ function setup(options = {}) {
     return { transport, socket, timers, advance: (milliseconds) => { time += milliseconds; } };
 }
 
-test('exposes bounded diagnostics for a successful response without changing it', async () => {
+test('exposes full diagnostics for a successful response without changing it', async () => {
     const { transport, socket, advance } = setup();
     const promise = transport.sendRequest('Users', 'Get', 'School', { Page: 1 });
     advance(12);
@@ -114,38 +111,34 @@ test('attaches request diagnostics to synchronous send failures', async () => {
     );
 });
 
-test('redacts sensitive request and response fields', async () => {
+test('preserves sensitive, long, deep, and wide request and response fields', async () => {
+    // Given
     const { transport, socket } = setup();
+    const long = 'x'.repeat(800);
+    const deep = { a: { b: { c: { d: { token: 'deep-secret' } } } } };
+    const wide = Object.fromEntries(Array.from({ length: 40 }, (_, index) => [`k${index}`, index]));
+
+    // When
     const promise = transport.sendRequest('Users', 'Onboard', 'School', {
         Email: 'learner@example.test', Password: 'nope', UserDetails: { Name: 'Lee' },
-        Authorization: 'Bearer token', SessionId: 'session', SafeCount: 3
+        Authorization: 'Bearer token', SessionId: 'session', SafeCount: 3, long, deep, wide
     });
     socket.respond({
         RequestId: 'request-1', IsSuccess: true,
-        Value: { Cookie: 'raw', ImageData: 'raw', SafeCount: 3 }
+        Value: { Cookie: 'raw', ImageData: 'raw', SafeCount: 3, long, deep, wide }
     });
     const diagnostics = transport.getResponseDiagnostics(await promise);
-    assert.deepEqual(diagnostics.request.value, {
-        Email: '[redacted]', Password: '[redacted]', UserDetails: '[redacted]',
-        Authorization: '[redacted]', SessionId: '[redacted]', SafeCount: 3
-    });
-    assert.deepEqual(diagnostics.response.value, {
-        Cookie: '[redacted]', ImageData: '[redacted]', SafeCount: 3
-    });
+
+    // Then
+    assert.equal(diagnostics.request.value.Authorization, 'Bearer token');
+    assert.equal(diagnostics.request.value.long, long);
+    assert.deepEqual(diagnostics.request.value.deep, deep);
+    assert.deepEqual(diagnostics.request.value.wide, wide);
+    assert.equal(diagnostics.response.value.Cookie, 'raw');
+    assert.deepEqual(diagnostics.response.value, { Cookie: 'raw', ImageData: 'raw', SafeCount: 3, long, deep, wide });
 });
 
-test('truncates long, deep, and wide diagnostic values', () => {
-    const sanitized = sanitizeDiagnosticValue({
-        text: 'x'.repeat(300),
-        deep: { a: { b: { c: { d: true } } } },
-        wide: Object.fromEntries(Array.from({ length: 27 }, (_, index) => [`k${index}`, index]))
-    });
-    assert.match(sanitized.text, /…\[truncated\]$/);
-    assert.equal(sanitized.deep.a.b.c, '[depth limit]');
-    assert.equal(sanitized.wide.__truncatedEntries, 2);
-});
-
-test('handles malformed server error payloads without retaining the payload', async () => {
+test('retains malformed server error payloads in diagnostics', async () => {
     const { transport, socket } = setup();
     const promise = transport.sendRequest('Users', 'Create', 'School', {});
     socket.respond({
@@ -154,7 +147,7 @@ test('handles malformed server error payloads without retaining the payload', as
     });
     await assert.rejects(promise, (error) => {
         assert.equal(error.code, 'SERVER_REJECTED');
-        assert.equal(error.diagnostics.response.serverMessage, undefined);
+        assert.deepEqual(error.diagnostics.response.serverMessage, { private: 'payload' });
         assert.deepEqual(Object.keys(error.diagnostics.response), [
             'requestId', 'success', 'errorCode', 'className', 'method',
             'elapsedMs', 'serverMessage'

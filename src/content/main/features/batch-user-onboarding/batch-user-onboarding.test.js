@@ -67,7 +67,7 @@ test('public email parser preserves onboarding item metadata', () => {
     ]);
 });
 
-test('server-rejected grouped additions retain bounded shared retry diagnostics', async () => {
+test('server-rejected grouped additions retain full shared retry diagnostics', async () => {
     let addAttempts = 0;
     const sendRequest = async (_controller, method) => {
         if (method === 'GetMarathonPupils') return page([]);
@@ -93,9 +93,9 @@ test('server-rejected grouped additions retain bounded shared retry diagnostics'
     assert.equal(result.rows[0].addResult.diagnostics.reference, 'add-group');
     assert.equal(result.rows[1].addResult.diagnostics.reference, 'add-group');
     assert.equal(result.rows[0].addResult.attempts, 2);
-    assert.equal(result.diagnostics[0].attempts[0].requestSummary.Emails, '[redacted]');
-    assert.equal(result.diagnostics[0].attempts[0].requestSummary.token, '[redacted]');
-    assert.match(result.diagnostics[0].attempts[0].requestSummary.note, /\[truncated\]$/);
+    assert.deepEqual(result.diagnostics[0].attempts[0].requestSummary.Emails, ['private@example.com']);
+    assert.equal(result.diagnostics[0].attempts[0].requestSummary.token, 'do-not-store');
+    assert.equal(result.diagnostics[0].attempts[0].requestSummary.note, 'x'.repeat(400));
 
     const history = buildExecutionHistoryInput({
         marathonId: 1, startedAt: 1, completedAt: 2, result
