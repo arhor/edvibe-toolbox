@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { getToolDefinition } from '#src/popup/popup-model.js';
-
 import { PopupToolCard } from '#src/popup/components/popup-tool-card.js';
+import { getToolDefinition } from '#src/popup/popup-model.js';
 
 class TestPopupToolCard extends PopupToolCard {
     scheduleUpdate() {

@@ -1,4 +1,11 @@
 import { LitElement, html, nothing } from 'lit';
+
+import {
+    EMAIL_VALIDATION_CODES,
+    emailValidationSummaryStyles,
+    renderEmailValidationSummary
+} from '#src/content/main/components/email-validation-summary.js';
+import { batchLessonAccessDialogStyles } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-dialog.styles.js';
 import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
@@ -8,12 +15,6 @@ import {
     noticeStyles,
     progressStyles
 } from '#src/content/main/styles/primitives.js';
-import { batchLessonAccessDialogStyles } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-dialog.styles.js';
-import {
-    EMAIL_VALIDATION_CODES,
-    emailValidationSummaryStyles,
-    renderEmailValidationSummary
-} from '#src/content/main/components/email-validation-summary.js';
 
 const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
 const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
@@ -74,37 +75,38 @@ class BatchLessonAccessDialog extends LitElement {
     }
 
     configure(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
-        if (options.lessons !== undefined || options.emailState !== undefined) {
-            this.showConfigure(options);
+        const normalizedOptions = options && typeof options === 'object' ? options : {};
+        if (normalizedOptions.lessons !== undefined || normalizedOptions.emailState !== undefined) {
+            this.showConfigure(normalizedOptions);
         }
         return this;
     }
 
     setEmailState(state = {}) {
-        state = state && typeof state === 'object' ? state : {};
+        const normalizedState = state && typeof state === 'object' ? state : {};
         this.emailState = {
-            validCount: Math.max(0, Number(state.validCount) || 0),
-            malformedCount: Math.max(0, Number(state.malformedCount) || 0),
-            invalidEntries: Array.isArray(state.invalidEntries) ? [...state.invalidEntries] : []
+            validCount: Math.max(0, Number(normalizedState.validCount) || 0),
+            malformedCount: Math.max(0, Number(normalizedState.malformedCount) || 0),
+            invalidEntries: Array.isArray(normalizedState.invalidEntries) ? [...normalizedState.invalidEntries] : []
         };
         return this;
     }
 
     showConfigure(options = {}) {
-        if (Array.isArray(options)) options = { lessons: options };
-        options = options && typeof options === 'object' ? options : {};
-        if (Array.isArray(options.lessons)) {
-            this.lessons = options.lessons;
+        const normalizedOptions = Array.isArray(options)
+            ? { lessons: options }
+            : options && typeof options === 'object' ? options : {};
+        if (Array.isArray(normalizedOptions.lessons)) {
+            this.lessons = normalizedOptions.lessons;
             this.selectedLessonIds = new Set();
         }
-        if (options.emailInput !== undefined) {
-            this.emailInput = String(options.emailInput || '');
+        if (normalizedOptions.emailInput !== undefined) {
+            this.emailInput = String(normalizedOptions.emailInput || '');
         }
         this.mode = 'configure';
         this.clearMessages();
         this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
-        if (options.emailState !== undefined) this.setEmailState(options.emailState);
+        if (normalizedOptions.emailState !== undefined) this.setEmailState(normalizedOptions.emailState);
         return this;
     }
 

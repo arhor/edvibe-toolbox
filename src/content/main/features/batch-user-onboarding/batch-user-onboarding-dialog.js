@@ -1,4 +1,10 @@
 import { LitElement, html, nothing } from 'lit';
+
+import {
+    emailValidationSummaryStyles,
+    renderEmailValidationSummary
+} from '#src/content/main/components/email-validation-summary.js';
+import { batchUserOnboardingDialogStyles } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-dialog.styles.js';
 import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
@@ -7,11 +13,6 @@ import {
     noticeStyles,
     progressStyles
 } from '#src/content/main/styles/primitives.js';
-import { batchUserOnboardingDialogStyles } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-dialog.styles.js';
-import {
-    emailValidationSummaryStyles,
-    renderEmailValidationSummary
-} from '#src/content/main/components/email-validation-summary.js';
 
 const BATCH_USER_ONBOARDING_DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 

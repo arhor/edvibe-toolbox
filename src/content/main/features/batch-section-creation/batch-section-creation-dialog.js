@@ -1,4 +1,11 @@
 import { LitElement, html, nothing } from 'lit';
+
+import { batchSectionCreationDialogStyles } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.styles.js';
+import {
+    controller as defaultImageController,
+    formatFileSize,
+} from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.js';
+import { batchSectionImageUploadStyles } from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.styles.js';
 import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
@@ -8,12 +15,6 @@ import {
     noticeStyles,
     progressStyles
 } from '#src/content/main/styles/primitives.js';
-import { batchSectionCreationDialogStyles } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.styles.js';
-import { batchSectionImageUploadStyles } from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.styles.js';
-import {
-    controller as defaultImageController,
-    formatFileSize,
-} from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.js';
 
 const BATCH_SECTION_DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
@@ -83,9 +84,9 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     configure(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
-        if (options.imageController) {
-            this.imageController = options.imageController;
+        const normalizedOptions = options && typeof options === 'object' ? options : {};
+        if (normalizedOptions.imageController) {
+            this.imageController = normalizedOptions.imageController;
         }
         return this;
     }

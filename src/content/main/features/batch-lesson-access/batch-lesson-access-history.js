@@ -1,6 +1,6 @@
-import * as batchAccessApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access.js';
 import * as modelApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
 import * as recordApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
+import * as batchAccessApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access.js';
 
 const {
     createCapture,

@@ -1,6 +1,6 @@
-import { registry as defaultRegistry } from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.js';
-import { createRecordedCreationAdapter } from '#src/content/main/features/batch-section-creation/batch-section-creation.js';
 import { batchSectionCreationRecipe } from '#src/content/main/features/batch-section-creation/batch-section-creation-recipe.js';
+import { createRecordedCreationAdapter } from '#src/content/main/features/batch-section-creation/batch-section-creation.js';
+import { registry as defaultRegistry } from '#src/content/main/features/batch-section-creation/image-upload/batch-section-image-upload.js';
 
 const UPLOAD_ENDPOINT = 'https://media-files-y.edvibe.com/api/MediaFile/create-multiple';
 const IMAGE_PLACEHOLDER_PREFIX = 'https://media-files-y.edvibe.com/local-upload/';

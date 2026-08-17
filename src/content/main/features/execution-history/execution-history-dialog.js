@@ -1,4 +1,6 @@
 import { LitElement, html } from 'lit';
+
+import { executionHistoryDialogStyles } from '#src/content/main/features/execution-history/execution-history-dialog.styles.js';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
@@ -10,7 +12,6 @@ import {
     fieldStyles,
     noticeStyles
 } from '#src/content/main/styles/primitives.js';
-import { executionHistoryDialogStyles } from '#src/content/main/features/execution-history/execution-history-dialog.styles.js';
 
 const EXECUTION_HISTORY_DIALOG_TAG = 'edvibe-toolbox-execution-history-dialog';
 const STATUS_LABELS = Object.freeze({

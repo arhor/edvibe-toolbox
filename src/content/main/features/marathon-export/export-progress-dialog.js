@@ -1,4 +1,6 @@
 import { LitElement, html, nothing } from 'lit';
+
+import { exportProgressDialogStyles } from '#src/content/main/features/marathon-export/export-progress-dialog.styles.js';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
@@ -8,7 +10,6 @@ import {
     dialogShellStyles,
     progressStyles
 } from '#src/content/main/styles/primitives.js';
-import { exportProgressDialogStyles } from '#src/content/main/features/marathon-export/export-progress-dialog.styles.js';
 
 const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';
 
@@ -40,8 +41,8 @@ class ExportProgressDialog extends LitElement {
     }
 
     setProgress(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
-        const { statusText = '', loadedSections = 0, totalSections = 0, countText, state = 'loading' } = options;
+        const normalizedOptions = options && typeof options === 'object' ? options : {};
+        const { statusText = '', loadedSections = 0, totalSections = 0, countText, state = 'loading' } = normalizedOptions;
         this.statusText = String(statusText || '');
         this.loadedSections = Number(loadedSections) || 0;
         this.totalSections = Number(totalSections) || 0;

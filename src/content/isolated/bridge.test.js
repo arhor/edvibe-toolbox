@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import { initializeIsolatedBridge } from '#src/content/isolated/bridge.js';
 import {
     EXPORT_STATES,
     POPUP_COMMANDS,
@@ -12,7 +13,6 @@ import {
     createStorageRequest,
     createStorageResponse
 } from '#src/shared/message-protocol.js';
-import { initializeIsolatedBridge } from '#src/content/isolated/bridge.js';
 
 function createHarness(initialStorage = {}) {
     const windowListeners = new Set();

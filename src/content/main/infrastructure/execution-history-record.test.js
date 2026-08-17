@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { serializeExecutionRecord } from '#src/content/main/infrastructure/execution-history-export.js';
 import {
     EXECUTION_RECORD_SCHEMA_VERSION,
     buildExecutionRecord,
     cloneExecutionRecord,
     validateExecutionRecord
 } from '#src/content/main/infrastructure/execution-history-record.js';
-import { serializeExecutionRecord } from '#src/content/main/infrastructure/execution-history-export.js';
 import { createExecutionHistoryRepository } from '#src/content/main/infrastructure/execution-history-repository.js';
 
 function recordInput(overrides = {}) {

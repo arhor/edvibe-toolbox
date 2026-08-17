@@ -1,4 +1,6 @@
 import { LitElement, html } from 'lit';
+
+import { actionRecorderDialogStyles } from '#src/content/main/features/action-recorder/action-recorder-dialog.styles.js';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
@@ -10,7 +12,6 @@ import {
     fieldStyles,
     noticeStyles
 } from '#src/content/main/styles/primitives.js';
-import { actionRecorderDialogStyles } from '#src/content/main/features/action-recorder/action-recorder-dialog.styles.js';
 
 const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
 const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
@@ -58,13 +59,13 @@ class ActionRecorderDialog extends LitElement {
     }
 
     configure(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
+        const normalizedOptions = options && typeof options === 'object' ? options : {};
         for (const name of [
             'onStart', 'onStop', 'onClear', 'onExport',
             'onCopyRequest', 'onCopyRecipe', 'onClose'
         ]) {
-            if (typeof options[name] === 'function') {
-                this.callbacks[name] = options[name];
+            if (typeof normalizedOptions[name] === 'function') {
+                this.callbacks[name] = normalizedOptions[name];
             }
         }
         return this;

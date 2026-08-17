@@ -1,5 +1,6 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { requestAttemptFromObservation, diagnosticsFromObservations } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 function error(code, requestId, response = {}) {

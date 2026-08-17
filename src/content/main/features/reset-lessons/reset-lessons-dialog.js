@@ -1,4 +1,6 @@
 import { LitElement, html, nothing } from 'lit';
+
+import { resetLessonsDialogStyles } from '#src/content/main/features/reset-lessons/reset-lessons-dialog.styles.js';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
@@ -10,7 +12,6 @@ import {
     fieldStyles,
     progressStyles
 } from '#src/content/main/styles/primitives.js';
-import { resetLessonsDialogStyles } from '#src/content/main/features/reset-lessons/reset-lessons-dialog.styles.js';
 
 const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
@@ -96,8 +97,8 @@ class ResetLessonsDialog extends LitElement {
     }
 
     configure(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
-        const { searchDelay = 1000, loadLessons, loadNextPupils, log = () => { } } = options;
+        const normalizedOptions = options && typeof options === 'object' ? options : {};
+        const { searchDelay = 1000, loadLessons, loadNextPupils, log = () => { } } = normalizedOptions;
         this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1000;
         this.loadLessons = typeof loadLessons === 'function' ? loadLessons : null;
         this.loadNextPupils = typeof loadNextPupils === 'function' ? loadNextPupils : null;
@@ -257,9 +258,9 @@ class ResetLessonsDialog extends LitElement {
         this.updateComplete.then(() => this.shadowRoot?.querySelector('.edvibe-reset-search')?.focus());
     }
     showPupils(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
-        const pupils = Array.isArray(options.pupils) ? options.pupils : [];
-        const total = Number.isFinite(Number(options.total)) ? Number(options.total) : pupils.length;
+        const normalizedOptions = options && typeof options === 'object' ? options : {};
+        const pupils = Array.isArray(normalizedOptions.pupils) ? normalizedOptions.pupils : [];
+        const total = Number.isFinite(Number(normalizedOptions.total)) ? Number(normalizedOptions.total) : pupils.length;
         this.allPupils = pupils; this.pupilTotal = total; this.currentStep = 'user'; this.loading = false;
         this.setStatus(`Загружено пользователей: ${pupils.length} из ${total}`);
         this.updateComplete.then(() => this.shadowRoot?.querySelector('.edvibe-reset-search')?.focus());
@@ -267,11 +268,11 @@ class ResetLessonsDialog extends LitElement {
     }
     showLessons(pupil, lessons) {
         if (!pupil || typeof pupil !== 'object') return this;
-        lessons = Array.isArray(lessons) ? lessons : [];
+        const normalizedLessons = Array.isArray(lessons) ? lessons : [];
         const pupilChanged = this.loadedPupilId !== pupil.PupilId;
-        this.selectedPupil = pupil; this.loadedPupilId = pupil.PupilId; this.lessons = lessons;
+        this.selectedPupil = pupil; this.loadedPupilId = pupil.PupilId; this.lessons = normalizedLessons;
         if (pupilChanged) this.selectedLessonIds = new Set();
-        this.loading = false; this.currentStep = 'lessons'; this.setStatus(`Загружено уроков: ${lessons.length}`);
+        this.loading = false; this.currentStep = 'lessons'; this.setStatus(`Загружено уроков: ${normalizedLessons.length}`);
         this.updateComplete.then(() => this.shadowRoot?.querySelector('.edvibe-reset-lessons')?.focus());
         return this;
     }
@@ -281,9 +282,9 @@ class ResetLessonsDialog extends LitElement {
     unlockAfterRun() { this.locked = false; this.finished = false; this.classList.toggle('is-running', false); }
     showDiscovery(message) { this.setStatus(message); this.progressVisible = true; this.progressIndeterminate = true; }
     showProgress(options = {}) {
-        options = options && typeof options === 'object' ? options : {};
-        const completed = Number(options.completed) || 0; const total = Number(options.total) || 0;
-        const lesson = options.lesson && typeof options.lesson === 'object' ? options.lesson : {}; const exerciseId = options.exerciseId;
+        const normalizedOptions = options && typeof options === 'object' ? options : {};
+        const completed = Number(normalizedOptions.completed) || 0; const total = Number(normalizedOptions.total) || 0;
+        const lesson = normalizedOptions.lesson && typeof normalizedOptions.lesson === 'object' ? normalizedOptions.lesson : {}; const exerciseId = normalizedOptions.exerciseId;
         const percent = total > 0 ? Math.round((completed / total) * 100) : 100;
         const detail = exerciseId ? `Упражнение ${exerciseId}` : 'Удаление запроса урока';
         this.setStatus(`${lesson.Name || ''}\n${detail} — ${completed} / ${total}`);

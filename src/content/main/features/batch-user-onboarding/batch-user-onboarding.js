@@ -1,14 +1,12 @@
 import {
-    createFeatureError,
-    parseEmailInput as parseSharedEmailInput,
-    parseMarathonId
-} from '#src/content/main/features/batch-workflow-primitives.js';
-import { loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
-import {
     loadModerators,
     normalizeModeratorCatalogue,
     resolvePupilModerators
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-domain.js';
+import {
+    executePlan,
+    revalidateRows
+} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-execution.js';
 import {
     buildAddRequest,
     buildAssignRequest,
@@ -17,16 +15,18 @@ import {
     resolveOnboardingRows
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-planning.js';
 import {
-    executePlan,
-    revalidateRows
-} from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-execution.js';
-import {
     OPERATION_TYPE,
     buildCounts,
     buildExecutionHistoryInput,
     formatReport,
     inferRowStatus
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-reporting.js';
+import {
+    createFeatureError,
+    parseEmailInput as parseSharedEmailInput,
+    parseMarathonId
+} from '#src/content/main/features/batch-workflow-primitives.js';
+import { loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 

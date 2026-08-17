@@ -1,5 +1,5 @@
-import * as indexedDbApi from '#src/content/main/infrastructure/indexeddb.js';
 import * as recordApi from '#src/content/main/infrastructure/execution-history-record.js';
+import * as indexedDbApi from '#src/content/main/infrastructure/indexeddb.js';
 
 const HISTORY_DATABASE_NAME = 'edvibe-toolbox';
 const HISTORY_DATABASE_VERSION = 1;

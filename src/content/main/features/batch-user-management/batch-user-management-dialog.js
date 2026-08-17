@@ -1,4 +1,10 @@
 import { LitElement, html } from 'lit';
+
+import {
+    emailValidationSummaryStyles,
+    renderEmailValidationSummary
+} from '#src/content/main/components/email-validation-summary.js';
+import { batchUserManagementDialogStyles } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.styles.js';
 import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
@@ -7,11 +13,6 @@ import {
     noticeStyles,
     progressStyles
 } from '#src/content/main/styles/primitives.js';
-import { batchUserManagementDialogStyles } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.styles.js';
-import {
-    emailValidationSummaryStyles,
-    renderEmailValidationSummary
-} from '#src/content/main/components/email-validation-summary.js';
 
 const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
 const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';

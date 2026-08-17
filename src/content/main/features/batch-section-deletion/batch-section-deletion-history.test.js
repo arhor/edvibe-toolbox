@@ -1,5 +1,6 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { serializeResult } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-history.js';
 import { buildExecutionHistoryInput as buildLegacyHistory } from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 function attempt(correlationId, requestId, transportCode = 'SERVER_REJECTED') {

@@ -1,6 +1,5 @@
 import { html, LitElement, nothing } from 'lit';
 
-import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/message-protocol.js';
 import {
     TOOL_GROUPS,
     getPageContextContent,
@@ -8,7 +7,7 @@ import {
     getUnavailableReason,
     resolvePageContext
 } from '#src/popup/popup-model.js';
-
+import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/message-protocol.js';
 import '#src/popup/components/popup-tool-group.js';
 import '#src/popup/components/popup-app.css';
 
