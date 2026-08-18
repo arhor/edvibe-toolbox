@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { serializeIdentifiers, serializeSectionDefinition } from '#src/content/main/features/batch-section-creation/batch-section-creation-history-model.js';
-import { serializeResult } from '#src/content/main/features/batch-section-creation/batch-section-creation-history-record.js';
+import {
+    buildExecutionHistoryInput,
+    serializeResult
+} from '#src/content/main/features/batch-section-creation/batch-section-creation-history-record.js';
 
 function attempt(correlationId, requestId, transportCode = 'SERVER_REJECTED') {
     return {
@@ -46,6 +49,62 @@ test('preserves server rejection and transport failure diagnostics for recipe re
         assert.equal(result.diagnostics.requestAttempts[0].requestId, id);
         assert.equal(result.diagnostics.requestAttempts[0].correlationId, 'lesson:1');
     }
+});
+
+test('attaches fatal diagnostics after execution-result materialization', () => {
+    const fatalError = Object.assign(new Error('Authorization unavailable'), {
+        code: 'AUTH_CONTEXT_UNAVAILABLE',
+        diagnostics: {
+            requestAttempts: [attempt(
+                'media-upload-auth-context',
+                null,
+                'AUTH_CONTEXT_UNAVAILABLE'
+            )]
+        }
+    });
+    const history = buildExecutionHistoryInput({
+        plan: {
+            definition: {
+                name: 'Announcement',
+                blocks: [{
+                    id: 'block-1',
+                    type: 'image',
+                    url: 'https://media-files-y.edvibe.com/local-upload/client-1'
+                }]
+            },
+            selectedLessonIds: [1],
+            eligible: [{
+                lessonId: 1,
+                marathonLessonId: 2,
+                number: 1,
+                name: 'Lesson'
+            }],
+            rejected: []
+        },
+        result: {
+            results: [{
+                lessonId: 1,
+                marathonLessonId: 2,
+                lessonNumber: 1,
+                lessonName: 'Lesson',
+                status: 'failed',
+                code: 'AUTH_CONTEXT_UNAVAILABLE',
+                message: 'Authorization unavailable',
+                attempts: 1
+            }]
+        },
+        startedAt: '2026-08-18T08:00:00.000Z',
+        completedAt: '2026-08-18T08:00:01.000Z',
+        marathonId: '18508',
+        terminalStatus: 'interrupted',
+        fatalError
+    });
+
+    assert.equal(history.results[0].code, 'AUTH_CONTEXT_UNAVAILABLE');
+    assert.equal(
+        history.results[0].diagnostics.requestAttempts[0].correlationId,
+        'media-upload-auth-context'
+    );
 });
 
 test('preserves base64 lesson content and credential-named identifiers', () => {
