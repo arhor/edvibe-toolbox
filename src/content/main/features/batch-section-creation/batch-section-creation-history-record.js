@@ -88,6 +88,7 @@ function serializeResult(result, definitionSummary, terminalStatus) {
     const normalizedResult = { ...result, status };
     const code = resultCode(normalizedResult, terminalStatus);
     const message = resultMessage(normalizedResult, terminalStatus);
+    const diagnostics = historyDiagnostics(result);
     return Object.freeze({
         itemId: lesson.lessonId === null ? null : String(lesson.lessonId),
         label: `${lesson.number ?? '?'}. ${lesson.name}`,
@@ -95,7 +96,7 @@ function serializeResult(result, definitionSummary, terminalStatus) {
         code,
         message,
         attempts,
-        ...(historyDiagnostics(result) ? { diagnostics: historyDiagnostics(result) } : {}),
+        ...(diagnostics ? { diagnostics } : {}),
         data: Object.freeze({
             lesson,
             section: definitionSummary,
@@ -126,6 +127,24 @@ function inferTerminalStatus(explicitStatus, fatalError, results) {
         : 'completed';
 }
 
+function attachFatalDiagnostics(results, fatalError) {
+    const diagnostics = historyDiagnostics(fatalError);
+    if (!diagnostics) return results;
+    let attached = false;
+    return results.map((result) => {
+        if (
+            attached
+            || !modelApi.isFailureStatus(result?.status)
+            || historyDiagnostics(result)
+            || (fatalError?.code && result?.code !== fatalError.code)
+        ) {
+            return result;
+        }
+        attached = true;
+        return { ...result, diagnostics };
+    });
+}
+
 function buildExecutionHistoryInput({
     plan,
     result = {},
@@ -142,7 +161,10 @@ function buildExecutionHistoryInput({
     const definitionSummary = modelApi.serializeSectionDefinition(
         plan?.definition || result?.definition || {}
     );
-    const materialized = modelApi.materializeResults(plan, result, materializationStatus);
+    const materialized = attachFatalDiagnostics(
+        modelApi.materializeResults(plan, result, materializationStatus),
+        fatalError || result?.fatalError
+    );
     const results = materialized.map((entry) => serializeResult(
         entry,
         definitionSummary,
@@ -172,5 +194,6 @@ export {
     serializeCleanup,
     serializeResult,
     inferTerminalStatus,
+    attachFatalDiagnostics,
     buildExecutionHistoryInput
 };
