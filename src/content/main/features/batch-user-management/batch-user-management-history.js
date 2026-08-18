@@ -13,8 +13,12 @@ function parseMarathonId(url) {
 
 function selectedOperations(row) {
     const operations = [];
-    if (row?.unassignSelected) operations.push(OPERATION_NAMES.unassign);
-    if (row?.deleteSelected) operations.push(OPERATION_NAMES.delete);
+    if (row?.unassignSelected) {
+        operations.push(OPERATION_NAMES.unassign);
+    }
+    if (row?.deleteSelected) {
+        operations.push(OPERATION_NAMES.delete);
+    }
     return operations;
 }
 
@@ -57,13 +61,25 @@ function serializeOperation(name, result) {
 }
 
 function inferItemStatus(row, operations) {
-    if (row?.status !== 'matched') return 'rejected';
-    if (operations.length === 0) return 'skipped';
+    if (row?.status !== 'matched') {
+        return 'rejected';
+    }
+    if (operations.length === 0) {
+        return 'skipped';
+    }
     const values = operations.map((operation) => operation.status);
-    if (values.includes('failed')) return 'failed';
-    if (values.includes('not_attempted')) return 'not_attempted';
-    if (values.includes('skipped')) return 'skipped';
-    if (values.every((status) => status === 'noop')) return 'noop';
+    if (values.includes('failed')) {
+        return 'failed';
+    }
+    if (values.includes('not_attempted')) {
+        return 'not_attempted';
+    }
+    if (values.includes('skipped')) {
+        return 'skipped';
+    }
+    if (values.every((status) => status === 'noop')) {
+        return 'noop';
+    }
     return 'success';
 }
 
@@ -85,10 +101,16 @@ function resultCode(row, status) {
 }
 
 function resultMessage(row, status, operations) {
-    if (status === 'rejected') return row?.message || 'The submitted user could not be resolved safely.';
-    if (operations.length === 0) return 'No user-management operation was selected.';
+    if (status === 'rejected') {
+        return row?.message || 'The submitted user could not be resolved safely.';
+    }
+    if (operations.length === 0) {
+        return 'No user-management operation was selected.';
+    }
     const messages = operations.map((operation) => operation.message).filter(Boolean);
-    if (messages.length > 0) return messages.join('; ');
+    if (messages.length > 0) {
+        return messages.join('; ');
+    }
     return {
         success: 'All selected operations completed successfully.',
         noop: 'All selected operations were already satisfied.',
@@ -151,7 +173,9 @@ function buildCounts(results) {
 }
 
 function inferTerminalStatus(summary, results) {
-    if (summary?.error) return 'interrupted';
+    if (summary?.error) {
+        return 'interrupted';
+    }
     return results.some((result) => result.status === 'failed'
         || result.status === 'skipped'
         || result.status === 'rejected')
@@ -180,12 +204,24 @@ function buildExecutionHistoryInput({
     for (const result of results) {
         for (const operation of result.data.operations) {
             operationCounts.selected += 1;
-            if (operation.status !== 'not_attempted') operationCounts.attempted += 1;
-            if (operation.status === 'success') operationCounts.successful += 1;
-            if (operation.status === 'noop') operationCounts.noOp += 1;
-            if (operation.status === 'skipped') operationCounts.skipped += 1;
-            if (operation.status === 'failed') operationCounts.failed += 1;
-            if (operation.status === 'not_attempted') operationCounts.notAttempted += 1;
+            if (operation.status !== 'not_attempted') {
+                operationCounts.attempted += 1;
+            }
+            if (operation.status === 'success') {
+                operationCounts.successful += 1;
+            }
+            if (operation.status === 'noop') {
+                operationCounts.noOp += 1;
+            }
+            if (operation.status === 'skipped') {
+                operationCounts.skipped += 1;
+            }
+            if (operation.status === 'failed') {
+                operationCounts.failed += 1;
+            }
+            if (operation.status === 'not_attempted') {
+                operationCounts.notAttempted += 1;
+            }
         }
     }
     const counts = buildCounts(results);
@@ -210,8 +246,12 @@ function createHistoryAwareDialog({
     now = () => new Date(),
     log = () => {}
 }) {
-    if (typeof createDialog !== 'function') throw new TypeError('createDialog is required');
-    if (typeof persistExecution !== 'function') throw new TypeError('persistExecution is required');
+    if (typeof createDialog !== 'function') {
+        throw new TypeError('createDialog is required');
+    }
+    if (typeof persistExecution !== 'function') {
+        throw new TypeError('persistExecution is required');
+    }
     return function createPatchedDialog() {
         const dialog = createDialog();
         let startedAt = null;
@@ -233,7 +273,9 @@ function createHistoryAwareDialog({
             clearHistoryButton();
             const documentApi = dialog.ownerDocument || globalThis.document;
             const button = documentApi?.createElement?.('button');
-            if (!button) return;
+            if (!button) {
+                return;
+            }
             button.type = 'button';
             button.className = 'edvibe-batch-user-management-history';
             button.textContent = 'Открыть в истории';
@@ -278,17 +320,25 @@ function createHistoryAwareDialog({
             Promise.resolve()
                 .then(() => persistExecution(input))
                 .then((history) => {
-                    if (sequence !== persistenceSequence) return;
+                    if (sequence !== persistenceSequence) {
+                        return;
+                    }
                     if (history?.stored) {
                         appendStatus('Результат сохранён в истории.');
-                        if (history.record?.id) addHistoryButton(history.record.id);
+                        if (history.record?.id) {
+                            addHistoryButton(history.record.id);
+                        }
                     } else {
                         appendStatus('Экранный результат сохранён, но записать историю не удалось.');
-                        if (history?.persistenceError) log('Batch user management history persistence failed:', history.persistenceError);
+                        if (history?.persistenceError) {
+                            log('Batch user management history persistence failed:', history.persistenceError);
+                        }
                     }
                 })
                 .catch((error) => {
-                    if (sequence !== persistenceSequence) return;
+                    if (sequence !== persistenceSequence) {
+                        return;
+                    }
                     appendStatus('Экранный результат сохранён, но записать историю не удалось.');
                     log('Batch user management history persistence failed:', error);
                 });

@@ -18,9 +18,15 @@ function attempt(overrides = {}) {
 }
 
 function templateText(value) {
-    if (value == null || value === false) return '';
-    if (Array.isArray(value)) return value.map(templateText).join('');
-    if (typeof value !== 'object' || !value.strings) return String(value);
+    if (value == null || value === false) {
+        return '';
+    }
+    if (Array.isArray(value)) {
+        return value.map(templateText).join('');
+    }
+    if (typeof value !== 'object' || !value.strings) {
+        return String(value);
+    }
     return value.strings.reduce((output, string, index) =>
         `${output}${string}${templateText(value.values[index])}`, '');
 }

@@ -97,7 +97,9 @@ class VideoAttachmentDialog extends LitElement {
     updateLesson(lessonId, update) {
         const targetId = Number(lessonId);
         this.lessons = this.lessons.map((lesson) => {
-            if (lesson.lessonId !== targetId) return lesson;
+            if (lesson.lessonId !== targetId) {
+                return lesson;
+            }
             const next = typeof update === 'function' ? update(lesson) : { ...lesson, ...update };
             return Object.freeze(next);
         });
@@ -105,8 +107,12 @@ class VideoAttachmentDialog extends LitElement {
 
     async ensureSections(lessonId) {
         const existing = this.getLesson(lessonId);
-        if (existing?.sections) return existing.sections;
-        if (this.sectionLoadPromises.has(lessonId)) return this.sectionLoadPromises.get(lessonId);
+        if (existing?.sections) {
+            return existing.sections;
+        }
+        if (this.sectionLoadPromises.has(lessonId)) {
+            return this.sectionLoadPromises.get(lessonId);
+        }
 
         this.updateLesson(lessonId, (lesson) => ({
             ...lesson,
@@ -143,9 +149,13 @@ class VideoAttachmentDialog extends LitElement {
     }
 
     async toggleExpanded(lessonId) {
-        if (this.busy) return;
+        if (this.busy) {
+            return;
+        }
         const lesson = this.getLesson(lessonId);
-        if (!lesson) return;
+        if (!lesson) {
+            return;
+        }
 
         const expanded = !lesson.expanded;
         this.updateLesson(lessonId, { ...lesson, expanded });
@@ -159,7 +169,9 @@ class VideoAttachmentDialog extends LitElement {
     }
 
     async setLessonSelected(lessonId, selected) {
-        if (this.busy) return;
+        if (this.busy) {
+            return;
+        }
         if (!selected) {
             this.updateLesson(lessonId, (lesson) => ({
                 ...lesson,
@@ -180,12 +192,17 @@ class VideoAttachmentDialog extends LitElement {
     }
 
     setSectionSelected(lessonId, sectionId, selected) {
-        if (this.busy) return;
+        if (this.busy) {
+            return;
+        }
         const normalizedSectionId = Number(sectionId);
         this.updateLesson(lessonId, (lesson) => {
             const current = new Set(lesson.selectedSectionIds);
-            if (selected) current.add(normalizedSectionId);
-            else current.delete(normalizedSectionId);
+            if (selected) {
+                current.add(normalizedSectionId);
+            } else {
+                current.delete(normalizedSectionId);
+            }
             return {
                 ...lesson,
                 selectedSectionIds: Object.freeze([...current])
@@ -214,7 +231,9 @@ class VideoAttachmentDialog extends LitElement {
                 .filter((entry) => entry.status === 'attached')
                 .map((entry) => entry.sectionId)
         );
-        if (successfulSectionIds.size === 0) return;
+        if (successfulSectionIds.size === 0) {
+            return;
+        }
 
         this.lessons = this.lessons.map((lesson) => Object.freeze({
             ...lesson,
@@ -225,7 +244,9 @@ class VideoAttachmentDialog extends LitElement {
     }
 
     async attach() {
-        if (this.busy) return;
+        if (this.busy) {
+            return;
+        }
         const targets = this.selectedTargets();
         if (!this.videoUrl.trim()) {
             this.showStatus('Enter a YouTube video URL.', 'danger');
@@ -264,7 +285,9 @@ class VideoAttachmentDialog extends LitElement {
     }
 
     close() {
-        if (!this.busy) this.options?.onClose?.();
+        if (!this.busy) {
+            this.options?.onClose?.();
+        }
     }
 
     renderLesson(lesson) {
@@ -358,7 +381,9 @@ class VideoAttachmentDialog extends LitElement {
                                 placeholder="https://youtu.be/…"
                                 .value=${this.videoUrl}
                                 ?disabled=${this.busy}
-                                @input=${(event) => { this.videoUrl = event.currentTarget.value; }}>
+                                @input=${(event) => {
+                                    this.videoUrl = event.currentTarget.value; 
+                                }}>
                             <span data-part="help">The original YouTube URL is attached to every selected section.</span>
                         </label>
 

@@ -5,7 +5,9 @@ function serializeExecutionRecord(record) {
 }
 
 function serializeExecutionRecords(records) {
-    if (!Array.isArray(records)) throw new TypeError('Records must be an array');
+    if (!Array.isArray(records)) {
+        throw new TypeError('Records must be an array');
+    }
     const normalizedRecords = records.map(recordApi.cloneExecutionRecord);
     return `${JSON.stringify(normalizedRecords, null, 2)}\n`;
 }
@@ -47,8 +49,9 @@ function createJsonDownloader(options = {}) {
             anchor.download = filename;
             anchor.hidden = true;
             (documentApi.body || documentApi.documentElement).append(anchor);
-            try { anchor.click(); }
-            finally {
+            try {
+                anchor.click(); 
+            } finally {
                 anchor.remove();
                 URLApi.revokeObjectURL(url);
             }

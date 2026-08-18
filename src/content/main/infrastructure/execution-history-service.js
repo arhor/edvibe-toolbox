@@ -4,7 +4,9 @@ import * as retentionApi from '#src/content/main/infrastructure/execution-histor
 
 function createExecutionHistoryService(options) {
     const { repository, preferenceStore, downloader } = options || {};
-    if (!repository || !preferenceStore || !downloader) throw new TypeError('Repository, preference store, and downloader are required');
+    if (!repository || !preferenceStore || !downloader) {
+        throw new TypeError('Repository, preference store, and downloader are required');
+    }
     const cryptoApi = options.cryptoApi;
     const now = typeof options.now === 'function' ? options.now : () => new Date();
 
@@ -32,8 +34,11 @@ function createExecutionHistoryService(options) {
             preferences = preferences || retentionApi.DEFAULT_RETENTION_PREFERENCES;
         }
         if (preferences.autoExport) {
-            try { downloadRecord(record); }
-            catch (error) { exportError = error; }
+            try {
+                downloadRecord(record); 
+            } catch (error) {
+                exportError = error; 
+            }
         }
         return Object.freeze({ stored: true, record, persistenceError: null, retentionError, exportError });
     }
@@ -55,7 +60,9 @@ function createExecutionHistoryService(options) {
         setPreferences: (preferences) => preferenceStore.set(preferences),
         exportRecord: async (executionId) => {
             const record = await repository.get(executionId);
-            if (!record) throw new Error('Execution record was not found');
+            if (!record) {
+                throw new Error('Execution record was not found');
+            }
             downloadRecord(record);
             return record;
         },

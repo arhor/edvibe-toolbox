@@ -73,11 +73,17 @@ test('public email parser preserves onboarding item metadata', () => {
 test('server-rejected grouped additions retain full shared retry diagnostics', async () => {
     let addAttempts = 0;
     const sendRequest = async (_controller, method) => {
-        if (method === 'GetMarathonPupils') return page([]);
-        if (method === 'GetMarathonModerators') return catalogueResponse;
+        if (method === 'GetMarathonPupils') {
+            return page([]);
+        }
+        if (method === 'GetMarathonModerators') {
+            return catalogueResponse;
+        }
         if (method === 'AddMarathonPupil') {
             addAttempts += 1;
-            if (addAttempts === 1) throw transportError('REQUEST_TIMEOUT', 'request-1');
+            if (addAttempts === 1) {
+                throw transportError('REQUEST_TIMEOUT', 'request-1');
+            }
             throw transportError('SERVER_REJECTED', 'request-2', {
                 serverErrorCode: 'DUPLICATE', serverMessage: 'Already enrolled'
             });
@@ -121,8 +127,12 @@ test('curator assignment and operation-wide failures preserve terminal diagnosti
         targetModeratorId: 7
     });
     const sendRequest = async (_controller, method) => {
-        if (method === 'GetMarathonPupils') return page([pupil]);
-        if (method === 'GetMarathonModerators') return catalogueResponse;
+        if (method === 'GetMarathonPupils') {
+            return page([pupil]);
+        }
+        if (method === 'GetMarathonModerators') {
+            return catalogueResponse;
+        }
         if (method === 'AddModeratorsToPupil') {
             throw transportError('WS_UNAVAILABLE', 'assign-1', {
                 method, serverErrorCode: 'OFFLINE', serverMessage: 'Connection lost'
@@ -148,7 +158,9 @@ test('revalidation failures attach diagnostics to rejected operations and fatal 
     });
     const result = await executePlan({
         plan: additionPlan(['one@example.com']), marathonId: 1,
-        sendRequest: async () => { throw error; }, wait: noWait,
+        sendRequest: async () => {
+            throw error; 
+        }, wait: noWait,
         getConnectionState: connection, requestDelayMs: 0
     });
     assert.equal(result.rows[0].addResult.diagnostics.operation, 'revalidate');

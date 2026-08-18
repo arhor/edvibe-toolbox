@@ -4,13 +4,27 @@ const OPERATION_TYPE = 'batch_user_onboarding';
 
 function inferRowStatus(row) {
     const results = [row.addResult, row.assignResult].filter(Boolean);
-    if (row.resolution === 'invalid' || row.resolution === 'ambiguous') return 'rejected';
-    if (results.length === 0) return 'skipped';
-    if (results.some((result) => result.status === 'failed')) return 'failed';
-    if (results.some((result) => result.status === 'not_attempted')) return 'not_attempted';
-    if (results.some((result) => result.status === 'rejected')) return 'rejected';
-    if (results.some((result) => result.status === 'skipped')) return 'skipped';
-    if (results.every((result) => result.status === 'noop')) return 'noop';
+    if (row.resolution === 'invalid' || row.resolution === 'ambiguous') {
+        return 'rejected';
+    }
+    if (results.length === 0) {
+        return 'skipped';
+    }
+    if (results.some((result) => result.status === 'failed')) {
+        return 'failed';
+    }
+    if (results.some((result) => result.status === 'not_attempted')) {
+        return 'not_attempted';
+    }
+    if (results.some((result) => result.status === 'rejected')) {
+        return 'rejected';
+    }
+    if (results.some((result) => result.status === 'skipped')) {
+        return 'skipped';
+    }
+    if (results.every((result) => result.status === 'noop')) {
+        return 'noop';
+    }
     return 'success';
 }
 
@@ -25,7 +39,9 @@ function appendDiagnosticReport(lines, diagnostics, indent) {
             attempt.serverMessage,
             attempt.elapsedMs != null ? `${attempt.elapsedMs}ms` : null
         ].filter(Boolean);
-        if (details.length > 1) lines.push(`${indent}diagnostic: ${details.join(' | ')}`);
+        if (details.length > 1) {
+            lines.push(`${indent}diagnostic: ${details.join(' | ')}`);
+        }
     }
 }
 
@@ -128,13 +144,27 @@ function buildExecutionHistoryInput({
         ].filter(Boolean);
         for (const operation of operations) {
             operationCounts.selected += 1;
-            if (!['not_attempted', 'rejected'].includes(operation.status)) operationCounts.attempted += 1;
-            if (operation.status === 'success') operationCounts.successful += 1;
-            if (operation.status === 'noop') operationCounts.noOp += 1;
-            if (operation.status === 'skipped') operationCounts.skipped += 1;
-            if (operation.status === 'rejected') operationCounts.rejected += 1;
-            if (operation.status === 'failed') operationCounts.failed += 1;
-            if (operation.status === 'not_attempted') operationCounts.notAttempted += 1;
+            if (!['not_attempted', 'rejected'].includes(operation.status)) {
+                operationCounts.attempted += 1;
+            }
+            if (operation.status === 'success') {
+                operationCounts.successful += 1;
+            }
+            if (operation.status === 'noop') {
+                operationCounts.noOp += 1;
+            }
+            if (operation.status === 'skipped') {
+                operationCounts.skipped += 1;
+            }
+            if (operation.status === 'rejected') {
+                operationCounts.rejected += 1;
+            }
+            if (operation.status === 'failed') {
+                operationCounts.failed += 1;
+            }
+            if (operation.status === 'not_attempted') {
+                operationCounts.notAttempted += 1;
+            }
         }
         const status = inferRowStatus(row);
         return Object.freeze({
@@ -144,12 +174,12 @@ function buildExecutionHistoryInput({
             code: row.resolution === 'invalid' && row.validationCode
                 ? row.validationCode
                 : {
-                success: 'USER_ONBOARDING_COMPLETED',
-                noop: 'USER_ONBOARDING_NOOP',
-                skipped: 'USER_ONBOARDING_SKIPPED',
-                rejected: 'USER_ONBOARDING_REJECTED',
-                failed: 'USER_ONBOARDING_FAILED',
-                not_attempted: 'NOT_ATTEMPTED'
+                    success: 'USER_ONBOARDING_COMPLETED',
+                    noop: 'USER_ONBOARDING_NOOP',
+                    skipped: 'USER_ONBOARDING_SKIPPED',
+                    rejected: 'USER_ONBOARDING_REJECTED',
+                    failed: 'USER_ONBOARDING_FAILED',
+                    not_attempted: 'NOT_ATTEMPTED'
                 }[status],
             message: operations.map((operation) => operation.message).filter(Boolean).join('; ')
                 || row.message

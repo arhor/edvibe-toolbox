@@ -5,9 +5,13 @@ function featureError(code, message, details = {}) {
 }
 
 function deepFreeze(value) {
-    if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+    if (!value || typeof value !== 'object' || Object.isFrozen(value)) {
+        return value;
+    }
     Object.freeze(value);
-    for (const nested of Object.values(value)) deepFreeze(nested);
+    for (const nested of Object.values(value)) {
+        deepFreeze(nested);
+    }
     return value;
 }
 
@@ -91,7 +95,9 @@ function resolvePupilModerators(pupilModerators, moderators) {
 }
 
 function serializePupil(pupil) {
-    if (!pupil) return null;
+    if (!pupil) {
+        return null;
+    }
     return Object.freeze({
         email: String(pupil.Email || '').trim() || null,
         name: String(pupil.Name || pupil.DisplayName || pupil.FullName || '').trim() || null,
@@ -106,7 +112,9 @@ function buildPupilEmailIndex(pupils) {
     const index = new Map();
     for (const pupil of Array.isArray(pupils) ? pupils : []) {
         const email = String(pupil?.Email || '').trim().toLowerCase();
-        if (!email) continue;
+        if (!email) {
+            continue;
+        }
         const values = index.get(email) || [];
         values.push(pupil);
         index.set(email, values);

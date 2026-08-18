@@ -64,22 +64,31 @@ class BatchSectionDeletionDialog extends LitElement {
     }
 
     setLessonSelected(lessonId, selected) {
-        if (this.busy) return;
+        if (this.busy) {
+            return;
+        }
         const next = new Set(this.selectedLessonIds);
-        if (selected) next.add(Number(lessonId));
-        else next.delete(Number(lessonId));
+        if (selected) {
+            next.add(Number(lessonId));
+        } else {
+            next.delete(Number(lessonId));
+        }
         this.selectedLessonIds = next;
     }
 
     selectAll() {
-        if (this.busy) return;
+        if (this.busy) {
+            return;
+        }
         this.selectedLessonIds = new Set(
             (this.options?.lessons || []).map((lesson) => Number(lesson.lessonId))
         );
     }
 
     clearSelection() {
-        if (this.busy) return;
+        if (this.busy) {
+            return;
+        }
         this.selectedLessonIds = new Set();
     }
 
@@ -113,7 +122,9 @@ class BatchSectionDeletionDialog extends LitElement {
     }
 
     async execute() {
-        if (!this.plan || this.plan.eligible.length === 0) return;
+        if (!this.plan || this.plan.eligible.length === 0) {
+            return;
+        }
         this.setBusy('Deleting sections…');
         try {
             const result = await this.options.onExecute(
@@ -145,11 +156,15 @@ class BatchSectionDeletionDialog extends LitElement {
     }
 
     close() {
-        if (!this.busy) this.options?.onClose?.();
+        if (!this.busy) {
+            this.options?.onClose?.();
+        }
     }
 
     openHistory() {
-        if (this.executionId) this.options?.onOpenHistory?.(this.executionId);
+        if (this.executionId) {
+            this.options?.onOpenHistory?.(this.executionId);
+        }
     }
 
     renderPlanGroup(title, items, formatter) {
@@ -162,7 +177,9 @@ class BatchSectionDeletionDialog extends LitElement {
     }
 
     renderPlan() {
-        if (!this.plan) return nothing;
+        if (!this.plan) {
+            return nothing;
+        }
         return html`
             <section class="preflight" data-notice>
                 <h3>Preflight</h3>
@@ -193,7 +210,9 @@ class BatchSectionDeletionDialog extends LitElement {
                     <main>
                         <label data-field>Exact section name<input class="section-name" type="text" autocomplete="off"
                             placeholder="Ogłoszenie" .value=${this.sectionName} ?disabled=${this.busy}
-                            @input=${(event) => { this.sectionName = event.currentTarget.value; }}></label>
+                            @input=${(event) => {
+                                this.sectionName = event.currentTarget.value; 
+                            }}></label>
                         <div class="toolbar" data-part="actions">
                             <button class="select-all" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.selectAll}>Select all</button>
                             <button class="clear" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.clearSelection}>Clear</button>

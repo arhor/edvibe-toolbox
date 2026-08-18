@@ -3,7 +3,9 @@ const HISTORY_OVERLAY_ID = 'edvibe-toolbox-execution-history';
 function createExecutionHistoryFeature({ service, canStart, onActiveChange, createDialog, log = () => {} }) {
     let active = false;
     function open({ executionId = null } = {}) {
-        if (active || document.getElementById(HISTORY_OVERLAY_ID)) return;
+        if (active || document.getElementById(HISTORY_OVERLAY_ID)) {
+            return;
+        }
         if (!canStart()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;

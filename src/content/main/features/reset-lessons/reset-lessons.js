@@ -384,8 +384,7 @@ function createResetLessonsFeature({
                 running = false;
                 if (completed) {
                     dialog.completeRun();
-                }
-                else {
+                } else {
                     dialog.unlockAfterRun();
                 }
             }

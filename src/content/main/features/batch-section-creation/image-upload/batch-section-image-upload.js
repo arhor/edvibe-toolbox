@@ -11,7 +11,9 @@ function createPlaceholderUrl(clientId) {
 
 function parseClientId(value) {
     const text = String(value || '');
-    if (!text.startsWith(IMAGE_PLACEHOLDER_PREFIX)) return '';
+    if (!text.startsWith(IMAGE_PLACEHOLDER_PREFIX)) {
+        return '';
+    }
     try {
         return decodeURIComponent(text.slice(IMAGE_PLACEHOLDER_PREFIX.length));
     } catch (_) {
@@ -21,8 +23,12 @@ function parseClientId(value) {
 
 function formatFileSize(value) {
     const bytes = Math.max(0, Number(value) || 0);
-    if (bytes < 1024) return `${bytes} Б`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`;
+    if (bytes < 1024) {
+        return `${bytes} Б`;
+    }
+    if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} КБ`;
+    }
     return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
 }
 
@@ -30,7 +36,9 @@ function createRegistry() {
     const files = new Map();
     return Object.freeze({
         register(clientId, file) {
-            if (clientId && file) files.set(String(clientId), file);
+            if (clientId && file) {
+                files.set(String(clientId), file);
+            }
         },
         get(clientId) {
             return files.get(String(clientId || '')) || null;
@@ -79,7 +87,9 @@ class BatchSectionImageUploadController {
     }
 
     hasSelectedFile(block) {
-        if (!block || block.type !== 'image') return true;
+        if (!block || block.type !== 'image') {
+            return true;
+        }
         return Boolean(this.registry.get(block.clientId || parseClientId(block.url)));
     }
 
@@ -89,7 +99,9 @@ class BatchSectionImageUploadController {
 
     selectFile(block, file) {
         const released = this.releaseBlock(block);
-        if (!file) return released;
+        if (!file) {
+            return released;
+        }
         if (!String(file.type || '').startsWith('image/')) {
             return {...released, fileError: 'Выберите файл изображения.'};
         }
@@ -114,10 +126,16 @@ class BatchSectionImageUploadController {
     }
 
     releaseBlock(block) {
-        if (!block || block.type !== 'image') return block;
+        if (!block || block.type !== 'image') {
+            return block;
+        }
         const clientId = block.clientId || parseClientId(block.url);
-        if (clientId) this.registry.remove(clientId);
-        if (block.previewUrl) this.urlApi?.revokeObjectURL?.(block.previewUrl);
+        if (clientId) {
+            this.registry.remove(clientId);
+        }
+        if (block.previewUrl) {
+            this.urlApi?.revokeObjectURL?.(block.previewUrl);
+        }
         const next = enhanceImageBlock({...block, clientId}, this.cryptoApi);
         return {
             ...next,

@@ -52,7 +52,9 @@ function createBatchUserOnboardingFeature({
 }) {
     let active = false;
     function release() {
-        if (!active) return;
+        if (!active) {
+            return;
+        }
         active = false;
         onActiveChange(false);
     }

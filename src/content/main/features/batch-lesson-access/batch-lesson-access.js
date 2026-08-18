@@ -578,7 +578,7 @@ function createBatchLessonAccessFeature({
             );
             for (const failure of completedResult.failures) {
                 log(
-                    `Batch access write failed for MarathonLessonId `
+                    'Batch access write failed for MarathonLessonId '
                     + `${failure.marathonLessonId} (${failure.code}).`
                 );
             }

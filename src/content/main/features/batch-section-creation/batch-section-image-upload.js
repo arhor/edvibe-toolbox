@@ -14,7 +14,9 @@ function createUploadError(code, message, details = {}) {
 
 function parseClientId(value) {
     const text = String(value || '');
-    if (!text.startsWith(IMAGE_PLACEHOLDER_PREFIX)) return '';
+    if (!text.startsWith(IMAGE_PLACEHOLDER_PREFIX)) {
+        return '';
+    }
     try {
         return decodeURIComponent(text.slice(IMAGE_PLACEHOLDER_PREFIX.length));
     } catch (_) {
@@ -41,9 +43,13 @@ function isTrustedEdvibeUrl(input, baseUrl) {
 }
 
 function readHeader(headers, name, HeadersCtor = globalThis.Headers) {
-    if (!headers) return '';
+    if (!headers) {
+        return '';
+    }
     try {
-        if (HeadersCtor) return new HeadersCtor(headers).get(name) || '';
+        if (HeadersCtor) {
+            return new HeadersCtor(headers).get(name) || '';
+        }
     } catch (_) {
         // Fall through to plain-object and tuple handling.
     }
@@ -53,7 +59,9 @@ function readHeader(headers, name, HeadersCtor = globalThis.Headers) {
         return entry ? String(entry[1] || '') : '';
     }
     for (const [key, value] of Object.entries(headers)) {
-        if (String(key).toLowerCase() === target) return String(value || '');
+        if (String(key).toLowerCase() === target) {
+            return String(value || '');
+        }
     }
     return '';
 }
@@ -65,9 +73,13 @@ function createAuthorizationCapture(rootObject) {
     const HeadersCtor = rootObject.Headers;
 
     function capture(input, headers) {
-        if (!isTrustedEdvibeUrl(input, baseUrl)) return;
+        if (!isTrustedEdvibeUrl(input, baseUrl)) {
+            return;
+        }
         const value = readHeader(headers, 'authorization', HeadersCtor);
-        if (value) authorization = value;
+        if (value) {
+            authorization = value;
+        }
     }
 
     if (typeof originalFetch === 'function') {
@@ -102,9 +114,13 @@ function createAuthorizationCapture(rootObject) {
 }
 
 function createDynamicImageRecipe(recipe) {
-    if (!recipe || !Array.isArray(recipe.steps)) return recipe;
+    if (!recipe || !Array.isArray(recipe.steps)) {
+        return recipe;
+    }
     const steps = recipe.steps.map((step) => {
-        if (step.id !== 'save-image') return step;
+        if (step.id !== 'save-image') {
+            return step;
+        }
         const exerciseView = step.valueTemplate?.ExerciseView || {};
         return Object.freeze({
             ...step,
@@ -136,7 +152,9 @@ async function uploadImageAssets({
     FormDataCtor
 }) {
     const imageBlocks = (definition?.blocks || []).filter((block) => block.type === 'image');
-    if (imageBlocks.length === 0) return definition;
+    if (imageBlocks.length === 0) {
+        return definition;
+    }
     if (!authorization) {
         throw createUploadError(
             'AUTH_CONTEXT_UNAVAILABLE',
@@ -210,7 +228,9 @@ async function uploadImageAssets({
         }
     }
     const blocks = definition.blocks.map((block) => {
-        if (block.type !== 'image') return block;
+        if (block.type !== 'image') {
+            return block;
+        }
         const clientId = parseClientId(block.url);
         return Object.freeze({ ...block, asset: assetsByClientId.get(clientId) });
     });
@@ -224,12 +244,16 @@ function createEnhancedAdapterFactory({
     fetchFn,
     FormDataCtor
 }) {
-    if (typeof originalFactory !== 'function') return null;
+    if (typeof originalFactory !== 'function') {
+        return null;
+    }
     return function createEnhancedAdapter(options) {
         const adapter = originalFactory(options);
         const uploadsByDefinition = new WeakMap();
         async function enrich(definition) {
-            if (!definition || typeof definition !== 'object') return definition;
+            if (!definition || typeof definition !== 'object') {
+                return definition;
+            }
             let upload = uploadsByDefinition.get(definition);
             if (!upload) {
                 upload = uploadImageAssets({
@@ -265,7 +289,9 @@ function enhanceAdapterFactory({
     FormDataCtor
 }) {
     const originalFactory = featureApi?.createRecordedCreationAdapter;
-    if (typeof originalFactory !== 'function' || originalFactory.__imageUploadEnhanced) return false;
+    if (typeof originalFactory !== 'function' || originalFactory.__imageUploadEnhanced) {
+        return false;
+    }
     const enhanced = createEnhancedAdapterFactory({
         originalFactory,
         registry,

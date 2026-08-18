@@ -117,15 +117,25 @@ class ActionRecorderDialog extends LitElement {
     }
 
     formatBytes(bytes) {
-        if (bytes < 1024) return `${bytes} Б`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КиБ`;
+        if (bytes < 1024) {
+            return `${bytes} Б`;
+        }
+        if (bytes < 1024 * 1024) {
+            return `${(bytes / 1024).toFixed(1)} КиБ`;
+        }
         return `${(bytes / 1024 / 1024).toFixed(1)} МиБ`;
     }
 
     operationStatus(operation) {
-        if (!operation.response) return 'Ожидается';
-        if (operation.response.isSuccess === true) return 'Успешно';
-        if (operation.response.isSuccess === false) return 'Ошибка';
+        if (!operation.response) {
+            return 'Ожидается';
+        }
+        if (operation.response.isSuccess === true) {
+            return 'Успешно';
+        }
+        if (operation.response.isSuccess === false) {
+            return 'Ошибка';
+        }
         return 'Ответ получен';
     }
 
@@ -137,9 +147,13 @@ class ActionRecorderDialog extends LitElement {
 
     calculateElapsed() {
         const startedAt = this.state.session?.startedAt;
-        if (!startedAt) return '';
+        if (!startedAt) {
+            return '';
+        }
         const started = Date.parse(startedAt);
-        if (Number.isNaN(started)) return '';
+        if (Number.isNaN(started)) {
+            return '';
+        }
         const end = this.state.session.stoppedAt
             ? Date.parse(this.state.session.stoppedAt)
             : Date.now();
@@ -151,7 +165,9 @@ class ActionRecorderDialog extends LitElement {
 
     syncElapsedTimer() {
         this.stopElapsedTimer();
-        if (this.state.status !== 'recording' || !this.isConnected) return;
+        if (this.state.status !== 'recording' || !this.isConnected) {
+            return;
+        }
         this.elapsedTimer = globalThis.setInterval(() => {
             this.elapsedLabel = this.calculateElapsed();
         }, 1000);
@@ -170,7 +186,7 @@ class ActionRecorderDialog extends LitElement {
 
     renderOperation(operation) {
         const resultClass = `operation-result is-${operation.response?.isSuccess === false ? 'error' : 'normal'
-            }`;
+        }`;
         return html`
             <details class="operation">
                 <summary>
@@ -181,10 +197,10 @@ class ActionRecorderDialog extends LitElement {
                 </summary>
                 <div class="operation-content">
                     <p>${[
-                `Project: ${operation.projectName || '—'}`,
-                `RequestId: ${operation.requestId}`,
-                `Origin: ${operation.origin}`
-            ].join(' · ')}</p>
+                        `Project: ${operation.projectName || '—'}`,
+                        `RequestId: ${operation.requestId}`,
+                        `Origin: ${operation.origin}`
+                    ].join(' · ')}</p>
                     ${this.renderJsonBlock('Запрос Value', operation.requestValue)}
                     ${this.renderJsonBlock('Ответ', operation.response)}
                     <button type="button" class="button copy-request" data-control="secondary"
@@ -224,7 +240,9 @@ class ActionRecorderDialog extends LitElement {
                             <p class="recorder-subtitle">Выполните одно действие в Edvibe и изучите обмен сообщениями.</p>
                         </div>
                         <div class="header-actions" data-part="actions">
-                            <button class="icon-button recorder-minimize" data-control="secondary" type="button" aria-label="Свернуть" @click=${() => { this.minimized = true; }}>
+                            <button class="icon-button recorder-minimize" data-control="secondary" type="button" aria-label="Свернуть" @click=${() => {
+                                this.minimized = true; 
+                            }}>
                                 -
                             </button>
                             <button class="icon-button recorder-close" data-control="secondary" type="button" aria-label="Закрыть" @click=${() => this.handleClose()}>
@@ -262,7 +280,9 @@ class ActionRecorderDialog extends LitElement {
                             <span><strong class="frame-count">${this.state.session?.frameCount || 0}</strong> кадров</span>
                             <span><strong class="byte-count">${this.formatBytes(this.state.session?.storedBytes || 0)}</strong> текста</span>
                             <label>
-                                <input class="show-toolbox" type="checkbox" .checked=${this.showToolbox} @change=${(event) => { this.showToolbox = event.currentTarget.checked; }}>
+                                <input class="show-toolbox" type="checkbox" .checked=${this.showToolbox} @change=${(event) => {
+                                    this.showToolbox = event.currentTarget.checked; 
+                                }}>
                                 Показать трафик Toolbox
                             </label>
                         </div>

@@ -7,7 +7,9 @@ const EXPECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE', 'RE
 
 function normalizeSectionName(value) {
     const name = String(value || '').trim();
-    if (!name) throw featureError('SECTION_NAME_REQUIRED', 'Enter the exact section name.');
+    if (!name) {
+        throw featureError('SECTION_NAME_REQUIRED', 'Enter the exact section name.');
+    }
     return name;
 }
 
@@ -31,7 +33,9 @@ function extractNormalSections(response) {
 
 function findExactSectionMatches(sections, sectionName) {
     const name = normalizeSectionName(sectionName);
-    if (!Array.isArray(sections)) throw featureError('INVALID_LESSON_RESPONSE', 'Sections must be an array.');
+    if (!Array.isArray(sections)) {
+        throw featureError('INVALID_LESSON_RESPONSE', 'Sections must be an array.');
+    }
     return sections.filter((section) => String(section?.Name ?? '') === name);
 }
 
@@ -104,7 +108,9 @@ async function inspectLessonsSequentially({ lessons, selectedLessonIds, sendRequ
             inspections.set(lesson.lessonId, { error: featureError(error.code || 'INVALID_LESSON_RESPONSE', error.message || 'Inspection failed.') });
         }
         onProgress?.({ current: index + 1, total: targets.length, lesson });
-        if (index < targets.length - 1 && requestDelayMs > 0) await wait(requestDelayMs);
+        if (index < targets.length - 1 && requestDelayMs > 0) {
+            await wait(requestDelayMs);
+        }
     }
     return inspections;
 }
@@ -134,10 +140,14 @@ async function executePlan({ plan, sendRequest, wait, requestDelayMs = 300, onPr
                 message: error.message || 'Deletion failed.',
                 diagnosticObservations: [error]
             });
-            if (!EXPECTED_WRITE_CODES.has(code)) fatalError = error;
+            if (!EXPECTED_WRITE_CODES.has(code)) {
+                fatalError = error;
+            }
         }
         onProgress?.({ current: index + 1, total: plan.eligible.length, entry, results: [...results] });
-        if (index < plan.eligible.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
+        if (index < plan.eligible.length - 1 && requestDelayMs > 0 && !fatalError) {
+            await wait(requestDelayMs);
+        }
     }
     return Object.freeze({ plan, results: Object.freeze(results.map(Object.freeze)), fatalError });
 }

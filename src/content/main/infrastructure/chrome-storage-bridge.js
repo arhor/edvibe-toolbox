@@ -12,16 +12,25 @@ function createStorageBridge(options = {}) {
     const windowApi = options.window || globalThis.window;
     const cryptoApi = options.cryptoApi || globalThis.crypto;
     const timeoutMs = options.timeoutMs || 5000;
-    if (!windowApi?.postMessage || !windowApi?.addEventListener) throw new TypeError('Window messaging APIs are required');
+    if (!windowApi?.postMessage || !windowApi?.addEventListener) {
+        throw new TypeError('Window messaging APIs are required');
+    }
     const pending = new Map();
     const onMessage = (event) => {
-        if (event.source !== windowApi || !isStorageResponseMessage(event.data)) return;
+        if (event.source !== windowApi || !isStorageResponseMessage(event.data)) {
+            return;
+        }
         const request = pending.get(event.data.requestId);
-        if (!request) return;
+        if (!request) {
+            return;
+        }
         pending.delete(event.data.requestId);
         clearTimeout(request.timer);
-        if (event.data.ok) request.resolve(event.data.value);
-        else request.reject(new Error(event.data.error || 'Storage request failed'));
+        if (event.data.ok) {
+            request.resolve(event.data.value);
+        } else {
+            request.reject(new Error(event.data.error || 'Storage request failed'));
+        }
     };
     windowApi.addEventListener('message', onMessage);
 
@@ -46,8 +55,12 @@ function createStorageBridge(options = {}) {
     }
 
     return Object.freeze({
-        get(key) { return request(STORAGE_ACTIONS.GET, key); },
-        set(key, value) { return request(STORAGE_ACTIONS.SET, key, value); },
+        get(key) {
+            return request(STORAGE_ACTIONS.GET, key); 
+        },
+        set(key, value) {
+            return request(STORAGE_ACTIONS.SET, key, value); 
+        },
         dispose() {
             windowApi.removeEventListener('message', onMessage);
             for (const value of pending.values()) {

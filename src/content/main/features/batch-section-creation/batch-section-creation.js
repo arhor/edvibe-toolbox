@@ -13,7 +13,9 @@ const TOKEN_PATTERN = /\{\{\s*([^{}]+?)\s*\}\}/g;
 
 function normalizeUrl(value) {
     const text = String(value || '').trim();
-    if (!text) return '';
+    if (!text) {
+        return '';
+    }
     try {
         const url = new URL(text);
         return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
@@ -33,7 +35,9 @@ function normalizeBlock(block, index) {
             alt: String(block?.alt || '').trim()
         });
     }
-    if (type === 'text') return Object.freeze({ id, type, text: String(block?.text || '').trim() });
+    if (type === 'text') {
+        return Object.freeze({ id, type, text: String(block?.text || '').trim() });
+    }
     if (type === 'link') {
         return Object.freeze({
             id,
@@ -51,8 +55,12 @@ function validateSectionDefinition(input = {}) {
     const blocks = Array.isArray(input?.blocks) ? input.blocks.map(normalizeBlock) : [];
     const seenIds = new Set();
 
-    if (!name) errors.push(createFeatureError('SECTION_NAME_REQUIRED', 'Section name is required.'));
-    if (blocks.length === 0) errors.push(createFeatureError('SECTION_BLOCK_REQUIRED', 'Add at least one section block.'));
+    if (!name) {
+        errors.push(createFeatureError('SECTION_NAME_REQUIRED', 'Section name is required.'));
+    }
+    if (blocks.length === 0) {
+        errors.push(createFeatureError('SECTION_BLOCK_REQUIRED', 'Add at least one section block.'));
+    }
 
     for (const [index, block] of blocks.entries()) {
         if (seenIds.has(block.id)) {
@@ -64,10 +72,16 @@ function validateSectionDefinition(input = {}) {
                 errors.push(createFeatureError('IMAGE_URL_REQUIRED', `Image block ${index + 1} requires an HTTP(S) URL.`));
             }
         } else if (block.type === 'text') {
-            if (!block.text) errors.push(createFeatureError('TEXT_REQUIRED', `Text block ${index + 1} cannot be empty.`));
+            if (!block.text) {
+                errors.push(createFeatureError('TEXT_REQUIRED', `Text block ${index + 1} cannot be empty.`));
+            }
         } else if (block.type === 'link') {
-            if (!block.label) errors.push(createFeatureError('LINK_LABEL_REQUIRED', `Link block ${index + 1} requires a label.`));
-            if (!normalizeUrl(block.url)) errors.push(createFeatureError('LINK_URL_REQUIRED', `Link block ${index + 1} requires an HTTP(S) URL.`));
+            if (!block.label) {
+                errors.push(createFeatureError('LINK_LABEL_REQUIRED', `Link block ${index + 1} requires a label.`));
+            }
+            if (!normalizeUrl(block.url)) {
+                errors.push(createFeatureError('LINK_URL_REQUIRED', `Link block ${index + 1} requires an HTTP(S) URL.`));
+            }
         } else {
             errors.push(createFeatureError('UNSUPPORTED_BLOCK_TYPE', `Block ${index + 1} has unsupported type "${block.type || 'unknown'}".`));
         }
@@ -85,7 +99,9 @@ function reorderBlocks(blocks, fromIndex, toIndex) {
         || fromIndex >= next.length
         || toIndex >= next.length
         || fromIndex === toIndex
-    ) return next;
+    ) {
+        return next;
+    }
     const [block] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, block);
     return next;
@@ -174,20 +190,28 @@ function resolveToken(path, context) {
     if (path.startsWith('generated.')) {
         const key = path.slice('generated.'.length);
         const store = context.block ? context.blockGenerated : context.generated;
-        if (!(key in store)) store[key] = context.createId();
+        if (!(key in store)) {
+            store[key] = context.createId();
+        }
         return store[key];
     }
     return readPath(context, path);
 }
 
 function resolveTemplate(value, context) {
-    if (Array.isArray(value)) return value.map((entry) => resolveTemplate(entry, context));
+    if (Array.isArray(value)) {
+        return value.map((entry) => resolveTemplate(entry, context));
+    }
     if (value && typeof value === 'object') {
         return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, resolveTemplate(entry, context)]));
     }
-    if (typeof value !== 'string') return value;
+    if (typeof value !== 'string') {
+        return value;
+    }
     const exact = value.match(/^\{\{\s*([^{}]+?)\s*\}\}$/);
-    if (exact) return resolveToken(exact[1], context);
+    if (exact) {
+        return resolveToken(exact[1], context);
+    }
     return value.replace(TOKEN_PATTERN, (_match, path) => {
         const resolved = resolveToken(path, context);
         return resolved == null ? '' : String(resolved);
@@ -240,7 +264,9 @@ function createRecordedCreationAdapter({
                 const matching = group.find((candidate) =>
                     !Array.isArray(candidate.blockTypes) || candidate.blockTypes.includes(block.type)
                 );
-                if (matching) expanded.push({ step: matching, block, blockIndex });
+                if (matching) {
+                    expanded.push({ step: matching, block, blockIndex });
+                }
             });
         }
         return expanded;
@@ -264,7 +290,9 @@ function createRecordedCreationAdapter({
             const blockGenerated = entry.block
                 ? blockGeneratedById.get(entry.block.id) || {}
                 : generated;
-            if (entry.block) blockGeneratedById.set(entry.block.id, blockGenerated);
+            if (entry.block) {
+                blockGeneratedById.set(entry.block.id, blockGenerated);
+            }
             const context = {
                 marathonId,
                 lesson,
@@ -290,8 +318,12 @@ function createRecordedCreationAdapter({
                     }
                     captured[name] = capturedValue;
                 }
-                if (entry.step.marksSectionCreated === true) markedCreated = true;
-                if (index < expanded.length - 1 && requestDelayMs > 0) await wait(requestDelayMs);
+                if (entry.step.marksSectionCreated === true) {
+                    markedCreated = true;
+                }
+                if (index < expanded.length - 1 && requestDelayMs > 0) {
+                    await wait(requestDelayMs);
+                }
             } catch (error) {
                 error.partialCreated = markedCreated;
                 error.captured = { ...captured };
@@ -352,7 +384,9 @@ async function inspectLessonsSequentially({
         } catch (error) {
             inspections.set(Number(lesson.lessonId), { error });
         }
-        if (index < targets.length - 1 && delayMs > 0) await wait(delayMs);
+        if (index < targets.length - 1 && delayMs > 0) {
+            await wait(delayMs);
+        }
     }
     return inspections;
 }
@@ -369,8 +403,12 @@ function createResult(lesson, status, details = {}) {
 }
 
 function isFatalError(error, getConnectionState) {
-    if (error?.code === 'WS_UNAVAILABLE') return true;
-    if (error?.code === 'SEND_FAILED' && !getConnectionState().isOpen) return true;
+    if (error?.code === 'WS_UNAVAILABLE') {
+        return true;
+    }
+    if (error?.code === 'SEND_FAILED' && !getConnectionState().isOpen) {
+        return true;
+    }
     return !EXPECTED_WRITE_CODES.has(error?.code);
 }
 
@@ -460,7 +498,9 @@ async function executeCreationPlan({
             lesson,
             results: [...results]
         });
-        if (index < plan.eligible.length - 1 && lessonDelayMs > 0) await wait(lessonDelayMs);
+        if (index < plan.eligible.length - 1 && lessonDelayMs > 0) {
+            await wait(lessonDelayMs);
+        }
     }
     return { definition: plan.definition, results, attempts };
 }
@@ -483,8 +523,12 @@ function formatCreationReport(result) {
             `${entry.lessonNumber || '?'}. ${entry.lessonName} — ${entry.status}`
             + (entry.code ? ` — ${entry.code}: ${entry.message || ''}` : '')
         );
-        if (entry.captured?.sectionId !== undefined) lines.push(`  Captured sectionId: ${entry.captured.sectionId}`);
-        if (entry.cleanup) lines.push(`  Cleanup: ${entry.cleanup.status}`);
+        if (entry.captured?.sectionId !== undefined) {
+            lines.push(`  Captured sectionId: ${entry.captured.sectionId}`);
+        }
+        if (entry.cleanup) {
+            lines.push(`  Cleanup: ${entry.cleanup.status}`);
+        }
     }
     return lines.join('\n').trim();
 }
@@ -525,7 +569,9 @@ function createBatchSectionCreationFeature({
     }
 
     async function preflight(event) {
-        if (running) return;
+        if (running) {
+            return;
+        }
         running = true;
         try {
             const definition = event?.detail?.definition || {};
@@ -561,7 +607,9 @@ function createBatchSectionCreationFeature({
     }
 
     async function confirm() {
-        if (running || !pendingPlan?.eligible?.length) return;
+        if (running || !pendingPlan?.eligible?.length) {
+            return;
+        }
         running = true;
         try {
             completedResult = await executeCreationPlan({
@@ -587,7 +635,9 @@ function createBatchSectionCreationFeature({
     }
 
     async function copyReport() {
-        if (completedResult) await copyText(formatCreationReport(completedResult));
+        if (completedResult) {
+            await copyText(formatCreationReport(completedResult));
+        }
     }
 
     function restart() {
@@ -601,7 +651,9 @@ function createBatchSectionCreationFeature({
     }
 
     async function open() {
-        if (active || document.getElementById(OVERLAY_ID)) return;
+        if (active || document.getElementById(OVERLAY_ID)) {
+            return;
+        }
         if (!canStart()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;

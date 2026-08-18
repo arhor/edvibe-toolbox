@@ -11,7 +11,9 @@ const HISTORY_DB_DEFINITION = Object.freeze({
     migrations: Object.freeze([Object.freeze({
         version: 1,
         migrate({ db }) {
-            if (db.objectStoreNames.contains(HISTORY_STORE_NAME)) return;
+            if (db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+                return;
+            }
             const store = db.createObjectStore(HISTORY_STORE_NAME, { keyPath: 'id' });
             store.createIndex('completedAt', 'completedAt', { unique: false });
             store.createIndex('operationType', 'operationType', { unique: false });
@@ -22,30 +24,46 @@ const HISTORY_DB_DEFINITION = Object.freeze({
 });
 
 function normalizeDateBoundary(value, path, endOfDay = false) {
-    if (!value) return null;
+    if (!value) {
+        return null;
+    }
     const serialized = String(value);
     const date = /^\d{4}-\d{2}-\d{2}$/.test(serialized)
         ? new Date(`${serialized}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}`)
         : new Date(value);
-    if (Number.isNaN(date.getTime())) throw new TypeError(`Invalid ${path}`);
+    if (Number.isNaN(date.getTime())) {
+        throw new TypeError(`Invalid ${path}`);
+    }
     return date.getTime();
 }
 
 function matchesFilters(record, filters = {}) {
-    if (filters.operationType && record.operationType !== filters.operationType) return false;
-    if (filters.status && record.status !== filters.status) return false;
-    if (filters.marathonId && String(record.pageContext?.marathonId || '') !== String(filters.marathonId)) return false;
+    if (filters.operationType && record.operationType !== filters.operationType) {
+        return false;
+    }
+    if (filters.status && record.status !== filters.status) {
+        return false;
+    }
+    if (filters.marathonId && String(record.pageContext?.marathonId || '') !== String(filters.marathonId)) {
+        return false;
+    }
     const completed = new Date(record.completedAt).getTime();
     const from = normalizeDateBoundary(filters.from, 'from');
     const to = normalizeDateBoundary(filters.to, 'to', true);
-    if (from !== null && completed < from) return false;
-    if (to !== null && completed > to) return false;
+    if (from !== null && completed < from) {
+        return false;
+    }
+    if (to !== null && completed > to) {
+        return false;
+    }
     return true;
 }
 
 function createExecutionHistoryRepository(options = {}) {
     const api = options.indexedDbApi || indexedDbApi;
-    if (!api?.createIndexedDb) throw new TypeError('IndexedDB API is required');
+    if (!api?.createIndexedDb) {
+        throw new TypeError('IndexedDB API is required');
+    }
     const db = api.createIndexedDb(HISTORY_DB_DEFINITION, { indexedDB: options.indexedDB });
     const repository = db.repository(HISTORY_STORE_NAME);
 

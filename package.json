@@ -11,7 +11,7 @@
     "dev": "vite build --watch --mode development",
     "build": "vite build",
     "check:build-output": "node scripts/check-build-output.js",
-    "lint": "eslint .",
+    "lint": "eslint . --fix",
     "test": "node --import ./scripts/test-css-loader.mjs --test \"src/**/*.test.js\"",
     "test:ci": "npm test"
   },
@@ -23,6 +23,7 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "2.7.1",
     "@eslint/js": "10.0.1",
+    "@stylistic/eslint-plugin": "5.10.0",
     "@types/chrome": "0.2.2",
     "@types/node": "22.20.1",
     "eslint": "10.8.1",

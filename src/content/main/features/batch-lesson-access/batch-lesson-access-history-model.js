@@ -45,9 +45,13 @@ function splitSubmittedInputs(value) {
     const seen = new Set();
     for (const token of String(value || '').split(/[,;\r\n]+/)) {
         const submittedInput = token.trim();
-        if (!submittedInput) continue;
+        if (!submittedInput) {
+            continue;
+        }
         const normalizedEmail = normalizeEmail(submittedInput);
-        if (seen.has(normalizedEmail)) continue;
+        if (seen.has(normalizedEmail)) {
+            continue;
+        }
         seen.add(normalizedEmail);
         entries.push(freezeObject({ submittedInput, normalizedEmail }));
     }
@@ -87,11 +91,15 @@ function createCapture() {
 }
 
 function replacePage(target, offset, values) {
-    if (offset === 0) target.length = 0;
+    if (offset === 0) {
+        target.length = 0;
+    }
     for (let index = 0; index < values.length; index += 1) {
         target[offset + index] = values[index];
     }
-    while (target.length > 0 && target[target.length - 1] === undefined) target.pop();
+    while (target.length > 0 && target[target.length - 1] === undefined) {
+        target.pop();
+    }
 }
 
 function observeRequest(capture, method, value, result) {
@@ -110,7 +118,9 @@ function observeRequest(capture, method, value, result) {
 }
 
 function recordWriteAttempt(capture, method, value) {
-    if (method !== 'ChangeIsOpenLessonForPupil') return;
+    if (method !== 'ChangeIsOpenLessonForPupil') {
+        return;
+    }
     const key = attemptKey(value?.MarathonPupilId, value?.MarathonLessonId);
     capture.writeAttempts.set(key, (capture.writeAttempts.get(key) || 0) + 1);
 }
@@ -239,7 +249,9 @@ function buildObservedPlan({
         }));
 
     for (const identity of identities) {
-        if (identity.resolution !== 'matched') continue;
+        if (identity.resolution !== 'matched') {
+            continue;
+        }
         const lessons = lessonsByPupilId.get(identity.pupilId);
         if (!Array.isArray(lessons)) {
             const source = findDiscoveryError(serializedErrors, identity);

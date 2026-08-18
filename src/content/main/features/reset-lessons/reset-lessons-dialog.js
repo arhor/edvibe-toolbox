@@ -86,7 +86,9 @@ class ResetLessonsDialog extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        if (!this.id) this.id = RESET_OVERLAY_ID;
+        if (!this.id) {
+            this.id = RESET_OVERLAY_ID;
+        }
         this.ownerDocument?.addEventListener('keydown', this.handleKeydownBound);
     }
 
@@ -106,10 +108,14 @@ class ResetLessonsDialog extends LitElement {
         return this;
     }
 
-    updated() { this.cacheElements(); }
+    updated() {
+        this.cacheElements(); 
+    }
 
     cacheElements() {
-        if (!this.shadowRoot) { this.elements = null; return; }
+        if (!this.shadowRoot) {
+            this.elements = null; return; 
+        }
         const find = (selector) => this.shadowRoot.querySelector(selector);
         this.elements = {
             backdrop: find('.edvibe-reset-overlay'), search: find('.edvibe-reset-search'),
@@ -121,14 +127,22 @@ class ResetLessonsDialog extends LitElement {
         };
     }
 
-    normalizeSearchQuery(value) { return String(value || '').trim().toLowerCase(); }
+    normalizeSearchQuery(value) {
+        return String(value || '').trim().toLowerCase(); 
+    }
     filterPupils(query) {
         const normalized = this.normalizeSearchQuery(query);
         return normalized ? this.allPupils.filter((pupil) => String(pupil.Email || '').toLowerCase().includes(normalized)) : this.allPupils;
     }
-    hasMorePupils() { return this.allPupils.length < this.pupilTotal; }
-    hasLoadedLessonsForSelectedPupil() { return Boolean(this.selectedPupil) && this.selectedPupil.PupilId === this.loadedPupilId; }
-    isPupilLoadingVisible() { return this.loading || (this.pupilPageLoading && !this.suppressPupilPageLoading); }
+    hasMorePupils() {
+        return this.allPupils.length < this.pupilTotal; 
+    }
+    hasLoadedLessonsForSelectedPupil() {
+        return Boolean(this.selectedPupil) && this.selectedPupil.PupilId === this.loadedPupilId; 
+    }
+    isPupilLoadingVisible() {
+        return this.loading || (this.pupilPageLoading && !this.suppressPupilPageLoading); 
+    }
     getViewState() {
         const blocked = this.loading || this.locked || this.finished;
         const showingUsers = this.currentStep === 'user';
@@ -138,20 +152,38 @@ class ResetLessonsDialog extends LitElement {
             closeDisabled: this.loading || this.locked
         };
     }
-    setStatus(message, state = '') { this.statusMessage = String(message || ''); this.statusState = state === 'error' || state === 'success' ? state : ''; }
-    renderState() { this.requestUpdate(); }
-    renderPupilLoadingState() { this.requestUpdate(); }
-    renderPupils() { this.requestUpdate(); }
+    setStatus(message, state = '') {
+        this.statusMessage = String(message || ''); this.statusState = state === 'error' || state === 'success' ? state : ''; 
+    }
+    renderState() {
+        this.requestUpdate(); 
+    }
+    renderPupilLoadingState() {
+        this.requestUpdate(); 
+    }
+    renderPupils() {
+        this.requestUpdate(); 
+    }
 
     selectPupil(pupil) {
-        if (this.locked || this.finished || this.isPupilLoadingVisible() || pupil.PupilId === this.selectedPupil?.PupilId) return;
-        if (pupil.PupilId !== this.loadedPupilId) { this.loadedPupilId = null; this.lessons = []; this.selectedLessonIds = new Set(); }
+        if (this.locked || this.finished || this.isPupilLoadingVisible() || pupil.PupilId === this.selectedPupil?.PupilId) {
+            return;
+        }
+        if (pupil.PupilId !== this.loadedPupilId) {
+            this.loadedPupilId = null; this.lessons = []; this.selectedLessonIds = new Set(); 
+        }
         this.selectedPupil = pupil;
         this.setStatus(`Выбран пользователь: ${pupil.Email || 'email отсутствует'}`);
     }
-    renderLessons() { this.requestUpdate(); }
+    renderLessons() {
+        this.requestUpdate(); 
+    }
     toggleLesson(lessonId, selected) {
-        if (selected) this.selectedLessonIds.add(lessonId); else this.selectedLessonIds.delete(lessonId);
+        if (selected) {
+            this.selectedLessonIds.add(lessonId);
+        } else {
+            this.selectedLessonIds.delete(lessonId);
+        }
         this.requestUpdate();
     }
     handleSelectAll(event) {
@@ -167,62 +199,102 @@ class ResetLessonsDialog extends LitElement {
         const query = this.normalizeSearchQuery(this.searchValue);
         const generation = this.searchGeneration;
         this.searchTimer = globalThis.setTimeout(async () => {
-            if (!this.isCurrentSearch(generation, query)) return;
+            if (!this.isCurrentSearch(generation, query)) {
+                return;
+            }
             this.searchTimer = null;
             const needsRemotePupils = Boolean(query && this.filterPupils(query).length === 0 && this.hasMorePupils());
             this.searchDebouncing = false;
-            if (needsRemotePupils || !this.pupilPageLoading) this.suppressPupilPageLoading = false;
-            if (needsRemotePupils && !await this.continueSearch(generation, query)) return;
-            if (!this.isCurrentSearch(generation, query)) return;
+            if (needsRemotePupils || !this.pupilPageLoading) {
+                this.suppressPupilPageLoading = false;
+            }
+            if (needsRemotePupils && !await this.continueSearch(generation, query)) {
+                return;
+            }
+            if (!this.isCurrentSearch(generation, query)) {
+                return;
+            }
             this.appliedSearchQuery = query;
         }, this.searchDelay);
     }
-    isCurrentSearch(generation, query) { return !this.closed && generation === this.searchGeneration && query === this.normalizeSearchQuery(this.searchValue); }
-    cancelSearchTimer() { if (this.searchTimer !== null) { globalThis.clearTimeout(this.searchTimer); this.searchTimer = null; } }
-    cancelSearch() { this.searchGeneration += 1; this.cancelSearchTimer(); }
+    isCurrentSearch(generation, query) {
+        return !this.closed && generation === this.searchGeneration && query === this.normalizeSearchQuery(this.searchValue); 
+    }
+    cancelSearchTimer() {
+        if (this.searchTimer !== null) {
+            globalThis.clearTimeout(this.searchTimer); this.searchTimer = null; 
+        } 
+    }
+    cancelSearch() {
+        this.searchGeneration += 1; this.cancelSearchTimer(); 
+    }
     async continueSearch(generation, query) {
         while (this.isCurrentSearch(generation, query) && this.filterPupils(query).length === 0 && this.hasMorePupils()) {
-            if (!await this.loadNextPupilPage()) return false;
+            if (!await this.loadNextPupilPage()) {
+                return false;
+            }
         }
         return true;
     }
     async loadNextPupilPage() {
-        if (this.closed || !this.loadNextPupils || !this.hasMorePupils()) return false;
-        if (this.pupilPagePromise) return this.pupilPagePromise;
+        if (this.closed || !this.loadNextPupils || !this.hasMorePupils()) {
+            return false;
+        }
+        if (this.pupilPagePromise) {
+            return this.pupilPagePromise;
+        }
         this.suppressPupilPageLoading = false;
         this.pupilPageLoading = true;
         this.pupilPagePromise = (async () => {
             try {
                 const page = await this.loadNextPupils();
-                if (this.closed) return false;
+                if (this.closed) {
+                    return false;
+                }
                 this.allPupils = Array.isArray(page?.pupils) ? page.pupils : [];
                 this.pupilTotal = Number(page?.total) || 0;
-                if (this.currentStep === 'user' && !this.loading) this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`);
+                if (this.currentStep === 'user' && !this.loading) {
+                    this.setStatus(`Загружено пользователей: ${this.allPupils.length} из ${this.pupilTotal}`);
+                }
                 return true;
             } catch (error) {
-                if (!this.closed && this.currentStep === 'user' && !this.loading) { this.log(`Failed to load another pupil page (${this.errorType(error)}).`); this.setStatus(error.message, 'error'); }
+                if (!this.closed && this.currentStep === 'user' && !this.loading) {
+                    this.log(`Failed to load another pupil page (${this.errorType(error)}).`); this.setStatus(error.message, 'error'); 
+                }
                 return false;
             } finally {
-                this.pupilPagePromise = null; this.pupilPageLoading = false; if (!this.searchDebouncing) this.suppressPupilPageLoading = false;
+                this.pupilPagePromise = null; this.pupilPageLoading = false; if (!this.searchDebouncing) {
+                    this.suppressPupilPageLoading = false;
+                }
             }
         })();
         return this.pupilPagePromise;
     }
     handlePupilsScroll(event) {
-        if (this.searchDebouncing) return;
+        if (this.searchDebouncing) {
+            return;
+        }
         const list = event?.currentTarget || this.elements?.pupilsList;
-        if (!list) return;
-        if (list.scrollHeight - list.scrollTop - list.clientHeight <= 24) this.loadNextPupilPage();
+        if (!list) {
+            return;
+        }
+        if (list.scrollHeight - list.scrollTop - list.clientHeight <= 24) {
+            this.loadNextPupilPage();
+        }
     }
     async handleNext() {
-        if (this.getViewState().nextDisabled || !this.selectedPupil) return;
+        if (this.getViewState().nextDisabled || !this.selectedPupil) {
+            return;
+        }
         if (this.hasLoadedLessonsForSelectedPupil()) {
             this.currentStep = 'lessons';
             await this.updateComplete;
             this.shadowRoot?.querySelector('.edvibe-reset-lessons')?.focus();
             return;
         }
-        if (!this.loadLessons) return;
+        if (!this.loadLessons) {
+            return;
+        }
         try {
             this.setLoading(`Загрузка уроков для ${this.selectedPupil.Email}...`);
             const lessons = await this.loadLessons(this.selectedPupil);
@@ -234,20 +306,36 @@ class ResetLessonsDialog extends LitElement {
         }
     }
     handleBack() {
-        if (this.getViewState().backDisabled) return;
-        if (this.finished) { this.resetForAnotherUser(); return; }
+        if (this.getViewState().backDisabled) {
+            return;
+        }
+        if (this.finished) {
+            this.resetForAnotherUser(); return; 
+        }
         this.currentStep = 'user';
         this.setStatus(`Выбран пользователь: ${this.selectedPupil?.Email || 'email отсутствует'}`);
         this.updateComplete.then(() => this.shadowRoot?.querySelector('.edvibe-reset-search')?.focus());
     }
     handleSubmit() {
-        if (this.getViewState().submitDisabled) return;
+        if (this.getViewState().submitDisabled) {
+            return;
+        }
         this.dispatchEvent(new CustomEvent('edvibe-reset-request', { detail: { pupil: this.selectedPupil, lessons: this.lessons.filter((lesson) => this.selectedLessonIds.has(lesson.MarathonLessonId)) } }));
     }
-    handleBackdropClick(event) { if (event.target === event.currentTarget) this.close(); }
-    handleKeydown(event) { if (event.key === 'Escape') this.close(); }
+    handleBackdropClick(event) {
+        if (event.target === event.currentTarget) {
+            this.close();
+        } 
+    }
+    handleKeydown(event) {
+        if (event.key === 'Escape') {
+            this.close();
+        } 
+    }
     close() {
-        if (this.locked || this.loading || this.closed) return;
+        if (this.locked || this.loading || this.closed) {
+            return;
+        }
         this.closed = true; this.cancelSearch(); this.dispatchEvent(new CustomEvent('edvibe-dialog-close')); this.remove();
     }
     resetForAnotherUser() {
@@ -267,20 +355,34 @@ class ResetLessonsDialog extends LitElement {
         return this;
     }
     showLessons(pupil, lessons) {
-        if (!pupil || typeof pupil !== 'object') return this;
+        if (!pupil || typeof pupil !== 'object') {
+            return this;
+        }
         const normalizedLessons = Array.isArray(lessons) ? lessons : [];
         const pupilChanged = this.loadedPupilId !== pupil.PupilId;
         this.selectedPupil = pupil; this.loadedPupilId = pupil.PupilId; this.lessons = normalizedLessons;
-        if (pupilChanged) this.selectedLessonIds = new Set();
+        if (pupilChanged) {
+            this.selectedLessonIds = new Set();
+        }
         this.loading = false; this.currentStep = 'lessons'; this.setStatus(`Загружено уроков: ${normalizedLessons.length}`);
         this.updateComplete.then(() => this.shadowRoot?.querySelector('.edvibe-reset-lessons')?.focus());
         return this;
     }
-    setLoading(message) { this.loading = true; this.setStatus(message); }
-    lock() { this.locked = true; this.classList.toggle('is-running', true); }
-    completeRun() { this.locked = false; this.finished = true; this.classList.toggle('is-running', false); }
-    unlockAfterRun() { this.locked = false; this.finished = false; this.classList.toggle('is-running', false); }
-    showDiscovery(message) { this.setStatus(message); this.progressVisible = true; this.progressIndeterminate = true; }
+    setLoading(message) {
+        this.loading = true; this.setStatus(message); 
+    }
+    lock() {
+        this.locked = true; this.classList.toggle('is-running', true); 
+    }
+    completeRun() {
+        this.locked = false; this.finished = true; this.classList.toggle('is-running', false); 
+    }
+    unlockAfterRun() {
+        this.locked = false; this.finished = false; this.classList.toggle('is-running', false); 
+    }
+    showDiscovery(message) {
+        this.setStatus(message); this.progressVisible = true; this.progressIndeterminate = true; 
+    }
     showProgress(options = {}) {
         const normalizedOptions = options && typeof options === 'object' ? options : {};
         const completed = Number(normalizedOptions.completed) || 0; const total = Number(normalizedOptions.total) || 0;
@@ -290,13 +392,23 @@ class ResetLessonsDialog extends LitElement {
         this.setStatus(`${lesson.Name || ''}\n${detail} — ${completed} / ${total}`);
         this.progressVisible = true; this.progressIndeterminate = false; this.progressValue = percent;
     }
-    showComplete(message) { this.setStatus(message, 'success'); this.progressVisible = true; this.progressIndeterminate = false; this.progressValue = 100; }
-    showError(message) { if (!this.locked) this.loading = false; this.setStatus(message, 'error'); this.progressIndeterminate = false; }
-    errorType(error) { return typeof error?.name === 'string' ? error.name : 'Error'; }
+    showComplete(message) {
+        this.setStatus(message, 'success'); this.progressVisible = true; this.progressIndeterminate = false; this.progressValue = 100; 
+    }
+    showError(message) {
+        if (!this.locked) {
+            this.loading = false;
+        } this.setStatus(message, 'error'); this.progressIndeterminate = false; 
+    }
+    errorType(error) {
+        return typeof error?.name === 'string' ? error.name : 'Error'; 
+    }
 
     renderPupilRows() {
         const visiblePupils = this.filterPupils(this.appliedSearchQuery);
-        if (visiblePupils.length === 0) return html`<p class="edvibe-reset-empty" data-part="empty-state">Пользователи не найдены.</p>`;
+        if (visiblePupils.length === 0) {
+            return html`<p class="edvibe-reset-empty" data-part="empty-state">Пользователи не найдены.</p>`;
+        }
         const busy = this.isPupilLoadingVisible();
         return visiblePupils.map((pupil) => {
             const selected = pupil.PupilId === this.selectedPupil?.PupilId;
@@ -305,7 +417,9 @@ class ResetLessonsDialog extends LitElement {
         });
     }
     renderLessonRows(inputsBlocked) {
-        if (this.lessons.length === 0) return html`<p class="edvibe-reset-empty" data-part="empty-state">Для пользователя нет уроков.</p>`;
+        if (this.lessons.length === 0) {
+            return html`<p class="edvibe-reset-empty" data-part="empty-state">Для пользователя нет уроков.</p>`;
+        }
         return this.lessons.map((lesson) => html`<label class="edvibe-reset-row edvibe-reset-lesson"><input type="checkbox" .value=${String(lesson.MarathonLessonId)} .checked=${this.selectedLessonIds.has(lesson.MarathonLessonId)} ?disabled=${inputsBlocked} @change=${(event) => this.toggleLesson(lesson.MarathonLessonId, event.currentTarget.checked)}><span class="edvibe-reset-row-copy"><span class="edvibe-reset-row-name">${Number(lesson.Number) + 1}. ${lesson.Name}</span><span class="edvibe-reset-row-email">${lesson.LastRequest ? `Статус последнего запроса: ${lesson.LastRequest.Status}` : 'Нет запросов на проверку'}</span></span></label>`);
     }
     render() {
@@ -331,6 +445,8 @@ class ResetLessonsDialog extends LitElement {
     }
 }
 
-if (!customElements.get(RESET_DIALOG_TAG)) customElements.define(RESET_DIALOG_TAG, ResetLessonsDialog);
+if (!customElements.get(RESET_DIALOG_TAG)) {
+    customElements.define(RESET_DIALOG_TAG, ResetLessonsDialog);
+}
 
 export { RESET_DIALOG_TAG, RESET_OVERLAY_ID, ResetLessonsDialog };

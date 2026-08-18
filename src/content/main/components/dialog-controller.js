@@ -19,16 +19,22 @@ export class DialogController {
     }
 
     hostUpdated() {
-        if (this.initialFocusApplied) return;
+        if (this.initialFocusApplied) {
+            return;
+        }
         const target = this.resolveInitialFocus();
-        if (!target) return;
+        if (!target) {
+            return;
+        }
         target.focus();
         this.initialFocusApplied = this.hasFocus(target);
     }
 
     hostDisconnected() {
         this.document?.removeEventListener('keydown', this.handleKeydown);
-        if (this.previouslyFocused?.isConnected) this.previouslyFocused.focus();
+        if (this.previouslyFocused?.isConnected) {
+            this.previouslyFocused.focus();
+        }
         this.previouslyFocused = null;
         this.initialFocusApplied = false;
     }
@@ -38,7 +44,9 @@ export class DialogController {
         const configured = typeof this.options.initialFocus === 'function'
             ? this.options.initialFocus(this.host)
             : root?.querySelector(this.options.initialFocus || '[autofocus]');
-        if (this.isAvailableFocusTarget(configured)) return configured;
+        if (this.isAvailableFocusTarget(configured)) {
+            return configured;
+        }
         const candidates = root?.querySelectorAll(
             'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
         ) || [];
@@ -58,21 +66,31 @@ export class DialogController {
     }
 
     requestClose(reason, event) {
-        if (event?.defaultPrevented) return false;
-        if (this.options.canClose && !this.options.canClose(this.host, reason, event)) return false;
+        if (event?.defaultPrevented) {
+            return false;
+        }
+        if (this.options.canClose && !this.options.canClose(this.host, reason, event)) {
+            return false;
+        }
         const close = this.options.onClose;
-        if (typeof close !== 'function') return false;
+        if (typeof close !== 'function') {
+            return false;
+        }
         event?.preventDefault?.();
         close(this.host, reason, event);
         return true;
     }
 
     handleBackdropClick(event) {
-        if (event.target !== event.currentTarget) return false;
+        if (event.target !== event.currentTarget) {
+            return false;
+        }
         return this.requestClose('backdrop', event);
     }
 
     handleKeydown(event) {
-        if (event.key === 'Escape') this.requestClose('escape', event);
+        if (event.key === 'Escape') {
+            this.requestClose('escape', event);
+        }
     }
 }

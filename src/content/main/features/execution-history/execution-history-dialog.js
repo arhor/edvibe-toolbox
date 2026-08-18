@@ -47,7 +47,9 @@ function createSummary(record) {
 const FAILED_OUTCOME_STATUSES = new Set(['failed', 'rejected', 'interrupted']);
 
 function formatDiagnosticSummary(value) {
-    if (value === null || value === undefined) return 'Not available';
+    if (value === null || value === undefined) {
+        return 'Not available';
+    }
     return JSON.stringify(value, null, 2);
 }
 
@@ -107,13 +109,17 @@ class ExecutionHistoryDialog extends LitElement {
         this.toastError = false;
         this.initializationPromise = null;
         this.handleKeydownBound = (event) => {
-            if (event.key === 'Escape') this.options?.onClose?.();
+            if (event.key === 'Escape') {
+                this.options?.onClose?.();
+            }
         };
     }
 
     configure(options = {}) {
         this.options = options && typeof options === 'object' ? options : {};
-        if (this.isConnected) this.initialize();
+        if (this.isConnected) {
+            this.initialize();
+        }
         return this;
     }
 
@@ -129,8 +135,12 @@ class ExecutionHistoryDialog extends LitElement {
     }
 
     initialize() {
-        if (!this.options) return Promise.resolve();
-        if (this.initializationPromise) return this.initializationPromise;
+        if (!this.options) {
+            return Promise.resolve();
+        }
+        if (this.initializationPromise) {
+            return this.initializationPromise;
+        }
         this.initializationPromise = (async () => {
             await this.updateComplete;
             this.shadowRoot?.querySelector('[data-action="close"]')?.focus();
@@ -156,11 +166,21 @@ class ExecutionHistoryDialog extends LitElement {
 
     setFilter(name, value) {
         const normalized = String(value || '');
-        if (name === 'operationType') this.filterOperationType = normalized;
-        if (name === 'status') this.filterStatus = normalized;
-        if (name === 'marathonId') this.filterMarathonId = normalized;
-        if (name === 'from') this.filterFrom = normalized;
-        if (name === 'to') this.filterTo = normalized;
+        if (name === 'operationType') {
+            this.filterOperationType = normalized;
+        }
+        if (name === 'status') {
+            this.filterStatus = normalized;
+        }
+        if (name === 'marathonId') {
+            this.filterMarathonId = normalized;
+        }
+        if (name === 'from') {
+            this.filterFrom = normalized;
+        }
+        if (name === 'to') {
+            this.filterTo = normalized;
+        }
     }
 
     async loadRecords() {
@@ -190,7 +210,9 @@ class ExecutionHistoryDialog extends LitElement {
     async openRecord(executionId) {
         try {
             const record = await this.options.service.get(executionId);
-            if (!record) throw new Error('Execution record was not found.');
+            if (!record) {
+                throw new Error('Execution record was not found.');
+            }
             this.selectedRecord = record;
         } catch (error) {
             this.showToast(error.message || 'Could not open the execution.', true);
@@ -264,8 +286,12 @@ class ExecutionHistoryDialog extends LitElement {
     }
 
     async handleAction(action) {
-        if (action === 'close') this.options.onClose?.();
-        if (action === 'reset-filters') await this.resetFilters();
+        if (action === 'close') {
+            this.options.onClose?.();
+        }
+        if (action === 'reset-filters') {
+            await this.resetFilters();
+        }
         if (action === 'export-filtered') {
             await this.runAction(
                 () => this.options.service.exportFiltered(this.filters),
@@ -298,7 +324,9 @@ class ExecutionHistoryDialog extends LitElement {
                 'Could not clear execution history.'
             );
         }
-        if (action === 'save-preferences') await this.savePreferences();
+        if (action === 'save-preferences') {
+            await this.savePreferences();
+        }
     }
 
     showToast(message, isError = false) {
@@ -340,7 +368,9 @@ class ExecutionHistoryDialog extends LitElement {
     }
 
     renderDiagnostics(diagnostics) {
-        if (!diagnostics?.requestAttempts?.length) return '';
+        if (!diagnostics?.requestAttempts?.length) {
+            return '';
+        }
         return html`
             <details class="diagnostics">
                 <summary>Request diagnostics</summary>
@@ -437,7 +467,9 @@ class ExecutionHistoryDialog extends LitElement {
                     </header>
                     <div class="workspace">
                         <aside class="browser-panel">
-                            <form class="filters" data-role="filters" @submit=${(event) => { event.preventDefault(); this.loadRecords(); }}>
+                            <form class="filters" data-role="filters" @submit=${(event) => {
+                                event.preventDefault(); this.loadRecords(); 
+                            }}>
                                 <label data-field>Operation<select name="operationType" .value=${this.filterOperationType} @change=${(event) => this.setFilter('operationType', event.currentTarget.value)}>
                                     <option value="">All operations</option>
                                     ${this.operationTypes.map((operationType) => html`<option value=${operationType}>${operationType}</option>`)}

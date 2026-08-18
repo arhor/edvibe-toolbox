@@ -56,7 +56,9 @@ class BatchUserManagementDialog extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        if (!this.id) this.id = USER_MANAGEMENT_OVERLAY_ID;
+        if (!this.id) {
+            this.id = USER_MANAGEMENT_OVERLAY_ID;
+        }
         this.ownerDocument?.addEventListener('keydown', this.handleKeydownBound);
     }
 
@@ -156,7 +158,9 @@ class BatchUserManagementDialog extends LitElement {
     }
 
     selectOperation(row, operation, selected) {
-        if (this.isLocked() || row.actionable === false) return;
+        if (this.isLocked() || row.actionable === false) {
+            return;
+        }
         this.rows = this.rows.map((item) => item === row
             ? {...item, [`${operation}Selected`]: Boolean(selected), result: {...(item.result || {})}}
             : item);
@@ -164,7 +168,9 @@ class BatchUserManagementDialog extends LitElement {
     }
 
     selectAll(operation, selected) {
-        if (this.isLocked()) return;
+        if (this.isLocked()) {
+            return;
+        }
         this.rows = this.rows.map((row) => row.actionable === false
             ? row
             : {...row, [`${operation}Selected`]: Boolean(selected), result: {...(row.result || {})}});
@@ -190,21 +196,27 @@ class BatchUserManagementDialog extends LitElement {
     }
 
     handleCheck() {
-        if (!this.canCheck()) return;
+        if (!this.canCheck()) {
+            return;
+        }
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-check', {
             detail: {emailInput: this.emailInput}
         }));
     }
 
     handleStart() {
-        if (!this.canStart()) return;
+        if (!this.canStart()) {
+            return;
+        }
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-start', {
             detail: {rows: this.copyRows()}
         }));
     }
 
     handleRestart() {
-        if (!['complete', 'partial-complete'].includes(this.mode)) return;
+        if (!['complete', 'partial-complete'].includes(this.mode)) {
+            return;
+        }
         this.rows = [];
         this.mode = 'configure';
         this.emailInput = '';
@@ -214,15 +226,21 @@ class BatchUserManagementDialog extends LitElement {
     }
 
     handleBackdropClick(event) {
-        if (event.target === event.currentTarget) this.close();
+        if (event.target === event.currentTarget) {
+            this.close();
+        }
     }
 
     handleKeydown(event) {
-        if (event.key === 'Escape') this.close();
+        if (event.key === 'Escape') {
+            this.close();
+        }
     }
 
     close() {
-        if (!this.canClose()) return;
+        if (!this.canClose()) {
+            return;
+        }
         this.dispatchEvent(new CustomEvent('edvibe-dialog-close'));
         this.remove();
     }

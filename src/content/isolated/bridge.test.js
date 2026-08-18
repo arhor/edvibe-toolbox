@@ -24,10 +24,14 @@ function createHarness(initialStorage = {}) {
 
     const windowApi = {
         addEventListener(type, listener) {
-            if (type === 'message') windowListeners.add(listener);
+            if (type === 'message') {
+                windowListeners.add(listener);
+            }
         },
         removeEventListener(type, listener) {
-            if (type === 'message') windowListeners.delete(listener);
+            if (type === 'message') {
+                windowListeners.delete(listener);
+            }
         },
         postMessage(message, targetOrigin) {
             postedMessages.push({ message, targetOrigin });
@@ -79,7 +83,9 @@ function createHarness(initialStorage = {}) {
             return { responses, results };
         },
         dispatchWindow(data, source = windowApi) {
-            for (const listener of windowListeners) listener({ data, source });
+            for (const listener of windowListeners) {
+                listener({ data, source });
+            }
         },
         listenerCounts() {
             return { runtime: runtimeListeners.size, window: windowListeners.size };

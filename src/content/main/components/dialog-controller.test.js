@@ -21,14 +21,18 @@ function createFixture(options = {}) {
         }
     };
     const document = {
-        activeElement: { isConnected: true, focus: () => { restored += 1; } },
+        activeElement: { isConnected: true, focus: () => {
+            restored += 1; 
+        } },
         addEventListener: (type, listener) => listeners.set(type, listener),
         removeEventListener: (type) => listeners.delete(type)
     };
     const host = {
         ownerDocument: document,
         renderRoot,
-        addController(controller) { this.controller = controller; }
+        addController(controller) {
+            this.controller = controller; 
+        }
     };
     const controller = new DialogController(host, options);
     return { controller, host, listeners, counts: () => ({ restored, focused }) };
@@ -52,14 +56,20 @@ test('closes on an unhandled Escape only when policy allows it', () => {
     let prevented = 0;
     const fixture = createFixture({
         canClose: (_host, reason) => reason === 'escape',
-        onClose: () => { closeCount += 1; }
+        onClose: () => {
+            closeCount += 1; 
+        }
     });
     fixture.controller.hostConnected();
     fixture.listeners.get('keydown')({
-        key: 'Escape', defaultPrevented: false, preventDefault: () => { prevented += 1; }
+        key: 'Escape', defaultPrevented: false, preventDefault: () => {
+            prevented += 1; 
+        }
     });
     fixture.listeners.get('keydown')({
-        key: 'Enter', defaultPrevented: false, preventDefault: () => { prevented += 1; }
+        key: 'Enter', defaultPrevented: false, preventDefault: () => {
+            prevented += 1; 
+        }
     });
 
     assert.equal(closeCount, 1);
@@ -81,7 +91,9 @@ test('skips hidden candidates and retries when focus does not move', () => {
         getRootNode: () => fixture.host.renderRoot,
         focus() {
             attempts += 1;
-            if (attempts > 1) fixture.host.renderRoot.activeElement = retryTarget;
+            if (attempts > 1) {
+                fixture.host.renderRoot.activeElement = retryTarget;
+            }
         }
     };
     fixture.host.renderRoot.querySelector = () => hidden;

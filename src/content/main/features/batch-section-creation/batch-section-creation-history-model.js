@@ -15,13 +15,17 @@ function parseMarathonId(url) {
 
 function text(value, fallback = '') {
     const normalized = String(value ?? '').trim();
-    if (!normalized) return fallback;
+    if (!normalized) {
+        return fallback;
+    }
     return normalized;
 }
 
 function safeUrl(value) {
     const normalized = text(value);
-    if (!normalized) return null;
+    if (!normalized) {
+        return null;
+    }
     try {
         const url = new URL(normalized);
         return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
@@ -46,7 +50,9 @@ function summarizeBlock(block, index) {
         type
     };
     const clientId = text(block?.clientId, '', 500);
-    if (clientId) summary.clientId = clientId;
+    if (clientId) {
+        summary.clientId = clientId;
+    }
     if (type === 'image') {
         summary.url = safeUrl(block?.url);
         summary.alt = safeBlockText(block?.alt, 1000) || null;
@@ -83,17 +89,25 @@ function isIdentifierPath(path) {
 }
 
 function collectIdentifiers(source, sourceName, output, path = [], seen = new WeakSet()) {
-    if (source === null || source === undefined) return;
+    if (source === null || source === undefined) {
+        return;
+    }
     if (typeof source !== 'object') {
-        if (!isIdentifierPath(path)) return;
+        if (!isIdentifierPath(path)) {
+            return;
+        }
         const value = typeof source === 'number' || typeof source === 'boolean'
             ? source
             : text(source, '', 500);
-        if (value === '') return;
+        if (value === '') {
+            return;
+        }
         output.push({ source: sourceName, name: path.join('.'), value });
         return;
     }
-    if (seen.has(source)) return;
+    if (seen.has(source)) {
+        return;
+    }
     seen.add(source);
     try {
         if (Array.isArray(source)) {
@@ -123,7 +137,9 @@ function serializeIdentifiers(result = {}) {
     const seen = new Set();
     for (const entry of entries) {
         const key = `${entry.source}\u0000${entry.name}\u0000${String(entry.value)}`;
-        if (seen.has(key)) continue;
+        if (seen.has(key)) {
+            continue;
+        }
         seen.add(key);
         deduplicated.push(entry);
     }
@@ -170,19 +186,25 @@ function materializeResults(plan = {}, executionResult = {}, terminalStatus = nu
     const rejectedByLesson = new Map();
     for (const entry of plan?.rejected || []) {
         const key = lessonKey(entry);
-        if (key !== null) rejectedByLesson.set(key, asExecutionResult(entry, 'rejected', terminalStatus));
+        if (key !== null) {
+            rejectedByLesson.set(key, asExecutionResult(entry, 'rejected', terminalStatus));
+        }
     }
     const finalByLesson = new Map();
     for (const entry of executionResult?.results || []) {
         const key = lessonKey(entry);
-        if (key === null) continue;
+        if (key === null) {
+            continue;
+        }
         const fallbackStatus = entry?.status || (rejectedByLesson.has(key) ? 'rejected' : null);
         finalByLesson.set(key, asExecutionResult(entry, fallbackStatus, terminalStatus));
     }
     const eligibleByLesson = new Map();
     for (const entry of plan?.eligible || []) {
         const key = lessonKey(entry);
-        if (key !== null) eligibleByLesson.set(key, entry);
+        if (key !== null) {
+            eligibleByLesson.set(key, entry);
+        }
     }
     const selectedIds = Array.isArray(plan?.selectedLessonIds)
         ? plan.selectedLessonIds.map(String)
@@ -204,12 +226,18 @@ function materializeResults(plan = {}, executionResult = {}, terminalStatus = nu
 
     for (const entry of [...rejectedByLesson.values(), ...finalByLesson.values()]) {
         const key = lessonKey(entry);
-        if (key !== null && included.has(key)) continue;
+        if (key !== null && included.has(key)) {
+            continue;
+        }
         ordered.push(entry);
-        if (key !== null) included.add(key);
+        if (key !== null) {
+            included.add(key);
+        }
     }
     for (const [key, entry] of eligibleByLesson.entries()) {
-        if (included.has(key)) continue;
+        if (included.has(key)) {
+            continue;
+        }
         ordered.push(asExecutionResult(entry, 'not_attempted', terminalStatus));
         included.add(key);
     }

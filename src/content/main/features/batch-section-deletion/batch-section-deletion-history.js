@@ -12,7 +12,9 @@ const ATTEMPTED_STATUSES = new Set(['deleted', 'failed']);
 
 function text(value, fallback = '', maxLength = 1000) {
     const normalized = String(value ?? '').trim();
-    if (!normalized) return fallback;
+    if (!normalized) {
+        return fallback;
+    }
     return normalized.length <= maxLength
         ? normalized
         : `${normalized.slice(0, maxLength - 1)}…`;
@@ -29,7 +31,9 @@ function lessonKey(value) {
 }
 
 function discoveryOutcome(entry = {}) {
-    if (entry.discoveryOutcome) return text(entry.discoveryOutcome, 'inspection_failed', 120);
+    if (entry.discoveryOutcome) {
+        return text(entry.discoveryOutcome, 'inspection_failed', 120);
+    }
     return {
         SECTION_NOT_FOUND: 'not_found',
         SECTION_NAME_AMBIGUOUS: 'ambiguous',
@@ -69,18 +73,34 @@ function enrichPlan(plan = {}, selectedLessonIds = []) {
 }
 
 function resultCode(entry, terminalStatus) {
-    if (entry.code) return text(entry.code, 'UNKNOWN_RESULT', 120);
-    if (entry.status === 'deleted') return 'DELETED';
-    if (entry.status === 'rejected') return 'PREFLIGHT_REJECTED';
-    if (entry.status === 'failed') return 'DELETE_FAILED';
+    if (entry.code) {
+        return text(entry.code, 'UNKNOWN_RESULT', 120);
+    }
+    if (entry.status === 'deleted') {
+        return 'DELETED';
+    }
+    if (entry.status === 'rejected') {
+        return 'PREFLIGHT_REJECTED';
+    }
+    if (entry.status === 'failed') {
+        return 'DELETE_FAILED';
+    }
     return terminalStatus === 'cancelled' ? 'OPERATION_CANCELLED' : 'OPERATION_INTERRUPTED';
 }
 
 function resultMessage(entry, terminalStatus) {
-    if (entry.message) return text(entry.message, 'No message was provided.');
-    if (entry.status === 'deleted') return 'Section deleted.';
-    if (entry.status === 'rejected') return 'The lesson was rejected during discovery.';
-    if (entry.status === 'failed') return 'The validated deletion request failed.';
+    if (entry.message) {
+        return text(entry.message, 'No message was provided.');
+    }
+    if (entry.status === 'deleted') {
+        return 'Section deleted.';
+    }
+    if (entry.status === 'rejected') {
+        return 'The lesson was rejected during discovery.';
+    }
+    if (entry.status === 'failed') {
+        return 'The validated deletion request failed.';
+    }
     return terminalStatus === 'cancelled'
         ? 'Not attempted because the confirmed run was cancelled.'
         : 'Not attempted because the confirmed run was interrupted.';
@@ -88,8 +108,12 @@ function resultMessage(entry, terminalStatus) {
 
 function materializeResults(plan = {}, execution = {}, terminalStatus = null) {
     const byId = new Map();
-    for (const entry of plan.rejected || []) byId.set(lessonKey(entry), { ...entry, status: 'rejected', attempts: 0 });
-    for (const entry of execution.results || []) byId.set(lessonKey(entry), { ...entry });
+    for (const entry of plan.rejected || []) {
+        byId.set(lessonKey(entry), { ...entry, status: 'rejected', attempts: 0 });
+    }
+    for (const entry of execution.results || []) {
+        byId.set(lessonKey(entry), { ...entry });
+    }
     const eligible = new Map((plan.eligible || []).map((entry) => [lessonKey(entry), entry]));
     const ordered = [];
     const included = new Set();
@@ -97,7 +121,9 @@ function materializeResults(plan = {}, execution = {}, terminalStatus = null) {
     for (const id of plan.selectedLessonIds || []) {
         const key = String(id);
         let entry = byId.get(key);
-        if (!entry && eligible.has(key)) entry = { ...eligible.get(key), status: 'not_attempted', attempts: 0 };
+        if (!entry && eligible.has(key)) {
+            entry = { ...eligible.get(key), status: 'not_attempted', attempts: 0 };
+        }
         if (!entry) {
             entry = {
                 lessonId: id,
@@ -113,9 +139,13 @@ function materializeResults(plan = {}, execution = {}, terminalStatus = null) {
 
     for (const entry of [...byId.values(), ...eligible.values()]) {
         const key = lessonKey(entry);
-        if (key !== null && included.has(key)) continue;
+        if (key !== null && included.has(key)) {
+            continue;
+        }
         ordered.push(byId.get(key) || { ...entry, status: 'not_attempted', attempts: 0 });
-        if (key !== null) included.add(key);
+        if (key !== null) {
+            included.add(key);
+        }
     }
 
     return ordered.map((entry) => {
@@ -132,9 +162,15 @@ function materializeResults(plan = {}, execution = {}, terminalStatus = null) {
 }
 
 function matchCount(entry) {
-    if (Number.isSafeInteger(entry.matchCount) && entry.matchCount >= 0) return entry.matchCount;
-    if (entry.sectionId) return 1;
-    if (entry.code === 'SECTION_NOT_FOUND') return 0;
+    if (Number.isSafeInteger(entry.matchCount) && entry.matchCount >= 0) {
+        return entry.matchCount;
+    }
+    if (entry.sectionId) {
+        return 1;
+    }
+    if (entry.code === 'SECTION_NOT_FOUND') {
+        return 0;
+    }
     const match = String(entry.message || '').match(/Found (\d+) sections/);
     return match ? Number(match[1]) : null;
 }
@@ -182,8 +218,12 @@ function serializeResult(entry, plan, terminalStatus) {
 }
 
 function inferTerminalStatus(explicitStatus, fatalError, results) {
-    if (TERMINAL_STATUSES.has(explicitStatus)) return explicitStatus;
-    if (fatalError) return 'interrupted';
+    if (TERMINAL_STATUSES.has(explicitStatus)) {
+        return explicitStatus;
+    }
+    if (fatalError) {
+        return 'interrupted';
+    }
     return results.some((entry) => ['rejected', 'failed', 'not_attempted'].includes(entry.status))
         ? 'completed_with_failures'
         : 'completed';
@@ -238,7 +278,9 @@ function appendStatus(dialog, message) {
 function addHistoryButton(dialog, executionId, openHistory) {
     const documentApi = dialog.ownerDocument || globalThis.document;
     const button = documentApi?.createElement?.('button');
-    if (!button) return;
+    if (!button) {
+        return;
+    }
     button.type = 'button';
     button.className = 'edvibe-batch-section-deletion-history';
     button.textContent = 'Open in history';
@@ -257,8 +299,12 @@ function createHistoryAwareFeature(options = {}) {
         log = () => {},
         ...featureOptions
     } = options;
-    if (typeof createDialog !== 'function') throw new TypeError('createDialog is required');
-    if (typeof persistExecution !== 'function') throw new TypeError('persistExecution is required');
+    if (typeof createDialog !== 'function') {
+        throw new TypeError('createDialog is required');
+    }
+    if (typeof persistExecution !== 'function') {
+        throw new TypeError('persistExecution is required');
+    }
 
     function createTrackedDialog() {
         const dialog = createDialog();
@@ -312,7 +358,9 @@ function createHistoryAwareFeature(options = {}) {
                         void persist(latestResult).then((history) => {
                             if (history?.stored) {
                                 appendStatus(dialog, 'Result saved to execution history.');
-                                if (history.record?.id) addHistoryButton(dialog, history.record.id, originalOpenHistory);
+                                if (history.record?.id) {
+                                    addHistoryButton(dialog, history.record.id, originalOpenHistory);
+                                }
                             } else if (history?.persistenceError) {
                                 appendStatus(dialog, 'The visible preflight is intact, but history could not be saved.');
                             }

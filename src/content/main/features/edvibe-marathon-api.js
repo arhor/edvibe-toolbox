@@ -25,7 +25,9 @@ function isRecord(value) {
  * @returns {EdvibeSendRequest}
  */
 function requireRequest(sendRequest) {
-    if (typeof sendRequest !== 'function') throw new TypeError('sendRequest is required');
+    if (typeof sendRequest !== 'function') {
+        throw new TypeError('sendRequest is required');
+    }
     return /** @type {EdvibeSendRequest} */ (sendRequest);
 }
 
@@ -36,13 +38,17 @@ function requireRequest(sendRequest) {
  * @returns {{ items: unknown, total: unknown }}
  */
 function readPage(response) {
-    if (!isRecord(response)) return { items: undefined, total: undefined };
+    if (!isRecord(response)) {
+        return { items: undefined, total: undefined };
+    }
     const value = isRecord(response.Value)
         ? response.Value
         : isRecord(response.value)
             ? response.value
             : null;
-    if (!value) return { items: undefined, total: undefined };
+    if (!value) {
+        return { items: undefined, total: undefined };
+    }
     const page = isRecord(value.Page) ? value.Page : null;
     return {
         items: value.Items,

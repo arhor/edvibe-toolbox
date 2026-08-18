@@ -112,20 +112,32 @@ function createSkippedOperation(message) {
 
 function getSelectedOperations(row) {
     const operations = [];
-    if (row.unassignSelected) operations.push('unassign');
-    if (row.deleteSelected) operations.push('delete');
+    if (row.unassignSelected) {
+        operations.push('unassign');
+    }
+    if (row.deleteSelected) {
+        operations.push('delete');
+    }
     return operations;
 }
 
 function describeOperation(operation, result) {
-    if (!result) return '';
+    if (!result) {
+        return '';
+    }
     if (operation === 'unassign') {
-        if (result.status === 'noop') return 'Curator already absent';
-        if (result.status === 'success') return 'Curator removed';
+        if (result.status === 'noop') {
+            return 'Curator already absent';
+        }
+        if (result.status === 'success') {
+            return 'Curator removed';
+        }
         return `Curator removal failed (${result.code || 'UNKNOWN_ERROR'}): `
             + `${result.message || 'The operation failed.'}`;
     }
-    if (result.status === 'success') return 'User deleted';
+    if (result.status === 'success') {
+        return 'User deleted';
+    }
     if (result.status === 'skipped') {
         return `Deletion skipped: ${result.message || 'The operation was skipped.'}`;
     }
@@ -257,8 +269,11 @@ async function executeUserPlan({
         }
 
         setRowResult(row);
-        if (row.result.status === 'failed') failures += 1;
-        else successes += 1;
+        if (row.result.status === 'failed') {
+            failures += 1;
+        } else {
+            successes += 1;
+        }
         completed += 1;
         const finalOperation = row.delete?.status === 'skipped'
             ? 'unassign'
@@ -310,7 +325,9 @@ function createBatchUserManagementFeature({
     let dialog = null;
 
     function releaseOperation() {
-        if (!active) return;
+        if (!active) {
+            return;
+        }
         active = false;
         onActiveChange(false);
     }
@@ -376,7 +393,9 @@ function createBatchUserManagementFeature({
     }
 
     async function handleCheck(event) {
-        if (running) return;
+        if (running) {
+            return;
+        }
         running = true;
         try {
             const parsed = parseEmailInput(event?.detail?.emailInput);
@@ -398,15 +417,21 @@ function createBatchUserManagementFeature({
     }
 
     function handleSelectionChange(event) {
-        if (Array.isArray(event?.detail?.rows)) currentRows = applySelections(event.detail.rows);
+        if (Array.isArray(event?.detail?.rows)) {
+            currentRows = applySelections(event.detail.rows);
+        }
     }
 
     async function handleStart(event) {
-        if (running) return;
+        if (running) {
+            return;
+        }
         const selectedRows = applySelections(event?.detail?.rows || currentRows);
         if (!selectedRows.some((row) =>
             row.actionable !== false && (row.unassignSelected || row.deleteSelected)
-        )) return;
+        )) {
+            return;
+        }
 
         running = true;
         try {
@@ -447,7 +472,9 @@ function createBatchUserManagementFeature({
     }
 
     async function open() {
-        if (active || document.getElementById(USER_MANAGEMENT_OVERLAY_ID)) return;
+        if (active || document.getElementById(USER_MANAGEMENT_OVERLAY_ID)) {
+            return;
+        }
         if (!canStart()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;

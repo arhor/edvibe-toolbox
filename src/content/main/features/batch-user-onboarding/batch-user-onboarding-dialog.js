@@ -59,7 +59,9 @@ class BatchUserOnboardingDialog extends LitElement {
         this.statusMessage = '';
         this.progress = {visible: false, completed: 0, total: 1};
         this.handleKeydownBound = (event) => {
-            if (event.key === 'Escape') this.close();
+            if (event.key === 'Escape') {
+                this.close();
+            }
         };
     }
 
@@ -97,7 +99,9 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     updateEmailCounts() {
-        if (!this.options?.parseEmailInput) return;
+        if (!this.options?.parseEmailInput) {
+            return;
+        }
         const parsed = this.options.parseEmailInput(this.emailInput);
         this.emailCounts = {
             valid: parsed.entries?.length || 0,
@@ -107,7 +111,9 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     async discover() {
-        if (!this.options?.onDiscover || this.mode === 'executing') return;
+        if (!this.options?.onDiscover || this.mode === 'executing') {
+            return;
+        }
         this.clearErrors();
         this.mode = 'loading';
         this.showStatus('Проверяем пользователей…');
@@ -124,15 +130,23 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     canAssign(row) {
-        if (!row.actionable || !row.moderatorStateSafe) return false;
-        if (row.membership === 'in_marathon') return true;
+        if (!row.actionable || !row.moderatorStateSafe) {
+            return false;
+        }
+        if (row.membership === 'in_marathon') {
+            return true;
+        }
         return row.membership === 'not_in_marathon' && Boolean(row.addSelected);
     }
 
     setRowSelection(normalizedEmail, field, checked) {
-        if (this.mode !== 'review') return;
+        if (this.mode !== 'review') {
+            return;
+        }
         this.rows = this.rows.map((row) => {
-            if (row.normalizedEmail !== normalizedEmail) return row;
+            if (row.normalizedEmail !== normalizedEmail) {
+                return row;
+            }
             const next = {...row, [field]: Boolean(checked)};
             if (field === 'addSelected' && !checked && row.membership === 'not_in_marathon') {
                 next.assignSelected = false;
@@ -143,17 +157,25 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     selectAll(field) {
-        if (this.mode !== 'review') return;
+        if (this.mode !== 'review') {
+            return;
+        }
         this.rows = this.rows.map((row) => {
-            if (field === 'addSelected' && row.actionable) return {...row, addSelected: true};
-            if (field === 'assignSelected' && this.canAssign(row)) return {...row, assignSelected: true};
+            if (field === 'addSelected' && row.actionable) {
+                return {...row, addSelected: true};
+            }
+            if (field === 'assignSelected' && this.canAssign(row)) {
+                return {...row, assignSelected: true};
+            }
             return row;
         });
         this.plan = null;
     }
 
     async preparePlan() {
-        if (!this.options?.onPreflight || this.mode !== 'review') return;
+        if (!this.options?.onPreflight || this.mode !== 'review') {
+            return;
+        }
         this.clearErrors();
         try {
             this.plan = await this.options.onPreflight({
@@ -172,14 +194,18 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     returnToReview() {
-        if (this.mode !== 'preflight') return;
+        if (this.mode !== 'preflight') {
+            return;
+        }
         this.plan = null;
         this.mode = 'review';
         this.showStatus('Измените выбор и подготовьте новый план.');
     }
 
     async execute() {
-        if (!this.plan || !this.options?.onExecute || this.mode !== 'preflight') return;
+        if (!this.plan || !this.options?.onExecute || this.mode !== 'preflight') {
+            return;
+        }
         this.mode = 'executing';
         this.showStatus('Выполняем подтверждённый план…');
         this.progress = {visible: true, completed: 0, total: 1};
@@ -215,7 +241,9 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     restart() {
-        if (this.mode === 'executing') return;
+        if (this.mode === 'executing') {
+            return;
+        }
         this.rows = [];
         this.plan = null;
         this.executionId = null;
@@ -228,7 +256,9 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     close() {
-        if (this.mode === 'executing' || this.mode === 'loading') return;
+        if (this.mode === 'executing' || this.mode === 'loading') {
+            return;
+        }
         this.options?.onClose?.();
     }
 
@@ -256,7 +286,9 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     curatorLabel(row) {
-        if (!row.moderatorStateSafe && row.membership === 'in_marathon') return 'Нельзя безопасно прочитать';
+        if (!row.moderatorStateSafe && row.membership === 'in_marathon') {
+            return 'Нельзя безопасно прочитать';
+        }
         return row.currentModerators?.length
             ? row.currentModerators.map((moderator) => moderator.name || moderator.email || `#${moderator.id}`).join(', ')
             : 'Нет';
@@ -281,16 +313,24 @@ class BatchUserOnboardingDialog extends LitElement {
     }
 
     renderPreflight() {
-        if (!this.plan) return nothing;
+        if (!this.plan) {
+            return nothing;
+        }
         return html`
             <section class="preflight" ?hidden=${!['preflight', 'executing'].includes(this.mode)}>
                 <h3>Неизменяемый план</h3>
                 <p>Строк: ${this.plan.counts.requested}. Добавлений: ${this.plan.counts.additions}. Назначений: ${this.plan.counts.assignments}. Предсказанных no-op: ${this.plan.counts.noOps}. Отклонённых операций: ${this.plan.counts.rejectedOperations}.</p>
                 <ul>${this.plan.rows.map((row) => {
                     const pieces = [];
-                    if (row.add) pieces.push(`add: ${row.add.status} (${row.add.code})`);
-                    if (row.assign) pieces.push(`assign: ${row.assign.status} (${row.assign.code})`);
-                    if (pieces.length === 0) pieces.push(row.message || row.resolution);
+                    if (row.add) {
+                        pieces.push(`add: ${row.add.status} (${row.add.code})`);
+                    }
+                    if (row.assign) {
+                        pieces.push(`assign: ${row.assign.status} (${row.assign.code})`);
+                    }
+                    if (pieces.length === 0) {
+                        pieces.push(row.message || row.resolution);
+                    }
                     return html`<li>${row.email}: ${pieces.join('; ')}</li>`;
                 })}</ul>
             </section>`;
@@ -300,7 +340,11 @@ class BatchUserOnboardingDialog extends LitElement {
         const reviewVisible = ['review', 'preflight', 'executing', 'complete', 'partial-complete'].includes(this.mode) && this.rows.length > 0;
         const completed = ['complete', 'partial-complete'].includes(this.mode);
         return html`
-            <div class="overlay" data-part="overlay" @click=${(event) => { if (event.target === event.currentTarget) this.close(); }}>
+            <div class="overlay" data-part="overlay" @click=${(event) => {
+                if (event.target === event.currentTarget) {
+                    this.close();
+                } 
+            }}>
                 <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="batch-user-onboarding-title">
                     <header class="header"><div><p class="eyebrow">Edvibe Toolbox</p><h2 id="batch-user-onboarding-title">Добавить пользователей и назначить куратора</h2><p class="description">Проверьте весь список, подготовьте неизменяемый план и только потом подтвердите запись.</p></div>
                         <button class="icon close" data-control="secondary" type="button" aria-label="Закрыть" ?disabled=${['loading', 'executing'].includes(this.mode)} @click=${() => this.close()}>×</button></header>
@@ -308,11 +352,15 @@ class BatchUserOnboardingDialog extends LitElement {
                         <section class="configure">
                             <label class="field" data-field><span>Email пользователей</span><textarea class="emails" rows="5" placeholder="user@example.com"
                                 .value=${this.emailInput} ?disabled=${this.mode !== 'configure'}
-                                @input=${(event) => { this.emailInput = event.currentTarget.value; this.updateEmailCounts(); }}></textarea></label>
+                                @input=${(event) => {
+                                    this.emailInput = event.currentTarget.value; this.updateEmailCounts(); 
+                                }}></textarea></label>
                             <div class="email-state" data-part="help" aria-live="polite"><span class="valid-count">Уникальных email: ${this.emailCounts.valid}</span><span class="invalid-count">Некорректных: ${this.emailCounts.invalid}</span>${renderEmailValidationSummary(this.emailCounts.invalidEntries)}</div>
                             <label class="field curator-field" data-field><span>Целевой куратор</span>
                                 <select class="curator" .value=${this.targetModeratorId} ?disabled=${!['configure', 'review'].includes(this.mode)}
-                                    @change=${(event) => { this.targetModeratorId = event.currentTarget.value; this.plan = null; }}>
+                                    @change=${(event) => {
+                                        this.targetModeratorId = event.currentTarget.value; this.plan = null; 
+                                    }}>
                                     <option value="">Не выбран</option>
                                     ${(this.options?.moderators || []).map((moderator) => html`<option value=${String(moderator.id)}>${moderator.name ? `${moderator.name}${moderator.email ? ` · ${moderator.email}` : ''}` : moderator.email || `Moderator #${moderator.id}`}</option>`)}
                                 </select><small data-part="help">Нужен только для строк с операцией назначения.</small></label>

@@ -209,9 +209,13 @@ function createIndexedDb(definition, options = {}) {
             }
 
             const fail = (error) => {
-                if (settled) return;
+                if (settled) {
+                    return;
+                }
                 settled = true;
-                if (blockedTimer !== null) clearTimeout(blockedTimer);
+                if (blockedTimer !== null) {
+                    clearTimeout(blockedTimer);
+                }
                 opening = null;
                 reject(error);
             };
@@ -273,7 +277,9 @@ function createIndexedDb(definition, options = {}) {
                     return;
                 }
                 settled = true;
-                if (blockedTimer !== null) clearTimeout(blockedTimer);
+                if (blockedTimer !== null) {
+                    clearTimeout(blockedTimer);
+                }
                 connection = db;
                 opening = null;
                 db.onversionchange = () => {

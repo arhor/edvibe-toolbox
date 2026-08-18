@@ -13,7 +13,9 @@ function addHistoryButton(dialog, executionId, openHistory) {
     dialog.shadowRoot?.querySelector?.('.edvibe-batch-section-history')?.remove?.();
     const documentApi = dialog.ownerDocument || globalThis.document;
     const button = documentApi?.createElement?.('button');
-    if (!button) return;
+    if (!button) {
+        return;
+    }
     button.type = 'button';
     button.className = 'edvibe-batch-section-history';
     button.textContent = 'Открыть в истории';
@@ -35,8 +37,12 @@ function createHistoryAwareDialog({
     now = () => new Date(),
     log = () => {}
 }) {
-    if (typeof createDialog !== 'function') throw new TypeError('createDialog is required');
-    if (typeof persistExecution !== 'function') throw new TypeError('persistExecution is required');
+    if (typeof createDialog !== 'function') {
+        throw new TypeError('createDialog is required');
+    }
+    if (typeof persistExecution !== 'function') {
+        throw new TypeError('persistExecution is required');
+    }
 
     return function createPatchedDialog() {
         const dialog = createDialog();
@@ -66,7 +72,9 @@ function createHistoryAwareDialog({
         }
 
         function persist(result, terminalStatus = null, fatalError = null) {
-            if (!confirmedPlan || terminal) return;
+            if (!confirmedPlan || terminal) {
+                return;
+            }
             terminal = true;
             const currentSequence = sequence;
             let input;
@@ -90,7 +98,9 @@ function createHistoryAwareDialog({
             Promise.resolve()
                 .then(() => persistExecution(input))
                 .then((history) => {
-                    if (currentSequence !== sequence) return;
+                    if (currentSequence !== sequence) {
+                        return;
+                    }
                     if (history?.stored) {
                         appendStatus(dialog, 'Результат сохранён в истории.');
                         if (history.record?.id) {
@@ -104,7 +114,9 @@ function createHistoryAwareDialog({
                     }
                 })
                 .catch((error) => {
-                    if (currentSequence !== sequence) return;
+                    if (currentSequence !== sequence) {
+                        return;
+                    }
                     appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
                     log('Batch section creation history persistence failed:', error);
                 });
@@ -126,7 +138,9 @@ function createHistoryAwareDialog({
             startedAt = now().toISOString();
             terminal = false;
             const output = originalShowConfirmation(plan);
-            if (!plan?.eligible?.length) persist(latestResult);
+            if (!plan?.eligible?.length) {
+                persist(latestResult);
+            }
             return output;
         };
         dialog.showExecution = (progress = {}) => {
@@ -146,12 +160,16 @@ function createHistoryAwareDialog({
         };
         dialog.showFatalError = (error) => {
             const output = originalShowFatalError(error);
-            if (confirmedPlan) persist(latestResult, 'interrupted', error);
+            if (confirmedPlan) {
+                persist(latestResult, 'interrupted', error);
+            }
             return output;
         };
         dialog.addEventListener('edvibe-batch-section-restart', resetAttempt);
         dialog.addEventListener('edvibe-dialog-close', () => {
-            if (confirmedPlan && !terminal) persist(latestResult, 'cancelled');
+            if (confirmedPlan && !terminal) {
+                persist(latestResult, 'cancelled');
+            }
         });
         return dialog;
     };

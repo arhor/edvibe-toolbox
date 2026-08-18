@@ -10,12 +10,18 @@ function buildHighlightedSegments(input, offendingCharacters = []) {
     for (const offending of offendingCharacters) {
         const index = Number(offending?.index);
         const character = String(offending?.character || '');
-        if (!Number.isInteger(index) || index < cursor || index > value.length || !character) continue;
-        if (index > cursor) segments.push({text: value.slice(cursor, index), offending: false});
+        if (!Number.isInteger(index) || index < cursor || index > value.length || !character) {
+            continue;
+        }
+        if (index > cursor) {
+            segments.push({text: value.slice(cursor, index), offending: false});
+        }
         segments.push({text: value.slice(index, index + character.length), offending: true});
         cursor = index + character.length;
     }
-    if (cursor < value.length) segments.push({text: value.slice(cursor), offending: false});
+    if (cursor < value.length) {
+        segments.push({text: value.slice(cursor), offending: false});
+    }
     return segments;
 }
 
@@ -39,7 +45,9 @@ function buildEmailValidationSummary(invalidEntries = []) {
 
 function renderEmailValidationSummary(invalidEntries = []) {
     const summary = buildEmailValidationSummary(invalidEntries);
-    if (summary.entries.length === 0) return nothing;
+    if (summary.entries.length === 0) {
+        return nothing;
+    }
 
     return html`
         <section class="email-validation-summary">
@@ -47,16 +55,16 @@ function renderEmailValidationSummary(invalidEntries = []) {
             <ul class="email-validation-list">
                 ${summary.entries.map((entry) => html`<li>
                     <span class="email-validation-address">«${entry.segments.map((segment) => segment.offending
-            ? html`<span class="email-validation-offending">${segment.text}</span>`
-            : segment.text)}»</span>
+                        ? html`<span class="email-validation-offending">${segment.text}</span>`
+                        : segment.text)}»</span>
                     — ${entry.code === 'EMAIL_NON_ASCII'
-            ? html`недопустимые символы: ${entry.descriptions.join(', ')}`
-            : 'некорректный формат'}
+                        ? html`недопустимые символы: ${entry.descriptions.join(', ')}`
+                        : 'некорректный формат'}
                 </li>`)}
             </ul>
             ${summary.hasNonAscii
-            ? html`<p class="email-validation-guidance">Используйте только латинские буквы, цифры и стандартные символы email.</p>`
-            : nothing}
+                ? html`<p class="email-validation-guidance">Используйте только латинские буквы, цифры и стандартные символы email.</p>`
+                : nothing}
         </section>
     `;
 }

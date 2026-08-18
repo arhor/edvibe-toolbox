@@ -6,14 +6,16 @@ import { createExecutionHistoryService } from '#src/content/main/infrastructure/
 
 function input({ id = 'execution-1', diagnostics = true } = {}) {
     const result = { label: 'Lesson', status: 'failed', code: 'ERROR', message: 'Failed' };
-    if (diagnostics) result.diagnostics = { requestAttempts: [{
-        correlationId: `${id}:1`, operationName: 'archiveLesson', controller: 'Lessons',
-        method: 'POST', requestId: 'request-1', attemptNumber: 1,
-        startedAt: '2026-08-11T10:00:00.000Z', completedAt: '2026-08-11T10:00:00.010Z',
-        durationMs: 10, outcome: 'failure', serverErrorCode: 'ERROR',
-        requestSummary: { lessonId: 1, authorization: 'Bearer secret', note: 'x'.repeat(800) },
-        responseSummary: { token: 'secret-token', values: Array.from({ length: 100 }, (_, index) => index) }
-    }] };
+    if (diagnostics) {
+        result.diagnostics = { requestAttempts: [{
+            correlationId: `${id}:1`, operationName: 'archiveLesson', controller: 'Lessons',
+            method: 'POST', requestId: 'request-1', attemptNumber: 1,
+            startedAt: '2026-08-11T10:00:00.000Z', completedAt: '2026-08-11T10:00:00.010Z',
+            durationMs: 10, outcome: 'failure', serverErrorCode: 'ERROR',
+            requestSummary: { lessonId: 1, authorization: 'Bearer secret', note: 'x'.repeat(800) },
+            responseSummary: { token: 'secret-token', values: Array.from({ length: 100 }, (_, index) => index) }
+        }] };
+    }
     return {
         id, operationType: 'archive-lessons', startedAt: '2026-08-11T10:00:00.000Z',
         completedAt: '2026-08-11T10:00:01.000Z', status: 'completed_with_failures',

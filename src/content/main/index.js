@@ -55,8 +55,11 @@ transport.install(window);
 const operationGuard = operationGuardApi.createOperationGuard();
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const guardedActiveChange = (key) => (isActive) => {
-    if (isActive) operationGuard.activate(key);
-    else operationGuard.release(key);
+    if (isActive) {
+        operationGuard.activate(key);
+    } else {
+        operationGuard.release(key);
+    }
 };
 
 const storageBridge = storageBridgeApi.createStorageBridge({ window, cryptoApi: window.crypto });

@@ -30,7 +30,9 @@ function initializeIsolatedBridge(options = {}) {
     });
 
     const onWindowMessage = (event) => {
-        if (event.source !== windowApi) return;
+        if (event.source !== windowApi) {
+            return;
+        }
         if (isExportStatusMessage(event.data)) {
             relayExportStatus(event.data);
         } else if (isStorageRequestMessage(event.data)) {
@@ -58,7 +60,9 @@ function initializeIsolatedBridge(options = {}) {
     chromeApi.runtime.onMessage.addListener(onRuntimeMessage);
 
     function relayExportStatus(payload) {
-        if (!isExportStatusMessage(payload)) return;
+        if (!isExportStatusMessage(payload)) {
+            return;
+        }
         const isActive = payload.state === EXPORT_STATES.STARTED;
         chromeApi.storage.local.set({ exportInProgress: isActive }, () => {
             chromeApi.runtime.sendMessage(createRuntimeExportStatusMessage(
@@ -95,8 +99,11 @@ function initializeIsolatedBridge(options = {}) {
     function getLocalStorage(key) {
         return new Promise((resolve, reject) => {
             chromeApi.storage.local.get(key, (values) => {
-                if (chromeApi.runtime.lastError) reject(new Error(chromeApi.runtime.lastError.message));
-                else resolve(values || {});
+                if (chromeApi.runtime.lastError) {
+                    reject(new Error(chromeApi.runtime.lastError.message));
+                } else {
+                    resolve(values || {});
+                }
             });
         });
     }
@@ -104,8 +111,11 @@ function initializeIsolatedBridge(options = {}) {
     function setLocalStorage(values) {
         return new Promise((resolve, reject) => {
             chromeApi.storage.local.set(values, () => {
-                if (chromeApi.runtime.lastError) reject(new Error(chromeApi.runtime.lastError.message));
-                else resolve();
+                if (chromeApi.runtime.lastError) {
+                    reject(new Error(chromeApi.runtime.lastError.message));
+                } else {
+                    resolve();
+                }
             });
         });
     }

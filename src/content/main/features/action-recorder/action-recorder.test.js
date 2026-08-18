@@ -7,7 +7,9 @@ function createHarness() {
     let observer;
     let time = 0;
     const feature = createActionRecorderFeature({
-        subscribeFrames: (callback) => { observer = callback; },
+        subscribeFrames: (callback) => {
+            observer = callback; 
+        },
         createPanel: () => ({}),
         createId: () => 'session-1',
         now: () => time,

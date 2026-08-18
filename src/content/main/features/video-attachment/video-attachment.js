@@ -15,7 +15,9 @@ function toPositiveSafeInteger(value) {
 
 function normalizeLesson(node, index = 0) {
     const lessonId = toPositiveSafeInteger(node?.LessonId ?? node?.lessonId ?? node?.Id);
-    if (!lessonId) throw createFeatureError('INVALID_LESSON', 'Edvibe returned a lesson without a valid ID.');
+    if (!lessonId) {
+        throw createFeatureError('INVALID_LESSON', 'Edvibe returned a lesson without a valid ID.');
+    }
 
     return Object.freeze({
         lessonId,
@@ -34,7 +36,9 @@ function extractLessonSections(response) {
     return Object.freeze(value.Sections
         .map((section, index) => {
             const sectionId = toPositiveSafeInteger(section?.Id ?? section?.id);
-            if (!sectionId) return null;
+            if (!sectionId) {
+                return null;
+            }
             const rawSortId = Number(section?.SortId ?? section?.sortId ?? index);
             return Object.freeze({
                 sectionId,
@@ -74,7 +78,9 @@ function selectAllLessonSections(sections = []) {
 
 function normalizeYoutubeUrl(value) {
     const input = String(value || '').trim();
-    if (!input) throw createFeatureError('VIDEO_URL_REQUIRED', 'Enter a YouTube video URL.');
+    if (!input) {
+        throw createFeatureError('VIDEO_URL_REQUIRED', 'Enter a YouTube video URL.');
+    }
 
     let url;
     try {
@@ -144,7 +150,9 @@ function buildVideoAttachmentRequest({ sectionId, youtubeUrl, clientTime = new D
 }
 
 async function attachYoutubeVideo({ sendRequest, sectionId, youtubeUrl, clientTime }) {
-    if (typeof sendRequest !== 'function') throw new TypeError('sendRequest is required.');
+    if (typeof sendRequest !== 'function') {
+        throw new TypeError('sendRequest is required.');
+    }
 
     const request = buildVideoAttachmentRequest({ sectionId, youtubeUrl, clientTime });
     const response = await sendRequest(
@@ -183,7 +191,9 @@ function normalizeAttachmentTargets(targets) {
         if (!lessonId || !sectionId) {
             throw createFeatureError('INVALID_TARGET', 'Every selected target must contain valid lesson and section IDs.');
         }
-        if (seenSections.has(sectionId)) continue;
+        if (seenSections.has(sectionId)) {
+            continue;
+        }
         seenSections.add(sectionId);
         normalized.push(Object.freeze({
             lessonId,
@@ -202,8 +212,12 @@ function normalizeAttachmentTargets(targets) {
 }
 
 function isFatalBatchError(error, getConnectionState) {
-    if (error?.code === 'WS_UNAVAILABLE') return true;
-    if (error?.code === 'SEND_FAILED' && (!getConnectionState || !getConnectionState().isOpen)) return true;
+    if (error?.code === 'WS_UNAVAILABLE') {
+        return true;
+    }
+    if (error?.code === 'SEND_FAILED' && (!getConnectionState || !getConnectionState().isOpen)) {
+        return true;
+    }
     return !RECOVERABLE_WRITE_CODES.has(error?.code);
 }
 
@@ -252,7 +266,9 @@ async function executeVideoAttachmentBatch({
                 code: error.code || 'ATTACH_FAILED',
                 message: error.message || 'Failed to attach the video.'
             }));
-            if (isFatalBatchError(error, getConnectionState)) fatalError = error;
+            if (isFatalBatchError(error, getConnectionState)) {
+                fatalError = error;
+            }
         }
 
         onProgress({
@@ -299,7 +315,9 @@ function createVideoAttachmentFeature({
 
     function release(dialog) {
         dialog?.remove?.();
-        if (!active) return;
+        if (!active) {
+            return;
+        }
         active = false;
         onActiveChange(false);
     }
@@ -348,10 +366,14 @@ function createVideoAttachmentFeature({
 
             void loadLessonCatalogue({ sendRequest, marathonId })
                 .then((lessons) => {
-                    if (active) dialog.setLessons(lessons);
+                    if (active) {
+                        dialog.setLessons(lessons);
+                    }
                 })
                 .catch((error) => {
-                    if (active) dialog.setLoadError(error);
+                    if (active) {
+                        dialog.setLoadError(error);
+                    }
                 });
         } catch (error) {
             release(dialog);

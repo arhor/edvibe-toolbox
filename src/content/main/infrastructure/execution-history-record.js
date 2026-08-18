@@ -43,21 +43,31 @@ function assertPlainObject(value, path) {
 
 function normalizeIsoTimestamp(value, path) {
     const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) throw validationError('Expected a valid timestamp', path);
+    if (Number.isNaN(date.getTime())) {
+        throw validationError('Expected a valid timestamp', path);
+    }
     return date.toISOString();
 }
 
 function normalizeNonEmptyString(value, path, maxLength = 160) {
     const normalized = String(value ?? '').trim();
-    if (!normalized) throw validationError('Expected a non-empty string', path);
-    if (normalized.length > maxLength) throw validationError(`String exceeds ${maxLength} characters`, path);
+    if (!normalized) {
+        throw validationError('Expected a non-empty string', path);
+    }
+    if (normalized.length > maxLength) {
+        throw validationError(`String exceeds ${maxLength} characters`, path);
+    }
     return normalized;
 }
 
 function normalizeOptionalString(value, path, maxLength = 500) {
-    if (value === undefined || value === null || value === '') return null;
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
     const normalized = String(value).trim();
-    if (normalized.length > maxLength) throw validationError(`String exceeds ${maxLength} characters`, path);
+    if (normalized.length > maxLength) {
+        throw validationError(`String exceeds ${maxLength} characters`, path);
+    }
     return normalized || null;
 }
 
@@ -71,13 +81,17 @@ function normalizeCount(value, path) {
 
 function assertAllowedFields(value, allowedFields, path) {
     for (const key of Object.keys(value)) {
-        if (!allowedFields.has(key)) throw validationError('Unexpected field is not allowed', `${path}.${key}`);
+        if (!allowedFields.has(key)) {
+            throw validationError('Unexpected field is not allowed', `${path}.${key}`);
+        }
     }
 }
 
 function normalizeDiagnosticInteger(value, path, { minimum = 0 } = {}) {
     const number = Number(value);
-    if (!Number.isSafeInteger(number) || number < minimum) throw validationError('Expected a safe integer', path);
+    if (!Number.isSafeInteger(number) || number < minimum) {
+        throw validationError('Expected a safe integer', path);
+    }
     return number;
 }
 
@@ -91,7 +105,9 @@ function normalizeRequestAttempt(value, index, resultIndex) {
         throw validationError('Completion timestamp cannot precede start timestamp', `${path}.completedAt`);
     }
     const outcome = normalizeNonEmptyString(value.outcome, `${path}.outcome`, 40);
-    if (!DIAGNOSTIC_OUTCOMES.has(outcome)) throw validationError('Unsupported diagnostic outcome', `${path}.outcome`);
+    if (!DIAGNOSTIC_OUTCOMES.has(outcome)) {
+        throw validationError('Unsupported diagnostic outcome', `${path}.outcome`);
+    }
     const attempt = {
         correlationId: normalizeNonEmptyString(value.correlationId, `${path}.correlationId`, 160),
         operationName: normalizeNonEmptyString(value.operationName, `${path}.operationName`, 160),
@@ -117,7 +133,9 @@ function normalizeDiagnostics(value, resultIndex) {
     const path = `results[${resultIndex}].diagnostics`;
     assertPlainObject(value, path);
     assertAllowedFields(value, DIAGNOSTIC_FIELDS, path);
-    if (!Array.isArray(value.requestAttempts)) throw validationError('Expected an array', `${path}.requestAttempts`);
+    if (!Array.isArray(value.requestAttempts)) {
+        throw validationError('Expected an array', `${path}.requestAttempts`);
+    }
     const diagnostics = Object.freeze({
         requestAttempts: Object.freeze(value.requestAttempts.map((attempt, index) =>
             normalizeRequestAttempt(attempt, index, resultIndex)))
@@ -126,17 +144,27 @@ function normalizeDiagnostics(value, resultIndex) {
 }
 
 function normalizeJsonValue(value, path = 'value', seen = new WeakSet()) {
-    if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
-    if (typeof value === 'number') {
-        if (!Number.isFinite(value)) throw validationError('Expected a finite number', path);
+    if (value === null || typeof value === 'string' || typeof value === 'boolean') {
         return value;
     }
-    if (value === undefined) return null;
+    if (typeof value === 'number') {
+        if (!Number.isFinite(value)) {
+            throw validationError('Expected a finite number', path);
+        }
+        return value;
+    }
+    if (value === undefined) {
+        return null;
+    }
     if (typeof value === 'bigint' || typeof value === 'function' || typeof value === 'symbol') {
         throw validationError('Unsupported JSON value', path);
     }
-    if (typeof value !== 'object') throw validationError('Unsupported value', path);
-    if (seen.has(value)) throw validationError('Circular values are not supported', path);
+    if (typeof value !== 'object') {
+        throw validationError('Unsupported value', path);
+    }
+    if (seen.has(value)) {
+        throw validationError('Circular values are not supported', path);
+    }
     seen.add(value);
     try {
         if (Array.isArray(value)) {
@@ -167,7 +195,9 @@ function normalizePageContext(value = {}) {
 function normalizeCounts(value = {}) {
     assertPlainObject(value, 'counts');
     const counts = {};
-    for (const key of COUNT_KEYS) counts[key] = normalizeCount(value[key], `counts.${key}`);
+    for (const key of COUNT_KEYS) {
+        counts[key] = normalizeCount(value[key], `counts.${key}`);
+    }
     if (counts.successful + counts.failed > counts.attempted) {
         throw validationError('Successful and failed counts cannot exceed attempted count', 'counts');
     }
@@ -191,7 +221,9 @@ function normalizeResult(value, index) {
         attempts,
         data: Object.freeze(data)
     };
-    if (value.diagnostics !== undefined) result.diagnostics = normalizeDiagnostics(value.diagnostics, index);
+    if (value.diagnostics !== undefined) {
+        result.diagnostics = normalizeDiagnostics(value.diagnostics, index);
+    }
     return Object.freeze(result);
 }
 
@@ -220,7 +252,9 @@ function buildExecutionRecord(input, options = {}) {
         : fallbackExecutionId(now, operationType);
     const id = normalizeNonEmptyString(input.id || generatedId, 'id', 200);
     const status = normalizeNonEmptyString(input.status, 'status', 80);
-    if (!TERMINAL_STATUSES.includes(status)) throw validationError('Unsupported terminal status', 'status');
+    if (!TERMINAL_STATUSES.includes(status)) {
+        throw validationError('Unsupported terminal status', 'status');
+    }
     const startedAt = normalizeIsoTimestamp(input.startedAt, 'startedAt');
     const completedAt = normalizeIsoTimestamp(input.completedAt ?? now, 'completedAt');
     if (new Date(completedAt).getTime() < new Date(startedAt).getTime()) {
@@ -228,7 +262,9 @@ function buildExecutionRecord(input, options = {}) {
     }
     const results = Array.isArray(input.results)
         ? input.results.map(normalizeResult)
-        : (() => { throw validationError('Expected an array', 'results'); })();
+        : (() => {
+            throw validationError('Expected an array', 'results'); 
+        })();
     const record = {
         schemaVersion: EXECUTION_RECORD_SCHEMA_VERSION,
         id,
@@ -254,10 +290,14 @@ function validateExecutionRecord(record) {
     normalizeNonEmptyString(record.operationType, 'operationType', 120);
     normalizeIsoTimestamp(record.startedAt, 'startedAt');
     normalizeIsoTimestamp(record.completedAt, 'completedAt');
-    if (!TERMINAL_STATUSES.includes(record.status)) throw validationError('Unsupported terminal status', 'status');
+    if (!TERMINAL_STATUSES.includes(record.status)) {
+        throw validationError('Unsupported terminal status', 'status');
+    }
     normalizePageContext(record.pageContext || {});
     normalizeCounts(record.counts || {});
-    if (!Array.isArray(record.results)) throw validationError('Expected an array', 'results');
+    if (!Array.isArray(record.results)) {
+        throw validationError('Expected an array', 'results');
+    }
     record.results.forEach((result, index) => normalizeResult(result, index));
     normalizeJsonValue(withoutDiagnostics(record), 'record');
     return true;

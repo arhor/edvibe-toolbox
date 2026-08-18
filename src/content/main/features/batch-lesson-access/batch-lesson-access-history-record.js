@@ -159,7 +159,9 @@ function buildSummary(plan, matrixResults) {
 }
 
 function inferTerminalStatus(explicitStatus, operationSummary) {
-    if (explicitStatus === 'cancelled' || explicitStatus === 'interrupted') return explicitStatus;
+    if (explicitStatus === 'cancelled' || explicitStatus === 'interrupted') {
+        return explicitStatus;
+    }
     return operationSummary.rejected > 0
         || operationSummary.failedWrites > 0
         || operationSummary.notAttempted > 0

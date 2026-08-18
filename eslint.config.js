@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
 import betterMutation from 'eslint-plugin-better-mutation';
 import { configs as litConfigs } from 'eslint-plugin-lit';
 import perfectionist from 'eslint-plugin-perfectionist';
@@ -21,6 +22,7 @@ export default defineConfig([
             }
         },
         plugins: {
+            '@stylistic': stylistic,
             'better-mutation': betterMutation,
             perfectionist
         },
@@ -28,6 +30,11 @@ export default defineConfig([
             reportUnusedDisableDirectives: 'error'
         },
         rules: {
+            curly: ['error', 'all'],
+            '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+            '@stylistic/indent': ['error', 4, { SwitchCase: 1 }],
+            '@stylistic/quotes': ['error', 'single'],
+            '@stylistic/semi': ['error', 'always'],
             'no-unused-vars': ['error', {
                 argsIgnorePattern: '^_',
                 caughtErrorsIgnorePattern: '^_',

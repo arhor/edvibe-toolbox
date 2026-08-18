@@ -1,8 +1,12 @@
 const DEFAULT_STARTED_AT = '1970-01-01T00:00:00.000Z';
 
 function isoTimestamp(value, fallback = DEFAULT_STARTED_AT) {
-    if (typeof value === 'string' && !Number.isNaN(Date.parse(value))) return new Date(value).toISOString();
-    if (Number.isFinite(value)) return new Date(value).toISOString();
+    if (typeof value === 'string' && !Number.isNaN(Date.parse(value))) {
+        return new Date(value).toISOString();
+    }
+    if (Number.isFinite(value)) {
+        return new Date(value).toISOString();
+    }
     return fallback;
 }
 
@@ -61,8 +65,12 @@ function diagnosticsFromObservations(observations, options = {}) {
 }
 
 function historyDiagnostics(value, options = {}) {
-    if (!value) return undefined;
-    if (Array.isArray(value.requestAttempts)) return diagnosticsFromAttempts(value.requestAttempts);
+    if (!value) {
+        return undefined;
+    }
+    if (Array.isArray(value.requestAttempts)) {
+        return diagnosticsFromAttempts(value.requestAttempts);
+    }
     if (value.diagnostics && Array.isArray(value.diagnostics.requestAttempts)) {
         return diagnosticsFromAttempts(value.diagnostics.requestAttempts);
     }

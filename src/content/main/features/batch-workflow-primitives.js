@@ -117,8 +117,12 @@ function appendPage(items, total, nextItems, nextTotal, label) {
 }
 
 function isTransientError(error, getConnectionState) {
-    if (!TRANSIENT_CODES.has(error?.code)) return false;
-    if (error.code !== 'SEND_FAILED') return true;
+    if (!TRANSIENT_CODES.has(error?.code)) {
+        return false;
+    }
+    if (error.code !== 'SEND_FAILED') {
+        return true;
+    }
     return Boolean(error.cause) && !getConnectionState().isOpen;
 }
 

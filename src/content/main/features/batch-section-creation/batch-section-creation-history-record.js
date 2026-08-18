@@ -4,7 +4,9 @@ import { historyDiagnostics } from '#src/content/main/infrastructure/history-dia
 const TERMINAL_STATUSES = new Set(modelApi.TERMINAL_STATUSES);
 
 function resultCode(result, terminalStatus) {
-    if (result?.code) return modelApi.text(result.code, 'UNKNOWN_ERROR', 120);
+    if (result?.code) {
+        return modelApi.text(result.code, 'UNKNOWN_ERROR', 120);
+    }
     return {
         created: 'SECTION_CREATED',
         rejected: 'PREFLIGHT_REJECTED',
@@ -17,7 +19,9 @@ function resultCode(result, terminalStatus) {
 }
 
 function resultMessage(result, terminalStatus) {
-    if (result?.message) return modelApi.text(result.message, 'No message was provided.', 1000);
+    if (result?.message) {
+        return modelApi.text(result.message, 'No message was provided.', 1000);
+    }
     return {
         created: 'Section created successfully.',
         rejected: 'The lesson was rejected during preflight.',
@@ -30,7 +34,9 @@ function resultMessage(result, terminalStatus) {
 }
 
 function serializeCleanup(result, terminalStatus) {
-    if (result?.status !== 'partially_created') return null;
+    if (result?.status !== 'partially_created') {
+        return null;
+    }
     const cleanup = result?.cleanup;
     if (!cleanup) {
         return Object.freeze({
@@ -69,7 +75,9 @@ function serializeCleanup(result, terminalStatus) {
 }
 
 function serializeCreationFailure(result, terminalStatus) {
-    if (!modelApi.isFailureStatus(result?.status)) return null;
+    if (!modelApi.isFailureStatus(result?.status)) {
+        return null;
+    }
     return Object.freeze({
         code: resultCode(result, terminalStatus),
         message: resultMessage(result, terminalStatus),
@@ -114,8 +122,12 @@ function serializeResult(result, definitionSummary, terminalStatus) {
 }
 
 function inferTerminalStatus(explicitStatus, fatalError, results) {
-    if (TERMINAL_STATUSES.has(explicitStatus)) return explicitStatus;
-    if (fatalError) return 'interrupted';
+    if (TERMINAL_STATUSES.has(explicitStatus)) {
+        return explicitStatus;
+    }
+    if (fatalError) {
+        return 'interrupted';
+    }
     return results.some((result) => [
         'rejected',
         'failed',

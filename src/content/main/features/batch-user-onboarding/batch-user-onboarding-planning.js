@@ -223,7 +223,9 @@ function buildAddRequest({
         DeviceType: 'desktop'
     };
     const numericUserId = Number(userId);
-    if (Number.isSafeInteger(numericUserId) && numericUserId > 0) value.UserId = numericUserId;
+    if (Number.isSafeInteger(numericUserId) && numericUserId > 0) {
+        value.UserId = numericUserId;
+    }
     return deepFreeze({
         controller: 'MarathonPupilsWsController',
         method: 'AddMarathonPupil',

@@ -65,7 +65,9 @@ class BatchLessonAccessDialog extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        if (!this.id) this.id = BATCH_ACCESS_OVERLAY_ID;
+        if (!this.id) {
+            this.id = BATCH_ACCESS_OVERLAY_ID;
+        }
         this.ownerDocument?.addEventListener('keydown', this.handleKeydownBound);
     }
 
@@ -106,7 +108,9 @@ class BatchLessonAccessDialog extends LitElement {
         this.mode = 'configure';
         this.clearMessages();
         this.progress = { visible: false, indeterminate: false, completed: 0, total: 0 };
-        if (normalizedOptions.emailState !== undefined) this.setEmailState(normalizedOptions.emailState);
+        if (normalizedOptions.emailState !== undefined) {
+            this.setEmailState(normalizedOptions.emailState);
+        }
         return this;
     }
 
@@ -244,10 +248,15 @@ class BatchLessonAccessDialog extends LitElement {
     }
 
     selectLesson(lessonId, selected) {
-        if (this.isLessonSelectionLocked()) return;
+        if (this.isLessonSelectionLocked()) {
+            return;
+        }
         const next = new Set(this.selectedLessonIds);
-        if (selected) next.add(lessonId);
-        else next.delete(lessonId);
+        if (selected) {
+            next.add(lessonId);
+        } else {
+            next.delete(lessonId);
+        }
         this.selectedLessonIds = next;
     }
 
@@ -259,19 +268,25 @@ class BatchLessonAccessDialog extends LitElement {
     }
 
     handleSelectAll(event) {
-        if (this.isLessonSelectionLocked()) return;
+        if (this.isLessonSelectionLocked()) {
+            return;
+        }
         this.selectedLessonIds = event.currentTarget.checked
             ? new Set(this.lessons.map((lesson) => lesson.MarathonLessonId))
             : new Set();
     }
 
     handleClearAll() {
-        if (this.isLessonSelectionLocked()) return;
+        if (this.isLessonSelectionLocked()) {
+            return;
+        }
         this.selectedLessonIds = new Set();
     }
 
     handleSubmit() {
-        if (!this.canSubmit()) return;
+        if (!this.canSubmit()) {
+            return;
+        }
         this.dispatchEvent(new CustomEvent('edvibe-batch-access-submit', {
             detail: {
                 emailInput: this.emailInput,
@@ -293,7 +308,9 @@ class BatchLessonAccessDialog extends LitElement {
     }
 
     handleRestart() {
-        if (!['complete', 'partial-complete'].includes(this.mode)) return;
+        if (!['complete', 'partial-complete'].includes(this.mode)) {
+            return;
+        }
         this.mode = 'configure';
         this.selectedLessonIds = new Set();
         this.emailInput = '';
@@ -304,22 +321,32 @@ class BatchLessonAccessDialog extends LitElement {
     }
 
     handleBackdropClick(event) {
-        if (event.target === event.currentTarget) this.close();
+        if (event.target === event.currentTarget) {
+            this.close();
+        }
     }
 
     handleKeydown(event) {
-        if (event.key === 'Escape') this.close();
+        if (event.key === 'Escape') {
+            this.close();
+        }
     }
 
     close() {
-        if (!this.canClose()) return;
+        if (!this.canClose()) {
+            return;
+        }
         this.dispatchEvent(new CustomEvent('edvibe-dialog-close'));
         this.remove();
     }
 
     count(value, fallback) {
-        if (Array.isArray(value)) return value.length;
-        if (Number.isFinite(Number(value))) return Math.max(0, Number(value));
+        if (Array.isArray(value)) {
+            return value.length;
+        }
+        if (Number.isFinite(Number(value))) {
+            return Math.max(0, Number(value));
+        }
         return Math.max(0, Number(fallback) || 0);
     }
 
@@ -394,8 +421,8 @@ class BatchLessonAccessDialog extends LitElement {
                             </div>
                             <div class="edvibe-batch-access-lessons" aria-label="Список уроков">
                                 ${lessonCount === 0
-                ? html`<p class="edvibe-batch-access-empty" data-part="empty-state">Уроки не найдены.</p>`
-                : this.lessons.map((lesson) => this.renderLesson(lesson, lessonsLocked))}
+                                    ? html`<p class="edvibe-batch-access-empty" data-part="empty-state">Уроки не найдены.</p>`
+                                    : this.lessons.map((lesson) => this.renderLesson(lesson, lessonsLocked))}
                             </div>
                         </section>
                         <section class="edvibe-batch-access-errors" data-notice="danger" aria-live="polite" ?hidden=${this.errors.length === 0}>

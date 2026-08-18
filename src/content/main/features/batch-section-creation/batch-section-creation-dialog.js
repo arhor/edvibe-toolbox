@@ -73,7 +73,9 @@ class BatchSectionCreationDialog extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        if (!this.id) this.id = BATCH_SECTION_OVERLAY_ID;
+        if (!this.id) {
+            this.id = BATCH_SECTION_OVERLAY_ID;
+        }
         this.ownerDocument?.addEventListener('keydown', this.onKeydownBound);
     }
 
@@ -188,7 +190,9 @@ class BatchSectionCreationDialog extends LitElement {
         if (type === 'image') {
             return this.imageController.createBlock({...block, url: '', alt: ''});
         }
-        if (type === 'text') return {...block, text: ''};
+        if (type === 'text') {
+            return {...block, text: ''};
+        }
         return {...block, label: '', url: ''};
     }
 
@@ -224,15 +228,20 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     releaseImageFiles() {
-        if (!this.imageController || this.blocks.length === 0) return;
+        if (!this.imageController || this.blocks.length === 0) {
+            return;
+        }
         this.blocks = this.imageController.releaseAll(this.blocks);
     }
 
     onLessonChange(event) {
         const lessonId = Number(event.currentTarget.value);
         const next = new Set(this.selectedLessonIds);
-        if (event.currentTarget.checked) next.add(lessonId);
-        else next.delete(lessonId);
+        if (event.currentTarget.checked) {
+            next.add(lessonId);
+        } else {
+            next.delete(lessonId);
+        }
         this.selectedLessonIds = next;
     }
 
@@ -245,17 +254,23 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     onAddBlock(type) {
-        if (!['image', 'text', 'link'].includes(type)) return;
+        if (!['image', 'text', 'link'].includes(type)) {
+            return;
+        }
         this.blocks = [...this.blocks, this.createBlock(type)];
     }
 
     onBlockAction(blockId, action) {
         const index = this.blocks.findIndex((block) => block.id === blockId);
-        if (index < 0) return;
+        if (index < 0) {
+            return;
+        }
         const next = [...this.blocks];
         if (action === 'remove') {
             const [removed] = next.splice(index, 1);
-            if (removed?.type === 'image') this.imageController.releaseBlock(removed);
+            if (removed?.type === 'image') {
+                this.imageController.releaseBlock(removed);
+            }
         } else if (action === 'up' && index > 0) {
             const [block] = next.splice(index, 1);
             next.splice(index - 1, 0, block);
@@ -275,7 +290,9 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     onPreflight() {
-        if (!this.canPreflight()) return;
+        if (!this.canPreflight()) {
+            return;
+        }
         this.dispatchEvent(new CustomEvent('edvibe-batch-section-preflight', {
             bubbles: true,
             composed: true,
@@ -321,11 +338,15 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     onBackdrop(event) {
-        if (event.target === event.currentTarget && !this.isBusy()) this.close();
+        if (event.target === event.currentTarget && !this.isBusy()) {
+            this.close();
+        }
     }
 
     onKeydown(event) {
-        if (event.key === 'Escape' && !this.isBusy()) this.close();
+        if (event.key === 'Escape' && !this.isBusy()) {
+            this.close();
+        }
     }
 
     isBusy() {
@@ -420,13 +441,19 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     previewDetail(block) {
-        if (block.type === 'image') return block.fileName || 'Файл не выбран';
-        if (block.type === 'text') return block.text || 'Текст не указан';
+        if (block.type === 'image') {
+            return block.fileName || 'Файл не выбран';
+        }
+        if (block.type === 'text') {
+            return block.text || 'Текст не указан';
+        }
         return `${block.label || 'Без подписи'} → ${block.url || 'URL не указан'}`;
     }
 
     renderRecipeState() {
-        if (this.recipeReady) return nothing;
+        if (this.recipeReady) {
+            return nothing;
+        }
         return html`
             <section class="edvibe-batch-section-protocol" data-notice="warning">
                 <strong>Запись WebSocket ещё не подключена.</strong>
@@ -437,7 +464,9 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     renderErrors() {
-        if (this.errors.length === 0) return nothing;
+        if (this.errors.length === 0) {
+            return nothing;
+        }
         return html`
             <section class="edvibe-batch-section-errors" data-notice="danger" aria-live="polite">
                 <h3>Что нужно исправить</h3>
@@ -459,7 +488,9 @@ class BatchSectionCreationDialog extends LitElement {
 
     renderPlan() {
         const plan = this.currentPlan;
-        if (!plan) return nothing;
+        if (!plan) {
+            return nothing;
+        }
         return html`
             <section class="edvibe-batch-section-summary" data-notice aria-live="polite">
                 <h3>Предварительный план</h3>
@@ -479,7 +510,9 @@ class BatchSectionCreationDialog extends LitElement {
     }
 
     renderResults() {
-        if (!this.result) return nothing;
+        if (!this.result) {
+            return nothing;
+        }
         return html`
             <section class="edvibe-batch-section-results" aria-live="polite">
                 <h3>${this.fatalResultError ? 'Частичный результат' : 'Результат'}</h3>
@@ -526,7 +559,9 @@ class BatchSectionCreationDialog extends LitElement {
                                         <input class="edvibe-batch-section-name" type="text" maxlength="200"
                                             autocomplete="off" placeholder="Например, Летняя акция"
                                             .value=${this.sectionName} ?disabled=${!configurable}
-                                            @input=${(event) => { this.sectionName = event.currentTarget.value; }}></label>
+                                            @input=${(event) => {
+                                                this.sectionName = event.currentTarget.value; 
+                                            }}></label>
                                     <div class="edvibe-batch-section-heading-row"><div><h3>Уроки</h3><p>Выберите все уроки, куда нужно добавить раздел.</p></div>
                                         <div class="edvibe-batch-section-selection-actions" data-part="actions">
                                             <button class="edvibe-batch-section-select-all" data-control="secondary" type="button" ?disabled=${!configurable} @click=${this.onSelectAll}>Выбрать все</button>

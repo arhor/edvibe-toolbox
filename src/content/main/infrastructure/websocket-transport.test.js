@@ -18,7 +18,9 @@ class FakeWebSocket {
     }
 
     send(data) {
-        if (this.sendError) throw this.sendError;
+        if (this.sendError) {
+            throw this.sendError;
+        }
         this.sent.push(data);
     }
 
@@ -44,7 +46,9 @@ function setup(options = {}) {
     const root = {};
     transport.install(root);
     const socket = new root.WebSocket('wss://example.test');
-    return { transport, socket, timers, advance: (milliseconds) => { time += milliseconds; } };
+    return { transport, socket, timers, advance: (milliseconds) => {
+        time += milliseconds; 
+    } };
 }
 
 test('exposes full diagnostics for a successful response without changing it', async () => {

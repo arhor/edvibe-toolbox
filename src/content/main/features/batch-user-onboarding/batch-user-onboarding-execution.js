@@ -76,7 +76,9 @@ function rejectSelectedState(row, code, message) {
 function revalidateRows({ rows, pupils, moderators, targetModerator }) {
     const pupilIndex = buildPupilEmailIndex(pupils);
     for (const row of rows) {
-        if (!row.actionable || row.selectedOperations.length === 0) continue;
+        if (!row.actionable || row.selectedOperations.length === 0) {
+            continue;
+        }
         const candidates = pupilIndex.get(row.normalizedEmail) || [];
         if (candidates.length > 1) {
             rejectSelectedState(row, 'USER_AMBIGUOUS', 'The user became ambiguous before execution.');
@@ -97,7 +99,9 @@ function revalidateRows({ rows, pupils, moderators, targetModerator }) {
             if (row.addSelected && isRevalidatable(row.addResult)) {
                 row.addResult = operationResult('noop', 'USER_ALREADY_IN_MARATHON', 'User is already in the marathon.');
             }
-            if (!row.assignSelected || !isRevalidatable(row.assignResult)) continue;
+            if (!row.assignSelected || !isRevalidatable(row.assignResult)) {
+                continue;
+            }
 
             const current = resolvePupilModerators(currentPupil.Moderators, moderators);
             if (!current.safe) {
@@ -124,7 +128,9 @@ function revalidateRows({ rows, pupils, moderators, targetModerator }) {
             continue;
         }
 
-        if (row.membership !== 'not_in_marathon' || candidates.length === 0) continue;
+        if (row.membership !== 'not_in_marathon' || candidates.length === 0) {
+            continue;
+        }
         const currentPupil = candidates[0];
         row.runtimePupil = serializePupil(currentPupil);
         if (row.addSelected && isRevalidatable(row.addResult)) {
@@ -151,9 +157,15 @@ function revalidateRows({ rows, pupils, moderators, targetModerator }) {
 }
 
 function isOperationWide(error, getConnectionState) {
-    if (!error?.code) return true;
-    if (error.code === 'WS_UNAVAILABLE') return true;
-    if (error.code === 'SEND_FAILED' && !getConnectionState().isOpen) return true;
+    if (!error?.code) {
+        return true;
+    }
+    if (error.code === 'WS_UNAVAILABLE') {
+        return true;
+    }
+    if (error.code === 'SEND_FAILED' && !getConnectionState().isOpen) {
+        return true;
+    }
     return !EXPECTED_WRITE_CODES.has(error.code);
 }
 
@@ -191,9 +203,13 @@ async function executeAddGroup({
         && row.membership === 'not_in_marathon'
         && Boolean(row.assignSelected) === includeModerator
     );
-    if (targets.length === 0) return { targets, confirmed: false, fatalError: null };
+    if (targets.length === 0) {
+        return { targets, confirmed: false, fatalError: null };
+    }
     const diagnosticId = includeModerator ? 'add-group-with-curator' : 'add-group';
-    for (const row of targets) row.addDiagnosticRef = diagnosticId;
+    for (const row of targets) {
+        row.addDiagnosticRef = diagnosticId;
+    }
 
     const context = getRequestContext?.() || {};
     const request = buildAddRequest({
@@ -224,7 +240,9 @@ async function executeAddGroup({
                 throw error;
             }
         }, { wait, getConnectionState });
-        for (const row of targets) row.addRequestAttempts = result.attempts;
+        for (const row of targets) {
+            row.addRequestAttempts = result.attempts;
+        }
         return {
             targets,
             confirmed: true,
@@ -329,7 +347,9 @@ function reconcileAddedRows({ groups, pupils, targetModerator }) {
 function markConfirmedGroupsUnverified(groups, error) {
     for (const group of groups.filter((item) => item.confirmed)) {
         for (const row of group.targets) {
-            if (!isPending(row.addResult)) continue;
+            if (!isPending(row.addResult)) {
+                continue;
+            }
             row.addResult = operationResult(
                 'failed',
                 'ADD_VERIFICATION_FAILED',
@@ -368,7 +388,9 @@ async function executeExistingAssignments({
         && row.runtimePupil?.marathonPupilId
     );
     for (const [index, row] of targets.entries()) {
-        if (fatalError) break;
+        if (fatalError) {
+            break;
+        }
         const request = buildAssignRequest({
             marathonId,
             marathonPupilId: row.runtimePupil.marathonPupilId,
@@ -418,7 +440,9 @@ async function executeExistingAssignments({
             }
         }
         emitProgress(onProgress, rows, { email: row.email, operation: 'assign_curator' });
-        if (index < targets.length - 1 && requestDelayMs > 0 && !fatalError) await wait(requestDelayMs);
+        if (index < targets.length - 1 && requestDelayMs > 0 && !fatalError) {
+            await wait(requestDelayMs);
+        }
     }
     return fatalError;
 }
@@ -442,8 +466,12 @@ function rejectRevalidatableRows(rows, error) {
             error?.message || 'The confirmed plan could not be revalidated.'
         );
         const diagnostics = diagnosticEnvelope('revalidate', [diagnosticAttempt(error, 'revalidate', 1)]);
-        if (row.addResult?.status === 'rejected') row.addResult.diagnostics = diagnostics;
-        if (row.assignResult?.status === 'rejected') row.assignResult.diagnostics = diagnostics;
+        if (row.addResult?.status === 'rejected') {
+            row.addResult.diagnostics = diagnostics;
+        }
+        if (row.assignResult?.status === 'rejected') {
+            row.assignResult.diagnostics = diagnostics;
+        }
     }
 }
 
@@ -489,7 +517,9 @@ async function executePlan({
                 && row.membership === 'not_in_marathon'
                 && Boolean(row.assignSelected) === includeModerator
             );
-            if (!hasTargets) continue;
+            if (!hasTargets) {
+                continue;
+            }
             writesStarted = true;
             currentOperation = includeModerator ? 'add_user_with_curator' : 'add_user';
             const group = await executeAddGroup({
@@ -508,8 +538,12 @@ async function executePlan({
             emitProgress(onProgress, rows, {
                 operation: includeModerator ? 'add_user_with_curator' : 'add_user'
             });
-            if (fatalError) break;
-            if (requestDelayMs > 0) await wait(requestDelayMs);
+            if (fatalError) {
+                break;
+            }
+            if (requestDelayMs > 0) {
+                await wait(requestDelayMs);
+            }
         }
 
         if (!fatalError && groups.some((group) => group.confirmed)) {

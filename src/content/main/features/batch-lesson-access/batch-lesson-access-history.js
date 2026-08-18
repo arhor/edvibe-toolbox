@@ -20,7 +20,9 @@ function addHistoryButton(dialog, executionId, openHistory) {
     dialog.shadowRoot?.querySelector?.('.edvibe-batch-access-history')?.remove?.();
     const documentApi = dialog.ownerDocument || globalThis.document;
     const button = documentApi?.createElement?.('button');
-    if (!button) return;
+    if (!button) {
+        return;
+    }
     button.type = 'button';
     button.className = 'edvibe-batch-access-history';
     button.textContent = 'Открыть в истории';
@@ -100,7 +102,9 @@ function createHistoryAwareFeature(options = {}) {
 
         function buildPlan(errors = []) {
             const attempt = current.attempt;
-            if (!attempt) return null;
+            if (!attempt) {
+                return null;
+            }
             return buildObservedPlan({
                 submittedEmailInput: attempt.submittedEmailInput,
                 selectedLessonIds: attempt.selectedLessonIds,
@@ -113,14 +117,18 @@ function createHistoryAwareFeature(options = {}) {
 
         function persist(summary, terminalStatus, errors = []) {
             const attempt = current.attempt;
-            if (!attempt || attempt.terminal) return;
+            if (!attempt || attempt.terminal) {
+                return;
+            }
             attempt.terminal = true;
             const sequence = attempt.sequence;
             let input;
             try {
                 const completedAt = now().toISOString();
                 const plan = attempt.plan || buildPlan(errors);
-                if (!plan) return;
+                if (!plan) {
+                    return;
+                }
                 input = buildExecutionHistoryInput({
                     plan,
                     summary,
@@ -155,7 +163,9 @@ function createHistoryAwareFeature(options = {}) {
                     }
                 })
                 .catch((error) => {
-                    if (sequence !== current.sequence) return;
+                    if (sequence !== current.sequence) {
+                        return;
+                    }
                     appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
                     log('Batch lesson access history persistence failed:', error);
                 });
@@ -167,18 +177,24 @@ function createHistoryAwareFeature(options = {}) {
             return originalShowConfigure(value);
         };
         dialog.showConfirmation = (value = {}) => {
-            if (current.attempt) current.attempt.plan = buildPlan();
+            if (current.attempt) {
+                current.attempt.plan = buildPlan();
+            }
             return originalShowConfirmation(value);
         };
         dialog.showValidationErrors = (errors = []) => {
             const output = originalShowValidationErrors(errors);
-            if (current.attempt) persist({}, null, Array.isArray(errors) ? errors : [errors]);
+            if (current.attempt) {
+                persist({}, null, Array.isArray(errors) ? errors : [errors]);
+            }
             return output;
         };
         dialog.showComplete = (summary = {}) => {
             const output = originalShowComplete(summary);
             if (current.attempt) {
-                if (!current.attempt.plan) current.attempt.plan = buildPlan();
+                if (!current.attempt.plan) {
+                    current.attempt.plan = buildPlan();
+                }
                 const interrupted = (summary.failures || []).some((failure) => failure?.code === 'INTERNAL_ERROR');
                 persist(summary, interrupted ? 'interrupted' : null);
             }
@@ -186,7 +202,9 @@ function createHistoryAwareFeature(options = {}) {
         };
         dialog.showFatalError = (error) => {
             const output = originalShowFatalError(error);
-            if (current.attempt) persist({}, 'interrupted', [error]);
+            if (current.attempt) {
+                persist({}, 'interrupted', [error]);
+            }
             return output;
         };
         dialog.addEventListener('edvibe-batch-access-submit', (event) => startAttempt(event?.detail));
@@ -196,7 +214,9 @@ function createHistoryAwareFeature(options = {}) {
             dialog.shadowRoot?.querySelector?.('.edvibe-batch-access-history')?.remove?.();
         });
         dialog.addEventListener('edvibe-dialog-close', () => {
-            if (current.attempt?.plan && !current.attempt.terminal) persist({}, 'cancelled');
+            if (current.attempt?.plan && !current.attempt.terminal) {
+                persist({}, 'cancelled');
+            }
         });
         return dialog;
     }
