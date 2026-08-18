@@ -58,47 +58,190 @@ function readHeader(headers, name, HeadersCtor = globalThis.Headers) {
     return '';
 }
 
+function readStorageKeys(storage) {
+    if (!storage) return null;
+    try {
+        return Array.from({ length: storage.length }, (_, index) => storage.key(index))
+            .filter(Boolean)
+            .map(String)
+            .sort();
+    } catch (_) {
+        return null;
+    }
+}
+
+function readCookieNames(documentObject) {
+    if (!documentObject) return null;
+    try {
+        const cookie = String(documentObject.cookie || '');
+        if (!cookie) return [];
+        return cookie
+            .split(';')
+            .map((entry) => entry.split('=', 1)[0].trim())
+            .filter(Boolean)
+            .sort();
+    } catch (_) {
+        return null;
+    }
+}
+
 function createAuthorizationCapture(rootObject) {
     let authorization = '';
+    let authorizationCaptureCount = 0;
+    let fetchTrustedRequestCount = 0;
+    let manualTrustedRequestCount = 0;
+    let trustedRequestCount = 0;
+    let xhrTrustedRequestCount = 0;
+    let lastAuthorizationCapture = null;
+    let lastTrustedRequest = null;
     const baseUrl = rootObject.location?.href || 'https://edvibe.com/';
     const originalFetch = rootObject.fetch;
     const HeadersCtor = rootObject.Headers;
+    const xhrPrototype = rootObject.XMLHttpRequest?.prototype;
+    const fetchHookInstalled = typeof originalFetch === 'function';
+    const xhrHookInstalled = Boolean(xhrPrototype?.open && xhrPrototype?.setRequestHeader);
+    const installedAt = new Date().toISOString();
 
-    function capture(input, headers) {
-        if (!isTrustedEdvibeUrl(input, baseUrl)) return;
-        const value = readHeader(headers, 'authorization', HeadersCtor);
-        if (value) authorization = value;
+    function summarizeRequestUrl(input) {
+        const url = normalizeRequestUrl(input, baseUrl);
+        return url ? `${url.origin}${url.pathname}` : null;
     }
 
-    if (typeof originalFetch === 'function') {
+    function recordTrustedRequest(input, source = 'manual', method = 'GET') {
+        if (!isTrustedEdvibeUrl(input, baseUrl)) return false;
+        trustedRequestCount += 1;
+        if (source === 'fetch') fetchTrustedRequestCount += 1;
+        else if (source === 'xhr') xhrTrustedRequestCount += 1;
+        else manualTrustedRequestCount += 1;
+        lastTrustedRequest = Object.freeze({
+            source,
+            method: String(method || 'GET').toUpperCase(),
+            url: summarizeRequestUrl(input),
+            observedAt: new Date().toISOString()
+        });
+        return true;
+    }
+
+    function capture(input, headers, {
+        source = 'manual',
+        method = 'GET',
+        observeRequest = true
+    } = {}) {
+        if (observeRequest) {
+            if (!recordTrustedRequest(input, source, method)) return;
+        } else if (!isTrustedEdvibeUrl(input, baseUrl)) {
+            return;
+        }
+        const value = readHeader(headers, 'authorization', HeadersCtor);
+        if (!value) return;
+        authorization = value;
+        authorizationCaptureCount += 1;
+        lastAuthorizationCapture = Object.freeze({
+            source,
+            method: String(method || 'GET').toUpperCase(),
+            url: summarizeRequestUrl(input),
+            observedAt: new Date().toISOString()
+        });
+    }
+
+    if (fetchHookInstalled) {
         rootObject.fetch = function edvibeToolboxFetch(input, init) {
-            capture(input, init?.headers || input?.headers);
+            capture(input, init?.headers || input?.headers, {
+                source: 'fetch',
+                method: init?.method || input?.method || 'GET'
+            });
             return originalFetch.apply(this, arguments);
         };
     }
 
-    const xhrPrototype = rootObject.XMLHttpRequest?.prototype;
-    if (xhrPrototype?.open && xhrPrototype?.setRequestHeader) {
+    if (xhrHookInstalled) {
         const originalOpen = xhrPrototype.open;
         const originalSetRequestHeader = xhrPrototype.setRequestHeader;
-        const urls = new WeakMap();
+        const requests = new WeakMap();
         xhrPrototype.open = function open(method, url) {
-            urls.set(this, url);
+            requests.set(this, { method, url });
+            recordTrustedRequest(url, 'xhr', method);
             return originalOpen.apply(this, arguments);
         };
         xhrPrototype.setRequestHeader = function setRequestHeader(name, value) {
-            if (
-                String(name).toLowerCase() === 'authorization'
-                && isTrustedEdvibeUrl(urls.get(this), baseUrl)
-                && value
-            ) {
-                authorization = String(value);
+            if (String(name).toLowerCase() === 'authorization' && value) {
+                const request = requests.get(this) || {};
+                capture(request.url, { authorization: value }, {
+                    source: 'xhr',
+                    method: request.method,
+                    observeRequest: false
+                });
             }
             return originalSetRequestHeader.apply(this, arguments);
         };
     }
 
-    return Object.freeze({ getAuthorization: () => authorization, capture });
+    function getDiagnostics() {
+        return Object.freeze({
+            installedAt,
+            hasAuthorization: Boolean(authorization),
+            hooks: Object.freeze({
+                fetch: fetchHookInstalled,
+                xhr: xhrHookInstalled
+            }),
+            trustedRequests: Object.freeze({
+                total: trustedRequestCount,
+                fetch: fetchTrustedRequestCount,
+                xhr: xhrTrustedRequestCount,
+                manual: manualTrustedRequestCount
+            }),
+            authorizationCaptureCount,
+            lastTrustedRequest,
+            lastAuthorizationCapture,
+            storage: Object.freeze({
+                localStorageKeys: readStorageKeys(rootObject.localStorage),
+                sessionStorageKeys: readStorageKeys(rootObject.sessionStorage),
+                cookieNames: readCookieNames(rootObject.document)
+            })
+        });
+    }
+
+    return Object.freeze({
+        getAuthorization: () => authorization,
+        getDiagnostics,
+        capture
+    });
+}
+
+function createAuthorizationFailureDiagnostics(captureDiagnostics, imageBlockCount) {
+    const completedAt = new Date().toISOString();
+    const startedAt = captureDiagnostics?.installedAt || completedAt;
+    const startedAtMs = Date.parse(startedAt);
+    const completedAtMs = Date.parse(completedAt);
+    const durationMs = Number.isFinite(startedAtMs) && Number.isFinite(completedAtMs)
+        ? Math.max(0, completedAtMs - startedAtMs)
+        : null;
+    return Object.freeze({
+        requestAttempts: Object.freeze([
+            Object.freeze({
+                correlationId: 'media-upload-auth-context',
+                operationName: 'resolve-image-upload-authorization',
+                controller: null,
+                method: 'captureAuthorizationHeader',
+                projectName: 'MediaFile',
+                requestId: null,
+                attemptNumber: 1,
+                startedAt,
+                completedAt,
+                durationMs,
+                outcome: 'failure',
+                transportCode: 'AUTH_CONTEXT_UNAVAILABLE',
+                serverErrorCode: null,
+                serverErrorMessage: null,
+                requestSummary: Object.freeze({
+                    endpoint: UPLOAD_ENDPOINT,
+                    imageBlockCount,
+                    authorizationCapture: captureDiagnostics || null
+                }),
+                responseSummary: null
+            })
+        ])
+    });
 }
 
 function createDynamicImageRecipe(recipe) {
@@ -132,6 +275,7 @@ async function uploadImageAssets({
     definition,
     registry,
     authorization,
+    authorizationContext = null,
     fetchFn,
     FormDataCtor
 }) {
@@ -140,7 +284,13 @@ async function uploadImageAssets({
     if (!authorization) {
         throw createUploadError(
             'AUTH_CONTEXT_UNAVAILABLE',
-            'Edvibe authorization context is unavailable. Reload the page and try again.'
+            'Edvibe authorization context is unavailable. Reload the page and try again.',
+            {
+                diagnostics: createAuthorizationFailureDiagnostics(
+                    authorizationContext,
+                    imageBlocks.length
+                )
+            }
         );
     }
 
@@ -236,6 +386,7 @@ function createEnhancedAdapterFactory({
                     definition,
                     registry,
                     authorization: authorizationCapture.getAuthorization(),
+                    authorizationContext: authorizationCapture.getDiagnostics?.() || null,
                     fetchFn,
                     FormDataCtor
                 });
@@ -300,7 +451,10 @@ export {
     normalizeRequestUrl,
     isTrustedEdvibeUrl,
     readHeader,
+    readStorageKeys,
+    readCookieNames,
     createAuthorizationCapture,
+    createAuthorizationFailureDiagnostics,
     createDynamicImageRecipe,
     uploadImageAssets,
     createEnhancedAdapterFactory,
