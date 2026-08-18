@@ -79,6 +79,15 @@ const TOOL_GROUPS = Object.freeze([
                 closeOnSuccess: true
             },
             {
+                id: 'youtube-video-attachment',
+                title: 'Добавить YouTube-видео',
+                description: 'Прикрепить одно видео к выбранным разделам выбранных уроков.',
+                command: POPUP_COMMANDS.OPEN_VIDEO_ATTACHMENT,
+                requirement: 'marathon',
+                busyLabel: 'Открывается…',
+                closeOnSuccess: true
+            },
+            {
                 id: 'batch-section-deletion',
                 title: 'Удалить раздел из уроков',
                 description: 'Безопасно удалить раздел с точным именем из выбранных уроков.',

@@ -23,6 +23,8 @@ import * as historyDialogApi from '#src/content/main/features/execution-history/
 import * as historyFeatureApi from '#src/content/main/features/execution-history/execution-history.js';
 import * as exportApi from '#src/content/main/features/marathon-export/marathon-export.js';
 import * as resetApi from '#src/content/main/features/reset-lessons/reset-lessons.js';
+import * as videoAttachmentDialogApi from '#src/content/main/features/video-attachment/video-attachment-dialog.js';
+import * as videoAttachmentApi from '#src/content/main/features/video-attachment/video-attachment.js';
 import * as storageBridgeApi from '#src/content/main/infrastructure/chrome-storage-bridge.js';
 import * as historyExportApi from '#src/content/main/infrastructure/execution-history-export.js';
 import * as historyRepositoryApi from '#src/content/main/infrastructure/execution-history-repository.js';
@@ -225,6 +227,17 @@ const batchSectionDeletionFeature = batchSectionDeletionApi.createBatchSectionDe
     log: createMainLog('BatchSectionDeletion')
 });
 
+const videoAttachmentFeature = videoAttachmentApi.createVideoAttachmentFeature({
+    sendRequest: transport.sendRequest,
+    canStart: operationGuard.canStart,
+    onActiveChange: guardedActiveChange('video-attachment'),
+    createDialog: () => document.createElement(videoAttachmentDialogApi.VIDEO_ATTACHMENT_DIALOG_TAG),
+    getLocationHref: () => window.location.href,
+    appendDialog: (dialog) => document.body.append(dialog),
+    alertUser: (message) => window.alert(message),
+    log: createMainLog('VideoAttachment')
+});
+
 function openActionRecorder() {
     if (recorderOpen) {
         actionRecorderFeature.open();
@@ -248,6 +261,7 @@ const mainCommandHandlers = new Map([
     [WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT, () => batchUserManagementFeature.open()],
     [WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_CREATION, () => batchSectionCreationFeature.open()],
     [WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_DELETION, () => batchSectionDeletionFeature.open()],
+    [WINDOW_MESSAGE_TYPES.OPEN_VIDEO_ATTACHMENT, () => videoAttachmentFeature.open()],
     [WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY, (data) => executionHistoryFeature.open({ executionId: data.executionId || null })],
     [WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER, openActionRecorder]
 ]);
