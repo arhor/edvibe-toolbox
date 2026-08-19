@@ -53,7 +53,7 @@ class ResetLessonsDialog extends LitElement {
     constructor() {
         super();
         this.searchDelay = 1000;
-        this.log = () => { };
+        this.logger = { log() {} };
         this.loadLessons = null;
         this.loadNextPupils = null;
         this.currentStep = 'user';
@@ -100,11 +100,11 @@ class ResetLessonsDialog extends LitElement {
 
     configure(options = {}) {
         const normalizedOptions = options && typeof options === 'object' ? options : {};
-        const { searchDelay = 1000, loadLessons, loadNextPupils, log = () => { } } = normalizedOptions;
+        const { searchDelay = 1000, loadLessons, loadNextPupils, logger = { log() {} } } = normalizedOptions;
         this.searchDelay = Number.isFinite(Number(searchDelay)) ? Math.max(0, Number(searchDelay)) : 1000;
         this.loadLessons = typeof loadLessons === 'function' ? loadLessons : null;
         this.loadNextPupils = typeof loadNextPupils === 'function' ? loadNextPupils : null;
-        this.log = typeof log === 'function' ? log : () => { };
+        this.logger = typeof logger?.log === 'function' ? logger : { log() {} };
         return this;
     }
 
@@ -259,7 +259,7 @@ class ResetLessonsDialog extends LitElement {
                 return true;
             } catch (error) {
                 if (!this.closed && this.currentStep === 'user' && !this.loading) {
-                    this.log(`Failed to load another pupil page (${this.errorType(error)}).`); this.setStatus(error.message, 'error'); 
+                    this.logger.log(`Failed to load another pupil page (${this.errorType(error)}).`); this.setStatus(error.message, 'error');
                 }
                 return false;
             } finally {
@@ -301,7 +301,7 @@ class ResetLessonsDialog extends LitElement {
             this.showLessons(this.selectedPupil, lessons);
         } catch (error) {
             this.loading = false; this.currentStep = 'user';
-            this.log(`Failed to load lessons for PupilId ${this.selectedPupil.PupilId} (${this.errorType(error)}).`);
+            this.logger.log(`Failed to load lessons for PupilId ${this.selectedPupil.PupilId} (${this.errorType(error)}).`);
             this.setStatus(error.message, 'error');
         }
     }

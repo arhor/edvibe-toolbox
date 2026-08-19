@@ -107,7 +107,7 @@ describe('initializeIsolatedBridge', () => {
         const bridge = initializeIsolatedBridge({
             windowApi: harness.windowApi,
             chromeApi: harness.chromeApi,
-            log: (...args) => logs.push(args)
+            logger: { log: (...args) => logs.push(args) }
         });
 
         // Then

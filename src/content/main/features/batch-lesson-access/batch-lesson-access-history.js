@@ -38,7 +38,7 @@ function addHistoryButton(dialog, executionId, openHistory) {
 export function createHistoryAwareFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
     executionHistoryService,
     dispatch,
 }) {
@@ -59,7 +59,7 @@ export function createHistoryAwareFeatureV2({
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
-        log: logFactory('BatchAccessHistory')
+        logger: logger.createChildLogger('BatchAccessHistory')
     });
 }
 
@@ -81,7 +81,7 @@ function createHistoryAwareFeature(options = {}) {
         getLocationHref = () => '',
         getMarathonName = () => null,
         now = () => new Date(),
-        log = () => { },
+        logger = { log() {} },
         ...featureOptions
     } = options;
 
@@ -179,7 +179,7 @@ function createHistoryAwareFeature(options = {}) {
                 });
             } catch (error) {
                 appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                log('Batch lesson access history record creation failed:', error);
+                logger.log('Batch lesson access history record creation failed:', error);
                 return;
             }
             Promise.resolve()
@@ -196,7 +196,7 @@ function createHistoryAwareFeature(options = {}) {
                     } else {
                         appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
                         if (history?.persistenceError) {
-                            log('Batch lesson access history persistence failed:', history.persistenceError);
+                            logger.log('Batch lesson access history persistence failed:', history.persistenceError);
                         }
                     }
                 })
@@ -205,7 +205,7 @@ function createHistoryAwareFeature(options = {}) {
                         return;
                     }
                     appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                    log('Batch lesson access history persistence failed:', error);
+                    logger.log('Batch lesson access history persistence failed:', error);
                 });
         }
         dialog.showConfigure = (value = {}) => {
@@ -263,7 +263,7 @@ function createHistoryAwareFeature(options = {}) {
         ...featureOptions,
         sendRequest: trackedSendRequest,
         createDialog: createTrackedDialog,
-        log
+        logger
     });
 }
 

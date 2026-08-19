@@ -25,9 +25,9 @@ function createWebSocketTransport({
     setTimeoutFn = setTimeout,
     clearTimeoutFn = clearTimeout,
     now = Date.now,
-    logFactory,
+    logger: parentLogger,
 }) {
-    const log = logFactory('Transport');
+    const logger = parentLogger.createChildLogger('Transport');
     let activeSocket = null;
     let nextSocketId = 1;
     let internalSendDepth = 0;
@@ -94,7 +94,7 @@ function createWebSocketTransport({
             try {
                 observer(frame);
             } catch (error) {
-                log('Frame observer failed:', error);
+                logger.log('Frame observer failed:', error);
             }
         }
     }
@@ -190,7 +190,7 @@ function createWebSocketTransport({
             const outcome = data.IsSuccess === true
                 ? 'success'
                 : `failed (${data.ErrorCode})`;
-            log(`← ${pending.controller}.${pending.method} [${data.RequestId}] ${outcome} in ${elapsedMs}ms`);
+            logger.log(`← ${pending.controller}.${pending.method} [${data.RequestId}] ${outcome} in ${elapsedMs}ms`);
 
             if (data.IsSuccess !== true) {
                 pending.reject(
@@ -212,13 +212,13 @@ function createWebSocketTransport({
             responseDiagnostics.set(data, diagnostics);
             pending.resolve(data);
         } catch (error) {
-            log('Failed parsing WebSocket frame:', error);
+            logger.log('Failed parsing WebSocket frame:', error);
         }
     }
 
     function install(rootObject) {
         function InterceptedWebSocket(url, protocols) {
-            log('Intercepting WebSocket targeting:', url);
+            logger.log('Intercepting WebSocket targeting:', url);
             const socket = protocols === undefined
                 ? new WebSocketClass(url)
                 : new WebSocketClass(url, protocols);
@@ -272,7 +272,7 @@ function createWebSocketTransport({
             try {
                 socket = requireOpenSocket(controller, method);
             } catch (error) {
-                log('No active WebSocket connection.');
+                logger.log('No active WebSocket connection.');
                 reject(error);
                 return;
             }
@@ -282,7 +282,7 @@ function createWebSocketTransport({
             const diagnostics = createRequestDiagnostics(packet, startedAt, valueObject);
             const timeoutId = setTimeoutFn(() => {
                 pendingRequests.delete(packet.RequestId);
-                log(`✕ ${controller}.${method} [${packet.RequestId}] timed out after ${requestTimeoutMs}ms`);
+                logger.log(`✕ ${controller}.${method} [${packet.RequestId}] timed out after ${requestTimeoutMs}ms`);
                 reject(createTransportError(
                     'REQUEST_TIMEOUT',
                     `${controller}:${method} timed out after ${requestTimeoutMs}ms.`,
@@ -307,7 +307,7 @@ function createWebSocketTransport({
                 requestValue: diagnostics.value,
                 diagnostics
             });
-            log(`→ ${controller}.${method} [${packet.RequestId}]`);
+            logger.log(`→ ${controller}.${method} [${packet.RequestId}]`);
 
             try {
                 internalSendDepth += 1;
@@ -319,7 +319,7 @@ function createWebSocketTransport({
             } catch (error) {
                 clearTimeoutFn(timeoutId);
                 pendingRequests.delete(packet.RequestId);
-                log(`✕ ${controller}.${method} [${packet.RequestId}] send failed: ${error.message}`);
+                logger.log(`✕ ${controller}.${method} [${packet.RequestId}] send failed: ${error.message}`);
                 reject(createTransportError('SEND_FAILED', error.message, {
                     controller,
                     method,
@@ -340,7 +340,7 @@ function createWebSocketTransport({
     function sendWithoutResponse(controller, method, projectName, valueObject) {
         const socket = requireOpenSocket(controller, method);
         const packet = createPacket(controller, method, projectName, valueObject);
-        log(`→ ${controller}.${method} [${packet.RequestId}] (no response expected)`);
+        logger.log(`→ ${controller}.${method} [${packet.RequestId}] (no response expected)`);
         internalSendDepth += 1;
         try {
             socket.send(JSON.stringify(packet));

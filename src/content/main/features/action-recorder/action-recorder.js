@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/indent */
 import { RECORDER_DIALOG_TAG } from '#src/content/main/features/action-recorder/action-recorder-dialog.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
 
@@ -115,7 +114,7 @@ function createBrowserDownload(filename, text) {
 export function createActionRecorderFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
 }) {
     let recorderOpen = false;
 
@@ -138,7 +137,7 @@ export function createActionRecorderFeatureV2({
             recorderOpen = true;
             return panel;
         },
-        log: logFactory('Recorder')
+        logger: logger.createChildLogger('Recorder')
     });
 
     return {
@@ -177,7 +176,7 @@ function createActionRecorderFeature({
     copyText = (text) => navigator.clipboard.writeText(text),
     createId = () => crypto.randomUUID(),
     now = Date.now,
-    log = () => { }
+    logger = { log() {} }
 }) {
     if (typeof subscribeFrames !== 'function') {
         throw new Error('Action recorder requires a frame subscription.');
@@ -406,7 +405,7 @@ function createActionRecorderFeature({
             await copyText(content);
             notice = 'Copied to clipboard.';
         } catch (error) {
-            log('Clipboard copy failed:', error);
+            logger.log('Clipboard copy failed:', error);
             copyFallback = content;
             notice = 'Clipboard unavailable. Copy the text below.';
         }

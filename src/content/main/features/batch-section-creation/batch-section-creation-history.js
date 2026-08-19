@@ -35,7 +35,7 @@ function createHistoryAwareDialog({
     getLocationHref = () => '',
     getMarathonName = () => null,
     now = () => new Date(),
-    log = () => {}
+    logger = { log() {} }
 }) {
     if (typeof createDialog !== 'function') {
         throw new TypeError('createDialog is required');
@@ -92,7 +92,7 @@ function createHistoryAwareDialog({
                 });
             } catch (error) {
                 appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                log('Batch section creation history record creation failed:', error);
+                logger.log('Batch section creation history record creation failed:', error);
                 return;
             }
             Promise.resolve()
@@ -109,7 +109,7 @@ function createHistoryAwareDialog({
                     } else {
                         appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
                         if (history?.persistenceError) {
-                            log('Batch section creation history persistence failed:', history.persistenceError);
+                            logger.log('Batch section creation history persistence failed:', history.persistenceError);
                         }
                     }
                 })
@@ -118,7 +118,7 @@ function createHistoryAwareDialog({
                         return;
                     }
                     appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                    log('Batch section creation history persistence failed:', error);
+                    logger.log('Batch section creation history persistence failed:', error);
                 });
         }
         dialog.showConfigure = (...args) => {

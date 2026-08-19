@@ -15,7 +15,8 @@ import {
 function initializeIsolatedBridge(options = {}) {
     const windowApi = options.windowApi || globalThis.window;
     const chromeApi = options.chromeApi || globalThis.chrome;
-    const log = options.log || (() => {});
+    const logger = options.logger || { log() {} };
+
     if (!windowApi?.addEventListener || !windowApi?.postMessage) {
         throw new TypeError('Window messaging APIs are required');
     }
@@ -23,10 +24,10 @@ function initializeIsolatedBridge(options = {}) {
         throw new TypeError('Chrome runtime and storage APIs are required');
     }
 
-    log('Script successfully injected and initialized.');
+    logger.log('Script successfully injected and initialized.');
 
     chromeApi.storage.local.set({ exportInProgress: false }, () => {
-        log('Reset stale export state for the loaded page.');
+        logger.log('Reset stale export state for the loaded page.');
     });
 
     const onWindowMessage = (event) => {
@@ -41,7 +42,7 @@ function initializeIsolatedBridge(options = {}) {
     };
 
     const onRuntimeMessage = (message, _sender, sendResponse) => {
-        log('Incoming message received:', message);
+        logger.log('Incoming message received:', message);
         if (!isPopupCommandMessage(message)) {
             sendResponse({ status: 'ignored' });
             return true;

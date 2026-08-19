@@ -298,7 +298,7 @@ function createHistoryAwareFeature(options = {}) {
         getLocationHref = () => '',
         getMarathonName = () => null,
         now = () => new Date(),
-        log = () => { },
+        logger = { log() {} },
         ...featureOptions
     } = options;
     if (typeof createDialog !== 'function') {
@@ -336,7 +336,7 @@ function createHistoryAwareFeature(options = {}) {
                     ? history
                     : Object.freeze({ stored: false, stale: true });
             } catch (persistenceError) {
-                log('Batch section deletion history persistence failed:', persistenceError);
+                logger.log('Batch section deletion history persistence failed:', persistenceError);
                 return Object.freeze({ stored: false, persistenceError });
             }
         }
@@ -412,7 +412,7 @@ function createHistoryAwareFeature(options = {}) {
         return dialog;
     }
 
-    return createFeature({ ...featureOptions, createDialog: createTrackedDialog, log });
+    return createFeature({ ...featureOptions, createDialog: createTrackedDialog, logger });
 }
 
 function installHistoryAwareFeature(baseApi = coreApi) {
@@ -436,7 +436,7 @@ function installHistoryAwareFeature(baseApi = coreApi) {
 export function createBatchSectionDeletionFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
     executionHistoryService,
     dispatch,
 }) {
@@ -452,7 +452,7 @@ export function createBatchSectionDeletionFeatureV2({
             type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
             executionId
         }),
-        log: logFactory('BatchSectionDeletion')
+        logger: logger.createChildLogger('BatchSectionDeletion')
     });
 }
 

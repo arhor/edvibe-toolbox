@@ -70,7 +70,7 @@ function postprocessMarkdown(markdown) {
         .trim();
 }
 
-function htmlToMarkdown(html, turndown, log) {
+function htmlToMarkdown(html, turndown, logger) {
     const preprocessed = preprocessHtml(html);
     if (!preprocessed.trim()) {
         return '';
@@ -78,7 +78,7 @@ function htmlToMarkdown(html, turndown, log) {
     try {
         return postprocessMarkdown(turndown.turndown(preprocessed));
     } catch (error) {
-        log('HTML conversion failed, falling back to plain text:', error);
+        logger.log('HTML conversion failed, falling back to plain text:', error);
         return preprocessed.replace(/<[^>]+>/g, '').trim();
     }
 }
@@ -96,7 +96,7 @@ function extensionFromUrl(url) {
     return 'jpg';
 }
 
-async function localizeImage(url, imageId, imagesFolder, urlMap, log) {
+async function localizeImage(url, imageId, imagesFolder, urlMap, logger) {
     if (!url) {
         return null;
     }
@@ -115,13 +115,13 @@ async function localizeImage(url, imageId, imagesFolder, urlMap, log) {
         urlMap.set(url, relativePath);
         return relativePath;
     } catch (error) {
-        log(`Image fetch failed for ${url}:`, error.message);
+        logger.log(`Image fetch failed for ${url}:`, error.message);
         urlMap.set(url, url);
         return url;
     }
 }
 
-async function renderImageMarkdown(imageEntry, imagesFolder, urlMap, log) {
+async function renderImageMarkdown(imageEntry, imagesFolder, urlMap, logger) {
     const url = imageEntry.UrlFull || imageEntry.Url;
     if (!url) {
         return '';
@@ -131,7 +131,7 @@ async function renderImageMarkdown(imageEntry, imagesFolder, urlMap, log) {
         imageEntry.ImageId || imageEntry.ImageFullId,
         imagesFolder,
         urlMap,
-        log
+        logger
     );
     return `![Illustration](${localPath})`;
 }
@@ -147,7 +147,7 @@ async function processDescriptionsAndImages(item, ctx) {
             parts.push(ctx.htmlToMarkdown(description));
         }
         if (images[index]) {
-            parts.push(await renderImageMarkdown(images[index], ctx.imagesFolder, ctx.urlMap, ctx.log));
+            parts.push(await renderImageMarkdown(images[index], ctx.imagesFolder, ctx.urlMap, ctx.logger));
         }
     }
     return parts.filter(Boolean).join('\n\n');
@@ -213,13 +213,13 @@ async function processItemToMarkdown(item, ctx) {
                 }
             }
             for (const image of item.Images || []) {
-                sections.push(await renderImageMarkdown(image, ctx.imagesFolder, ctx.urlMap, ctx.log));
+                sections.push(await renderImageMarkdown(image, ctx.imagesFolder, ctx.urlMap, ctx.logger));
             }
             if (item.Text) {
                 sections.push(ctx.htmlToMarkdown(item.Text));
             }
             if (sections.length === 0) {
-                ctx.log(`Unhandled item Type ${item.Type} (Id: ${item.Id})`);
+                ctx.logger.log(`Unhandled item Type ${item.Type} (Id: ${item.Id})`);
             }
             break;
     }
@@ -244,11 +244,11 @@ function triggerBlobDownload(blob, filename) {
 }
 
 async function compileMarathonToZip(backupData, options = {}) {
-    const log = options.log || (() => {});
+    const logger = options.logger || { log() {} };
     if (!backupData || !Array.isArray(backupData.lessons)) {
         throw new Error('Invalid backup data: expected an object with a lessons array.');
     }
-    log('Starting marathon workspace compilation...');
+    logger.log('Starting marathon workspace compilation...');
     const zip = new JSZip();
     const turndown = createMarkdownTurndownService();
     const archiveRootName = `marathon_${backupData.marathonId || 'export'}`;
@@ -272,11 +272,11 @@ async function compileMarathonToZip(backupData, options = {}) {
             turndown,
             imagesFolder,
             urlMap: new Map(),
-            log,
-            htmlToMarkdown: (html) => htmlToMarkdown(html, turndown, log)
+            logger,
+            htmlToMarkdown: (html) => htmlToMarkdown(html, turndown, logger)
         };
         if (lesson.imageUrl) {
-            await localizeImage(lesson.imageUrl, `lesson_${lesson.lessonId}`, imagesFolder, ctx.urlMap, log);
+            await localizeImage(lesson.imageUrl, `lesson_${lesson.lessonId}`, imagesFolder, ctx.urlMap, logger);
         }
         for (const [sectionIndex, section] of (lesson.sections || []).entries()) {
             const numberedSectionName = `${sectionIndex + 1} - ${section.name}`;
@@ -322,7 +322,7 @@ async function compileMarathonToZip(backupData, options = {}) {
     });
     const downloadName = `edvibe_marathon_${backupData.marathonId || 'export'}_workspace.zip`;
     triggerBlobDownload(zipBlob, downloadName);
-    log('Marathon workspace archive downloaded:', downloadName);
+    logger.log('Marathon workspace archive downloaded:', downloadName);
     return zipBlob;
 }
 
@@ -341,7 +341,7 @@ function createExportProgressOverlay() {
 export function createMarathonExportFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
 }) {
     return createMarathonExportFeature({
         sendRequest: transport.sendRequest,
@@ -350,10 +350,10 @@ export function createMarathonExportFeatureV2({
         notifyStatus: (state, message = '') => {
             window.postMessage(createExportStatusMessage(state, message), '*');
         },
-        log: logFactory('Export'),
+        logger: logger.createChildLogger('Export'),
         compileToZip: (backupData, options) => compileMarathonToZip(
             backupData,
-            { ...options, log: logFactory('Zip') }
+            { ...options, logger: logger.createChildLogger('Zip') }
         )
     });
 }
@@ -375,12 +375,12 @@ function createMarathonExportFeature({
     createProgressOverlay = createExportProgressOverlay,
     getCurrentUrl = () => window.location.href,
     now = () => new Date().toISOString(),
-    log = () => {}
+    logger = { log() {} }
 }) {
     async function start() {
         if (!canStart()) {
             const message = 'Cannot start export while another operation is active.';
-            log(message);
+            logger.log(message);
             notifyStatus('error', message);
             return;
         }
@@ -388,7 +388,7 @@ function createMarathonExportFeature({
         let progressOverlay = null;
         try {
             notifyStatus('started');
-            log('Starting marathon export...');
+            logger.log('Starting marathon export...');
             progressOverlay = createProgressOverlay();
             progressOverlay.setProgress({ statusText: 'Finding marathon lessons...', loadedSections: 0, totalSections: 0 });
             const marathonId = parseMarathonId(getCurrentUrl());
@@ -496,7 +496,7 @@ function createMarathonExportFeature({
             progressOverlay.dismissAfter(3000);
             notifyStatus('complete');
         } catch (error) {
-            log('Export workflow failed:', error);
+            logger.log('Export workflow failed:', error);
             progressOverlay?.error(`Export failed: ${error.message}`);
             notifyStatus('error', error.message);
         } finally {

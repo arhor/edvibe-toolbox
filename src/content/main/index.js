@@ -1,14 +1,13 @@
 import { FeatureDispatcher } from '#src/content/main/feature-dispatcher.js';
 import features from '#src/content/main/features/index.js';
-import { createLoggerFactory } from '#src/shared/logger.js';
+import { Logger } from '#src/shared/logger.js';
 
-const logFactory = createLoggerFactory('MAIN');
-const log = logFactory();
+const logger = new Logger({ namespace: 'MAIN' });
 
-log('Initializing Toolbox modules...');
+logger.log('Initializing Toolbox modules...');
 
 const dispatcher = new FeatureDispatcher({
-    logFactory,
+    logger,
     features,
 });
 
@@ -19,4 +18,4 @@ window.addEventListener('message', ({ source, data }) => {
     dispatcher.dispatch(data);
 });
 
-log('Toolbox modules ready.');
+logger.log('Toolbox modules ready.');

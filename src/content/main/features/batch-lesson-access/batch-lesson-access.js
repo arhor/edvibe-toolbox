@@ -336,7 +336,7 @@ function createBatchLessonAccessFeature({
     onActiveChange,
     createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
     copyText = async () => {},
-    log = () => {}
+    logger = { log() {} }
 }) {
     let active = false;
     let running = false;
@@ -443,7 +443,7 @@ function createBatchLessonAccessFeature({
             const validationErrors = inputErrors.concat(resolution.errors);
 
             if (validationErrors.length > 0) {
-                log(
+                logger.log(
                     `Batch access validation blocked for MarathonId ${marathonId}; `
                     + `${validationErrors.length} error(s).`
                 );
@@ -458,7 +458,7 @@ function createBatchLessonAccessFeature({
             for (const pupil of resolution.matches) {
                 const pupilId = getPupilId(pupil);
                 try {
-                    log(
+                    logger.log(
                         `Loading batch access state for PupilId ${pupilId} `
                         + `in MarathonId ${marathonId}.`
                     );
@@ -472,13 +472,13 @@ function createBatchLessonAccessFeature({
                     );
                     lessonsByPupilId.set(pupilId, result.value);
                     pupilsWithLessons.push(pupil);
-                    log(
+                    logger.log(
                         `Loaded ${result.value.length} lesson state(s) for `
                         + `PupilId ${pupilId} after ${result.attempts} attempt(s).`
                     );
                 } catch (error) {
                     readErrors.push(createReadError(error, pupil, pupilId));
-                    log(
+                    logger.log(
                         `Batch access state read failed for PupilId ${pupilId} `
                         + `in MarathonId ${marathonId} (${getErrorCode(error)}).`
                     );
@@ -492,7 +492,7 @@ function createBatchLessonAccessFeature({
             });
             const preflightErrors = readErrors.concat(plan.errors);
             if (preflightErrors.length > 0) {
-                log(
+                logger.log(
                     `Batch access preflight blocked for MarathonId ${marathonId}; `
                     + `${preflightErrors.length} error(s), zero writes issued.`
                 );
@@ -508,7 +508,7 @@ function createBatchLessonAccessFeature({
                 needsOpening: plan.needsOpening
             });
 
-            log(
+            logger.log(
                 `Batch access preflight complete for MarathonId ${marathonId}; `
                 + `${pendingPlan.needsOpening.length} pending, `
                 + `${pendingPlan.alreadyOpen.length} already open.`
@@ -526,7 +526,7 @@ function createBatchLessonAccessFeature({
                 alreadyOpen: pendingPlan.alreadyOpen
             }));
         } catch (error) {
-            log(
+            logger.log(
                 `Batch access preflight failed for MarathonId ${marathonId} `
                 + `(${getErrorCode(error)}).`
             );
@@ -564,20 +564,20 @@ function createBatchLessonAccessFeature({
                     throw error;
                 }
                 completedResult = error.partialResult;
-                log(
+                logger.log(
                     `Batch access execution stopped for MarathonId ${marathonId}; `
                     + `${completedResult.opened.length} opened, `
                     + `${completedResult.failures.length} failed (INTERNAL_ERROR).`
                 );
             }
-            log(
+            logger.log(
                 `Batch access execution complete for MarathonId ${marathonId}; `
                 + `${completedResult.opened.length} opened, `
                 + `${completedResult.alreadyOpen} already open, `
                 + `${completedResult.failures.length} failed.`
             );
             for (const failure of completedResult.failures) {
-                log(
+                logger.log(
                     'Batch access write failed for MarathonLessonId '
                     + `${failure.marathonLessonId} (${failure.code}).`
                 );
@@ -642,7 +642,7 @@ function createBatchLessonAccessFeature({
             (document.body || document.documentElement).appendChild(dialog);
             dialog.showLoading();
 
-            log(`Initializing batch access for MarathonId ${marathonId}.`);
+            logger.log(`Initializing batch access for MarathonId ${marathonId}.`);
             pupils = await loadAllPupils({ sendRequest, marathonId });
             if (pupils.length === 0) {
                 throw createFeatureError(
@@ -657,7 +657,7 @@ function createBatchLessonAccessFeature({
                 marathonId,
                 pupilId: firstPupilId
             });
-            log(
+            logger.log(
                 `Initialized batch access for MarathonId ${marathonId}; `
                 + `${pupils.length} pupil(s), ${lessonCatalogue.length} lesson(s), `
                 + `catalogue PupilId ${firstPupilId}.`
@@ -666,7 +666,7 @@ function createBatchLessonAccessFeature({
                 lessons: lessonCatalogue
             });
         } catch (error) {
-            log(
+            logger.log(
                 `Batch access initialization failed for MarathonId ${marathonId} `
                 + `(${getErrorCode(error)}).`
             );

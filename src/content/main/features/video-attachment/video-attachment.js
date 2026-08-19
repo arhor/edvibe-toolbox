@@ -305,7 +305,7 @@ async function executeVideoAttachmentBatch({
 export function createVideoAttachmentFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
 }) {
     return createVideoAttachmentFeature({
         sendRequest: transport.sendRequest,
@@ -317,7 +317,7 @@ export function createVideoAttachmentFeatureV2({
         getLocationHref: () => window.location.href,
         appendDialog: (dialog) => document.body.append(dialog),
         alertUser: (message) => window.alert(message),
-        log: logFactory('VideoAttachment'),
+        logger: logger.createChildLogger('VideoAttachment'),
     });
 }
 
@@ -338,7 +338,7 @@ function createVideoAttachmentFeature({
     getLocationHref = () => globalThis.location?.href || '',
     appendDialog = (dialog) => globalThis.document?.body?.append(dialog),
     alertUser = (message) => globalThis.alert?.(message),
-    log = () => { }
+    logger = { log() {} }
 }) {
     let active = false;
 
@@ -384,7 +384,7 @@ function createVideoAttachmentFeature({
                         wait,
                         onProgress
                     });
-                    log(`Attached YouTube video to ${result.summary.successful}/${result.summary.requested} selected sections.`);
+                    logger.log(`Attached YouTube video to ${result.summary.successful}/${result.summary.requested} selected sections.`);
                     return result;
                 },
                 onClose() {

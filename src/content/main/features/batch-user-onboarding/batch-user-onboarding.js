@@ -41,7 +41,7 @@ function parseEmailInput(value) {
 export function createBatchUserOnboardingFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
     executionHistoryService,
     dispatch,
 }) {
@@ -62,7 +62,7 @@ export function createBatchUserOnboardingFeatureV2({
             || document.title
             || null,
         getRequestContext: () => ({ host: window.location.hostname }),
-        log: logFactory('BatchUserOnboarding')
+        logger: logger.createChildLogger('BatchUserOnboarding')
     });
 }
 
@@ -87,7 +87,7 @@ function createBatchUserOnboardingFeature({
     getMarathonName = () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
     getRequestContext = () => ({ host: window.location.hostname }),
     now = () => new Date(),
-    log = () => { }
+    logger = { log() {} }
 }) {
     let active = false;
     function release() {
@@ -184,7 +184,7 @@ function createBatchUserOnboardingFeature({
                         }));
                     } catch (persistenceError) {
                         history = Object.freeze({ stored: false, persistenceError });
-                        log('Batch user onboarding history persistence failed:', persistenceError);
+                        logger.log('Batch user onboarding history persistence failed:', persistenceError);
                     }
                     return { ...result, report, history };
                 },
@@ -200,9 +200,9 @@ function createBatchUserOnboardingFeature({
                 }
             });
             dialog.showConfigure?.();
-            log(`Batch user onboarding initialized for MarathonId ${marathonId}.`);
+            logger.log(`Batch user onboarding initialized for MarathonId ${marathonId}.`);
         } catch (error) {
-            log(`Batch user onboarding initialization failed (${error.code || 'UNKNOWN_ERROR'}).`);
+            logger.log(`Batch user onboarding initialization failed (${error.code || 'UNKNOWN_ERROR'}).`);
             dialog.remove();
             release();
             window.alert(error.message || 'Could not initialize batch user onboarding.');

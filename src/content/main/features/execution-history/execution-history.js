@@ -5,7 +5,7 @@ const HISTORY_OVERLAY_ID = 'edvibe-toolbox-execution-history';
 
 export function createExecutionHistoryFeatureV2({
     operationGuard,
-    logFactory,
+    logger,
     executionHistoryService,
 }) {
     return createExecutionHistoryFeature({
@@ -13,7 +13,7 @@ export function createExecutionHistoryFeatureV2({
         canStart: operationGuard.canStart,
         onActiveChange: operationGuard.guardedActiveChange('history'),
         createDialog: () => document.createElement(EXECUTION_HISTORY_DIALOG_TAG),
-        log: logFactory('History')
+        logger: logger.createChildLogger('History')
     });
 }
 
@@ -22,7 +22,7 @@ function createExecutionHistoryFeature({
     canStart,
     onActiveChange,
     createDialog,
-    log = () => { },
+    logger = { log() {} },
 }) {
     let active = false;
     function open({ executionId = null } = {}) {
@@ -51,7 +51,7 @@ function createExecutionHistoryFeature({
         } catch (error) {
             active = false;
             onActiveChange(false);
-            log('Failed to open execution history:', error);
+            logger.log('Failed to open execution history:', error);
             window.alert(error.message || 'Could not open execution history.');
         }
     }

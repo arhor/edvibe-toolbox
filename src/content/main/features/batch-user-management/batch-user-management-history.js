@@ -244,7 +244,7 @@ function createHistoryAwareDialog({
     getLocationHref = () => '',
     getMarathonName = () => null,
     now = () => new Date(),
-    log = () => {}
+    logger = { log() {} }
 }) {
     if (typeof createDialog !== 'function') {
         throw new TypeError('createDialog is required');
@@ -331,7 +331,7 @@ function createHistoryAwareDialog({
                     } else {
                         appendStatus('Экранный результат сохранён, но записать историю не удалось.');
                         if (history?.persistenceError) {
-                            log('Batch user management history persistence failed:', history.persistenceError);
+                            logger.log('Batch user management history persistence failed:', history.persistenceError);
                         }
                     }
                 })
@@ -340,7 +340,7 @@ function createHistoryAwareDialog({
                         return;
                     }
                     appendStatus('Экранный результат сохранён, но записать историю не удалось.');
-                    log('Batch user management history persistence failed:', error);
+                    logger.log('Batch user management history persistence failed:', error);
                 });
             return output;
         };

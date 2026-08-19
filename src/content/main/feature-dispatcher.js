@@ -4,13 +4,13 @@ import { createWebSocketTransport } from '#src/content/main/infrastructure/webso
 import { isMainCommandMessage } from '#src/shared/message-protocol.js';
 
 export class FeatureDispatcher {
-    constructor({ logFactory, features }) {
+    constructor({ logger, features }) {
         this.features = new Map();
         this.operationGuard = new OperationGuard();
 
-        this.logFactory = logFactory;
+        this.logger = logger;
 
-        this.transport = createWebSocketTransport({ logFactory });
+        this.transport = createWebSocketTransport({ logger });
         this.executionHistoryService = createBrowserExecutionHistoryService();
 
         this.register = this.register.bind(this);
@@ -31,7 +31,7 @@ export class FeatureDispatcher {
             transport: this.transport,
             operationGuard: this.operationGuard,
             executionHistoryService: this.executionHistoryService,
-            logFactory: this.logFactory,
+            logger: this.logger,
             dispatch: this.dispatch,
         });
 

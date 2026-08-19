@@ -1,29 +1,33 @@
-const SUPPORTED_WORLDS = new Set(['POPUP', 'MAIN', 'ISOLATED']);
+/* eslint-disable better-mutation/no-mutation */
+export class Logger {
+    constructor({ namespace, namespaces = null }) {
+        this.namespaces = namespaces ?? [validateNamespace(namespace)];
 
-/**
- * Creates component-scoped loggers for one explicit execution world.
- *
- * @param {string} world The execution world.
- * @returns {(module: string | null | undefined) => (...args: any[]) => void} A function that creates a logger function.
- */
-function createLoggerFactory(world) {
-    if (!SUPPORTED_WORLDS.has(world)) {
-        throw new Error(`Unsupported logging world: ${world}`);
+        this.log = this.log.bind(this);
+        this.createChildLogger = this.createChildLogger.bind(this);
     }
 
-    return function createLogger(component) {
-        if (
-            component !== undefined
-            && (typeof component !== 'string' || !component.trim())
-        ) {
-            throw new Error('Component must be a non-empty string.');
-        }
+    log(...args) {
+        console.log(
+            this.namespaces.map(namespace => `[${namespace}]`).join(''),
+            ...args,
+        );
+    }
 
-        const suffix = component ? `[${component.trim()}]` : '';
-        const namespace = `[Edvibe Toolbox][${world}]${suffix}`;
-
-        return (...args) => console.log(namespace, ...args);
-    };
+    createChildLogger(namespace) {
+        return new Logger({
+            namespaces: [
+                ...this.namespaces,
+                validateNamespace(namespace),
+            ],
+        });
+    }
 }
 
-export { createLoggerFactory };
+function validateNamespace(namespace) {
+    if (typeof namespace !== 'string' || !namespace.trim()) {
+        throw new Error('Namespace must be a non-empty string.');
+    }
+
+    return namespace;
+}

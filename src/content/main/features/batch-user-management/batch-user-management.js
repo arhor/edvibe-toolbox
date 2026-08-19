@@ -313,7 +313,7 @@ function orderResolvedRows(parsed, resolution) {
 export function createBatchUserManagementFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
     executionHistoryService,
     dispatch,
 }) {
@@ -328,7 +328,7 @@ export function createBatchUserManagementFeatureV2({
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
-        log: logFactory('BatchUserManagementHistory')
+        logger: logger.createChildLogger('BatchUserManagementHistory')
     });
 
     return createBatchUserManagementFeature({
@@ -337,7 +337,7 @@ export function createBatchUserManagementFeatureV2({
         canStart: operationGuard.canStart,
         onActiveChange: operationGuard.guardedActiveChange('batch-user-management'),
         createDialog: createBatchUserManagementDialog,
-        log: logFactory('BatchUserManagement')
+        logger: logger.createChildLogger('BatchUserManagement')
     });
 }
 
@@ -355,7 +355,7 @@ function createBatchUserManagementFeature({
     canStart,
     onActiveChange,
     createDialog = () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
-    log = () => { }
+    logger = { log() {} }
 }) {
     let active = false;
     let running = false;
@@ -448,7 +448,7 @@ function createBatchUserManagementFeature({
             const resolution = resolveUsersByEmail(parsed.entries, pupils);
             currentRows = buildUserPlan({ rows: orderResolvedRows(parsed, resolution) });
             dialog.showReview({ rows: currentRows });
-            log(`Batch user management checked ${currentRows.length} row(s) for MarathonId ${marathonId}.`);
+            logger.log(`Batch user management checked ${currentRows.length} row(s) for MarathonId ${marathonId}.`);
         } catch (error) {
             dialog.showValidationErrors([error]);
         } finally {
@@ -539,21 +539,21 @@ function createBatchUserManagementFeature({
             (document.body || document.documentElement).appendChild(dialog);
             dialog.showChecking('Загружаем пользователей…');
 
-            log(`Initializing batch user management for MarathonId ${marathonId}.`);
+            logger.log(`Initializing batch user management for MarathonId ${marathonId}.`);
             pupils = await loadAllPupils({ sendRequest, marathonId });
             if (pupils.length === 0) {
                 throw createFeatureError('EMPTY_ROSTER', 'No pupils were found in this marathon.');
             }
             dialog.showConfigure();
         } catch (error) {
-            log(
+            logger.log(
                 `Batch user management initialization failed for MarathonId ${marathonId} `
                 + `(${getErrorCode(error)}).`
             );
             try {
                 dialog?.showFatalError?.(error);
             } catch (renderError) {
-                log(`Batch user management error rendering failed (${getErrorCode(renderError)}).`);
+                logger.log(`Batch user management error rendering failed (${getErrorCode(renderError)}).`);
             } finally {
                 releaseOperation();
             }

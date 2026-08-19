@@ -229,7 +229,7 @@ function createBatchSectionDeletionFeature({
     copyText,
     persistExecution = async () => Object.freeze({ stored: false }),
     openHistory = () => {},
-    log = () => {}
+    logger = { log() {} }
 }) {
     let active = false;
     async function open() {
@@ -274,7 +274,7 @@ function createBatchSectionDeletionFeature({
                         history = await persistExecution(buildExecutionHistoryInput({ marathonId, startedAt, completedAt, result }));
                     } catch (persistenceError) {
                         history = Object.freeze({ stored: false, persistenceError });
-                        log('Batch section deletion history persistence failed:', persistenceError);
+                        logger.log('Batch section deletion history persistence failed:', persistenceError);
                     }
                     return { ...result, report: formatReport(result), history };
                 },
@@ -292,7 +292,7 @@ function createBatchSectionDeletionFeature({
                 }
             });
         } catch (error) {
-            log('Failed to open batch section deletion:', error);
+            logger.log('Failed to open batch section deletion:', error);
             dialog.remove();
             active = false;
             onActiveChange(false);

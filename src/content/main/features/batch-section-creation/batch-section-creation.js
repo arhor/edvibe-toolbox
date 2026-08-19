@@ -542,7 +542,7 @@ function formatCreationReport(result) {
 export function createBatchSectionCreationFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
     executionHistoryService,
     dispatch,
 }) {
@@ -557,7 +557,7 @@ export function createBatchSectionCreationFeatureV2({
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
-        log: logFactory('BatchSectionCreationHistory')
+        logger: logger.createChildLogger('BatchSectionCreationHistory')
     });
 
     const batchSectionCreationAdapter = createImageUploadCreationAdapter({
@@ -573,7 +573,7 @@ export function createBatchSectionCreationFeatureV2({
         adapter: batchSectionCreationAdapter,
         createDialog: createBatchSectionCreationDialog,
         copyText: (text) => navigator.clipboard.writeText(text),
-        log: logFactory('BatchSectionCreation')
+        logger: logger.createChildLogger('BatchSectionCreation')
     });
 }
 
@@ -593,7 +593,7 @@ function createBatchSectionCreationFeature({
     adapter,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = async () => { },
-    log = () => { }
+    logger = { log() {} }
 }) {
     let active = false;
     let running = false;
@@ -736,9 +736,9 @@ function createBatchSectionCreationFeature({
                 recipeReady: adapter?.isReady,
                 recipeErrors: adapter?.errors || []
             });
-            log(`Batch section creation ready for MarathonId ${marathonId}.`);
+            logger.log(`Batch section creation ready for MarathonId ${marathonId}.`);
         } catch (error) {
-            log(`Batch section creation initialization failed (${error.code || 'UNKNOWN_ERROR'}).`);
+            logger.log(`Batch section creation initialization failed (${error.code || 'UNKNOWN_ERROR'}).`);
             try {
                 dialog?.showFatalError?.(error);
             } finally {

@@ -137,12 +137,12 @@ async function discoverResetWork({
     pupilId,
     lessons,
     onDiscovery = () => {},
-    log = () => {}
+    logger = { log() {} }
 }) {
     const work = [];
 
     for (const lesson of lessons) {
-        log(
+        logger.log(
             `Discovering lesson ${lesson.MarathonLessonId} `
             + `(LessonId: ${lesson.LessonId}).`
         );
@@ -155,7 +155,7 @@ async function discoverResetWork({
         );
         const sections = collectLessonSections(lessonResponse.Value);
         const exercises = [];
-        log(
+        logger.log(
             `Lesson ${lesson.MarathonLessonId}: `
             + `${sections.length} section(s) found.`
         );
@@ -189,7 +189,7 @@ async function discoverResetWork({
                 type: item.Type,
                 sectionId: section.Id
             })));
-            log(
+            logger.log(
                 `Lesson ${lesson.MarathonLessonId}, section ${section.Id}: `
                 + `${resettableItems.length} of ${items.length} `
                 + 'exercise(s) have saved answers.'
@@ -203,7 +203,7 @@ async function discoverResetWork({
                 ? lesson.LastRequest.Id
                 : null
         });
-        log(
+        logger.log(
             `Lesson ${lesson.MarathonLessonId}: ${exercises.length} exercise reset(s), `
             + `${shouldDeleteLastRequest(lesson)
                 ? 'request deletion required'
@@ -222,11 +222,11 @@ async function executeResetWork({
     pupilId,
     work,
     onProgress,
-    log = () => {}
+    logger = { log() {} }
 }) {
     const total = work.reduce((sum, item) => sum + item.exercises.length, 0);
     let completed = 0;
-    log(
+    logger.log(
         `Starting ${total} operation(s) for PupilId ${pupilId} `
         + `across ${work.length} lesson(s).`
     );
@@ -234,7 +234,7 @@ async function executeResetWork({
     for (const item of work) {
         for (const exercise of item.exercises) {
             try {
-                log(
+                logger.log(
                     `Resetting exercise ${exercise.id} `
                     + `for lesson ${item.lesson.MarathonLessonId} `
                     + `(${completed + 1}/${total}).`
@@ -291,7 +291,7 @@ async function executeResetWork({
         }
     }
 
-    log(`Completed all ${total} operation(s) for PupilId ${pupilId}.`);
+    logger.log(`Completed all ${total} operation(s) for PupilId ${pupilId}.`);
 }
 
 function getErrorType(error) {
@@ -301,14 +301,14 @@ function getErrorType(error) {
 export function createResetLessonsFeatureV2({
     transport,
     operationGuard,
-    logFactory,
+    logger,
 }) {
     return createResetLessonsFeature({
         sendRequest: transport.sendRequest,
         sendWithoutResponse: transport.sendWithoutResponse,
         canStart: operationGuard.canStart,
         onActiveChange: operationGuard.guardedActiveChange('reset'),
-        log: logFactory('Reset')
+        logger: logger.createChildLogger('Reset')
     });
 }
 
@@ -326,7 +326,7 @@ function createResetLessonsFeature({
     canStart,
     onActiveChange,
     createDialog = () => document.createElement(RESET_DIALOG_TAG),
-    log = () => {}
+    logger = { log() {} }
 }) {
     let running = false;
     let active = false;
@@ -381,7 +381,7 @@ function createResetLessonsFeature({
                     pupilId: pupil.PupilId,
                     lessons,
                     onDiscovery: (message) => dialog.showDiscovery(message),
-                    log
+                    logger
                 });
                 await executeResetWork({
                     sendRequest,
@@ -391,7 +391,7 @@ function createResetLessonsFeature({
                     pupilId: pupil.PupilId,
                     work,
                     onProgress: (progress) => dialog.showProgress(progress),
-                    log
+                    logger
                 });
                 dialog.showComplete('Selected lesson progress was reset successfully.');
                 completed = true;
@@ -399,7 +399,7 @@ function createResetLessonsFeature({
                 const lessonIds = lessons
                     .map((lesson) => lesson.MarathonLessonId)
                     .join(', ');
-                log(
+                logger.log(
                     `Reset stopped for PupilId ${pupil.PupilId}; `
                     + `MarathonLessonIds: ${lessonIds} (${getErrorType(error)}).`
                 );
@@ -419,7 +419,7 @@ function createResetLessonsFeature({
             dialog.configure({
                 loadNextPupils: () => pupilPager.loadNext(),
                 loadLessons: async (pupil) => {
-                    log(`Loading lessons for PupilId ${pupil.PupilId}.`);
+                    logger.log(`Loading lessons for PupilId ${pupil.PupilId}.`);
                     const response = await sendRequest(
                         'MarathonLessonWsController',
                         'GetMarathonLessonsForPupil',
@@ -436,18 +436,18 @@ function createResetLessonsFeature({
                             'GetMarathonLessonsForPupil returned invalid data.'
                         );
                     }
-                    log(
+                    logger.log(
                         `Loaded ${response.Value.length} lesson(s) `
                         + `for PupilId ${pupil.PupilId}.`
                     );
                     return response.Value;
                 },
-                log
+                logger
             });
             (document.body || document.documentElement).appendChild(dialog);
             dialog.setLoading('Loading marathon pupils...');
             const initialPage = await pupilPager.loadNext();
-            log(
+            logger.log(
                 `Loaded ${initialPage.pupils.length} of `
                 + `${initialPage.total} pupil(s) for MarathonId ${marathonId}.`
             );
@@ -456,7 +456,7 @@ function createResetLessonsFeature({
                 total: initialPage.total
             });
         } catch (error) {
-            log(
+            logger.log(
                 `Failed to initialize reset workflow for MarathonId ${marathonId} `
                 + `(${getErrorType(error)}).`
             );
