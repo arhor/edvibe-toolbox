@@ -1,4 +1,5 @@
 import { appendPage, createFeatureError } from '#src/content/main/features/batch-workflow-primitives.js';
+import { isRecord } from '#src/shared/utils.js';
 
 /**
  * @callback EdvibeSendRequest
@@ -11,14 +12,6 @@ import { appendPage, createFeatureError } from '#src/content/main/features/batch
 
 /** @typedef {Record<string, unknown> & { PupilId?: number, MarathonPupilId?: number, Id?: number, Email?: string }} MarathonPupil */
 /** @typedef {Record<string, unknown> & { LessonId?: number, MarathonLessonId?: number, Id?: number, Number?: number, Name?: string, IsOpen?: boolean }} MarathonLesson */
-
-/**
- * @param {unknown} value
- * @returns {value is Record<string, unknown>}
- */
-function isRecord(value) {
-    return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 /**
  * @param {unknown} sendRequest

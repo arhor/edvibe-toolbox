@@ -1,5 +1,5 @@
 import { EXECUTION_HISTORY_DIALOG_TAG } from '#src/content/main/features/execution-history/execution-history-dialog.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
 const HISTORY_OVERLAY_ID = 'edvibe-toolbox-execution-history';
 

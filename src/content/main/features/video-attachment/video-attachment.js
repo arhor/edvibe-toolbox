@@ -1,7 +1,7 @@
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
-import { getLessonById, loadAllMarathonLessons } from '#src/content/main/features/edvibe-marathon-api.js';
 import { VIDEO_ATTACHMENT_DIALOG_TAG } from '#src/content/main/features/video-attachment/video-attachment-dialog.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 
 const RECOVERABLE_WRITE_CODES = new Set([

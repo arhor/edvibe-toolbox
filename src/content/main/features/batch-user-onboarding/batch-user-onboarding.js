@@ -27,8 +27,8 @@ import {
     parseEmailInput as parseSharedEmailInput,
     parseMarathonId
 } from '#src/content/main/features/batch-workflow-primitives.js';
-import { loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { loadAllPupils } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 import { BATCH_USER_ONBOARDING_DIALOG_TAG } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-dialog.js';
 

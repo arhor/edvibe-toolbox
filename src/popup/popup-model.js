@@ -1,4 +1,4 @@
-import { POPUP_COMMANDS } from '#src/shared/message-protocol.js';
+import { POPUP_COMMANDS } from '#src/shared/messaging/index.js';
 
 function freezeToolGroup(group) {
     return Object.freeze({

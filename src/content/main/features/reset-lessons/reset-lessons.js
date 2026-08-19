@@ -1,5 +1,5 @@
 import { RESET_DIALOG_TAG } from '#src/content/main/features/reset-lessons/reset-lessons-dialog.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';

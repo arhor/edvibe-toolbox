@@ -3,7 +3,7 @@ import {
     WINDOW_MESSAGE_TYPES,
     createStorageRequest,
     isStorageResponseMessage
-} from '#src/shared/message-protocol.js';
+} from '#src/shared/messaging/index.js';
 
 const REQUEST_TYPE = WINDOW_MESSAGE_TYPES.STORAGE_REQUEST;
 const RESPONSE_TYPE = WINDOW_MESSAGE_TYPES.STORAGE_RESPONSE;

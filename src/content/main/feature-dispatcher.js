@@ -1,7 +1,7 @@
 import { createBrowserExecutionHistoryService } from '#src/content/main/infrastructure/browser-execution-history-service.js';
 import { OperationGuard } from '#src/content/main/infrastructure/operation-guard.js';
 import { createWebSocketTransport } from '#src/content/main/infrastructure/websocket-transport.js';
-import { isMainCommandMessage } from '#src/shared/message-protocol.js';
+import { isMainCommandMessage } from '#src/shared/messaging/protocol.js';
 
 export class FeatureDispatcher {
     constructor({ logger, features }) {

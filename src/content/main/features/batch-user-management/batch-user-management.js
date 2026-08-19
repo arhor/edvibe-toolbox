@@ -6,8 +6,8 @@ import {
     parseMarathonId,
     runWithRetry
 } from '#src/content/main/features/batch-workflow-primitives.js';
-import { loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { loadAllPupils } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 import { USER_MANAGEMENT_DIALOG_TAG, USER_MANAGEMENT_OVERLAY_ID } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.js';
 import { createHistoryAwareDialog } from '#src/content/main/features/batch-user-management/batch-user-management-history.js';

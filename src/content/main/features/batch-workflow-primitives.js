@@ -1,4 +1,5 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MARATHON_ID_PATTERN = /\/marathon\/(\d+)(?:\/|$)/;
 const CYRILLIC_PATTERN = /\p{Script=Cyrillic}/u;
 const TRANSIENT_CODES = new Set([
     'WS_UNAVAILABLE',
@@ -14,7 +15,7 @@ function createFeatureError(code, message, details = {}) {
 }
 
 function parseMarathonId(url) {
-    const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
+    const match = String(url || '').match(MARATHON_ID_PATTERN);
     return match ? Number(match[1]) : null;
 }
 

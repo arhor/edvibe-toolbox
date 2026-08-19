@@ -1,7 +1,7 @@
 import { BATCH_SECTION_DELETION_DIALOG_TAG } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-dialog.js';
 import * as coreApi from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
 const OPERATION_TYPE = 'batch-section-deletion';
 const TERMINAL_STATUSES = new Set([

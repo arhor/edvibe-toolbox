@@ -6,7 +6,7 @@ import {
     parseMarathonId,
     runWithRetry
 } from '#src/content/main/features/batch-workflow-primitives.js';
-import { loadAllPupilLessons, loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
+import { loadAllPupilLessons, loadAllPupils } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
 import { wait } from '#src/shared/utils.js';
 
 const OPERATIONAL_WRITE_CODES = new Set([

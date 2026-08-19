@@ -1,5 +1,5 @@
 import { RECORDER_DIALOG_TAG } from '#src/content/main/features/action-recorder/action-recorder-dialog.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
 function parseJson(value) {
     if (typeof value !== 'string') {

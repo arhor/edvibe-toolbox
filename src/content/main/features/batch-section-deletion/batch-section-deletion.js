@@ -1,5 +1,5 @@
 import { createFeatureError as featureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
-import { getLessonById, loadAllMarathonLessons } from '#src/content/main/features/edvibe-marathon-api.js';
+import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 import { wait } from '#src/shared/utils.js';
 

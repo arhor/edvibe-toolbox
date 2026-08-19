@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import TurndownService from 'turndown';
 
 import { EXPORT_PROGRESS_TAG } from '#src/content/main/features/marathon-export/export-progress-dialog.js';
-import { WINDOW_MESSAGE_TYPES, createExportStatusMessage } from '#src/shared/message-protocol.js';
+import { WINDOW_MESSAGE_TYPES, createExportStatusMessage } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 
 const FORBIDDEN_PATH_CHARS = /[\\/:*?"<>|]/g;

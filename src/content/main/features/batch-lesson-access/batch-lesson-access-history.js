@@ -2,7 +2,7 @@ import { BATCH_ACCESS_DIALOG_TAG } from '#src/content/main/features/batch-lesson
 import * as modelApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
 import * as recordApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
 import * as batchAccessApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access.js';
-import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
 const {
     createCapture,
