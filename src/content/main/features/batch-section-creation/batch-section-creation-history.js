@@ -177,4 +177,7 @@ function createHistoryAwareDialog({
 
 export * from '#src/content/main/features/batch-section-creation/batch-section-creation-history-model.js';
 export * from '#src/content/main/features/batch-section-creation/batch-section-creation-history-record.js';
-export { createHistoryAwareDialog };
+
+export { 
+    createHistoryAwareDialog,
+};

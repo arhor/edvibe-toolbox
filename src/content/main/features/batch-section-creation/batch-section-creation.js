@@ -1,11 +1,10 @@
-/* eslint-disable perfectionist/sort-imports */
+import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
+import { createHistoryAwareDialog } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
+import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/features/edvibe-marathon-api.js';
-import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
 import { wait } from '#src/shared/utils.js';
-import { createHistoryAwareDialog } from '#src/content/main/features/history-aware-dialog.js';
-import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';

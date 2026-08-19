@@ -355,5 +355,5 @@ export {
     serializeRow,
     buildCounts,
     buildExecutionHistoryInput,
-    createHistoryAwareDialog
+    createHistoryAwareDialog,
 };
