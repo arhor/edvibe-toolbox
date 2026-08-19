@@ -14,10 +14,10 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
-const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
+export const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
+export const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
 
-class BatchUserManagementDialog extends LitElement {
+export class BatchUserManagementDialog extends LitElement {
     static styles = [
         componentFoundationStyles,
         dialogFoundationStyles,
@@ -31,26 +31,26 @@ class BatchUserManagementDialog extends LitElement {
     ];
 
     static properties = {
-        rows: {state: true},
-        emailState: {state: true},
-        emailInput: {state: true},
-        mode: {state: true},
-        errors: {state: true},
-        statusMessage: {state: true},
-        statusError: {state: true},
-        progress: {state: true}
+        rows: { state: true },
+        emailState: { state: true },
+        emailInput: { state: true },
+        mode: { state: true },
+        errors: { state: true },
+        statusMessage: { state: true },
+        statusError: { state: true },
+        progress: { state: true }
     };
 
     constructor() {
         super();
         this.rows = [];
-        this.emailState = {validCount: 0, malformedCount: 0, invalidEntries: []};
+        this.emailState = { validCount: 0, malformedCount: 0, invalidEntries: [] };
         this.emailInput = '';
         this.mode = 'configure';
         this.errors = [];
         this.statusMessage = '';
         this.statusError = false;
-        this.progress = {visible: false, completed: 0, total: 0};
+        this.progress = { visible: false, completed: 0, total: 0 };
         this.handleKeydownBound = (event) => this.handleKeydown(event);
     }
 
@@ -96,12 +96,12 @@ class BatchUserManagementDialog extends LitElement {
     showValidationErrors(errors = []) {
         this.mode = 'validation-error';
         this.errors = this.normalizeErrors(errors);
-        this.progress = {visible: false, completed: 0, total: 0};
+        this.progress = { visible: false, completed: 0, total: 0 };
         this.setStatus('Исправьте ошибки и повторите проверку.', 'error');
         return this;
     }
 
-    showReview({rows = []} = {}) {
+    showReview({ rows = [] } = {}) {
         this.mode = 'review';
         this.rows = this.normalizeRows(rows);
         this.clearMessages();
@@ -115,8 +115,8 @@ class BatchUserManagementDialog extends LitElement {
         const total = Math.max(0, Number(progress.total) || 0);
         const successes = Math.max(0, Number(progress.successes) || 0);
         const failures = Math.max(0, Number(progress.failures) || 0);
-        this.progress = {visible: true, completed, total};
-        const labels = {unassign: 'снятие куратора', delete: 'удаление пользователя'};
+        this.progress = { visible: true, completed, total };
+        const labels = { unassign: 'снятие куратора', delete: 'удаление пользователя' };
         const current = progress.current?.email && progress.current?.operation
             ? ` Сейчас: ${progress.current.email} — ${labels[progress.current.operation] || progress.current.operation}.`
             : '';
@@ -146,7 +146,7 @@ class BatchUserManagementDialog extends LitElement {
     normalizeRows(rows) {
         return rows.map((row) => ({
             ...row,
-            result: {...(row.result || {status: 'pending', message: 'Not started'})}
+            result: { ...(row.result || { status: 'pending', message: 'Not started' }) }
         }));
     }
 
@@ -162,7 +162,7 @@ class BatchUserManagementDialog extends LitElement {
             return;
         }
         this.rows = this.rows.map((item) => item === row
-            ? {...item, [`${operation}Selected`]: Boolean(selected), result: {...(item.result || {})}}
+            ? { ...item, [`${operation}Selected`]: Boolean(selected), result: { ...(item.result || {}) } }
             : item);
         this.dispatchSelectionChange();
     }
@@ -173,7 +173,7 @@ class BatchUserManagementDialog extends LitElement {
         }
         this.rows = this.rows.map((row) => row.actionable === false
             ? row
-            : {...row, [`${operation}Selected`]: Boolean(selected), result: {...(row.result || {})}});
+            : { ...row, [`${operation}Selected`]: Boolean(selected), result: { ...(row.result || {}) } });
         this.dispatchSelectionChange();
     }
 
@@ -184,14 +184,14 @@ class BatchUserManagementDialog extends LitElement {
 
     dispatchSelectionChange() {
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-selection-change', {
-            detail: {rows: this.copyRows()}
+            detail: { rows: this.copyRows() }
         }));
     }
 
     handleInput(event) {
         this.emailInput = String(event.currentTarget.value || '');
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-input-change', {
-            detail: {emailInput: this.emailInput}
+            detail: { emailInput: this.emailInput }
         }));
     }
 
@@ -200,7 +200,7 @@ class BatchUserManagementDialog extends LitElement {
             return;
         }
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-check', {
-            detail: {emailInput: this.emailInput}
+            detail: { emailInput: this.emailInput }
         }));
     }
 
@@ -209,7 +209,7 @@ class BatchUserManagementDialog extends LitElement {
             return;
         }
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-start', {
-            detail: {rows: this.copyRows()}
+            detail: { rows: this.copyRows() }
         }));
     }
 
@@ -220,7 +220,7 @@ class BatchUserManagementDialog extends LitElement {
         this.rows = [];
         this.mode = 'configure';
         this.emailInput = '';
-        this.setEmailState({validCount: 0, malformedCount: 0, invalidEntries: []});
+        this.setEmailState({ validCount: 0, malformedCount: 0, invalidEntries: [] });
         this.clearMessages();
         this.dispatchEvent(new CustomEvent('edvibe-batch-user-management-restart'));
     }
@@ -246,12 +246,12 @@ class BatchUserManagementDialog extends LitElement {
     }
 
     copyRows() {
-        return this.rows.map((row) => ({...row, result: {...(row.result || {})}}));
+        return this.rows.map((row) => ({ ...row, result: { ...(row.result || {}) } }));
     }
 
     clearMessages() {
         this.errors = [];
-        this.progress = {visible: false, completed: 0, total: 0};
+        this.progress = { visible: false, completed: 0, total: 0 };
         this.setStatus('');
     }
 
@@ -357,8 +357,4 @@ class BatchUserManagementDialog extends LitElement {
     }
 }
 
-if (!customElements.get(USER_MANAGEMENT_DIALOG_TAG)) {
-    customElements.define(USER_MANAGEMENT_DIALOG_TAG, BatchUserManagementDialog);
-}
-
-export {USER_MANAGEMENT_DIALOG_TAG, USER_MANAGEMENT_OVERLAY_ID, BatchUserManagementDialog};
+customElements.define(USER_MANAGEMENT_DIALOG_TAG, BatchUserManagementDialog);

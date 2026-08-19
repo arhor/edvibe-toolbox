@@ -1,3 +1,7 @@
+/* eslint-disable @stylistic/indent */
+import { RECORDER_DIALOG_TAG } from '#src/content/main/features/action-recorder/action-recorder-dialog.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+
 function parseJson(value) {
     if (typeof value !== 'string') {
         return { parsed: false, value };
@@ -108,6 +112,63 @@ function createBrowserDownload(filename, text) {
     URL.revokeObjectURL(url);
 }
 
+export function createActionRecorderFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+}) {
+    let recorderOpen = false;
+
+    const actionRecorderFeature = createActionRecorderFeature({
+        subscribeFrames: transport.subscribeFrames,
+        createPanel() {
+            const panel = document.createElement(RECORDER_DIALOG_TAG);
+            const configure = panel.configure.bind(panel);
+            panel.configure = (options = {}) => configure({
+                ...options,
+                onClose() {
+                    try {
+                        options.onClose?.();
+                    } finally {
+                        recorderOpen = false;
+                        operationGuard.release('recording');
+                    }
+                }
+            });
+            recorderOpen = true;
+            return panel;
+        },
+        log: logFactory('Recorder')
+    });
+
+    return {
+        ...actionRecorderFeature,
+        openActionRecorder() {
+            if (recorderOpen) {
+                actionRecorderFeature.open();
+            } else if (operationGuard.activate('recording')) {
+                try {
+                    actionRecorderFeature.open();
+                } catch (error) {
+                    operationGuard.release('recording');
+                    throw error;
+                }
+            } else {
+                window.alert('Another Edvibe Toolbox operation is already running.');
+            }
+        }
+    };
+}
+
+export const actionRecorderFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+    create(context) {
+        const feature = createActionRecorderFeatureV2(context);
+        return () => feature.openActionRecorder();
+    }
+});
+
+
 function createActionRecorderFeature({
     subscribeFrames,
     createPanel,
@@ -116,7 +177,7 @@ function createActionRecorderFeature({
     copyText = (text) => navigator.clipboard.writeText(text),
     createId = () => crypto.randomUUID(),
     now = Date.now,
-    log = () => {}
+    log = () => { }
 }) {
     if (typeof subscribeFrames !== 'function') {
         throw new Error('Action recorder requires a frame subscription.');
@@ -333,9 +394,7 @@ function createActionRecorderFeature({
         if (!exported) {
             return;
         }
-        const filename = `edvibe-ws-recording-${
-            sanitizeIsoForFilename(exported.startedAt)
-        }.json`;
+        const filename = `edvibe-ws-recording-${sanitizeIsoForFilename(exported.startedAt)}.json`;
         downloadText(filename, JSON.stringify(exported, null, 2));
         notice = `Saved ${filename}.`;
         render();

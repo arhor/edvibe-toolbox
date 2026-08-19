@@ -1,6 +1,7 @@
 import { createFeatureError as featureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/features/edvibe-marathon-api.js';
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
+import { wait } from '#src/shared/utils.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
 const EXPECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE', 'REQUEST_TIMEOUT', 'SEND_FAILED', 'WS_UNAVAILABLE']);
@@ -222,7 +223,6 @@ function buildExecutionHistoryInput({ marathonId, startedAt, completedAt, result
 function createBatchSectionDeletionFeature({
     sendRequest,
     getConnectionState,
-    wait,
     canStart,
     onActiveChange,
     createDialog,

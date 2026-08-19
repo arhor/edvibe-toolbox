@@ -138,7 +138,7 @@ function createMainCommandMessage(action, payload = {}) {
 }
 
 function isMainCommandMessage(value) {
-    if (!isRecord(value) || !MAIN_COMMAND_TYPES.has(value.type)) {
+    if ((value === undefined) || (value === null) || !isRecord(value) || !MAIN_COMMAND_TYPES.has(value.type)) {
         return false;
     }
     if (value.type === WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY) {

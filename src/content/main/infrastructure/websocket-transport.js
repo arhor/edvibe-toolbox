@@ -19,14 +19,15 @@ function createTransportError(code, message, details = {}) {
 }
 
 function createWebSocketTransport({
-    WebSocketClass,
-    cryptoApi,
+    WebSocketClass = window.WebSocket,
+    cryptoApi = window.crypto,
     requestTimeoutMs = REQUEST_TIMEOUT_MS,
     setTimeoutFn = setTimeout,
     clearTimeoutFn = clearTimeout,
     now = Date.now,
-    log = () => { }
+    logFactory,
 }) {
+    const log = logFactory('Transport');
     let activeSocket = null;
     let nextSocketId = 1;
     let internalSendDepth = 0;
@@ -347,6 +348,8 @@ function createWebSocketTransport({
             internalSendDepth -= 1;
         }
     }
+
+    install(window);
 
     return {
         install,

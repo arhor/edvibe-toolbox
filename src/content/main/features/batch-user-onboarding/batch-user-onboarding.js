@@ -1,3 +1,4 @@
+/* eslint-disable perfectionist/sort-imports */
 import {
     loadModerators,
     normalizeModeratorCatalogue,
@@ -27,6 +28,9 @@ import {
     parseMarathonId
 } from '#src/content/main/features/batch-workflow-primitives.js';
 import { loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { wait } from '#src/shared/utils.js';
+import { BATCH_USER_ONBOARDING_DIALOG_TAG } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-dialog.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
 
@@ -34,21 +38,56 @@ function parseEmailInput(value) {
     return parseSharedEmailInput(value, { includeItems: true });
 }
 
+export function createBatchUserOnboardingFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+    executionHistoryService,
+    dispatch,
+}) {
+    return createBatchUserOnboardingFeature({
+        sendRequest: transport.sendRequest,
+        getConnectionState: transport.getConnectionState,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('batch-user-onboarding'),
+        createDialog: () => document.createElement(BATCH_USER_ONBOARDING_DIALOG_TAG),
+        copyText: (text) => navigator.clipboard.writeText(text),
+        persistExecution: executionHistoryService.persistTerminal,
+        openHistory: (executionId) => dispatch({
+            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+            executionId
+        }),
+        getLocationHref: () => window.location.href,
+        getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+            || document.title
+            || null,
+        getRequestContext: () => ({ host: window.location.hostname }),
+        log: logFactory('BatchUserOnboarding')
+    });
+}
+
+const batchUserOnboardingFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_ONBOARDING,
+    create(context) {
+        const feature = createBatchUserOnboardingFeatureV2(context);
+        return () => feature.open();
+    }
+});
+
 function createBatchUserOnboardingFeature({
     sendRequest,
     getConnectionState,
-    wait,
     canStart,
     onActiveChange,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = (text) => navigator.clipboard.writeText(text),
     persistExecution = async () => Object.freeze({ stored: false }),
-    openHistory = () => {},
+    openHistory = () => { },
     getLocationHref = () => window.location.href,
     getMarathonName = () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
     getRequestContext = () => ({ host: window.location.hostname }),
     now = () => new Date(),
-    log = () => {}
+    log = () => { }
 }) {
     let active = false;
     function release() {
@@ -181,6 +220,7 @@ export {
     buildCounts,
     buildExecutionHistoryInput,
     buildExecutionPlan,
+    batchUserOnboardingFeatureDefinition,
     createBatchUserOnboardingFeature,
     executePlan,
     formatClientTime,

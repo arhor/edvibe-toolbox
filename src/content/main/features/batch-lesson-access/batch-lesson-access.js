@@ -7,6 +7,7 @@ import {
     runWithRetry
 } from '#src/content/main/features/batch-workflow-primitives.js';
 import { loadAllPupilLessons, loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
+import { wait } from '#src/shared/utils.js';
 
 const OPERATIONAL_WRITE_CODES = new Set([
     ...TRANSIENT_CODES,
@@ -331,7 +332,6 @@ function freezePlan({
 function createBatchLessonAccessFeature({
     sendRequest,
     getConnectionState,
-    wait,
     canStart,
     onActiveChange,
     createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),

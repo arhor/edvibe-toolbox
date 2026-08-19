@@ -1,6 +1,8 @@
+import { BATCH_ACCESS_DIALOG_TAG } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-dialog.js';
 import * as modelApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
 import * as recordApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
 import * as batchAccessApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
 
 const {
     createCapture,
@@ -33,17 +35,53 @@ function addHistoryButton(dialog, executionId, openHistory) {
     dialog.elements?.footer?.appendChild?.(button);
 }
 
+export function createHistoryAwareFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+    executionHistoryService,
+    dispatch,
+}) {
+    return createHistoryAwareFeature({
+        createFeature: batchAccessApi.createBatchLessonAccessFeature,
+        sendRequest: transport.sendRequest,
+        getConnectionState: transport.getConnectionState,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('batch-access'),
+        createDialog: () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
+        copyText: (text) => navigator.clipboard.writeText(text),
+        persistExecution: executionHistoryService.persistTerminal,
+        openHistory: (executionId) => dispatch({
+            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+            executionId
+        }),
+        getLocationHref: () => window.location.href,
+        getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+            || document.title
+            || null,
+        log: logFactory('BatchAccessHistory')
+    });
+}
+
+const batchLessonAccessFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_LESSON_ACCESS,
+    create(context) {
+        const feature = createHistoryAwareFeatureV2(context);
+        return () => feature.open();
+    }
+});
+
 function createHistoryAwareFeature(options = {}) {
     const {
         createFeature = batchAccessApi.createBatchLessonAccessFeature,
         sendRequest,
         createDialog,
         persistExecution,
-        openHistory = () => {},
+        openHistory = () => { },
         getLocationHref = () => '',
         getMarathonName = () => null,
         now = () => new Date(),
-        log = () => {},
+        log = () => { },
         ...featureOptions
     } = options;
 
@@ -231,4 +269,4 @@ function createHistoryAwareFeature(options = {}) {
 
 export * from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
 export * from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
-export { createHistoryAwareFeature };
+export { batchLessonAccessFeatureDefinition, createHistoryAwareFeature };

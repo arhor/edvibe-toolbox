@@ -2,6 +2,8 @@ import JSZip from 'jszip';
 import TurndownService from 'turndown';
 
 import { EXPORT_PROGRESS_TAG } from '#src/content/main/features/marathon-export/export-progress-dialog.js';
+import { WINDOW_MESSAGE_TYPES, createExportStatusMessage } from '#src/shared/message-protocol.js';
+import { wait } from '#src/shared/utils.js';
 
 const FORBIDDEN_PATH_CHARS = /[\\/:*?"<>|]/g;
 
@@ -336,9 +338,36 @@ function createExportProgressOverlay() {
     return dialog;
 }
 
+export function createMarathonExportFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+}) {
+    return createMarathonExportFeature({
+        sendRequest: transport.sendRequest,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('export'),
+        notifyStatus: (state, message = '') => {
+            window.postMessage(createExportStatusMessage(state, message), '*');
+        },
+        log: logFactory('Export'),
+        compileToZip: (backupData, options) => compileMarathonToZip(
+            backupData,
+            { ...options, log: logFactory('Zip') }
+        )
+    });
+}
+
+const marathonExportFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.START_EXPORT,
+    create(context) {
+        const feature = createMarathonExportFeatureV2(context);
+        return () => feature.start();
+    }
+});
+
 function createMarathonExportFeature({
     sendRequest,
-    wait,
     canStart,
     onActiveChange,
     compileToZip = compileMarathonToZip,
@@ -478,6 +507,7 @@ function createMarathonExportFeature({
 }
 
 export {
+    marathonExportFeatureDefinition,
     parseMarathonId,
     compileMarathonToZip,
     createExportProgressOverlay,

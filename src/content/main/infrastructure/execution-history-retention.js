@@ -1,3 +1,5 @@
+import { createStorageBridge } from '#src/content/main/infrastructure/chrome-storage-bridge.js';
+
 const RETENTION_STORAGE_KEY = 'executionHistoryPreferences';
 const DEFAULT_RETENTION_PREFERENCES = Object.freeze({
     mode: 'limits',
@@ -27,7 +29,9 @@ function normalizeRetentionPreferences(value = {}) {
     });
 }
 
-function createRetentionPreferenceStore(storage) {
+function createRetentionPreferenceStore() {
+    const storage = createStorageBridge({ window, cryptoApi: window.crypto });
+
     if (!storage || typeof storage.get !== 'function' || typeof storage.set !== 'function') {
         throw new TypeError('A storage adapter with get() and set() is required');
     }

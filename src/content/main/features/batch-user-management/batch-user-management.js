@@ -1,3 +1,4 @@
+/* eslint-disable perfectionist/sort-imports */
 import {
     appendPage,
     createFeatureError,
@@ -6,9 +7,10 @@ import {
     runWithRetry
 } from '#src/content/main/features/batch-workflow-primitives.js';
 import { loadAllPupils } from '#src/content/main/features/edvibe-marathon-api.js';
-
-const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
-const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { wait } from '#src/shared/utils.js';
+import { USER_MANAGEMENT_DIALOG_TAG, USER_MANAGEMENT_OVERLAY_ID } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.js';
+import { createHistoryAwareDialog } from '#src/content/main/features/batch-user-management/batch-user-management-history.js';
 
 function parseEmailInput(value) {
     return parseSharedEmailInput(value, { includeItems: true });
@@ -163,7 +165,7 @@ async function executeUserPlan({
     sendRequest,
     wait,
     getConnectionState,
-    onProgress = () => {}
+    onProgress = () => { }
 }) {
     const executionRows = (Array.isArray(rows) ? rows : [])
         .filter((row) => row.actionable !== false && getSelectedOperations(row).length > 0)
@@ -308,14 +310,52 @@ function orderResolvedRows(parsed, resolution) {
         });
 }
 
+export function createBatchUserManagementFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+    executionHistoryService,
+    dispatch,
+}) {
+    const createBatchUserManagementDialog = createHistoryAwareDialog({
+        createDialog: () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
+        persistExecution: executionHistoryService.persistTerminal,
+        openHistory: (executionId) => dispatch({
+            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+            executionId
+        }),
+        getLocationHref: () => window.location.href,
+        getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+            || document.title
+            || null,
+        log: logFactory('BatchUserManagementHistory')
+    });
+
+    return createBatchUserManagementFeature({
+        sendRequest: transport.sendRequest,
+        getConnectionState: transport.getConnectionState,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('batch-user-management'),
+        createDialog: createBatchUserManagementDialog,
+        log: logFactory('BatchUserManagement')
+    });
+}
+
+const batchUserManagementFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_USER_MANAGEMENT,
+    create(context) {
+        const feature = createBatchUserManagementFeatureV2(context);
+        return () => feature.open();
+    }
+});
+
 function createBatchUserManagementFeature({
     sendRequest,
     getConnectionState,
-    wait,
     canStart,
     onActiveChange,
     createDialog = () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
-    log = () => {}
+    log = () => { }
 }) {
     let active = false;
     let running = false;
@@ -524,6 +564,7 @@ function createBatchUserManagementFeature({
 }
 
 export {
+    batchUserManagementFeatureDefinition,
     parseMarathonId,
     parseEmailInput,
     appendPage,

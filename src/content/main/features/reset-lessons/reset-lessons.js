@@ -1,4 +1,7 @@
-const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
+import { RESET_DIALOG_TAG } from '#src/content/main/features/reset-lessons/reset-lessons-dialog.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { wait } from '#src/shared/utils.js';
+
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
 
 function parseMarathonId(url) {
@@ -295,10 +298,31 @@ function getErrorType(error) {
     return typeof error?.name === 'string' ? error.name : 'Error';
 }
 
+export function createResetLessonsFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+}) {
+    return createResetLessonsFeature({
+        sendRequest: transport.sendRequest,
+        sendWithoutResponse: transport.sendWithoutResponse,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('reset'),
+        log: logFactory('Reset')
+    });
+}
+
+const resetLessonsFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_LESSON_RESET,
+    create(context) {
+        const feature = createResetLessonsFeatureV2(context);
+        return () => feature.open();
+    }
+});
+
 function createResetLessonsFeature({
     sendRequest,
     sendWithoutResponse,
-    wait,
     canStart,
     onActiveChange,
     createDialog = () => document.createElement(RESET_DIALOG_TAG),
@@ -449,6 +473,7 @@ function createResetLessonsFeature({
 }
 
 export {
+    resetLessonsFeatureDefinition,
     parseMarathonId,
     collectLessonSections,
     shouldDeleteLastRequest,

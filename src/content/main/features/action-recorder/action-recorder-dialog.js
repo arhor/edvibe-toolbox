@@ -1,22 +1,13 @@
 import { LitElement, html } from 'lit';
 
 import { actionRecorderDialogStyles } from '#src/content/main/features/action-recorder/action-recorder-dialog.styles.js';
-import {
-    componentFoundationStyles,
-    dialogFoundationStyles
-} from '#src/content/main/styles/foundations.js';
-import {
-    controlStyles,
-    dialogShellStyles,
-    emptyStateStyles,
-    fieldStyles,
-    noticeStyles
-} from '#src/content/main/styles/primitives.js';
+import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
+import { controlStyles, dialogShellStyles, emptyStateStyles, fieldStyles, noticeStyles } from '#src/content/main/styles/primitives.js';
 
-const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
-const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
+export const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
+export const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
 
-class ActionRecorderDialog extends LitElement {
+export class ActionRecorderDialog extends LitElement {
     static styles = [
         componentFoundationStyles,
         dialogFoundationStyles,
@@ -185,8 +176,7 @@ class ActionRecorderDialog extends LitElement {
     }
 
     renderOperation(operation) {
-        const resultClass = `operation-result is-${operation.response?.isSuccess === false ? 'error' : 'normal'
-        }`;
+        const resultClass = `operation-result is-${operation.response?.isSuccess === false ? 'error' : 'normal'}`;
         return html`
             <details class="operation">
                 <summary>
@@ -241,7 +231,7 @@ class ActionRecorderDialog extends LitElement {
                         </div>
                         <div class="header-actions" data-part="actions">
                             <button class="icon-button recorder-minimize" data-control="secondary" type="button" aria-label="Свернуть" @click=${() => {
-                                this.minimized = true; 
+                                this.minimized = true;
                             }}>
                                 -
                             </button>
@@ -281,7 +271,7 @@ class ActionRecorderDialog extends LitElement {
                             <span><strong class="byte-count">${this.formatBytes(this.state.session?.storedBytes || 0)}</strong> текста</span>
                             <label>
                                 <input class="show-toolbox" type="checkbox" .checked=${this.showToolbox} @change=${(event) => {
-                                    this.showToolbox = event.currentTarget.checked; 
+                                    this.showToolbox = event.currentTarget.checked;
                                 }}>
                                 Показать трафик Toolbox
                             </label>
@@ -307,8 +297,4 @@ class ActionRecorderDialog extends LitElement {
     }
 }
 
-if (!customElements.get(RECORDER_DIALOG_TAG)) {
-    customElements.define(RECORDER_DIALOG_TAG, ActionRecorderDialog);
-}
-
-export { RECORDER_DIALOG_TAG, RECORDER_DIALOG_ID, ActionRecorderDialog };
+customElements.define(RECORDER_DIALOG_TAG, ActionRecorderDialog);

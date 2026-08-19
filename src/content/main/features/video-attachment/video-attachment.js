@@ -1,5 +1,8 @@
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/features/edvibe-marathon-api.js';
+import { VIDEO_ATTACHMENT_DIALOG_TAG } from '#src/content/main/features/video-attachment/video-attachment-dialog.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { wait } from '#src/shared/utils.js';
 
 const RECOVERABLE_WRITE_CODES = new Set([
     'SERVER_REJECTED',
@@ -225,10 +228,10 @@ async function executeVideoAttachmentBatch({
     targets,
     youtubeUrl,
     sendRequest,
-    wait = async () => {},
+    wait = async () => { },
     getConnectionState,
     requestDelayMs = 250,
-    onProgress = () => {}
+    onProgress = () => { }
 }) {
     const link = normalizeYoutubeUrl(youtubeUrl);
     const normalizedTargets = normalizeAttachmentTargets(targets);
@@ -299,17 +302,43 @@ async function executeVideoAttachmentBatch({
     });
 }
 
+export function createVideoAttachmentFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+}) {
+    return createVideoAttachmentFeature({
+        sendRequest: transport.sendRequest,
+        getConnectionState: transport.getConnectionState,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('video-attachment'),
+
+        createDialog: document.createElement(VIDEO_ATTACHMENT_DIALOG_TAG),
+        getLocationHref: () => window.location.href,
+        appendDialog: (dialog) => document.body.append(dialog),
+        alertUser: (message) => window.alert(message),
+        log: logFactory('VideoAttachment'),
+    });
+}
+
+const videoAttachmentFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_VIDEO_ATTACHMENT,
+    create(context) {
+        const feature = createVideoAttachmentFeatureV2(context);
+        return () => feature.open();
+    }
+});
+
 function createVideoAttachmentFeature({
     sendRequest,
     getConnectionState,
-    wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     canStart = () => true,
-    onActiveChange = () => {},
+    onActiveChange = () => { },
     createDialog,
     getLocationHref = () => globalThis.location?.href || '',
     appendDialog = (dialog) => globalThis.document?.body?.append(dialog),
     alertUser = (message) => globalThis.alert?.(message),
-    log = () => {}
+    log = () => { }
 }) {
     let active = false;
 
@@ -385,6 +414,7 @@ function createVideoAttachmentFeature({
 }
 
 export {
+    videoAttachmentFeatureDefinition,
     attachYoutubeVideo,
     buildVideoAttachmentRequest,
     createVideoAttachmentFeature,

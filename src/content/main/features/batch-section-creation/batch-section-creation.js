@@ -1,5 +1,11 @@
+/* eslint-disable perfectionist/sort-imports */
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/features/edvibe-marathon-api.js';
+import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
+import { wait } from '#src/shared/utils.js';
+import { createHistoryAwareDialog } from '#src/content/main/features/history-aware-dialog.js';
+import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
 const OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
@@ -420,7 +426,7 @@ async function executeCreationPlan({
     wait,
     getConnectionState,
     lessonDelayMs = 300,
-    onProgress = () => {}
+    onProgress = () => { }
 }) {
     if (!adapter?.isReady) {
         throw createFeatureError('RECIPE_UNAVAILABLE', adapter?.errors?.[0]?.message || 'Recording recipe unavailable.');
@@ -533,16 +539,61 @@ function formatCreationReport(result) {
     return lines.join('\n').trim();
 }
 
+export function createBatchSectionCreationFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+    executionHistoryService,
+    dispatch,
+}) {
+    const createBatchSectionCreationDialog = createHistoryAwareDialog({
+        createDialog: () => document.createElement(BATCH_SECTION_DIALOG_TAG),
+        persistExecution: executionHistoryService.persistTerminal,
+        openHistory: (executionId) => dispatch({
+            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+            executionId
+        }),
+        getLocationHref: () => window.location.href,
+        getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+            || document.title
+            || null,
+        log: logFactory('BatchSectionCreationHistory')
+    });
+
+    const batchSectionCreationAdapter = createImageUploadCreationAdapter({
+        recipe: dynamicImageRecipe,
+        cryptoApi: window.crypto
+    });
+
+    return createBatchSectionCreationFeature({
+        sendRequest: transport.sendRequest,
+        getConnectionState: transport.getConnectionState,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('batch-section-creation'),
+        adapter: batchSectionCreationAdapter,
+        createDialog: createBatchSectionCreationDialog,
+        copyText: (text) => navigator.clipboard.writeText(text),
+        log: logFactory('BatchSectionCreation')
+    });
+}
+
+const batchSectionCreationFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_CREATION,
+    create(context) {
+        const feature = createBatchSectionCreationFeatureV2(context);
+        return () => feature.open();
+    }
+});
+
 function createBatchSectionCreationFeature({
     sendRequest,
     getConnectionState,
-    wait,
     canStart,
     onActiveChange,
     adapter,
     createDialog = () => document.createElement(DIALOG_TAG),
-    copyText = async () => {},
-    log = () => {}
+    copyText = async () => { },
+    log = () => { }
 }) {
     let active = false;
     let running = false;
@@ -700,6 +751,7 @@ function createBatchSectionCreationFeature({
 }
 
 export {
+    batchSectionCreationFeatureDefinition,
     parseMarathonId,
     validateSectionDefinition,
     reorderBlocks,

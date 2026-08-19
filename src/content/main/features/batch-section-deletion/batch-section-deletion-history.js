@@ -1,5 +1,7 @@
+import { BATCH_SECTION_DELETION_DIALOG_TAG } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-dialog.js';
 import * as coreApi from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
+import { WINDOW_MESSAGE_TYPES } from '#src/shared/message-protocol.js';
 
 const OPERATION_TYPE = 'batch-section-deletion';
 const TERMINAL_STATUSES = new Set([
@@ -296,7 +298,7 @@ function createHistoryAwareFeature(options = {}) {
         getLocationHref = () => '',
         getMarathonName = () => null,
         now = () => new Date(),
-        log = () => {},
+        log = () => { },
         ...featureOptions
     } = options;
     if (typeof createDialog !== 'function') {
@@ -431,11 +433,43 @@ function installHistoryAwareFeature(baseApi = coreApi) {
     });
 }
 
+export function createBatchSectionDeletionFeatureV2({
+    transport,
+    operationGuard,
+    logFactory,
+    executionHistoryService,
+    dispatch,
+}) {
+    return createBatchSectionDeletionFeature({
+        sendRequest: transport.sendRequest,
+        getConnectionState: transport.getConnectionState,
+        canStart: operationGuard.canStart,
+        onActiveChange: operationGuard.guardedActiveChange('batch-section-deletion'),
+        createDialog: () => document.createElement(BATCH_SECTION_DELETION_DIALOG_TAG),
+        copyText: (text) => navigator.clipboard.writeText(text),
+        persistExecution: executionHistoryService.persistTerminal,
+        openHistory: (executionId) => dispatch({
+            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+            executionId
+        }),
+        log: logFactory('BatchSectionDeletion')
+    });
+}
+
+const batchSectionDeletionFeatureDefinition = Object.freeze({
+    type: WINDOW_MESSAGE_TYPES.OPEN_BATCH_SECTION_DELETION,
+    create(context) {
+        const feature = createBatchSectionDeletionFeatureV2(context);
+        return () => feature.open();
+    }
+});
+
 function createBatchSectionDeletionFeature(options = {}) {
     return installHistoryAwareFeature(coreApi).createBatchSectionDeletionFeature(options);
 }
 
 export {
+    batchSectionDeletionFeatureDefinition,
     OPERATION_TYPE,
     parseMarathonId,
     discoveryOutcome,
