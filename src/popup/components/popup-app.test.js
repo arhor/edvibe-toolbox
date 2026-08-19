@@ -30,6 +30,10 @@ const originalChrome = globalThis.chrome;
 const { PopupApp } = await import('#src/popup/components/popup-app.js');
 
 class TestPopupApp extends PopupApp {
+    createRenderRoot() {
+        return this;
+    }
+
     scheduleUpdate() {
         return Promise.resolve();
     }

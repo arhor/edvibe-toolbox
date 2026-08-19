@@ -91,15 +91,17 @@ describe('PopupToolCard', () => {
     test('emits the activation event for an available idle tool', () => {
         // Given
         const card = createCard('execution-history');
-        let detail;
+        let activationEvent;
         card.addEventListener('popup-tool-activate', (event) => {
-            detail = event.detail;
+            activationEvent = event;
         });
 
         // When
         card.activate();
 
         // Then
-        assert.deepEqual(detail, { toolId: 'execution-history' });
+        assert.deepEqual(activationEvent.detail, { toolId: 'execution-history' });
+        assert.equal(activationEvent.bubbles, true);
+        assert.equal(activationEvent.composed, true);
     });
 });

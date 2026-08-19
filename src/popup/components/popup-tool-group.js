@@ -1,8 +1,15 @@
 import { html, LitElement } from 'lit';
 
+import { popupToolGroupStyles } from '#src/popup/components/popup-tool-group.styles.js';
+import { popupElementStyles } from '#src/popup/styles/primitives.js';
 import '#src/popup/components/popup-tool-card.js';
 
 export class PopupToolGroup extends LitElement {
+    static styles = [
+        popupElementStyles,
+        popupToolGroupStyles,
+    ];
+
     static properties = {
         title: { type: String },
         tools: { attribute: false },
@@ -18,10 +25,6 @@ export class PopupToolGroup extends LitElement {
         this.pageContext = { type: 'loading' };
         this.exportInProgress = false;
         this.pendingToolId = null;
-    }
-
-    createRenderRoot() {
-        return this;
     }
 
     render() {

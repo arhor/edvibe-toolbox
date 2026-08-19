@@ -1,8 +1,15 @@
 import { html, LitElement, nothing } from 'lit';
 
+import { popupToolCardStyles } from '#src/popup/components/popup-tool-card.styles.js';
 import { getToolViewModel } from '#src/popup/popup-model.js';
+import { popupElementStyles } from '#src/popup/styles/primitives.js';
 
 export class PopupToolCard extends LitElement {
+    static styles = [
+        popupElementStyles,
+        popupToolCardStyles,
+    ];
+
     static properties = {
         tool: { attribute: false },
         pageContext: { attribute: false },
@@ -26,10 +33,6 @@ export class PopupToolCard extends LitElement {
         });
     }
 
-    createRenderRoot() {
-        return this;
-    }
-
     activate() {
         const { id, disabled } = this.toolViewModel;
 
@@ -41,6 +44,7 @@ export class PopupToolCard extends LitElement {
                 toolId: id,
             },
             bubbles: true,
+            composed: true,
         }));
     }
 

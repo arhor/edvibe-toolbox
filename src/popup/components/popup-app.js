@@ -1,5 +1,6 @@
 import { html, LitElement, nothing } from 'lit';
 
+import { popupAppStyles } from '#src/popup/components/popup-app.styles.js';
 import {
     TOOL_GROUPS,
     getPageContextContent,
@@ -7,9 +8,9 @@ import {
     getUnavailableReason,
     resolvePageContext
 } from '#src/popup/popup-model.js';
-import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/message-protocol.js';
+import { popupElementStyles } from '#src/popup/styles/primitives.js';
 import '#src/popup/components/popup-tool-group.js';
-import '#src/popup/components/popup-app.css';
+import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/message-protocol.js';
 
 async function getPageContext() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -50,6 +51,11 @@ function subscribeToExportStatus(listener) {
 }
 
 export class PopupApp extends LitElement {
+    static styles = [
+        popupElementStyles,
+        popupAppStyles,
+    ];
+
     static properties = {
         pageContext: { state: true },
         initialized: { state: true },
@@ -68,10 +74,6 @@ export class PopupApp extends LitElement {
         this.connectionVersion = 0;
         this.exportStatusObserved = false;
         this.unsubscribeFromExportStatus = null;
-    }
-
-    createRenderRoot() {
-        return this;
     }
 
     connectedCallback() {
