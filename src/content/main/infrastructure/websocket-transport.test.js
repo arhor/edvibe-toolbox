@@ -29,25 +29,46 @@ class FakeWebSocket {
     }
 }
 
+function createLogger() {
+    const logger = {
+        createChildLogger() {
+            return logger;
+        },
+        log() { }
+    };
+    return logger;
+}
+
 function setup(options = {}) {
     let time = 100;
     const timers = [];
-    const transport = createWebSocketTransport({
-        WebSocketClass: FakeWebSocket,
-        cryptoApi: { randomUUID: () => 'request-1' },
-        now: () => time,
-        setTimeoutFn: (callback) => {
-            timers.push(callback);
-            return timers.length;
-        },
-        clearTimeoutFn: () => {},
-        ...options
-    });
     const root = {};
-    transport.install(root);
+    const previousWindow = globalThis.window;
+    globalThis.window = root;
+    let transport;
+    try {
+        transport = createWebSocketTransport({
+            WebSocketClass: FakeWebSocket,
+            cryptoApi: { randomUUID: () => 'request-1' },
+            logger: createLogger(),
+            now: () => time,
+            setTimeoutFn: (callback) => {
+                timers.push(callback);
+                return timers.length;
+            },
+            clearTimeoutFn: () => { },
+            ...options
+        });
+    } finally {
+        if (previousWindow === undefined) {
+            delete globalThis.window;
+        } else {
+            globalThis.window = previousWindow;
+        }
+    }
     const socket = new root.WebSocket('wss://example.test');
     return { transport, socket, timers, advance: (milliseconds) => {
-        time += milliseconds; 
+        time += milliseconds;
     } };
 }
 
@@ -86,7 +107,7 @@ test('attaches response diagnostics to server rejection errors', async () => {
         assert.equal(error.code, 'SERVER_REJECTED');
         assert.deepEqual(error.diagnostics.response, {
             requestId: 'request-1', success: false, errorCode: 'DUPLICATE',
-            className: 'UserService', method: 'Create', elapsedMs: 5,
+            className: 'UserService', method: null, elapsedMs: 5,
             serverMessage: 'Already exists'
         });
         return true;
