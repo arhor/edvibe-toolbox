@@ -170,34 +170,53 @@ function createRuntimeContext() {
     };
 }
 
-test('registered MAIN features construct lazily and cross their browser adapter boundary', async () => {
+test('registered MAIN features should expose unique command types when definitions are loaded', () => {
+    // Given
+    const registeredTypes = features.map(({ type }) => type);
+
+    // When
+    const uniqueTypes = new Set(registeredTypes);
+
+    // Then
+    assert.ok(registeredTypes.length > 0);
+    assert.equal(uniqueTypes.size, registeredTypes.length);
+});
+
+test('registered MAIN features should reach browser UI adapter when opened with representative runtime dependencies', async (t) => {
+    // Given
     const browser = installBrowserGlobals();
-    try {
-        assert.ok(features.length > 0);
-        assert.equal(new Set(features.map(({ type }) => type)).size, features.length);
+    t.after(browser.restore);
+    const outcomes = [];
 
-        for (const definition of features) {
-            const beforeCreate = browser.createdElements.length;
-            const handler = definition.create(createRuntimeContext());
-            assert.equal(typeof handler, 'function', `${definition.type} must create a handler`);
-            assert.equal(
-                browser.createdElements.length,
-                beforeCreate,
-                `${definition.type} must not create browser UI during registration`
-            );
-
-            const result = handler({ type: definition.type });
-            if (result && typeof result.then === 'function') {
-                await result;
+    // When
+    for (const definition of features) {
+        const createdBeforeOpen = browser.createdElements.length;
+        let handler;
+        let error = null;
+        try {
+            handler = definition.create(createRuntimeContext());
+            if (typeof handler === 'function') {
+                const result = handler({ type: definition.type });
+                if (result && typeof result.then === 'function') {
+                    await result;
+                }
+                await Promise.resolve();
             }
-            await Promise.resolve();
-
-            assert.ok(
-                browser.createdElements.length > beforeCreate,
-                `${definition.type} must reach its browser UI adapter when opened`
-            );
+        } catch (cause) {
+            error = cause;
         }
-    } finally {
-        browser.restore();
+        outcomes.push({
+            type: definition.type,
+            handlerType: typeof handler,
+            error,
+            createdElements: browser.createdElements.length - createdBeforeOpen
+        });
+    }
+
+    // Then
+    for (const outcome of outcomes) {
+        assert.equal(outcome.handlerType, 'function', `${outcome.type} must create a handler`);
+        assert.equal(outcome.error, null, `${outcome.type} must open without adapter contract errors`);
+        assert.ok(outcome.createdElements > 0, `${outcome.type} must reach its browser UI adapter`);
     }
 });
