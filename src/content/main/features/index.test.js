@@ -145,6 +145,20 @@ function createRuntimeContext() {
         dispatch() {
             return true;
         },
+        edvibeApi: {
+            getLessonById: async () => {
+                throw transportFailure;
+            },
+            loadAllMarathonLessons: async () => {
+                throw transportFailure;
+            },
+            loadAllPupilLessons: async () => {
+                throw transportFailure;
+            },
+            loadAllPupils: async () => {
+                throw transportFailure;
+            }
+        },
         executionHistoryService: {
             clear: async () => { },
             delete: async () => { },
@@ -158,6 +172,12 @@ function createRuntimeContext() {
         },
         logger: createLogger(),
         operationGuard: new OperationGuard(),
+        pageContext: {
+            href: 'https://edvibe.com/marathon/123',
+            hostname: 'edvibe.com',
+            marathonId: 123,
+            marathonName: 'Test marathon'
+        },
         transport: {
             getConnectionState: () => ({ isOpen: true, ready: true }),
             getResponseDiagnostics: () => undefined,
