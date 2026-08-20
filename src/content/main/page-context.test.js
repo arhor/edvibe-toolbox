@@ -1,7 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { PageContext } from '#src/content/main/page-context.js';
+import { PageContext, parseMarathonId } from '#src/content/main/page-context.js';
+
+test('parseMarathonId should parse marathon ID from Edvibe page URLs', () => {
+    // Given
+    const urls = [
+        'https://edvibe.com/marathon/123',
+        'https://edvibe.com/marathon/456/lessons',
+        'https://edvibe.com/dashboard',
+        null
+    ];
+
+    // When
+    const ids = urls.map(parseMarathonId);
+
+    // Then
+    assert.deepEqual(ids, [123, 456, null, null]);
+});
 
 test('PageContext should expose current marathon page values', () => {
     // Given
