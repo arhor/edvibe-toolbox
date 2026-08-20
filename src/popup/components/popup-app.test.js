@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, test } from 'node:test';
 
-import { POPUP_COMMANDS } from '#src/shared/messaging/protocol.js';
+import { POPUP_COMMANDS } from '#src/shared/messaging/index.js';
 
 function createChromeApi() {
     const listeners = new Set();

@@ -313,7 +313,7 @@ export function createVideoAttachmentFeatureV2({
         canStart: operationGuard.canStart,
         onActiveChange: operationGuard.guardedActiveChange('video-attachment'),
 
-        createDialog: document.createElement(VIDEO_ATTACHMENT_DIALOG_TAG),
+        createDialog: () => document.createElement(VIDEO_ATTACHMENT_DIALOG_TAG),
         getLocationHref: () => window.location.href,
         appendDialog: (dialog) => document.body.append(dialog),
         alertUser: (message) => window.alert(message),

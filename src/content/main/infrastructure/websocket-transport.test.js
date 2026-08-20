@@ -29,38 +29,64 @@ class FakeWebSocket {
     }
 }
 
+function createLogger() {
+    const logger = {
+        createChildLogger() {
+            return logger;
+        },
+        log() { }
+    };
+    return logger;
+}
+
 function setup(options = {}) {
     let time = 100;
     const timers = [];
-    const transport = createWebSocketTransport({
-        WebSocketClass: FakeWebSocket,
-        cryptoApi: { randomUUID: () => 'request-1' },
-        now: () => time,
-        setTimeoutFn: (callback) => {
-            timers.push(callback);
-            return timers.length;
-        },
-        clearTimeoutFn: () => {},
-        ...options
-    });
     const root = {};
-    transport.install(root);
+    const previousWindow = globalThis.window;
+    globalThis.window = root;
+    let transport;
+    try {
+        transport = createWebSocketTransport({
+            WebSocketClass: FakeWebSocket,
+            cryptoApi: { randomUUID: () => 'request-1' },
+            logger: createLogger(),
+            now: () => time,
+            setTimeoutFn: (callback) => {
+                timers.push(callback);
+                return timers.length;
+            },
+            clearTimeoutFn: () => { },
+            ...options
+        });
+    } finally {
+        if (previousWindow === undefined) {
+            delete globalThis.window;
+        } else {
+            globalThis.window = previousWindow;
+        }
+    }
     const socket = new root.WebSocket('wss://example.test');
     return { transport, socket, timers, advance: (milliseconds) => {
-        time += milliseconds; 
+        time += milliseconds;
     } };
 }
 
-test('exposes full diagnostics for a successful response without changing it', async () => {
+test('createWebSocketTransport should preserve successful response when diagnostics are recorded', async () => {
+    // Given
     const { transport, socket, advance } = setup();
+    const response = { RequestId: 'request-1', IsSuccess: true, Value: { Count: 2 } };
+
+    // When
     const promise = transport.sendRequest('Users', 'Get', 'School', { Page: 1 });
     advance(12);
-    const response = { RequestId: 'request-1', IsSuccess: true, Value: { Count: 2 } };
     socket.respond(response);
-
     const resolved = await promise;
+    const diagnostics = transport.getResponseDiagnostics(resolved);
+
+    // Then
     assert.deepEqual(resolved, response);
-    assert.deepEqual(transport.getResponseDiagnostics(resolved), {
+    assert.deepEqual(diagnostics, {
         request: {
             controller: 'Users', method: 'Get', projectName: 'School',
             requestId: 'request-1', startedAt: 100, value: { Page: 1 }
@@ -73,8 +99,11 @@ test('exposes full diagnostics for a successful response without changing it', a
     assert.deepEqual(Object.keys(resolved), Object.keys(response));
 });
 
-test('attaches response diagnostics to server rejection errors', async () => {
+test('createWebSocketTransport should attach response diagnostics when server rejects request', async () => {
+    // Given
     const { transport, socket, advance } = setup();
+
+    // When
     const promise = transport.sendRequest('Users', 'Create', 'School', { Name: 'Sam' });
     advance(5);
     socket.respond({
@@ -82,6 +111,7 @@ test('attaches response diagnostics to server rejection errors', async () => {
         Class: 'UserService', Method: 'Create', Message: 'Already exists'
     });
 
+    // Then
     await assert.rejects(promise, (error) => {
         assert.equal(error.code, 'SERVER_REJECTED');
         assert.deepEqual(error.diagnostics.response, {
@@ -93,10 +123,15 @@ test('attaches response diagnostics to server rejection errors', async () => {
     });
 });
 
-test('attaches request diagnostics to timeout errors', async () => {
+test('createWebSocketTransport should attach request diagnostics when request times out', async () => {
+    // Given
     const { transport, timers } = setup({ requestTimeoutMs: 9 });
+
+    // When
     const promise = transport.sendRequest('Lessons', 'Get', 'Books', { LessonId: 7 });
     timers[0]();
+
+    // Then
     await assert.rejects(promise, (error) => {
         assert.equal(error.code, 'REQUEST_TIMEOUT');
         assert.equal(error.diagnostics.request.requestId, 'request-1');
@@ -105,17 +140,23 @@ test('attaches request diagnostics to timeout errors', async () => {
     });
 });
 
-test('attaches request diagnostics to synchronous send failures', async () => {
+test('createWebSocketTransport should attach request diagnostics when socket send fails synchronously', async () => {
+    // Given
     const { transport, socket } = setup();
     socket.sendError = new Error('socket closed');
+
+    // When
+    const promise = transport.sendRequest('Lessons', 'Save', 'Books', { LessonId: 7 });
+
+    // Then
     await assert.rejects(
-        transport.sendRequest('Lessons', 'Save', 'Books', { LessonId: 7 }),
+        promise,
         (error) => error.code === 'SEND_FAILED'
             && error.diagnostics.request.controller === 'Lessons'
     );
 });
 
-test('preserves sensitive, long, deep, and wide request and response fields', async () => {
+test('createWebSocketTransport should preserve complete fields when diagnostics contain sensitive or large values', async () => {
     // Given
     const { transport, socket } = setup();
     const long = 'x'.repeat(800);
@@ -142,13 +183,18 @@ test('preserves sensitive, long, deep, and wide request and response fields', as
     assert.deepEqual(diagnostics.response.value, { Cookie: 'raw', ImageData: 'raw', SafeCount: 3, long, deep, wide });
 });
 
-test('retains malformed server error payloads in diagnostics', async () => {
+test('createWebSocketTransport should preserve malformed server payload when rejection diagnostics are recorded', async () => {
+    // Given
     const { transport, socket } = setup();
+
+    // When
     const promise = transport.sendRequest('Users', 'Create', 'School', {});
     socket.respond({
         RequestId: 'request-1', IsSuccess: false,
         ErrorCode: { unexpected: true }, Message: { private: 'payload' }
     });
+
+    // Then
     await assert.rejects(promise, (error) => {
         assert.equal(error.code, 'SERVER_REJECTED');
         assert.deepEqual(error.diagnostics.response.serverMessage, { private: 'payload' });
