@@ -177,11 +177,9 @@ function createWebSocketTransport({
     }
 
     function qualifySocket(record, data) {
-        if (!isEdvibeRequestFrame(data)) {
-            return;
+        if (isEdvibeRequestFrame(data)) {
+            selectSocket(record);
         }
-        record.isQualified = true;
-        selectSocket(record);
     }
 
     function handleMessage(event, record) {
@@ -264,12 +262,12 @@ function createWebSocketTransport({
         }
     }
 
-    function observeSocket(socket, url) {
+    function observeSocket(nativeSocket, url) {
         logger.log('Intercepting WebSocket targeting:', url);
+        const socket = nativeSocket;
         const record = {
             socket,
-            socketId: nextSocketId,
-            isQualified: false
+            socketId: nextSocketId
         };
         nextSocketId += 1;
         const nativeSend = socket.send;
@@ -288,11 +286,6 @@ function createWebSocketTransport({
             }
             return result;
         };
-        socket.addEventListener('open', () => {
-            if (record.isQualified && record.socketId === latestQualifiedSocketId) {
-                selectSocket(record);
-            }
-        });
         socket.addEventListener('message', (event) => {
             handleMessage(event, record);
         });
