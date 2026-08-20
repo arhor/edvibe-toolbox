@@ -107,7 +107,7 @@ test('attaches response diagnostics to server rejection errors', async () => {
         assert.equal(error.code, 'SERVER_REJECTED');
         assert.deepEqual(error.diagnostics.response, {
             requestId: 'request-1', success: false, errorCode: 'DUPLICATE',
-            className: 'UserService', method: null, elapsedMs: 5,
+            className: 'UserService', method: 'Create', elapsedMs: 5,
             serverMessage: 'Already exists'
         });
         return true;
