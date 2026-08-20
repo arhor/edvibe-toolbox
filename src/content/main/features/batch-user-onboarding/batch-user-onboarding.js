@@ -44,6 +44,8 @@ export function createBatchUserOnboardingFeatureV2({
     logger,
     executionHistoryService,
     dispatch,
+    edvibeApi,
+    pageContext,
 }) {
     return createBatchUserOnboardingFeature({
         sendRequest: transport.sendRequest,
@@ -57,11 +59,10 @@ export function createBatchUserOnboardingFeatureV2({
             type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
             executionId
         }),
-        getLocationHref: () => window.location.href,
-        getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
-            || document.title
-            || null,
-        getRequestContext: () => ({ host: window.location.hostname }),
+        getMarathonId: () => pageContext.marathonId,
+        getMarathonName: () => pageContext.marathonName,
+        getRequestContext: () => ({ host: pageContext.hostname }),
+        loadPupils: ({ marathonId }) => edvibeApi.loadAllPupils({ marathonId }),
         logger: logger.createChildLogger('BatchUserOnboarding')
     });
 }
@@ -84,8 +85,10 @@ function createBatchUserOnboardingFeature({
     persistExecution = async () => Object.freeze({ stored: false }),
     openHistory = () => { },
     getLocationHref = () => window.location.href,
+    getMarathonId = () => parseMarathonId(getLocationHref()),
     getMarathonName = () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
     getRequestContext = () => ({ host: window.location.hostname }),
+    loadPupils = ({ marathonId }) => loadAllPupils({ sendRequest, marathonId }),
     now = () => new Date(),
     logger = { log() {} }
 }) {
@@ -103,7 +106,7 @@ function createBatchUserOnboardingFeature({
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
-        const marathonId = parseMarathonId(getLocationHref());
+        const marathonId = getMarathonId();
         if (!marathonId) {
             window.alert('Open an Edvibe marathon page before adding users.');
             return;
@@ -116,7 +119,7 @@ function createBatchUserOnboardingFeature({
         try {
             dialog.showLoading?.('Loading marathon users and curators…');
             const [pupils, moderators] = await Promise.all([
-                loadAllPupils({ sendRequest, marathonId }),
+                loadPupils({ marathonId }),
                 loadModerators({ sendRequest, marathonId })
             ]);
             let discoveryRows = [];
