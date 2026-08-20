@@ -138,7 +138,7 @@ function createLogger() {
     return logger;
 }
 
-function createRuntimeContext() {
+function createContext() {
     const transportFailure = new Error('Smoke transport stopped at the adapter boundary.');
     transportFailure.code = 'WS_UNAVAILABLE';
     return {
@@ -202,7 +202,7 @@ test('registered MAIN features should expose unique command types when definitio
     assert.equal(uniqueTypes.size, registeredTypes.length);
 });
 
-test('registered MAIN features should reach browser UI adapter when opened with representative runtime dependencies', async (t) => {
+test('registered MAIN features should reach browser UI adapter when opened with representative context dependencies', async (t) => {
     // Given
     const browser = installBrowserGlobals();
     t.after(browser.restore);
@@ -214,7 +214,7 @@ test('registered MAIN features should reach browser UI adapter when opened with 
         let handler;
         let error = null;
         try {
-            handler = definition.create(createRuntimeContext());
+            handler = definition.create(createContext());
             if (typeof handler === 'function') {
                 const result = handler({ type: definition.type });
                 if (result && typeof result.then === 'function') {
