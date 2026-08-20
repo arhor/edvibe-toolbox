@@ -1,11 +1,11 @@
 const MARATHON_ID_PATTERN = /\/marathon\/(\d+)(?:\/|$)/;
 
-function readMarathonId(href) {
+function parseMarathonId(href) {
     const match = String(href || '').match(MARATHON_ID_PATTERN);
     return match ? Number(match[1]) : null;
 }
 
-export class PageContext {
+class PageContext {
     constructor({
         windowApi = window,
         documentApi = document,
@@ -25,7 +25,7 @@ export class PageContext {
     }
 
     get marathonId() {
-        return readMarathonId(this.windowApi.location?.href);
+        return parseMarathonId(this.windowApi.location?.href);
     }
 
     get marathonName() {
@@ -37,3 +37,5 @@ export class PageContext {
         return title || null;
     }
 }
+
+export { PageContext, parseMarathonId };
