@@ -1,5 +1,6 @@
+import { parseMarathonId } from '#src/content/main/page-context.js';
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MARATHON_ID_PATTERN = /\/marathon\/(\d+)(?:\/|$)/;
 const CYRILLIC_PATTERN = /\p{Script=Cyrillic}/u;
 const TRANSIENT_CODES = new Set([
     'WS_UNAVAILABLE',
@@ -12,11 +13,6 @@ function createFeatureError(code, message, details = {}) {
     error.code = code;
     Object.assign(error, details);
     return error;
-}
-
-function parseMarathonId(url) {
-    const match = String(url || '').match(MARATHON_ID_PATTERN);
-    return match ? Number(match[1]) : null;
 }
 
 function describeNonAsciiCharacters(value) {
