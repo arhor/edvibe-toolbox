@@ -18,6 +18,31 @@ function createTransportError(code, message, details = {}) {
     return error;
 }
 
+function parseProtocolEnvelope(data) {
+    if (typeof data !== 'string') {
+        return null;
+    }
+    try {
+        const parsed = JSON.parse(data);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+            ? parsed
+            : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function isEdvibeRequestFrame(data) {
+    const envelope = parseProtocolEnvelope(data);
+    if (!envelope || envelope.RequestId === undefined || envelope.RequestId === null) {
+        return false;
+    }
+
+    return typeof envelope.Controller === 'string'
+        && typeof envelope.Method === 'string'
+        && typeof envelope.ProjectName === 'string';
+}
+
 function createWebSocketTransport({
     WebSocketClass = window.WebSocket,
     cryptoApi = window.crypto,
@@ -28,9 +53,10 @@ function createWebSocketTransport({
     logger: parentLogger,
 }) {
     const logger = parentLogger.createChildLogger('Transport');
-    let activeSocket = null;
+    let activeSocketRecord = null;
+    let latestQualifiedSocketId = 0;
     let nextSocketId = 1;
-    let internalSendDepth = 0;
+    const toolboxSendingSockets = new WeakSet();
     const pendingRequests = new Map();
     const responseDiagnostics = new WeakMap();
     const frameObservers = new Set();
@@ -135,7 +161,30 @@ function createWebSocketTransport({
         return candidate;
     }
 
-    function handleMessage(event, socketId) {
+    function selectSocket(record) {
+        if (record.socketId < latestQualifiedSocketId) {
+            return;
+        }
+
+        latestQualifiedSocketId = record.socketId;
+        if (record.socket.readyState !== WebSocketClass.OPEN) {
+            return;
+        }
+        if (activeSocketRecord?.socket !== record.socket) {
+            logger.log(`Edvibe WebSocket selected: #${record.socketId}`);
+        }
+        activeSocketRecord = record;
+    }
+
+    function qualifySocket(record, data) {
+        if (!isEdvibeRequestFrame(data)) {
+            return;
+        }
+        record.isQualified = true;
+        selectSocket(record);
+    }
+
+    function handleMessage(event, record) {
         let data = null;
         if (typeof event.data === 'string') {
             try {
@@ -145,12 +194,15 @@ function createWebSocketTransport({
             }
         }
 
+        const pending = data?.RequestId
+            ? pendingRequests.get(data.RequestId)
+            : null;
         const isToolboxResponse = Boolean(
-            data?.RequestId && pendingRequests.has(data.RequestId)
+            pending && pending.socketId === record.socketId
         );
         emitFrame({
             direction: 'inbound',
-            socketId,
+            socketId: record.socketId,
             data: event.data,
             origin: isToolboxResponse ? 'toolbox' : 'page'
         });
@@ -159,14 +211,10 @@ function createWebSocketTransport({
             return;
         }
         try {
-            if (!data) {
-                return;
-            }
-            if (!data.RequestId || !pendingRequests.has(data.RequestId)) {
+            if (!data || !pending || pending.socketId !== record.socketId) {
                 return;
             }
 
-            const pending = pendingRequests.get(data.RequestId);
             pendingRequests.delete(data.RequestId);
             clearTimeoutFn(pending.timeoutId);
             const elapsedMs = now() - pending.startedAt;
@@ -216,63 +264,89 @@ function createWebSocketTransport({
         }
     }
 
-    function install(rootObject) {
-        function InterceptedWebSocket(url, protocols) {
-            logger.log('Intercepting WebSocket targeting:', url);
-            const socket = protocols === undefined
-                ? new WebSocketClass(url)
-                : new WebSocketClass(url, protocols);
-            const socketId = nextSocketId;
-            nextSocketId += 1;
-            activeSocket = socket;
-            const nativeSend = socket.send;
+    function observeSocket(socket, url) {
+        logger.log('Intercepting WebSocket targeting:', url);
+        const record = {
+            socket,
+            socketId: nextSocketId,
+            isQualified: false
+        };
+        nextSocketId += 1;
+        const nativeSend = socket.send;
 
-            socket.send = function observedSend(data) {
-                emitFrame({
-                    direction: 'outbound',
-                    socketId,
-                    data,
-                    origin: internalSendDepth > 0 ? 'toolbox' : 'page'
-                });
-                return nativeSend.call(socket, data);
-            };
-            socket.addEventListener('message', (event) => {
-                handleMessage(event, socketId);
+        socket.send = function observedSend(data) {
+            const origin = toolboxSendingSockets.has(socket) ? 'toolbox' : 'page';
+            emitFrame({
+                direction: 'outbound',
+                socketId: record.socketId,
+                data,
+                origin
             });
-            return socket;
-        }
+            const result = nativeSend.call(socket, data);
+            if (origin === 'page') {
+                qualifySocket(record, data);
+            }
+            return result;
+        };
+        socket.addEventListener('open', () => {
+            if (record.isQualified && record.socketId === latestQualifiedSocketId) {
+                selectSocket(record);
+            }
+        });
+        socket.addEventListener('message', (event) => {
+            handleMessage(event, record);
+        });
+        socket.addEventListener('close', () => {
+            if (activeSocketRecord?.socket === socket) {
+                activeSocketRecord = null;
+                logger.log(`Edvibe WebSocket closed: #${record.socketId}`);
+            }
+        });
+        return socket;
+    }
 
-        InterceptedWebSocket.prototype = WebSocketClass.prototype;
+    const InterceptedWebSocket = new Proxy(WebSocketClass, {
+        construct(target, args, newTarget) {
+            const socket = Reflect.construct(target, args, newTarget);
+            return observeSocket(socket, args[0]);
+        }
+    });
+
+    function install(rootObject) {
         rootObject.WebSocket = InterceptedWebSocket;
     }
 
     function requireOpenSocket(controller, method) {
-        if (!activeSocket || activeSocket.readyState !== WebSocketClass.OPEN) {
+        if (
+            !activeSocketRecord
+            || activeSocketRecord.socket.readyState !== WebSocketClass.OPEN
+        ) {
             throw createTransportError(
                 'WS_UNAVAILABLE',
-                'Active WebSocket connection is missing. Please reload the Edvibe tab context.',
+                'Active Edvibe WebSocket connection is missing. Please reload the Edvibe tab context.',
                 { controller, method }
             );
         }
 
-        return activeSocket;
+        return activeSocketRecord;
     }
 
     function getConnectionState() {
         return {
             isOpen: Boolean(
-                activeSocket && activeSocket.readyState === WebSocketClass.OPEN
+                activeSocketRecord
+                && activeSocketRecord.socket.readyState === WebSocketClass.OPEN
             )
         };
     }
 
     function sendRequest(controller, method, projectName, valueObject) {
         return new Promise((resolve, reject) => {
-            let socket;
+            let socketRecord;
             try {
-                socket = requireOpenSocket(controller, method);
+                socketRecord = requireOpenSocket(controller, method);
             } catch (error) {
-                logger.log('No active WebSocket connection.');
+                logger.log('No active Edvibe WebSocket connection.');
                 reject(error);
                 return;
             }
@@ -303,6 +377,7 @@ function createWebSocketTransport({
                 method,
                 projectName,
                 requestId: packet.RequestId,
+                socketId: socketRecord.socketId,
                 startedAt,
                 requestValue: diagnostics.value,
                 diagnostics
@@ -310,11 +385,11 @@ function createWebSocketTransport({
             logger.log(`→ ${controller}.${method} [${packet.RequestId}]`);
 
             try {
-                internalSendDepth += 1;
+                toolboxSendingSockets.add(socketRecord.socket);
                 try {
-                    socket.send(JSON.stringify(packet));
+                    socketRecord.socket.send(JSON.stringify(packet));
                 } finally {
-                    internalSendDepth -= 1;
+                    toolboxSendingSockets.delete(socketRecord.socket);
                 }
             } catch (error) {
                 clearTimeoutFn(timeoutId);
@@ -338,14 +413,14 @@ function createWebSocketTransport({
     }
 
     function sendWithoutResponse(controller, method, projectName, valueObject) {
-        const socket = requireOpenSocket(controller, method);
+        const socketRecord = requireOpenSocket(controller, method);
         const packet = createPacket(controller, method, projectName, valueObject);
         logger.log(`→ ${controller}.${method} [${packet.RequestId}] (no response expected)`);
-        internalSendDepth += 1;
+        toolboxSendingSockets.add(socketRecord.socket);
         try {
-            socket.send(JSON.stringify(packet));
+            socketRecord.socket.send(JSON.stringify(packet));
         } finally {
-            internalSendDepth -= 1;
+            toolboxSendingSockets.delete(socketRecord.socket);
         }
     }
 
