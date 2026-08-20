@@ -12,7 +12,7 @@ import {
     createRuntimeExportStatusMessage,
     createStorageRequest,
     createStorageResponse
-} from '#src/shared/messaging/protocol.js';
+} from '#src/shared/messaging/index.js';
 
 function createHarness(initialStorage = {}) {
     const windowListeners = new Set();
