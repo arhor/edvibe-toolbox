@@ -45,7 +45,7 @@ function installBrowserGlobals() {
     };
 }
 
-function createLogger() {
+function createLogger(onLog = () => { }) {
     const entries = [];
     const logger = {
         entries,
@@ -54,108 +54,168 @@ function createLogger() {
         },
         log(...args) {
             entries.push(args);
+            onLog(args);
         }
     };
     return logger;
 }
 
-function withDispatcher(features, callback) {
+function createDispatcherHarness(features, logger = createLogger()) {
     const restore = installBrowserGlobals();
-    const logger = createLogger();
     try {
-        return callback(new FeatureDispatcher({ logger, features }), logger);
-    } finally {
+        return {
+            dispatcher: new FeatureDispatcher({ logger, features }),
+            logger,
+            restore
+        };
+    } catch (error) {
         restore();
+        throw error;
     }
 }
 
-test('rejects invalid and duplicate feature definitions', () => {
+test('FeatureDispatcher should reject feature definitions when type or create is invalid', (t) => {
+    // Given
     const restore = installBrowserGlobals();
+    t.after(restore);
     const logger = createLogger();
-    try {
-        assert.throws(
-            () => new FeatureDispatcher({ logger, features: [{ type: null, create() { } }] }),
-            /must provide a type and create function/
-        );
-        assert.throws(
-            () => new FeatureDispatcher({
-                logger,
-                features: [
-                    { type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER, create: () => () => { } },
-                    { type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER, create: () => () => { } }
-                ]
-            }),
-            /already registered/
-        );
-        assert.throws(
-            () => new FeatureDispatcher({
-                logger,
-                features: [{ type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER, create: () => null }]
-            }),
-            /must create a command handler/
-        );
-    } finally {
-        restore();
-    }
+    const construct = () => new FeatureDispatcher({
+        logger,
+        features: [{ type: null, create() { } }]
+    });
+
+    // When
+    const invoke = () => construct();
+
+    // Then
+    assert.throws(invoke, /must provide a type and create function/);
 });
 
-test('registers features with the shared runtime context', () => {
+test('FeatureDispatcher should reject registration when feature type is already registered', (t) => {
+    // Given
+    const restore = installBrowserGlobals();
+    t.after(restore);
+    const logger = createLogger();
+    const definition = {
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+        create: () => () => { }
+    };
+    const construct = () => new FeatureDispatcher({
+        logger,
+        features: [definition, definition]
+    });
+
+    // When
+    const invoke = () => construct();
+
+    // Then
+    assert.throws(invoke, /already registered/);
+});
+
+test('FeatureDispatcher should reject registration when feature factory does not create a handler', (t) => {
+    // Given
+    const restore = installBrowserGlobals();
+    t.after(restore);
+    const logger = createLogger();
+    const construct = () => new FeatureDispatcher({
+        logger,
+        features: [{
+            type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+            create: () => null
+        }]
+    });
+
+    // When
+    const invoke = () => construct();
+
+    // Then
+    assert.throws(invoke, /must create a command handler/);
+});
+
+test('FeatureDispatcher should provide runtime dependencies when feature is registered', (t) => {
+    // Given
     let receivedContext;
-    withDispatcher([
-        {
-            type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
-            create(context) {
-                receivedContext = context;
-                return () => { };
-            }
+    const harness = createDispatcherHarness([{
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+        create(context) {
+            receivedContext = context;
+            return () => { };
         }
-    ], (dispatcher, logger) => {
-        assert.equal(receivedContext.logger, logger);
-        assert.equal(receivedContext.transport, dispatcher.transport);
-        assert.equal(receivedContext.operationGuard, dispatcher.operationGuard);
-        assert.equal(receivedContext.executionHistoryService, dispatcher.executionHistoryService);
-        assert.equal(receivedContext.dispatch, dispatcher.dispatch);
-    });
+    }]);
+    t.after(harness.restore);
+
+    // When
+    const context = receivedContext;
+
+    // Then
+    assert.equal(context.logger, harness.logger);
+    assert.equal(context.dispatch, harness.dispatcher.dispatch);
+    assert.equal(typeof context.transport.sendRequest, 'function');
+    assert.equal(typeof context.operationGuard.canStart, 'function');
+    assert.equal(typeof context.executionHistoryService.persistTerminal, 'function');
 });
 
-test('rejects malformed and unregistered messages without invoking a handler', () => {
+test('FeatureDispatcher should ignore messages when message contract is invalid', (t) => {
+    // Given
     let calls = 0;
-    withDispatcher([
-        {
-            type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
-            create: () => () => {
-                calls += 1;
-            }
+    const harness = createDispatcherHarness([{
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+        create: () => () => {
+            calls += 1;
         }
-    ], (dispatcher) => {
-        assert.equal(dispatcher.dispatch(null), false);
-        assert.equal(dispatcher.dispatch({}), false);
-        assert.equal(dispatcher.dispatch({ type: 'UNKNOWN' }), false);
-        assert.equal(dispatcher.dispatch({ type: WINDOW_MESSAGE_TYPES.START_EXPORT }), false);
-        assert.equal(calls, 0);
-    });
+    }]);
+    t.after(harness.restore);
+    const invalidMessages = [null, {}, { type: 'UNKNOWN' }];
+
+    // When
+    const results = invalidMessages.map((message) => harness.dispatcher.dispatch(message));
+
+    // Then
+    assert.deepEqual(results, [false, false, false]);
+    assert.equal(calls, 0);
 });
 
-test('dispatches a valid registered command to its handler', () => {
+test('FeatureDispatcher should return false when valid command has no registered handler', (t) => {
+    // Given
+    const harness = createDispatcherHarness([{
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+        create: () => () => { }
+    }]);
+    t.after(harness.restore);
+    const message = { type: WINDOW_MESSAGE_TYPES.START_EXPORT };
+
+    // When
+    const handled = harness.dispatcher.dispatch(message);
+
+    // Then
+    assert.equal(handled, false);
+});
+
+test('FeatureDispatcher should dispatch message when command type is registered', (t) => {
+    // Given
     let receivedMessage = null;
-    withDispatcher([
-        {
-            type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
-            create: () => (message) => {
-                receivedMessage = message;
-            }
+    const harness = createDispatcherHarness([{
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+        create: () => (message) => {
+            receivedMessage = message;
         }
-    ], (dispatcher) => {
-        const message = { type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER };
-        assert.equal(dispatcher.dispatch(message), true);
-        assert.equal(receivedMessage, message);
-    });
+    }]);
+    t.after(harness.restore);
+    const message = { type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER };
+
+    // When
+    const handled = harness.dispatcher.dispatch(message);
+
+    // Then
+    assert.equal(handled, true);
+    assert.equal(receivedMessage, message);
 });
 
-test('isolates synchronous handler failures and continues dispatching', () => {
+test('FeatureDispatcher should isolate synchronous failure when later command is dispatched', (t) => {
+    // Given
     const failure = new Error('feature exploded');
     let healthyCalls = 0;
-    withDispatcher([
+    const harness = createDispatcherHarness([
         {
             type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
             create: () => () => {
@@ -168,39 +228,50 @@ test('isolates synchronous handler failures and continues dispatching', () => {
                 healthyCalls += 1;
             }
         }
-    ], (dispatcher, logger) => {
-        assert.equal(dispatcher.dispatch({ type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER }), true);
-        assert.equal(dispatcher.dispatch({ type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY }), true);
-        assert.equal(healthyCalls, 1);
-        assert.equal(logger.entries.length, 1);
-        assert.match(logger.entries[0][0], /OPEN_RECORDER/);
-        assert.equal(logger.entries[0][1], failure);
+    ]);
+    t.after(harness.restore);
+
+    // When
+    const failedHandled = harness.dispatcher.dispatch({
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER
     });
+    const healthyHandled = harness.dispatcher.dispatch({
+        type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY
+    });
+
+    // Then
+    assert.equal(failedHandled, true);
+    assert.equal(healthyHandled, true);
+    assert.equal(healthyCalls, 1);
+    assert.equal(harness.logger.entries.length, 1);
+    assert.match(harness.logger.entries[0][0], /OPEN_RECORDER/);
+    assert.equal(harness.logger.entries[0][1], failure);
 });
 
-test('isolates rejected asynchronous handlers', async () => {
+test('FeatureDispatcher should isolate asynchronous failure when handler promise rejects', async (t) => {
+    // Given
     const failure = new Error('async feature exploded');
-    const restore = installBrowserGlobals();
-    const logger = createLogger();
-    try {
-        const dispatcher = new FeatureDispatcher({
-            logger,
-            features: [{
-                type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
-                create: () => async () => {
-                    throw failure;
-                }
-            }]
-        });
+    let resolveLogged;
+    const logged = new Promise((resolve) => {
+        resolveLogged = resolve;
+    });
+    const logger = createLogger(resolveLogged);
+    const harness = createDispatcherHarness([{
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER,
+        create: () => async () => {
+            throw failure;
+        }
+    }], logger);
+    t.after(harness.restore);
 
-        assert.equal(dispatcher.dispatch({ type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER }), true);
-        await Promise.resolve();
-        await Promise.resolve();
+    // When
+    const handled = harness.dispatcher.dispatch({
+        type: WINDOW_MESSAGE_TYPES.OPEN_ACTION_RECORDER
+    });
+    const loggedEntry = await logged;
 
-        assert.equal(logger.entries.length, 1);
-        assert.match(logger.entries[0][0], /OPEN_RECORDER/);
-        assert.equal(logger.entries[0][1], failure);
-    } finally {
-        restore();
-    }
+    // Then
+    assert.equal(handled, true);
+    assert.match(loggedEntry[0], /OPEN_RECORDER/);
+    assert.equal(loggedEntry[1], failure);
 });
