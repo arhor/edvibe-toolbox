@@ -1,18 +1,19 @@
+import { createBrowserExecutionHistoryService } from '#src/content/main/infrastructure/browser-execution-history-service.js';
+import { createEdvibeMarathonApi } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
+import { OperationGuard } from '#src/content/main/infrastructure/operation-guard.js';
+import { createWebSocketTransport } from '#src/content/main/infrastructure/websocket-transport.js';
+import { PageContext } from '#src/content/main/page-context.js';
+
 export class MainContext {
     constructor({
         logger,
-        transport,
-        operationGuard,
-        executionHistoryService,
-        edvibeApi,
-        pageContext,
     }) {
         this.logger = logger;
-        this.transport = transport;
-        this.operationGuard = operationGuard;
-        this.executionHistoryService = executionHistoryService;
-        this.edvibeApi = edvibeApi;
-        this.pageContext = pageContext;
+        this.transport = createWebSocketTransport({ logger });
+        this.operationGuard = new OperationGuard();
+        this.executionHistoryService = createBrowserExecutionHistoryService();
+        this.edvibeApi = createEdvibeMarathonApi({ sendRequest: this.transport.sendRequest });
+        this.pageContext = new PageContext();
         this.dispatch = null;
 
         this.registerDispatch = this.registerDispatch.bind(this);

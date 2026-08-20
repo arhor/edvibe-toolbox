@@ -11,7 +11,9 @@ function createDialog(documentApi) {
             status: { textContent: '' }
         },
         ownerDocument: documentApi,
-        shadowRoot: { querySelector() { return null; } },
+        shadowRoot: { querySelector() {
+            return null; 
+        } },
         addEventListener() { },
         close() { },
         complete() { },

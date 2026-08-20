@@ -1,59 +1,67 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { test, describe } from 'node:test';
 
+import {
+    FIXTURE_MARATHON_ID,
+    withMainBrowserEnvironment
+} from '#src/content/main/main-context-test-fixtures.js';
 import { MainContext } from '#src/content/main/main-context.js';
 
-function createDependencies() {
+function createLogger() {
     return {
-        logger: { createChildLogger() { } },
-        transport: { sendRequest() { } },
-        operationGuard: { canStart() { } },
-        executionHistoryService: { persistTerminal() { } },
-        edvibeApi: { loadAllPupils() { } },
-        pageContext: { marathonId: 123 }
+        createChildLogger() {
+            return { log() { } };
+        },
+        log() { }
     };
 }
 
-test('MainContext should expose composed MAIN dependencies', () => {
-    // Given
-    const dependencies = createDependencies();
+function createContext(logger = createLogger()) {
+    return withMainBrowserEnvironment(() => new MainContext({ logger }));
+}
 
-    // When
-    const context = new MainContext(dependencies);
+describe('MainContext', () => {
+    test('should expose composed MAIN dependencies', () => {
+        // Given
+        const logger = createLogger();
 
-    // Then
-    assert.equal(context.logger, dependencies.logger);
-    assert.equal(context.transport, dependencies.transport);
-    assert.equal(context.operationGuard, dependencies.operationGuard);
-    assert.equal(context.executionHistoryService, dependencies.executionHistoryService);
-    assert.equal(context.edvibeApi, dependencies.edvibeApi);
-    assert.equal(context.pageContext, dependencies.pageContext);
-    assert.equal(context.dispatch, null);
-});
+        // When
+        const context = createContext(logger);
 
-test('MainContext should register dispatch exactly once', () => {
-    // Given
-    const context = new MainContext(createDependencies());
-    const dispatch = () => true;
+        // Then
+        assert.equal(context.logger, logger);
+        assert.equal(typeof context.transport.sendRequest, 'function');
+        assert.equal(typeof context.operationGuard.canStart, 'function');
+        assert.equal(typeof context.executionHistoryService.persistTerminal, 'function');
+        assert.equal(typeof context.edvibeApi.loadAllPupils, 'function');
+        assert.equal(context.pageContext.marathonId, FIXTURE_MARATHON_ID);
+        assert.equal(context.dispatch, null);
+    });
 
-    // When
-    context.registerDispatch(dispatch);
+    test('should register dispatch exactly once', () => {
+        // Given
+        const context = createContext();
+        const dispatch = () => true;
 
-    // Then
-    assert.equal(context.dispatch, dispatch);
-    assert.throws(
-        () => context.registerDispatch(() => false),
-        /already registered/
-    );
-});
+        // When
+        context.registerDispatch(dispatch);
 
-test('MainContext should reject invalid dispatch capability', () => {
-    // Given
-    const context = new MainContext(createDependencies());
+        // Then
+        assert.equal(context.dispatch, dispatch);
+        assert.throws(
+            () => context.registerDispatch(() => false),
+            /already registered/
+        );
+    });
 
-    // When
-    const register = () => context.registerDispatch(null);
+    test('should reject invalid dispatch capability', () => {
+        // Given
+        const context = createContext();
 
-    // Then
-    assert.throws(register, /must be a function/);
+        // When
+        const register = () => context.registerDispatch(null);
+
+        // Then
+        assert.throws(register, /must be a function/);
+    });
 });
