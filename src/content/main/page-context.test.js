@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createPageContext } from '#src/content/main/page-context.js';
+import { PageContext } from '#src/content/main/page-context.js';
 
-test('createPageContext should expose current marathon page values', () => {
+test('PageContext should expose current marathon page values', () => {
     // Given
     const windowApi = {
         location: {
@@ -18,7 +18,7 @@ test('createPageContext should expose current marathon page values', () => {
             return { textContent: '  Polish B1  ' };
         }
     };
-    const context = createPageContext({ windowApi, documentApi });
+    const context = new PageContext({ windowApi, documentApi });
 
     // When
     const snapshot = {
@@ -38,7 +38,7 @@ test('createPageContext should expose current marathon page values', () => {
     assert.equal(Object.isFrozen(context), true);
 });
 
-test('createPageContext should read live page state and fall back to document title', () => {
+test('PageContext should read live page state and fall back to document title', () => {
     // Given
     const windowApi = {
         location: {
@@ -52,7 +52,7 @@ test('createPageContext should read live page state and fall back to document ti
             return null;
         }
     };
-    const context = createPageContext({ windowApi, documentApi });
+    const context = new PageContext({ windowApi, documentApi });
 
     // When
     const initialMarathonId = context.marathonId;
