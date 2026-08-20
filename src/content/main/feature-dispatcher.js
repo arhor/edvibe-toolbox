@@ -50,7 +50,13 @@ export class FeatureDispatcher {
         if (!handler) {
             return false;
         }
-        handler(message);
+        try {
+            Promise.resolve(handler(message)).catch((error) => {
+                this.logger.log(`Feature "${message.type}" failed:`, error);
+            });
+        } catch (error) {
+            this.logger.log(`Feature "${message.type}" failed:`, error);
+        }
         return true;
     }
 }
