@@ -20,7 +20,7 @@ import {
     isRuntimeExportStatusMessage,
     isStorageRequestMessage,
     isStorageResponseMessage
-} from '#src/shared/messaging/protocol.js';
+} from '#src/shared/messaging/index.js';
 
 describe('popup to MAIN command protocol', () => {
     test('every supported popup command maps to a valid MAIN message', () => {
