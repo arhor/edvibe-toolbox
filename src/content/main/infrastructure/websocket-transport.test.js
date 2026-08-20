@@ -4,28 +4,55 @@ import test from 'node:test';
 import { createWebSocketTransport } from '#src/content/main/infrastructure/websocket-transport.js';
 
 class FakeWebSocket {
+    static CONNECTING = 0;
     static OPEN = 1;
+    static CLOSING = 2;
+    static CLOSED = 3;
+    static customStatic = 'preserved';
+    static instances = [];
 
-    constructor() {
+    constructor(url, protocols) {
+        this.url = url;
+        this.protocols = protocols;
         this.readyState = FakeWebSocket.OPEN;
         this.listeners = new Map();
         this.sent = [];
-        FakeWebSocket.instance = this;
+        FakeWebSocket.instances.push(this);
     }
 
     addEventListener(type, listener) {
-        this.listeners.set(type, listener);
+        const listeners = this.listeners.get(type) || [];
+        listeners.push(listener);
+        this.listeners.set(type, listeners);
+    }
+
+    dispatch(type, event = {}) {
+        for (const listener of this.listeners.get(type) || []) {
+            listener(event);
+        }
     }
 
     send(data) {
         if (this.sendError) {
             throw this.sendError;
         }
+        if (this.readyState !== FakeWebSocket.OPEN) {
+            throw new Error('socket closed');
+        }
         this.sent.push(data);
     }
 
     respond(data) {
-        this.listeners.get('message')({ data: JSON.stringify(data) });
+        this.dispatch('message', { data: JSON.stringify(data) });
+    }
+
+    receive(data) {
+        this.dispatch('message', { data });
+    }
+
+    close() {
+        this.readyState = FakeWebSocket.CLOSED;
+        this.dispatch('close');
     }
 }
 
@@ -39,11 +66,26 @@ function createLogger() {
     return logger;
 }
 
+function pageRequest(requestId = 'page-request') {
+    return JSON.stringify({
+        Controller: 'Lessons',
+        Method: 'Get',
+        ProjectName: 'Books',
+        RequestId: requestId,
+        Value: '{}'
+    });
+}
+
+function qualify(socket, requestId) {
+    socket.send(pageRequest(requestId));
+}
+
 function setup(options = {}) {
     let time = 100;
     const timers = [];
     const root = {};
     const previousWindow = globalThis.window;
+    FakeWebSocket.instances = [];
     globalThis.window = root;
     let transport;
     try {
@@ -67,9 +109,16 @@ function setup(options = {}) {
         }
     }
     const socket = new root.WebSocket('wss://example.test');
-    return { transport, socket, timers, advance: (milliseconds) => {
-        time += milliseconds;
-    } };
+    qualify(socket, 'bootstrap-request');
+    return {
+        transport,
+        root,
+        socket,
+        timers,
+        advance: (milliseconds) => {
+            time += milliseconds;
+        }
+    };
 }
 
 test('createWebSocketTransport should preserve successful response when diagnostics are recorded', async () => {
@@ -204,4 +253,122 @@ test('createWebSocketTransport should preserve malformed server payload when rej
         ]);
         return true;
     });
+});
+
+test('createWebSocketTransport should preserve native constructor and static semantics', () => {
+    // Given
+    const { root } = setup();
+
+    // When
+    const socket = new root.WebSocket('wss://compat.test', ['json']);
+
+    // Then
+    assert.equal(root.WebSocket.OPEN, FakeWebSocket.OPEN);
+    assert.equal(root.WebSocket.CLOSED, FakeWebSocket.CLOSED);
+    assert.equal(root.WebSocket.customStatic, 'preserved');
+    assert.equal(root.WebSocket.prototype, FakeWebSocket.prototype);
+    assert.equal(socket.url, 'wss://compat.test');
+    assert.deepEqual(socket.protocols, ['json']);
+    assert.ok(socket instanceof root.WebSocket);
+    assert.ok(socket instanceof FakeWebSocket);
+    assert.throws(() => root.WebSocket('wss://compat.test'), TypeError);
+});
+
+test('createWebSocketTransport should not let an unrelated newer socket steal Toolbox traffic', () => {
+    // Given
+    const { transport, root, socket: edvibeSocket } = setup();
+    edvibeSocket.sent = [];
+    const unrelatedSocket = new root.WebSocket('wss://unrelated.test');
+    unrelatedSocket.send(JSON.stringify({ type: 'presence', RequestId: 'other' }));
+
+    // When
+    transport.sendWithoutResponse('Lessons', 'Save', 'Books', { LessonId: 7 });
+
+    // Then
+    assert.equal(edvibeSocket.sent.length, 1);
+    assert.equal(unrelatedSocket.sent.length, 1);
+    assert.equal(JSON.parse(edvibeSocket.sent[0]).Controller, 'Lessons');
+});
+
+test('createWebSocketTransport should switch only to a qualified replacement and not fall back to a stale socket', async () => {
+    // Given
+    const { transport, root, socket: firstSocket } = setup();
+    firstSocket.sent = [];
+    const replacementSocket = new root.WebSocket('wss://replacement.test');
+    qualify(replacementSocket, 'replacement-bootstrap');
+    replacementSocket.sent = [];
+
+    // When
+    transport.sendWithoutResponse('Lessons', 'Save', 'Books', { LessonId: 8 });
+    replacementSocket.close();
+
+    // Then
+    assert.equal(firstSocket.sent.length, 0);
+    assert.equal(replacementSocket.sent.length, 1);
+    assert.deepEqual(transport.getConnectionState(), { isOpen: false });
+    await assert.rejects(
+        transport.sendRequest('Lessons', 'Get', 'Books', { LessonId: 8 }),
+        (error) => error.code === 'WS_UNAVAILABLE'
+    );
+
+    // When a reconnect appears
+    const reconnectedSocket = new root.WebSocket('wss://reconnected.test');
+    qualify(reconnectedSocket, 'reconnected-bootstrap');
+    reconnectedSocket.sent = [];
+    transport.sendWithoutResponse('Lessons', 'Save', 'Books', { LessonId: 9 });
+
+    // Then the reconnect becomes authoritative
+    assert.equal(reconnectedSocket.sent.length, 1);
+    assert.deepEqual(transport.getConnectionState(), { isOpen: true });
+});
+
+test('createWebSocketTransport should ignore matching request IDs received on another socket', async () => {
+    // Given
+    const { transport, root, socket: edvibeSocket } = setup();
+    const unrelatedSocket = new root.WebSocket('wss://unrelated.test');
+
+    // When
+    const promise = transport.sendRequest('Users', 'Get', 'School', { Page: 1 });
+    unrelatedSocket.respond({ RequestId: 'request-1', IsSuccess: true, Value: { wrong: true } });
+    edvibeSocket.respond({ RequestId: 'request-1', IsSuccess: true, Value: { right: true } });
+    const response = await promise;
+    edvibeSocket.sent = [];
+    unrelatedSocket.sent = [];
+    transport.sendWithoutResponse('Lessons', 'Save', 'Books', { LessonId: 11 });
+
+    // Then
+    assert.deepEqual(response, {
+        RequestId: 'request-1', IsSuccess: true, Value: { right: true }
+    });
+    assert.equal(edvibeSocket.sent.length, 1);
+    assert.equal(unrelatedSocket.sent.length, 0);
+});
+
+test('createWebSocketTransport should keep frame observation and Toolbox origin tagging across sockets', () => {
+    // Given
+    const { transport, root, socket: edvibeSocket } = setup();
+    const frames = [];
+    transport.subscribeFrames((frame) => frames.push(frame));
+    edvibeSocket.sent = [];
+    const unrelatedSocket = new root.WebSocket('wss://unrelated.test');
+
+    // When
+    unrelatedSocket.send('plain-page-frame');
+    transport.sendWithoutResponse('Lessons', 'Save', 'Books', { LessonId: 10 });
+
+    // Then
+    assert.equal(frames.length, 2);
+    assert.deepEqual(
+        frames.map(({ direction, socketId, origin, data }) => ({ direction, socketId, origin, data })),
+        [
+            {
+                direction: 'outbound', socketId: 2, origin: 'page',
+                data: 'plain-page-frame'
+            },
+            {
+                direction: 'outbound', socketId: 1, origin: 'toolbox',
+                data: edvibeSocket.sent[0]
+            }
+        ]
+    );
 });
