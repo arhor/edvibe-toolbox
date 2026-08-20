@@ -1,20 +1,29 @@
 import { isMainCommandMessage } from '#src/shared/messaging/protocol.js';
 
 export class FeatureDispatcher {
-    constructor({ runtimeContext }) {
-        if (!runtimeContext || typeof runtimeContext !== 'object') {
-            throw new TypeError('runtimeContext is required');
+    constructor({ context, features = [] } = {}) {
+        if (!context || typeof context !== 'object') {
+            throw new TypeError('context is required');
         }
-        if (typeof runtimeContext.logger?.log !== 'function') {
-            throw new TypeError('runtimeContext must provide a logger');
+        if (typeof context.logger?.createChildLogger !== 'function') {
+            throw new TypeError('context must provide a logger');
+        }
+        if (typeof context.registerDispatch !== 'function') {
+            throw new TypeError('context must provide dispatch registration');
+        }
+        if (!Array.isArray(features)) {
+            throw new TypeError('features must be an array');
         }
 
         this.features = new Map();
-        this.runtimeContext = runtimeContext;
-        this.logger = runtimeContext.logger;
+        this.context = context;
+        this.logger = context.logger.createChildLogger('FeatureDispatcher');
 
         this.register = this.register.bind(this);
         this.dispatch = this.dispatch.bind(this);
+
+        context.registerDispatch(this.dispatch);
+        features.forEach(this.register);
     }
 
     register({ type, create }) {
@@ -25,7 +34,7 @@ export class FeatureDispatcher {
             throw new TypeError(`Feature "${type}" is already registered`);
         }
 
-        const handler = create(this.runtimeContext);
+        const handler = create(this.context);
 
         if (typeof handler !== 'function') {
             throw new TypeError(`Feature "${type}" must create a command handler`);
