@@ -1,3 +1,4 @@
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { RESET_DIALOG_TAG } from '#src/content/main/features/reset-lessons/reset-lessons-dialog.js';
 import { parseMarathonId } from '#src/content/main/page-context.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
@@ -303,8 +304,7 @@ export function createResetLessonsFeatureV2({
     return createResetLessonsFeature({
         sendRequest: transport.sendRequest,
         sendWithoutResponse: transport.sendWithoutResponse,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('reset'),
+        session: createFeatureSession({ operationGuard, operationName: 'reset' }),
         getMarathonId: () => pageContext.marathonId,
         logger: logger.createChildLogger('Reset')
     });
@@ -321,99 +321,88 @@ const resetLessonsFeatureDefinition = Object.freeze({
 function createResetLessonsFeature({
     sendRequest,
     sendWithoutResponse,
-    canStart,
-    onActiveChange,
+    session,
     createDialog = () => document.createElement(RESET_DIALOG_TAG),
     getMarathonId = () => parseMarathonId(window.location.href),
     logger = { log() {} }
 }) {
     let running = false;
-    let active = false;
-
-    function releaseOperation() {
-        if (!active) {
-            return;
-        }
-        active = false;
-        onActiveChange(false);
-    }
 
     async function open() {
-        if (document.getElementById(RESET_OVERLAY_ID)) {
+        if (session.isOpen() || document.getElementById(RESET_OVERLAY_ID)) {
             return;
         }
-        if (!canStart()) {
+        if (!session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
 
         const marathonId = getMarathonId();
         if (!marathonId) {
+            session.release();
             window.alert('Open an Edvibe marathon page before resetting lessons.');
             return;
         }
 
-        active = true;
-        onActiveChange(true);
-
-        const dialog = createDialog();
-        dialog.addEventListener('edvibe-dialog-close', releaseOperation);
-        dialog.addEventListener('edvibe-reset-request', async (event) => {
-            const { pupil, lessons } = event.detail;
-            const confirmed = window.confirm(
-                `Reset ${lessons.length} lesson(s) for ${pupil.Email}?`
-            );
-            if (!confirmed) {
-                return;
-            }
-
-            running = true;
-            dialog.lock();
-            let completed = false;
-
-            try {
-                dialog.showDiscovery('Discovering exercises...');
-                const work = await discoverResetWork({
-                    sendRequest,
-                    wait,
-                    marathonId,
-                    pupilId: pupil.PupilId,
-                    lessons,
-                    onDiscovery: (message) => dialog.showDiscovery(message),
-                    logger
-                });
-                await executeResetWork({
-                    sendRequest,
-                    sendWithoutResponse,
-                    wait,
-                    marathonId,
-                    pupilId: pupil.PupilId,
-                    work,
-                    onProgress: (progress) => dialog.showProgress(progress),
-                    logger
-                });
-                dialog.showComplete('Selected lesson progress was reset successfully.');
-                completed = true;
-            } catch (error) {
-                const lessonIds = lessons
-                    .map((lesson) => lesson.MarathonLessonId)
-                    .join(', ');
-                logger.log(
-                    `Reset stopped for PupilId ${pupil.PupilId}; `
-                    + `MarathonLessonIds: ${lessonIds} (${getErrorType(error)}).`
-                );
-                dialog.showError(error.message);
-            } finally {
-                running = false;
-                if (completed) {
-                    dialog.completeRun();
-                } else {
-                    dialog.unlockAfterRun();
-                }
-            }
-        });
-
+        let dialog;
         try {
+            dialog = session.ownDialog(createDialog());
+            dialog.addEventListener('edvibe-dialog-close', () => session.close());
+            dialog.addEventListener('edvibe-reset-request', async (event) => {
+                const { pupil, lessons } = event.detail;
+                const confirmed = window.confirm(
+                    `Reset ${lessons.length} lesson(s) for ${pupil.Email}?`
+                );
+                if (!confirmed) {
+                    return;
+                }
+
+                running = true;
+                dialog.lock();
+                let completed = false;
+
+                try {
+                    dialog.showDiscovery('Discovering exercises...');
+                    const work = await discoverResetWork({
+                        sendRequest,
+                        wait,
+                        marathonId,
+                        pupilId: pupil.PupilId,
+                        lessons,
+                        onDiscovery: (message) => dialog.showDiscovery(message),
+                        logger
+                    });
+                    await executeResetWork({
+                        sendRequest,
+                        sendWithoutResponse,
+                        wait,
+                        marathonId,
+                        pupilId: pupil.PupilId,
+                        work,
+                        onProgress: (progress) => dialog.showProgress(progress),
+                        logger
+                    });
+                    dialog.showComplete('Selected lesson progress was reset successfully.');
+                    completed = true;
+                } catch (error) {
+                    const lessonIds = lessons
+                        .map((lesson) => lesson.MarathonLessonId)
+                        .join(', ');
+                    logger.log(
+                        `Reset stopped for PupilId ${pupil.PupilId}; `
+                        + `MarathonLessonIds: ${lessonIds} (${getErrorType(error)}).`
+                    );
+                    dialog.showError(error.message);
+                } finally {
+                    running = false;
+                    if (completed) {
+                        dialog.completeRun();
+                    } else {
+                        dialog.unlockAfterRun();
+                    }
+                }
+            });
+
             const pupilPager = createPupilPager(sendRequest, marathonId);
             dialog.configure({
                 loadNextPupils: () => pupilPager.loadNext(),
@@ -459,10 +448,14 @@ function createResetLessonsFeature({
                 `Failed to initialize reset workflow for MarathonId ${marathonId} `
                 + `(${getErrorType(error)}).`
             );
-            if (typeof dialog.showError === 'function') {
-                dialog.showError(error.message);
+            if (typeof dialog?.showError === 'function') {
+                try {
+                    dialog.showError(error.message);
+                } finally {
+                    session.release();
+                }
             } else {
-                releaseOperation();
+                session.close();
                 throw error;
             }
         }

@@ -1,3 +1,4 @@
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
 import { createHistoryAwareDialog } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
 import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
@@ -567,8 +568,10 @@ export function createBatchSectionCreationFeatureV2({
     return createBatchSectionCreationFeature({
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('batch-section-creation'),
+        session: createFeatureSession({
+            operationGuard,
+            operationName: 'batch-section-creation'
+        }),
         adapter: batchSectionCreationAdapter,
         createDialog: createBatchSectionCreationDialog,
         copyText: (text) => navigator.clipboard.writeText(text),
@@ -587,14 +590,12 @@ const batchSectionCreationFeatureDefinition = Object.freeze({
 function createBatchSectionCreationFeature({
     sendRequest,
     getConnectionState,
-    canStart,
-    onActiveChange,
+    session,
     adapter,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = async () => { },
     logger = { log() {} }
 }) {
-    let active = false;
     let running = false;
     let dialog = null;
     let marathonId = null;
@@ -602,20 +603,13 @@ function createBatchSectionCreationFeature({
     let pendingPlan = null;
     let completedResult = null;
 
-    function release() {
-        if (active) {
-            active = false;
-            onActiveChange(false);
-        }
-    }
-
     function close() {
         running = false;
         dialog = null;
         lessons = [];
         pendingPlan = null;
         completedResult = null;
-        release();
+        session.close();
     }
 
     async function preflight(event) {
@@ -701,23 +695,22 @@ function createBatchSectionCreationFeature({
     }
 
     async function open() {
-        if (active || document.getElementById(OVERLAY_ID)) {
+        if (session.isOpen() || document.getElementById(OVERLAY_ID)) {
             return;
         }
-        if (!canStart()) {
+        if (!session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
         marathonId = parseMarathonId(window.location.href);
         if (!marathonId) {
+            session.release();
             window.alert('Open an Edvibe marathon page before creating sections.');
             return;
         }
 
-        active = true;
-        onActiveChange(true);
         try {
-            dialog = createDialog();
+            dialog = session.ownDialog(createDialog());
             dialog.addEventListener('edvibe-dialog-close', close);
             dialog.addEventListener('edvibe-batch-section-preflight', preflight);
             dialog.addEventListener('edvibe-batch-section-confirm', confirm);
@@ -741,7 +734,7 @@ function createBatchSectionCreationFeature({
             try {
                 dialog?.showFatalError?.(error);
             } finally {
-                release();
+                session.release();
             }
         }
     }

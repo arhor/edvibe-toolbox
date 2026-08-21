@@ -332,13 +332,11 @@ function freezePlan({
 function createBatchLessonAccessFeature({
     sendRequest,
     getConnectionState,
-    canStart,
-    onActiveChange,
+    session,
     createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
     copyText = async () => {},
     logger = { log() {} }
 }) {
-    let active = false;
     let running = false;
     let pupils = [];
     let lessonCatalogue = [];
@@ -346,14 +344,6 @@ function createBatchLessonAccessFeature({
     let completedResult = null;
     let marathonId = null;
     let dialog = null;
-
-    function releaseOperation() {
-        if (!active) {
-            return;
-        }
-        active = false;
-        onActiveChange(false);
-    }
 
     function handleClose() {
         running = false;
@@ -363,7 +353,7 @@ function createBatchLessonAccessFeature({
         completedResult = null;
         marathonId = null;
         dialog = null;
-        releaseOperation();
+        session.close();
     }
 
     function getErrorCode(error) {
@@ -603,27 +593,25 @@ function createBatchLessonAccessFeature({
 
     async function open() {
         if (
-            active
+            session.isOpen()
             || document.getElementById(BATCH_ACCESS_OVERLAY_ID)
         ) {
             return;
         }
-        if (!canStart()) {
+        if (!session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
 
         marathonId = parseMarathonId(window.location.href);
         if (!marathonId) {
+            session.release();
             window.alert('Open an Edvibe marathon page before opening batch lesson access.');
             return;
         }
 
-        active = true;
-        onActiveChange(true);
-
         try {
-            dialog = createDialog();
+            dialog = session.ownDialog(createDialog());
             dialog.addEventListener('edvibe-dialog-close', handleClose);
             dialog.addEventListener('edvibe-batch-access-input-change', (event) => {
                 const parsed = parseEmailInput(event?.detail?.emailInput);
@@ -677,7 +665,7 @@ function createBatchLessonAccessFeature({
                     throw error;
                 }
             } finally {
-                releaseOperation();
+                session.release();
             }
         }
     }

@@ -1,4 +1,5 @@
 /* eslint-disable perfectionist/sort-imports */
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import {
     loadModerators,
     normalizeModeratorCatalogue,
@@ -50,8 +51,10 @@ export function createBatchUserOnboardingFeatureV2({
     return createBatchUserOnboardingFeature({
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('batch-user-onboarding'),
+        session: createFeatureSession({
+            operationGuard,
+            operationName: 'batch-user-onboarding'
+        }),
         createDialog: () => document.createElement(BATCH_USER_ONBOARDING_DIALOG_TAG),
         copyText: (text) => navigator.clipboard.writeText(text),
         persistExecution: executionHistoryService.persistTerminal,
@@ -78,8 +81,7 @@ const batchUserOnboardingFeatureDefinition = Object.freeze({
 function createBatchUserOnboardingFeature({
     sendRequest,
     getConnectionState,
-    canStart,
-    onActiveChange,
+    session,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = (text) => navigator.clipboard.writeText(text),
     persistExecution = async () => Object.freeze({ stored: false }),
@@ -92,31 +94,22 @@ function createBatchUserOnboardingFeature({
     now = () => new Date(),
     logger = { log() {} }
 }) {
-    let active = false;
-    function release() {
-        if (!active) {
-            return;
-        }
-        active = false;
-        onActiveChange(false);
-    }
-
     async function open() {
-        if (active || !canStart()) {
+        if (session.isOpen() || !session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
         const marathonId = getMarathonId();
         if (!marathonId) {
+            session.release();
             window.alert('Open an Edvibe marathon page before adding users.');
             return;
         }
 
-        active = true;
-        onActiveChange(true);
-        const dialog = createDialog();
-        (document.body || document.documentElement).appendChild(dialog);
+        let dialog;
         try {
+            dialog = session.ownDialog(createDialog());
+            (document.body || document.documentElement).appendChild(dialog);
             dialog.showLoading?.('Loading marathon users and curators…');
             const [pupils, moderators] = await Promise.all([
                 loadPupils({ marathonId }),
@@ -193,21 +186,18 @@ function createBatchUserOnboardingFeature({
                 },
                 onCopy: copyText,
                 onOpenHistory(executionId) {
-                    dialog.remove();
-                    release();
+                    session.close();
                     openHistory(executionId);
                 },
                 onClose() {
-                    dialog.remove();
-                    release();
+                    session.close();
                 }
             });
             dialog.showConfigure?.();
             logger.log(`Batch user onboarding initialized for MarathonId ${marathonId}.`);
         } catch (error) {
             logger.log(`Batch user onboarding initialization failed (${error.code || 'UNKNOWN_ERROR'}).`);
-            dialog.remove();
-            release();
+            session.close();
             window.alert(error.message || 'Could not initialize batch user onboarding.');
         }
     }

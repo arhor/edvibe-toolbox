@@ -1,3 +1,4 @@
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_ACCESS_DIALOG_TAG } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-dialog.js';
 import * as modelApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
 import * as recordApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
@@ -46,8 +47,7 @@ export function createHistoryAwareFeatureV2({
         createFeature: batchAccessApi.createBatchLessonAccessFeature,
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('batch-access'),
+        session: createFeatureSession({ operationGuard, operationName: 'batch-access' }),
         createDialog: () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
         copyText: (text) => navigator.clipboard.writeText(text),
         persistExecution: executionHistoryService.persistTerminal,
