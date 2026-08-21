@@ -1,3 +1,4 @@
+import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import { diagnosticsFromAttempts, historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 const OPERATION_TYPE = 'batch_user_management';
@@ -5,6 +6,12 @@ const OPERATION_NAMES = Object.freeze({
     unassign: 'unassign_curator',
     delete: 'delete_user'
 });
+const TERMINAL_STATUSES = new Set([
+    'completed',
+    'completed_with_failures',
+    'cancelled',
+    'interrupted'
+]);
 
 function parseMarathonId(url) {
     const match = String(url || '').match(/\/marathon\/(\d+)(?:\/|$)/);
@@ -172,7 +179,10 @@ function buildCounts(results) {
     });
 }
 
-function inferTerminalStatus(summary, results) {
+function inferTerminalStatus(summary, results, terminalStatus = null) {
+    if (TERMINAL_STATUSES.has(terminalStatus)) {
+        return terminalStatus;
+    }
     if (summary?.error) {
         return 'interrupted';
     }
@@ -189,7 +199,8 @@ function buildExecutionHistoryInput({
     startedAt,
     completedAt,
     marathonId,
-    marathonName = null
+    marathonName = null,
+    terminalStatus = null
 }) {
     const results = (Array.isArray(rows) ? rows : []).map(serializeRow);
     const operationCounts = {
@@ -229,7 +240,7 @@ function buildExecutionHistoryInput({
         operationType: OPERATION_TYPE,
         startedAt,
         completedAt,
-        status: inferTerminalStatus(summary, results),
+        status: inferTerminalStatus(summary, results, terminalStatus),
         pageContext: Object.freeze({ marathonId, marathonName }),
         counts,
         results: Object.freeze(results),
@@ -237,115 +248,109 @@ function buildExecutionHistoryInput({
     });
 }
 
-function createHistoryAwareDialog({
-    createDialog,
+function createBatchUserManagementHistoryReporter({
     persistExecution,
-    openHistory = () => {},
+    onPersistence = () => {},
     getLocationHref = () => '',
     getMarathonName = () => null,
     now = () => new Date(),
     logger = { log() {} }
-}) {
-    if (typeof createDialog !== 'function') {
-        throw new TypeError('createDialog is required');
-    }
+} = {}) {
     if (typeof persistExecution !== 'function') {
         throw new TypeError('persistExecution is required');
     }
-    return function createPatchedDialog() {
-        const dialog = createDialog();
-        let startedAt = null;
-        let persistenceSequence = 0;
-        const originalShowComplete = dialog.showComplete.bind(dialog);
-        const originalShowReview = dialog.showReview.bind(dialog);
-        const originalShowConfigure = dialog.showConfigure.bind(dialog);
+    if (typeof onPersistence !== 'function') {
+        throw new TypeError('onPersistence must be a function');
+    }
 
-        function clearHistoryButton() {
-            dialog.shadowRoot?.querySelector?.('.edvibe-batch-user-management-history')?.remove?.();
-        }
+    let startedAt = null;
+    let latestRows = [];
+    let terminal = false;
+    let sequence = 0;
 
-        function appendStatus(message) {
-            const current = dialog.elements?.status?.textContent || '';
-            dialog.setStatus?.(`${current}${current ? ' ' : ''}${message}`);
+    function notify(history, currentSequence) {
+        if (currentSequence !== sequence) {
+            return history;
         }
+        try {
+            onPersistence(history);
+        } catch (error) {
+            logger.log('Batch user management history presentation failed:', error);
+        }
+        return history;
+    }
 
-        function addHistoryButton(executionId) {
-            clearHistoryButton();
-            const documentApi = dialog.ownerDocument || globalThis.document;
-            const button = documentApi?.createElement?.('button');
-            if (!button) {
-                return;
-            }
-            button.type = 'button';
-            button.className = 'edvibe-batch-user-management-history';
-            button.textContent = 'Открыть в истории';
-            button.addEventListener('click', () => {
-                dialog.close?.();
-                openHistory(executionId);
-            });
-            dialog.elements?.footer?.appendChild?.(button);
-            if (!dialog.elements?.footer) {
-                dialog.shadowRoot?.querySelector?.('.edvibe-batch-user-management-footer')?.appendChild?.(button);
-            }
+    async function persist(summary = {}, terminalStatus = null) {
+        if (!startedAt || terminal) {
+            return Object.freeze({ stored: false, skipped: true });
         }
-        dialog.showReview = (value) => {
-            startedAt = null;
-            persistenceSequence += 1;
-            clearHistoryButton();
-            return originalShowReview(value);
-        };
-        dialog.showConfigure = (...args) => {
-            startedAt = null;
-            persistenceSequence += 1;
-            clearHistoryButton();
-            return originalShowConfigure(...args);
-        };
-        dialog.addEventListener('edvibe-batch-user-management-start', () => {
-            startedAt = now().toISOString();
-            persistenceSequence += 1;
-            clearHistoryButton();
-        });
-        dialog.showComplete = (summary = {}) => {
-            const output = originalShowComplete(summary);
-            const sequence = persistenceSequence;
+        terminal = true;
+        const currentSequence = sequence;
+        let input;
+        try {
             const completedAt = now().toISOString();
-            const input = buildExecutionHistoryInput({
-                rows: summary.rows || dialog.rows,
+            input = buildExecutionHistoryInput({
+                rows: latestRows,
                 summary,
-                startedAt: startedAt || completedAt,
+                startedAt,
                 completedAt,
                 marathonId: parseMarathonId(getLocationHref()),
-                marathonName: getMarathonName()
+                marathonName: getMarathonName(),
+                terminalStatus
             });
-            Promise.resolve()
-                .then(() => persistExecution(input))
-                .then((history) => {
-                    if (sequence !== persistenceSequence) {
-                        return;
-                    }
-                    if (history?.stored) {
-                        appendStatus('Результат сохранён в истории.');
-                        if (history.record?.id) {
-                            addHistoryButton(history.record.id);
-                        }
-                    } else {
-                        appendStatus('Экранный результат сохранён, но записать историю не удалось.');
-                        if (history?.persistenceError) {
-                            logger.log('Batch user management history persistence failed:', history.persistenceError);
-                        }
-                    }
-                })
-                .catch((error) => {
-                    if (sequence !== persistenceSequence) {
-                        return;
-                    }
-                    appendStatus('Экранный результат сохранён, но записать историю не удалось.');
-                    logger.log('Batch user management history persistence failed:', error);
-                });
-            return output;
-        };
-        return dialog;
-    };
+        } catch (persistenceError) {
+            logger.log('Batch user management history record creation failed:', persistenceError);
+            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence);
+        }
+        try {
+            const history = await persistExecution(input);
+            if (!history?.stored && history?.persistenceError) {
+                logger.log('Batch user management history persistence failed:', history.persistenceError);
+            }
+            return notify(history, currentSequence);
+        } catch (persistenceError) {
+            logger.log('Batch user management history persistence failed:', persistenceError);
+            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence);
+        }
+    }
+
+    return createExecutionAttemptReporter({
+        resetAttempt() {
+            sequence += 1;
+            startedAt = null;
+            latestRows = [];
+            terminal = false;
+        },
+        beginAttempt({ rows = [] } = {}) {
+            sequence += 1;
+            startedAt = now().toISOString();
+            latestRows = Array.isArray(rows) ? rows : [];
+            terminal = false;
+        },
+        observeAttempt({ rows } = {}) {
+            if (Array.isArray(rows)) {
+                latestRows = rows;
+            }
+        },
+        completeAttempt({ summary = {}, rows = null } = {}) {
+            if (Array.isArray(rows)) {
+                latestRows = rows;
+            }
+            return persist(summary);
+        },
+        cancelAttempt({ rows = null } = {}) {
+            if (Array.isArray(rows)) {
+                latestRows = rows;
+            }
+            return persist({}, 'cancelled');
+        },
+        interruptAttempt({ summary = {}, rows = null, error = null } = {}) {
+            if (Array.isArray(rows)) {
+                latestRows = rows;
+            }
+            return persist(error ? { ...summary, error } : summary, 'interrupted');
+        }
+    });
 }
 
 export {
@@ -355,5 +360,5 @@ export {
     serializeRow,
     buildCounts,
     buildExecutionHistoryInput,
-    createHistoryAwareDialog,
+    createBatchUserManagementHistoryReporter
 };
