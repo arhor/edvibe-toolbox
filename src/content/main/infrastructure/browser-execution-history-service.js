@@ -1,17 +1,20 @@
-import * as historyExportApi from '#src/content/main/infrastructure/execution-history-export.js';
+import { createExecutionHistoryService } from '#src/content/main/application/execution-history-service.js';
+import { createBrowserJsonDownloader } from '#src/content/main/infrastructure/browser-json-downloader.js';
+import { createStorageBridge } from '#src/content/main/infrastructure/chrome-storage-bridge.js';
+import { createExecutionHistoryPreferenceStore } from '#src/content/main/infrastructure/execution-history-preference-store.js';
 import * as historyRepositoryApi from '#src/content/main/infrastructure/execution-history-repository.js';
-import * as historyRetentionApi from '#src/content/main/infrastructure/execution-history-retention.js';
-import * as historyServiceApi from '#src/content/main/infrastructure/execution-history-service.js';
 import * as indexedDbApi from '#src/content/main/infrastructure/indexeddb.js';
 
 function createBrowserExecutionHistoryService() {
-    return historyServiceApi.createExecutionHistoryService({
+    return createExecutionHistoryService({
         repository: historyRepositoryApi.createExecutionHistoryRepository({
             indexedDbApi,
             indexedDB: window.indexedDB
         }),
-        preferenceStore: historyRetentionApi.createRetentionPreferenceStore(),
-        downloader: historyExportApi.createJsonDownloader({
+        preferenceStore: createExecutionHistoryPreferenceStore({
+            storage: createStorageBridge({ window, cryptoApi: window.crypto })
+        }),
+        downloader: createBrowserJsonDownloader({
             document,
             URL: window.URL,
             Blob: window.Blob
