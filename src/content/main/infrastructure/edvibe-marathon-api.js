@@ -1,4 +1,8 @@
-import { appendPage, createFeatureError } from '#src/content/main/features/batch-workflow-primitives.js';
+import {
+    appendPage,
+    createWorkflowError,
+    readPage
+} from '#src/content/main/application/workflow-primitives.js';
 import { isRecord } from '#src/shared/utils.js';
 
 /**
@@ -22,31 +26,6 @@ function requireRequest(sendRequest) {
         throw new TypeError('sendRequest is required');
     }
     return /** @type {EdvibeSendRequest} */ (sendRequest);
-}
-
-/**
- * Decode the transport envelope without changing pagination failure semantics.
- * The shared appendPage validator remains authoritative for Items and Count.
- * @param {unknown} response
- * @returns {{ items: unknown, total: unknown }}
- */
-function readPage(response) {
-    if (!isRecord(response)) {
-        return { items: undefined, total: undefined };
-    }
-    const value = isRecord(response.Value)
-        ? response.Value
-        : isRecord(response.value)
-            ? response.value
-            : null;
-    if (!value) {
-        return { items: undefined, total: undefined };
-    }
-    const page = isRecord(value.Page) ? value.Page : null;
-    return {
-        items: value.Items,
-        total: page?.Count
-    };
 }
 
 /**
@@ -164,7 +143,7 @@ async function getLessonById({ sendRequest, lessonId }) {
         { LessonId: lessonId }
     );
     if (!isRecord(response)) {
-        throw createFeatureError('INVALID_RESPONSE', 'GetLessonWithId returned an invalid response.');
+        throw createWorkflowError('INVALID_RESPONSE', 'GetLessonWithId returned an invalid response.');
     }
     return response;
 }

@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import TurndownService from 'turndown';
 
 import { EXPORT_PROGRESS_TAG } from '#src/content/main/features/marathon-export/export-progress-dialog.js';
+import { parseMarathonId } from '#src/content/main/page-context.js';
 import { WINDOW_MESSAGE_TYPES, createExportStatusMessage } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 
@@ -326,11 +327,6 @@ async function compileMarathonToZip(backupData, options = {}) {
     return zipBlob;
 }
 
-function parseMarathonId(url) {
-    const match = String(url || '').match(/marathon\/(\d+)/);
-    return match ? Number(match[1]) : null;
-}
-
 function createExportProgressOverlay() {
     document.querySelector(EXPORT_PROGRESS_TAG)?.remove();
     const dialog = document.createElement(EXPORT_PROGRESS_TAG);
@@ -341,12 +337,14 @@ function createExportProgressOverlay() {
 export function createMarathonExportFeatureV2({
     transport,
     operationGuard,
+    pageContext,
     logger,
 }) {
     return createMarathonExportFeature({
         sendRequest: transport.sendRequest,
         canStart: operationGuard.canStart,
         onActiveChange: operationGuard.guardedActiveChange('export'),
+        getMarathonId: () => pageContext.marathonId,
         notifyStatus: (state, message = '') => {
             window.postMessage(createExportStatusMessage(state, message), '*');
         },
@@ -374,6 +372,7 @@ function createMarathonExportFeature({
     notifyStatus,
     createProgressOverlay = createExportProgressOverlay,
     getCurrentUrl = () => window.location.href,
+    getMarathonId = () => parseMarathonId(getCurrentUrl()),
     now = () => new Date().toISOString(),
     logger = { log() {} }
 }) {
@@ -391,7 +390,7 @@ function createMarathonExportFeature({
             logger.log('Starting marathon export...');
             progressOverlay = createProgressOverlay();
             progressOverlay.setProgress({ statusText: 'Finding marathon lessons...', loadedSections: 0, totalSections: 0 });
-            const marathonId = parseMarathonId(getCurrentUrl());
+            const marathonId = getMarathonId();
             if (!marathonId) {
                 progressOverlay.error('Failed to find a valid MarathonId in the current page URL.');
                 notifyStatus('error', 'Invalid marathon URL.');
