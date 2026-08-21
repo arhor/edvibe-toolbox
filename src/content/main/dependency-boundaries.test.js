@@ -10,6 +10,18 @@ async function lintRestrictedImport(filePath, importPath) {
     return result.messages.filter(({ ruleId }) => ruleId === 'no-restricted-imports');
 }
 
+test('shared runtime modules cannot import runtime-owned implementations', async () => {
+    // Given / When
+    const messages = await lintRestrictedImport(
+        'src/shared/boundary-example.js',
+        '#src/content/main/main-context.js'
+    );
+
+    // Then
+    assert.equal(messages.length, 1);
+    assert.match(messages[0].message, /Shared modules cannot depend/);
+});
+
 test('MAIN infrastructure cannot import feature-owned implementations', async () => {
     // Given / When
     const messages = await lintRestrictedImport(
