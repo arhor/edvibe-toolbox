@@ -1,183 +1,137 @@
+import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import * as modelApi from '#src/content/main/features/batch-section-creation/batch-section-creation-history-model.js';
 import * as recordApi from '#src/content/main/features/batch-section-creation/batch-section-creation-history-record.js';
 
-function appendStatus(dialog, message, isError = false) {
-    const current = dialog.elements?.status?.textContent || '';
-    dialog.setStatus?.(
-        `${current}${current ? ' ' : ''}${message}`,
-        isError ? 'error' : ''
-    );
-}
-
-function addHistoryButton(dialog, executionId, openHistory) {
-    dialog.shadowRoot?.querySelector?.('.edvibe-batch-section-history')?.remove?.();
-    const documentApi = dialog.ownerDocument || globalThis.document;
-    const button = documentApi?.createElement?.('button');
-    if (!button) {
-        return;
-    }
-    button.type = 'button';
-    button.className = 'edvibe-batch-section-history';
-    button.textContent = 'Открыть в истории';
-    button.addEventListener('click', () => {
-        dialog.close?.();
-        openHistory(executionId);
-    });
-    const footer = dialog.elements?.footer
-        || dialog.shadowRoot?.querySelector?.('.edvibe-batch-section-footer');
-    footer?.appendChild?.(button);
-}
-
-function createHistoryAwareDialog({
-    createDialog,
+function createBatchSectionCreationHistoryReporter({
     persistExecution,
-    openHistory = () => {},
+    onPersistence = () => {},
     getLocationHref = () => '',
     getMarathonName = () => null,
     now = () => new Date(),
     logger = { log() {} }
-}) {
-    if (typeof createDialog !== 'function') {
-        throw new TypeError('createDialog is required');
-    }
+} = {}) {
     if (typeof persistExecution !== 'function') {
         throw new TypeError('persistExecution is required');
     }
+    if (typeof onPersistence !== 'function') {
+        throw new TypeError('onPersistence must be a function');
+    }
 
-    return function createPatchedDialog() {
-        const dialog = createDialog();
-        let confirmedPlan = null;
-        let latestResult = null;
-        let startedAt = null;
-        let terminal = false;
-        let sequence = 0;
+    let confirmedPlan = null;
+    let latestResult = null;
+    let startedAt = null;
+    let terminal = false;
+    let sequence = 0;
 
-        const originalShowConfigure = dialog.showConfigure.bind(dialog);
-        const originalShowConfirmation = dialog.showConfirmation.bind(dialog);
-        const originalShowExecution = dialog.showExecution.bind(dialog);
-        const originalShowComplete = dialog.showComplete.bind(dialog);
-        const originalShowFatalError = dialog.showFatalError.bind(dialog);
-
-        function clearHistoryButton() {
-            dialog.shadowRoot?.querySelector?.('.edvibe-batch-section-history')?.remove?.();
+    function notify(history, currentSequence) {
+        if (currentSequence !== sequence) {
+            return history;
         }
-
-        function resetAttempt() {
-            sequence += 1;
-            confirmedPlan = null;
-            latestResult = null;
-            startedAt = null;
-            terminal = false;
-            clearHistoryButton();
+        try {
+            onPersistence(history);
+        } catch (error) {
+            logger.log('Batch section creation history presentation failed:', error);
         }
+        return history;
+    }
 
-        function persist(result, terminalStatus = null, fatalError = null) {
-            if (!confirmedPlan || terminal) {
-                return;
-            }
-            terminal = true;
-            const currentSequence = sequence;
-            let input;
-            try {
-                const completedAt = now().toISOString();
-                input = recordApi.buildExecutionHistoryInput({
-                    plan: confirmedPlan,
-                    result: result || latestResult || {},
-                    startedAt: startedAt || completedAt,
-                    completedAt,
-                    marathonId: modelApi.parseMarathonId(getLocationHref()),
-                    marathonName: getMarathonName(),
-                    terminalStatus,
-                    fatalError
-                });
-            } catch (error) {
-                appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                logger.log('Batch section creation history record creation failed:', error);
-                return;
-            }
-            Promise.resolve()
-                .then(() => persistExecution(input))
-                .then((history) => {
-                    if (currentSequence !== sequence) {
-                        return;
-                    }
-                    if (history?.stored) {
-                        appendStatus(dialog, 'Результат сохранён в истории.');
-                        if (history.record?.id) {
-                            addHistoryButton(dialog, history.record.id, openHistory);
-                        }
-                    } else {
-                        appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                        if (history?.persistenceError) {
-                            logger.log('Batch section creation history persistence failed:', history.persistenceError);
-                        }
-                    }
-                })
-                .catch((error) => {
-                    if (currentSequence !== sequence) {
-                        return;
-                    }
-                    appendStatus(dialog, 'Экранный результат сохранён, но записать историю не удалось.', true);
-                    logger.log('Batch section creation history persistence failed:', error);
-                });
-        }
-        dialog.showConfigure = (...args) => {
-            resetAttempt();
-            return originalShowConfigure(...args);
-        };
-        dialog.showConfirmation = (plan) => {
-            sequence += 1;
-            clearHistoryButton();
-            confirmedPlan = plan;
-            latestResult = {
-                definition: plan?.definition,
-                results: Array.isArray(plan?.rejected)
-                    ? plan.rejected.map((entry) => modelApi.asExecutionResult(entry, 'rejected'))
+    function resetAttempt() {
+        sequence += 1;
+        confirmedPlan = null;
+        latestResult = null;
+        startedAt = null;
+        terminal = false;
+    }
+
+    function beginAttempt({ plan } = {}) {
+        sequence += 1;
+        confirmedPlan = plan || null;
+        latestResult = confirmedPlan
+            ? {
+                definition: confirmedPlan.definition,
+                results: Array.isArray(confirmedPlan.rejected)
+                    ? confirmedPlan.rejected.map((entry) => modelApi.asExecutionResult(entry, 'rejected'))
                     : []
-            };
-            startedAt = now().toISOString();
-            terminal = false;
-            const output = originalShowConfirmation(plan);
-            if (!plan?.eligible?.length) {
-                persist(latestResult);
             }
-            return output;
-        };
-        dialog.showExecution = (progress = {}) => {
-            if (confirmedPlan && Array.isArray(progress?.results)) {
-                latestResult = {
-                    definition: confirmedPlan.definition,
-                    results: [...progress.results]
-                };
-            }
-            return originalShowExecution(progress);
-        };
-        dialog.showComplete = (result = {}, fatalError = null) => {
-            const output = originalShowComplete(result, fatalError);
+            : null;
+        startedAt = now().toISOString();
+        terminal = false;
+    }
+
+    function observeAttempt({ progress, result } = {}) {
+        if (!confirmedPlan) {
+            return;
+        }
+        if (result) {
             latestResult = result;
-            persist(result, fatalError ? 'interrupted' : null, fatalError);
-            return output;
-        };
-        dialog.showFatalError = (error) => {
-            const output = originalShowFatalError(error);
-            if (confirmedPlan) {
-                persist(latestResult, 'interrupted', error);
+            return;
+        }
+        if (Array.isArray(progress?.results)) {
+            latestResult = {
+                definition: confirmedPlan.definition,
+                results: [...progress.results]
+            };
+        }
+    }
+
+    async function persist(result, terminalStatus = null, fatalError = null) {
+        if (!confirmedPlan || terminal) {
+            return Object.freeze({ stored: false, skipped: true });
+        }
+        terminal = true;
+        const currentSequence = sequence;
+        let input;
+        try {
+            const completedAt = now().toISOString();
+            input = recordApi.buildExecutionHistoryInput({
+                plan: confirmedPlan,
+                result: result || latestResult || {},
+                startedAt: startedAt || completedAt,
+                completedAt,
+                marathonId: modelApi.parseMarathonId(getLocationHref()),
+                marathonName: getMarathonName(),
+                terminalStatus,
+                fatalError
+            });
+        } catch (persistenceError) {
+            logger.log('Batch section creation history record creation failed:', persistenceError);
+            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence);
+        }
+        try {
+            const history = await persistExecution(input);
+            if (!history?.stored && history?.persistenceError) {
+                logger.log('Batch section creation history persistence failed:', history.persistenceError);
             }
-            return output;
-        };
-        dialog.addEventListener('edvibe-batch-section-restart', resetAttempt);
-        dialog.addEventListener('edvibe-dialog-close', () => {
-            if (confirmedPlan && !terminal) {
-                persist(latestResult, 'cancelled');
+            return notify(history, currentSequence);
+        } catch (persistenceError) {
+            logger.log('Batch section creation history persistence failed:', persistenceError);
+            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence);
+        }
+    }
+
+    return createExecutionAttemptReporter({
+        resetAttempt,
+        beginAttempt,
+        observeAttempt,
+        completeAttempt({ result = null, fatalError = null } = {}) {
+            if (result) {
+                latestResult = result;
             }
-        });
-        return dialog;
-    };
+            return persist(latestResult, fatalError ? 'interrupted' : null, fatalError);
+        },
+        cancelAttempt() {
+            return persist(latestResult, 'cancelled');
+        },
+        interruptAttempt({ result = null, error = null } = {}) {
+            if (result) {
+                latestResult = result;
+            }
+            return persist(latestResult, 'interrupted', error);
+        }
+    });
 }
 
 export * from '#src/content/main/features/batch-section-creation/batch-section-creation-history-model.js';
 export * from '#src/content/main/features/batch-section-creation/batch-section-creation-history-record.js';
 
-export { 
-    createHistoryAwareDialog,
-};
+export { createBatchSectionCreationHistoryReporter };

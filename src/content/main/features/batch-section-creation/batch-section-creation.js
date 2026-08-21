@@ -1,6 +1,7 @@
+import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
-import { createHistoryAwareDialog } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
+import { createBatchSectionCreationHistoryReporter } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
 import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
@@ -539,6 +540,34 @@ function formatCreationReport(result) {
     return lines.join('\n').trim();
 }
 
+function clearBatchSectionCreationHistoryButton(dialog) {
+    dialog?.shadowRoot?.querySelector?.('.edvibe-batch-section-history')?.remove?.();
+}
+
+function appendBatchSectionCreationHistoryStatus(dialog, message, isError = false) {
+    const current = dialog?.elements?.status?.textContent || '';
+    dialog?.setStatus?.(
+        `${current}${current ? ' ' : ''}${message}`,
+        isError ? 'error' : ''
+    );
+}
+
+function addBatchSectionCreationHistoryButton(dialog, executionId, openHistory) {
+    clearBatchSectionCreationHistoryButton(dialog);
+    const documentApi = dialog?.ownerDocument || globalThis.document;
+    const button = documentApi?.createElement?.('button');
+    if (!button) {
+        return;
+    }
+    button.type = 'button';
+    button.className = 'edvibe-batch-section-history';
+    button.textContent = 'Открыть в истории';
+    button.addEventListener('click', () => openHistory(executionId));
+    const footer = dialog?.elements?.footer
+        || dialog?.shadowRoot?.querySelector?.('.edvibe-batch-section-footer');
+    footer?.appendChild?.(button);
+}
+
 export function createBatchSectionCreationFeatureV2({
     transport,
     operationGuard,
@@ -546,18 +575,50 @@ export function createBatchSectionCreationFeatureV2({
     executionHistoryService,
     dispatch,
 }) {
-    const createBatchSectionCreationDialog = createHistoryAwareDialog({
-        createDialog: () => document.createElement(BATCH_SECTION_DIALOG_TAG),
-        persistExecution: executionHistoryService.persistTerminal,
-        openHistory: (executionId) => dispatch({
+    let activeDialog = null;
+    const historyLogger = logger.createChildLogger('BatchSectionCreationHistory');
+    const openHistory = (executionId) => {
+        activeDialog?.close?.();
+        dispatch({
             type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
             executionId
-        }),
+        });
+    };
+    const historyReporter = createBatchSectionCreationHistoryReporter({
+        persistExecution: executionHistoryService.persistTerminal,
         getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
-        logger: logger.createChildLogger('BatchSectionCreationHistory')
+        onPersistence(history) {
+            if (history?.stored) {
+                appendBatchSectionCreationHistoryStatus(activeDialog, 'Результат сохранён в истории.');
+                if (history.record?.id) {
+                    addBatchSectionCreationHistoryButton(activeDialog, history.record.id, openHistory);
+                }
+                return;
+            }
+            if (history?.skipped) {
+                return;
+            }
+            appendBatchSectionCreationHistoryStatus(
+                activeDialog,
+                'Экранный результат сохранён, но записать историю не удалось.',
+                true
+            );
+        },
+        logger: historyLogger
+    });
+    const executionAttempt = Object.freeze({
+        ...historyReporter,
+        resetAttempt(context) {
+            clearBatchSectionCreationHistoryButton(activeDialog);
+            return historyReporter.resetAttempt(context);
+        },
+        beginAttempt(context) {
+            clearBatchSectionCreationHistoryButton(activeDialog);
+            return historyReporter.beginAttempt(context);
+        }
     });
 
     const batchSectionCreationAdapter = createImageUploadCreationAdapter({
@@ -573,8 +634,12 @@ export function createBatchSectionCreationFeatureV2({
             operationName: 'batch-section-creation'
         }),
         adapter: batchSectionCreationAdapter,
-        createDialog: createBatchSectionCreationDialog,
+        createDialog: () => {
+            activeDialog = document.createElement(BATCH_SECTION_DIALOG_TAG);
+            return activeDialog;
+        },
         copyText: (text) => navigator.clipboard.writeText(text),
+        executionAttempt,
         logger: logger.createChildLogger('BatchSectionCreation')
     });
 }
@@ -594,8 +659,10 @@ function createBatchSectionCreationFeature({
     adapter,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = async () => { },
+    executionAttempt = {},
     logger = { log() {} }
 }) {
+    const attempt = createExecutionAttemptReporter(executionAttempt);
     let running = false;
     let dialog = null;
     let marathonId = null;
@@ -604,6 +671,7 @@ function createBatchSectionCreationFeature({
     let completedResult = null;
 
     function close() {
+        void attempt.cancelAttempt({ result: completedResult });
         running = false;
         dialog = null;
         lessons = [];
@@ -642,7 +710,11 @@ function createBatchSectionCreationFeature({
                 definition: validation.definition,
                 inspectionsByLessonId: inspections
             });
+            attempt.beginAttempt({ plan: pendingPlan });
             dialog.showConfirmation(pendingPlan);
+            if (!pendingPlan.eligible.length) {
+                void attempt.completeAttempt();
+            }
         } catch (error) {
             dialog.showValidationErrors([error]);
         } finally {
@@ -663,9 +735,13 @@ function createBatchSectionCreationFeature({
                 sendRequest,
                 wait,
                 getConnectionState,
-                onProgress: (progress) => dialog.showExecution(progress)
+                onProgress: (progress) => {
+                    attempt.observeAttempt({ progress });
+                    dialog.showExecution(progress);
+                }
             });
             dialog.showComplete(completedResult);
+            void attempt.completeAttempt({ result: completedResult });
         } catch (error) {
             completedResult = error.partialResult || {
                 definition: pendingPlan.definition,
@@ -673,6 +749,7 @@ function createBatchSectionCreationFeature({
                 fatalError: error
             };
             dialog.showComplete(completedResult, error);
+            void attempt.interruptAttempt({ result: completedResult, error });
         } finally {
             running = false;
         }
@@ -685,6 +762,7 @@ function createBatchSectionCreationFeature({
     }
 
     function restart() {
+        attempt.resetAttempt();
         pendingPlan = null;
         completedResult = null;
         dialog.showConfigure({
@@ -711,6 +789,7 @@ function createBatchSectionCreationFeature({
 
         try {
             dialog = session.ownDialog(createDialog());
+            attempt.resetAttempt();
             dialog.addEventListener('edvibe-dialog-close', close);
             dialog.addEventListener('edvibe-batch-section-preflight', preflight);
             dialog.addEventListener('edvibe-batch-section-confirm', confirm);
