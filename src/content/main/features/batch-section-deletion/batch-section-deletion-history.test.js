@@ -5,6 +5,7 @@ import {
     createBatchSectionDeletionHistoryReporter,
     serializeResult
 } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-history.js';
+import { createBatchSectionDeletionFeature } from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 
 function attempt(correlationId, requestId, transportCode = 'SERVER_REJECTED') {
     return { correlationId, operationName: 'write', controller: 'C', method: 'POST', projectName: 'P', requestId, attemptNumber: 1, startedAt: '2026-01-01T00:00:00.000Z', completedAt: null, durationMs: null, outcome: 'failure', transportCode, serverErrorCode: 'DENIED', serverErrorMessage: null, requestSummary: null, responseSummary: null };
@@ -112,4 +113,112 @@ test('keeps the visible result path usable when history persistence fails', asyn
     // Then
     assert.equal(history.stored, false);
     assert.equal(history.persistenceError, persistenceError);
+});
+
+test('executes the feature with history enabled without a Lit dialog', async () => {
+    // Given
+    const previousWindow = globalThis.window;
+    const previousDocument = globalThis.document;
+    let appendedDialog = null;
+    let dialogOptions = null;
+    let sessionOpen = false;
+    const persisted = [];
+    const fakeDialog = {
+        configure(options) {
+            dialogOptions = options;
+            return this;
+        }
+    };
+    const session = {
+        isOpen: () => sessionOpen,
+        activate() {
+            sessionOpen = true;
+            return true;
+        },
+        release() {
+            sessionOpen = false;
+        },
+        ownDialog(dialog) {
+            return dialog;
+        },
+        close() {
+            sessionOpen = false;
+        }
+    };
+    const sendRequest = async (_controller, method) => {
+        if (method === 'GetMarathonLessonsPagination') {
+            return {
+                Value: {
+                    Items: [{ LessonId: 1, MarathonLessonId: 11, Number: 1, Name: 'Lesson 1' }],
+                    Page: { Count: 1 }
+                }
+            };
+        }
+        if (method === 'GetLessonWithId') {
+            return { Value: { Sections: [{ Id: 101, Name: 'Target' }] } };
+        }
+        if (method === 'DeleteStageSection') {
+            return { Value: true };
+        }
+        throw new Error(`Unexpected request method: ${method}`);
+    };
+    const historyReporter = createBatchSectionDeletionHistoryReporter({
+        persistExecution: async (input) => {
+            persisted.push(input);
+            return Object.freeze({ stored: true, record: Object.freeze({ id: 'history-1' }) });
+        },
+        getLocationHref: () => globalThis.window.location.href,
+        getMarathonName: () => 'Marathon'
+    });
+    const feature = createBatchSectionDeletionFeature({
+        sendRequest,
+        getConnectionState: () => ({ ready: true }),
+        session,
+        createDialog: () => fakeDialog,
+        copyText: async () => {},
+        executionAttempt: historyReporter
+    });
+    globalThis.window = {
+        location: { href: 'https://edvibe.com/marathon/7' },
+        alert() {
+            throw new Error('Unexpected alert');
+        }
+    };
+    globalThis.document = {
+        body: {
+            append(dialog) {
+                appendedDialog = dialog;
+            }
+        }
+    };
+
+    try {
+        // When
+        await feature.open();
+        const plan = await dialogOptions.onInspect({
+            sectionName: 'Target',
+            selectedLessonIds: [1],
+            onProgress() {}
+        });
+        const result = await dialogOptions.onExecute(plan, () => {});
+
+        // Then
+        assert.equal(appendedDialog, fakeDialog);
+        assert.equal(result.history.stored, true);
+        assert.equal(result.results[0].status, 'deleted');
+        assert.equal(persisted.length, 1);
+        assert.equal(persisted[0].status, 'completed');
+        assert.equal(persisted[0].counts.successful, 1);
+    } finally {
+        if (previousWindow === undefined) {
+            delete globalThis.window;
+        } else {
+            globalThis.window = previousWindow;
+        }
+        if (previousDocument === undefined) {
+            delete globalThis.document;
+        } else {
+            globalThis.document = previousDocument;
+        }
+    }
 });
