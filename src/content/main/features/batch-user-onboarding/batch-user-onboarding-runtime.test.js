@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createBatchUserOnboardingFeatureV2 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding.js';
+import { OperationGuard } from '#src/content/main/infrastructure/operation-guard.js';
 
 function createDialog() {
     return {
@@ -69,7 +70,7 @@ test('createBatchUserOnboardingFeatureV2 should use runtime page context and Edv
     t.after(browser.restore);
     const pupilRequests = [];
     const transportRequests = [];
-    const activeChanges = [];
+    const operationGuard = new OperationGuard();
     const logger = {
         createChildLogger() {
             return { log() { } };
@@ -83,10 +84,7 @@ test('createBatchUserOnboardingFeatureV2 should use runtime page context and Edv
             },
             getConnectionState: () => ({ isOpen: true })
         },
-        operationGuard: {
-            canStart: () => true,
-            guardedActiveChange: () => (active) => activeChanges.push(active)
-        },
+        operationGuard,
         logger,
         executionHistoryService: {
             persistTerminal: async () => ({ stored: true })
@@ -117,8 +115,14 @@ test('createBatchUserOnboardingFeatureV2 should use runtime page context and Edv
         projectName: 'Marathons',
         value: { MarathonId: 777 }
     });
-    assert.deepEqual(activeChanges, [true]);
+    assert.equal(operationGuard.canStart(), false);
     assert.deepEqual(browser.appended, [dialog]);
     assert.deepEqual(browser.alerts, []);
     assert.ok(dialog.configuration);
+
+    // When
+    dialog.configuration.onClose();
+
+    // Then
+    assert.equal(operationGuard.canStart(), true);
 });
