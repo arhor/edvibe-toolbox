@@ -223,34 +223,33 @@ function buildExecutionHistoryInput({ marathonId, startedAt, completedAt, result
 function createBatchSectionDeletionFeature({
     sendRequest,
     getConnectionState,
-    canStart,
-    onActiveChange,
+    session,
     createDialog,
     copyText,
     persistExecution = async () => Object.freeze({ stored: false }),
     openHistory = () => {},
     logger = { log() {} }
 }) {
-    let active = false;
     async function open() {
-        if (active || !canStart()) {
+        if (session.isOpen() || !session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
         const marathonId = parseMarathonId(window.location.href);
         if (!marathonId) {
+            session.release();
             window.alert('Open an Edvibe marathon page first.');
             return;
         }
         if (getConnectionState?.()?.ready === false) {
+            session.release();
             window.alert('Edvibe WebSocket connection is not ready.');
             return;
         }
-        active = true;
-        onActiveChange(true);
-        const dialog = createDialog();
-        document.body.append(dialog);
+
         try {
+            const dialog = session.ownDialog(createDialog());
+            document.body.append(dialog);
             const lessons = await loadLessonCatalogue({ sendRequest, marathonId });
             dialog.configure({
                 marathonId,
@@ -280,22 +279,16 @@ function createBatchSectionDeletionFeature({
                 },
                 onCopy: copyText,
                 onOpenHistory(executionId) {
-                    dialog.remove();
-                    active = false;
-                    onActiveChange(false);
+                    session.close();
                     openHistory(executionId);
                 },
                 onClose() {
-                    dialog.remove();
-                    active = false;
-                    onActiveChange(false);
+                    session.close();
                 }
             });
         } catch (error) {
             logger.log('Failed to open batch section deletion:', error);
-            dialog.remove();
-            active = false;
-            onActiveChange(false);
+            session.close();
             window.alert(error.message || 'Failed to load lessons.');
         }
     }
