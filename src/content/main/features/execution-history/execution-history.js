@@ -1,3 +1,4 @@
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { EXECUTION_HISTORY_DIALOG_TAG } from '#src/content/main/features/execution-history/execution-history-dialog.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
@@ -10,8 +11,7 @@ export function createExecutionHistoryFeatureV2({
 }) {
     return createExecutionHistoryFeature({
         service: executionHistoryService,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('history'),
+        session: createFeatureSession({ operationGuard, operationName: 'history' }),
         createDialog: () => document.createElement(EXECUTION_HISTORY_DIALOG_TAG),
         logger: logger.createChildLogger('History')
     });
@@ -19,38 +19,31 @@ export function createExecutionHistoryFeatureV2({
 
 function createExecutionHistoryFeature({
     service,
-    canStart,
-    onActiveChange,
+    session,
     createDialog,
     logger = { log() {} },
 }) {
-    let active = false;
     function open({ executionId = null } = {}) {
-        if (active || document.getElementById(HISTORY_OVERLAY_ID)) {
+        if (session.isOpen() || document.getElementById(HISTORY_OVERLAY_ID)) {
             return;
         }
-        if (!canStart()) {
+        if (!session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
-        active = true;
-        onActiveChange(true);
         try {
-            const dialog = createDialog();
+            const dialog = session.ownDialog(createDialog());
             dialog.id = HISTORY_OVERLAY_ID;
             dialog.configure({
                 service,
                 initialExecutionId: executionId,
                 onClose() {
-                    dialog.remove();
-                    active = false;
-                    onActiveChange(false);
+                    session.close();
                 }
             });
             (document.body || document.documentElement).append(dialog);
         } catch (error) {
-            active = false;
-            onActiveChange(false);
+            session.close();
             logger.log('Failed to open execution history:', error);
             window.alert(error.message || 'Could not open execution history.');
         }
