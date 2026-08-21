@@ -1,3 +1,4 @@
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { RECORDER_DIALOG_TAG } from '#src/content/main/features/action-recorder/action-recorder-dialog.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
@@ -116,12 +117,12 @@ export function createActionRecorderFeatureV2({
     operationGuard,
     logger,
 }) {
-    let recorderOpen = false;
+    const session = createFeatureSession({ operationGuard, operationName: 'recording' });
 
     const actionRecorderFeature = createActionRecorderFeature({
         subscribeFrames: transport.subscribeFrames,
         createPanel() {
-            const panel = document.createElement(RECORDER_DIALOG_TAG);
+            const panel = session.ownDialog(document.createElement(RECORDER_DIALOG_TAG));
             const configure = panel.configure.bind(panel);
             panel.configure = (options = {}) => configure({
                 ...options,
@@ -129,12 +130,10 @@ export function createActionRecorderFeatureV2({
                     try {
                         options.onClose?.();
                     } finally {
-                        recorderOpen = false;
-                        operationGuard.release('recording');
+                        session.close({ removeDialog: false });
                     }
                 }
             });
-            recorderOpen = true;
             return panel;
         },
         logger: logger.createChildLogger('Recorder')
@@ -143,13 +142,13 @@ export function createActionRecorderFeatureV2({
     return {
         ...actionRecorderFeature,
         openActionRecorder() {
-            if (recorderOpen) {
+            if (session.isOpen()) {
                 actionRecorderFeature.open();
-            } else if (operationGuard.activate('recording')) {
+            } else if (session.activate()) {
                 try {
                     actionRecorderFeature.open();
                 } catch (error) {
-                    operationGuard.release('recording');
+                    session.close();
                     throw error;
                 }
             } else {
