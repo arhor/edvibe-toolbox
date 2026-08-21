@@ -1,3 +1,4 @@
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { VIDEO_ATTACHMENT_DIALOG_TAG } from '#src/content/main/features/video-attachment/video-attachment-dialog.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
@@ -310,9 +311,7 @@ export function createVideoAttachmentFeatureV2({
     return createVideoAttachmentFeature({
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('video-attachment'),
-
+        session: createFeatureSession({ operationGuard, operationName: 'video-attachment' }),
         createDialog: () => document.createElement(VIDEO_ATTACHMENT_DIALOG_TAG),
         getLocationHref: () => window.location.href,
         appendDialog: (dialog) => document.body.append(dialog),
@@ -332,42 +331,29 @@ const videoAttachmentFeatureDefinition = Object.freeze({
 function createVideoAttachmentFeature({
     sendRequest,
     getConnectionState,
-    canStart = () => true,
-    onActiveChange = () => { },
+    session,
     createDialog,
     getLocationHref = () => globalThis.location?.href || '',
     appendDialog = (dialog) => globalThis.document?.body?.append(dialog),
     alertUser = (message) => globalThis.alert?.(message),
     logger = { log() {} }
 }) {
-    let active = false;
-
-    function release(dialog) {
-        dialog?.remove?.();
-        if (!active) {
-            return;
-        }
-        active = false;
-        onActiveChange(false);
-    }
-
     function open() {
-        if (active || !canStart()) {
+        if (session.isOpen() || !session.activate()) {
             alertUser('Another Edvibe Toolbox operation is already running.');
             return;
         }
 
         const marathonId = parseMarathonId(getLocationHref());
         if (!marathonId) {
+            session.release();
             alertUser('Open an Edvibe marathon page first.');
             return;
         }
 
-        active = true;
-        onActiveChange(true);
         let dialog;
         try {
-            dialog = createDialog();
+            dialog = session.ownDialog(createDialog());
             dialog.configure({
                 marathonId,
                 lessons: [],
@@ -388,24 +374,24 @@ function createVideoAttachmentFeature({
                     return result;
                 },
                 onClose() {
-                    release(dialog);
+                    session.close();
                 }
             });
             appendDialog(dialog);
 
             void loadLessonCatalogue({ sendRequest, marathonId })
                 .then((lessons) => {
-                    if (active) {
+                    if (session.isActive()) {
                         dialog.setLessons(lessons);
                     }
                 })
                 .catch((error) => {
-                    if (active) {
+                    if (session.isActive()) {
                         dialog.setLoadError(error);
                     }
                 });
         } catch (error) {
-            release(dialog);
+            session.close();
             throw error;
         }
     }
