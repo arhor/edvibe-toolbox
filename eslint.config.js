@@ -88,10 +88,7 @@ export default defineConfig([
             'better-mutation/no-mutation': 'error',
             'no-restricted-imports': ['error', {
                 patterns: [{
-                    group: [
-                        '#src/content/**',
-                        '#src/popup/**'
-                    ],
+                    regex: '^#src/(?:content|popup)/',
                     message: 'Shared modules cannot depend on runtime-owned implementations.'
                 }]
             }]
@@ -108,11 +105,7 @@ export default defineConfig([
         rules: {
             'no-restricted-imports': ['error', {
                 patterns: [{
-                    group: [
-                        '#src/content/main/components/**',
-                        '#src/content/main/features/**',
-                        '#src/content/main/infrastructure/**'
-                    ],
+                    regex: '^#src/content/main/(?:components|features|infrastructure)/',
                     message: 'MAIN application primitives cannot depend on UI, feature, or infrastructure implementations.'
                 }]
             }]
@@ -126,10 +119,7 @@ export default defineConfig([
         rules: {
             'no-restricted-imports': ['error', {
                 patterns: [{
-                    group: [
-                        '#src/content/main/components/**',
-                        '#src/content/main/features/**'
-                    ],
+                    regex: '^#src/content/main/(?:components|features)/',
                     message: 'MAIN infrastructure cannot depend on UI or feature implementations.'
                 }]
             }]
