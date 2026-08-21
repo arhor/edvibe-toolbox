@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createVideoAttachmentFeatureV2 } from '#src/content/main/features/video-attachment/video-attachment.js';
+import { OperationGuard } from '#src/content/main/infrastructure/operation-guard.js';
 
 function createDialog() {
     return {
@@ -74,10 +75,7 @@ test('createVideoAttachmentFeatureV2 should create fresh dialog when feature is 
             sendRequest: () => new Promise(() => { }),
             getConnectionState: () => ({ isOpen: true })
         },
-        operationGuard: {
-            canStart: () => true,
-            guardedActiveChange: () => () => { }
-        },
+        operationGuard: new OperationGuard(),
         logger: {
             createChildLogger: () => ({ log() { } })
         }
