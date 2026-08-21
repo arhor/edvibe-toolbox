@@ -1,6 +1,6 @@
 import {
     appendPage,
-    createFeatureError,
+    createWorkflowError,
     readPage
 } from '#src/content/main/application/workflow-primitives.js';
 import { isRecord } from '#src/shared/utils.js';
@@ -143,7 +143,7 @@ async function getLessonById({ sendRequest, lessonId }) {
         { LessonId: lessonId }
     );
     if (!isRecord(response)) {
-        throw createFeatureError('INVALID_RESPONSE', 'GetLessonWithId returned an invalid response.');
+        throw createWorkflowError('INVALID_RESPONSE', 'GetLessonWithId returned an invalid response.');
     }
     return response;
 }

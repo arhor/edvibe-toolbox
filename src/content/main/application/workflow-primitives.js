@@ -8,7 +8,7 @@ const TRANSIENT_CODES = new Set([
     'SEND_FAILED'
 ]);
 
-function createFeatureError(code, message, details = {}) {
+function createWorkflowError(code, message, details = {}) {
     const error = new Error(message);
     error.code = code;
     Object.assign(error, details);
@@ -127,7 +127,7 @@ function appendPage(items, total, nextItems, nextTotal, label) {
         || (nextItems.length === 0 && items.length < nextTotal)
         || items.length + nextItems.length > nextTotal
     ) {
-        throw createFeatureError('INVALID_RESPONSE', `${label} returned invalid pagination data.`);
+        throw createWorkflowError('INVALID_RESPONSE', `${label} returned invalid pagination data.`);
     }
     return { items: items.concat(nextItems), total: nextTotal };
 }
@@ -152,7 +152,7 @@ async function runWithRetry(operation, {
         attempts += 1;
         try {
             if (attempts > 1 && !getConnectionState().isOpen) {
-                throw createFeatureError(
+                throw createWorkflowError(
                     'WS_UNAVAILABLE',
                     'The Edvibe connection is unavailable.'
                 );
@@ -166,13 +166,13 @@ async function runWithRetry(operation, {
             await wait(retryDelays[attempts - 1]);
         }
     }
-    throw createFeatureError('INTERNAL_ERROR', 'Retry loop ended unexpectedly.');
+    throw createWorkflowError('INTERNAL_ERROR', 'Retry loop ended unexpectedly.');
 }
 
 export {
     TRANSIENT_CODES,
     appendPage,
-    createFeatureError,
+    createWorkflowError,
     parseEmailInput,
     readPage,
     runWithRetry,
