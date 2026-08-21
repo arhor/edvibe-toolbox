@@ -1,3 +1,4 @@
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DELETION_DIALOG_TAG } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-dialog.js';
 import * as coreApi from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
@@ -443,8 +444,10 @@ export function createBatchSectionDeletionFeatureV2({
     return createBatchSectionDeletionFeature({
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('batch-section-deletion'),
+        session: createFeatureSession({
+            operationGuard,
+            operationName: 'batch-section-deletion'
+        }),
         createDialog: () => document.createElement(BATCH_SECTION_DELETION_DIALOG_TAG),
         copyText: (text) => navigator.clipboard.writeText(text),
         persistExecution: executionHistoryService.persistTerminal,
