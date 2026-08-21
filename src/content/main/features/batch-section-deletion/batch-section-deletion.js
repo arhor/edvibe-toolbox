@@ -1,6 +1,6 @@
+import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import { createFeatureError as featureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
-import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 import { wait } from '#src/shared/utils.js';
 
 const DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
@@ -170,66 +170,18 @@ function formatReport(result) {
     return lines.join('\n');
 }
 
-function buildExecutionHistoryInput({ marathonId, startedAt, completedAt, result }) {
-    const deleted = result.results.filter((entry) => entry.status === 'deleted').length;
-    const failed = result.results.filter((entry) => entry.status === 'failed').length;
-    const rejected = result.results.filter((entry) => entry.status === 'rejected').length;
-    const notAttempted = result.results.filter((entry) => entry.status === 'not_attempted').length;
-    const status = result.fatalError
-        ? 'interrupted'
-        : failed > 0 || rejected > 0
-            ? 'completed_with_failures'
-            : 'completed';
-    return Object.freeze({
-        operationType: 'batch-section-deletion',
-        startedAt,
-        completedAt,
-        status,
-        pageContext: Object.freeze({ marathonId }),
-        counts: Object.freeze({
-            requested: result.plan.selectedCount,
-            eligible: result.plan.eligible.length,
-            attempted: deleted + failed,
-            successful: deleted,
-            noOp: 0,
-            skipped: rejected,
-            failed,
-            notAttempted
-        }),
-        results: Object.freeze(result.results.map((entry) => Object.freeze({
-            itemId: `lesson-${entry.lessonId}`,
-            label: `#${entry.number} ${entry.name}`,
-            status: entry.status,
-            code: entry.code,
-            message: entry.message,
-            attempts: entry.status === 'not_attempted' || entry.status === 'rejected' ? 0 : 1,
-            ...(historyDiagnostics(entry, {
-                correlationId: `delete-section:${entry.lessonId}`,
-                operationName: 'delete_section'
-            }) ? { diagnostics: historyDiagnostics(entry, {
-                    correlationId: `delete-section:${entry.lessonId}`,
-                    operationName: 'delete_section'
-                }) } : {}),
-            data: Object.freeze({
-                lessonId: entry.lessonId,
-                marathonLessonId: entry.marathonLessonId,
-                sectionId: entry.sectionId || null,
-                sectionName: result.plan.sectionName
-            })
-        })))
-    });
-}
-
 function createBatchSectionDeletionFeature({
     sendRequest,
     getConnectionState,
     session,
     createDialog,
     copyText,
-    persistExecution = async () => Object.freeze({ stored: false }),
+    executionAttempt = {},
     openHistory = () => {},
     logger = { log() {} }
 }) {
+    const attempt = createExecutionAttemptReporter(executionAttempt);
+
     async function open() {
         if (session.isOpen() || !session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
@@ -249,6 +201,7 @@ function createBatchSectionDeletionFeature({
 
         try {
             const dialog = session.ownDialog(createDialog());
+            attempt.resetAttempt();
             document.body.append(dialog);
             const lessons = await loadLessonCatalogue({ sendRequest, marathonId });
             dialog.configure({
@@ -262,20 +215,42 @@ function createBatchSectionDeletionFeature({
                         wait,
                         onProgress: input.onProgress
                     });
-                    return buildExecutionPlan({ lessons, selectedLessonIds: input.selectedLessonIds, sectionName: input.sectionName, inspectionsByLessonId });
+                    const plan = buildExecutionPlan({
+                        lessons,
+                        selectedLessonIds: input.selectedLessonIds,
+                        sectionName: input.sectionName,
+                        inspectionsByLessonId
+                    });
+                    attempt.beginAttempt({
+                        plan,
+                        selectedLessonIds: input.selectedLessonIds
+                    });
+                    if (!plan.eligible.length) {
+                        void attempt.completeAttempt();
+                    }
+                    return plan;
                 },
                 async onExecute(plan, onProgress) {
-                    const startedAt = new Date().toISOString();
-                    const result = await executePlan({ plan, sendRequest, wait, onProgress });
-                    const completedAt = new Date().toISOString();
-                    let history;
+                    attempt.observeAttempt({ phase: 'execution' });
                     try {
-                        history = await persistExecution(buildExecutionHistoryInput({ marathonId, startedAt, completedAt, result }));
-                    } catch (persistenceError) {
-                        history = Object.freeze({ stored: false, persistenceError });
-                        logger.log('Batch section deletion history persistence failed:', persistenceError);
+                        const result = await executePlan({
+                            plan,
+                            sendRequest,
+                            wait,
+                            onProgress(progress) {
+                                attempt.observeAttempt({ phase: 'progress', progress });
+                                onProgress?.(progress);
+                            }
+                        });
+                        const history = await attempt.completeAttempt({
+                            result,
+                            fatalError: result.fatalError || null
+                        });
+                        return { ...result, report: formatReport(result), history };
+                    } catch (error) {
+                        await attempt.interruptAttempt({ error });
+                        throw error;
                     }
-                    return { ...result, report: formatReport(result), history };
                 },
                 onCopy: copyText,
                 onOpenHistory(executionId) {
@@ -283,6 +258,7 @@ function createBatchSectionDeletionFeature({
                     openHistory(executionId);
                 },
                 onClose() {
+                    void attempt.cancelAttempt();
                     session.close();
                 }
             });
@@ -308,6 +284,5 @@ export {
     inspectLessonsSequentially,
     executePlan,
     formatReport,
-    buildExecutionHistoryInput,
     createBatchSectionDeletionFeature
 };
