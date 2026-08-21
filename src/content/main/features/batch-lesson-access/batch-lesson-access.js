@@ -1,3 +1,4 @@
+import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import {
     TRANSIENT_CODES,
     appendPage,
@@ -335,8 +336,10 @@ function createBatchLessonAccessFeature({
     session,
     createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
     copyText = async () => {},
+    executionAttempt = {},
     logger = { log() {} }
 }) {
+    const attempt = createExecutionAttemptReporter(executionAttempt);
     let running = false;
     let pupils = [];
     let lessonCatalogue = [];
@@ -346,6 +349,7 @@ function createBatchLessonAccessFeature({
     let dialog = null;
 
     function handleClose() {
+        void attempt.cancelAttempt();
         running = false;
         pupils = [];
         lessonCatalogue = [];
@@ -407,6 +411,7 @@ function createBatchLessonAccessFeature({
         };
         pendingPlan = null;
         dialog.showComplete(completedResult);
+        void attempt.completeAttempt({ summary: completedResult });
     }
 
     async function handleSubmit(event) {
@@ -424,6 +429,10 @@ function createBatchLessonAccessFeature({
                 ? [...event.detail.selectedLessonIds]
                 : []
         );
+        attempt.beginAttempt({
+            emailInput: submittedEmailInput,
+            selectedLessonIds
+        });
 
         try {
             dialog.showValidation();
@@ -438,6 +447,7 @@ function createBatchLessonAccessFeature({
                     + `${validationErrors.length} error(s).`
                 );
                 dialog.showValidationErrors(validationErrors);
+                void attempt.completeAttempt({ errors: validationErrors });
                 return;
             }
 
@@ -487,6 +497,7 @@ function createBatchLessonAccessFeature({
                     + `${preflightErrors.length} error(s), zero writes issued.`
                 );
                 dialog.showValidationErrors(preflightErrors);
+                void attempt.completeAttempt({ errors: preflightErrors });
                 return;
             }
 
@@ -497,6 +508,7 @@ function createBatchLessonAccessFeature({
                 alreadyOpen: plan.alreadyOpen,
                 needsOpening: plan.needsOpening
             });
+            attempt.observeAttempt({ phase: 'plan' });
 
             logger.log(
                 `Batch access preflight complete for MarathonId ${marathonId}; `
@@ -521,6 +533,7 @@ function createBatchLessonAccessFeature({
                 + `(${getErrorCode(error)}).`
             );
             dialog.showValidationErrors([error]);
+            void attempt.completeAttempt({ errors: [error] });
         } finally {
             running = false;
         }
@@ -573,6 +586,10 @@ function createBatchLessonAccessFeature({
                 );
             }
             dialog.showComplete(completedResult);
+            void attempt.completeAttempt({ summary: completedResult });
+        } catch (error) {
+            void attempt.interruptAttempt({ summary: completedResult || {}, error });
+            throw error;
         } finally {
             running = false;
         }
@@ -586,6 +603,7 @@ function createBatchLessonAccessFeature({
     }
 
     function handleRestart() {
+        attempt.resetAttempt({ lessons: lessonCatalogue });
         pendingPlan = null;
         completedResult = null;
         running = false;
@@ -612,6 +630,7 @@ function createBatchLessonAccessFeature({
 
         try {
             dialog = session.ownDialog(createDialog());
+            attempt.resetAttempt();
             dialog.addEventListener('edvibe-dialog-close', handleClose);
             dialog.addEventListener('edvibe-batch-access-input-change', (event) => {
                 const parsed = parseEmailInput(event?.detail?.emailInput);
@@ -650,6 +669,7 @@ function createBatchLessonAccessFeature({
                 + `${pupils.length} pupil(s), ${lessonCatalogue.length} lesson(s), `
                 + `catalogue PupilId ${firstPupilId}.`
             );
+            attempt.resetAttempt({ lessons: lessonCatalogue });
             dialog.showConfigure({
                 lessons: lessonCatalogue
             });
