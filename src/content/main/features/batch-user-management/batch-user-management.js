@@ -1,4 +1,5 @@
 /* eslint-disable perfectionist/sort-imports */
+import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import {
     appendPage,
     createFeatureError,
@@ -334,8 +335,10 @@ export function createBatchUserManagementFeatureV2({
     return createBatchUserManagementFeature({
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
-        canStart: operationGuard.canStart,
-        onActiveChange: operationGuard.guardedActiveChange('batch-user-management'),
+        session: createFeatureSession({
+            operationGuard,
+            operationName: 'batch-user-management'
+        }),
         createDialog: createBatchUserManagementDialog,
         logger: logger.createChildLogger('BatchUserManagement')
     });
@@ -352,25 +355,15 @@ const batchUserManagementFeatureDefinition = Object.freeze({
 function createBatchUserManagementFeature({
     sendRequest,
     getConnectionState,
-    canStart,
-    onActiveChange,
+    session,
     createDialog = () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
     logger = { log() {} }
 }) {
-    let active = false;
     let running = false;
     let pupils = [];
     let currentRows = [];
     let marathonId = null;
     let dialog = null;
-
-    function releaseOperation() {
-        if (!active) {
-            return;
-        }
-        active = false;
-        onActiveChange(false);
-    }
 
     function handleClose() {
         running = false;
@@ -378,7 +371,7 @@ function createBatchUserManagementFeature({
         currentRows = [];
         marathonId = null;
         dialog = null;
-        releaseOperation();
+        session.close();
     }
 
     function getErrorCode(error) {
@@ -512,23 +505,22 @@ function createBatchUserManagementFeature({
     }
 
     async function open() {
-        if (active || document.getElementById(USER_MANAGEMENT_OVERLAY_ID)) {
+        if (session.isOpen() || document.getElementById(USER_MANAGEMENT_OVERLAY_ID)) {
             return;
         }
-        if (!canStart()) {
+        if (!session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
             return;
         }
         marathonId = parseMarathonId(window.location.href);
         if (!marathonId) {
+            session.release();
             window.alert('Open an Edvibe marathon page before managing users.');
             return;
         }
-        active = true;
-        onActiveChange(true);
 
         try {
-            dialog = createDialog();
+            dialog = session.ownDialog(createDialog());
             dialog.addEventListener('edvibe-dialog-close', handleClose);
             dialog.addEventListener('edvibe-batch-user-management-input-change', handleInput);
             dialog.addEventListener('edvibe-batch-user-management-check', handleCheck);
@@ -555,7 +547,7 @@ function createBatchUserManagementFeature({
             } catch (renderError) {
                 logger.log(`Batch user management error rendering failed (${getErrorCode(renderError)}).`);
             } finally {
-                releaseOperation();
+                session.release();
             }
         }
     }
