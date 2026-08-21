@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import {
+    appendPage,
     parseEmailInput,
+    readPage,
     validateEmail
-} from '#src/content/main/features/batch-workflow-primitives.js';
+} from '#src/content/main/application/workflow-primitives.js';
 
 describe('validateEmail', () => {
     test('accepts an ASCII email address', () => {
@@ -91,5 +93,45 @@ describe('parseEmailInput', () => {
             { input: 'broken', code: 'INVALID_EMAIL_FORMAT' }
         ]);
         assert.equal(result.items[1].validation.code, 'EMAIL_NON_ASCII');
+    });
+});
+
+describe('pagination primitives', () => {
+    test('reads canonical and legacy transport envelopes through one return contract', () => {
+        // Given
+        const items = [{ Id: 1 }];
+
+        // When / Then
+        assert.deepEqual(readPage({ Value: { Items: items, Page: { Count: 1 } } }), {
+            items,
+            total: 1
+        });
+        assert.deepEqual(readPage({ value: { Items: items, Page: { Count: 1 } } }), {
+            items,
+            total: 1
+        });
+        assert.deepEqual(readPage(null), {
+            items: undefined,
+            total: undefined
+        });
+    });
+
+    test('rejects inconsistent pagination data', () => {
+        // Given
+        const firstPage = appendPage([], null, [{ Id: 1 }], 2, 'Example');
+
+        // When / Then
+        assert.deepEqual(firstPage, {
+            items: [{ Id: 1 }],
+            total: 2
+        });
+        assert.throws(
+            () => appendPage(firstPage.items, firstPage.total, [], 2, 'Example'),
+            (error) => error.code === 'INVALID_RESPONSE'
+        );
+        assert.throws(
+            () => appendPage(firstPage.items, firstPage.total, [{ Id: 2 }], 3, 'Example'),
+            (error) => error.code === 'INVALID_RESPONSE'
+        );
     });
 });

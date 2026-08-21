@@ -97,6 +97,44 @@ export default defineConfig([
             }]
         }
     },
+    // MAIN direction: composition/runtime -> features, infrastructure, application;
+    // features -> runtime/application capabilities; infrastructure -> application/shared;
+    // application -> shared.
+    {
+        name: 'MAIN application boundary',
+        files: [
+            'src/content/main/application/**/*.js',
+        ],
+        rules: {
+            'no-restricted-imports': ['error', {
+                patterns: [{
+                    group: [
+                        '#src/content/main/components/**',
+                        '#src/content/main/features/**',
+                        '#src/content/main/infrastructure/**'
+                    ],
+                    message: 'MAIN application primitives cannot depend on UI, feature, or infrastructure implementations.'
+                }]
+            }]
+        }
+    },
+    {
+        name: 'MAIN infrastructure boundary',
+        files: [
+            'src/content/main/infrastructure/**/*.js',
+        ],
+        rules: {
+            'no-restricted-imports': ['error', {
+                patterns: [{
+                    group: [
+                        '#src/content/main/components/**',
+                        '#src/content/main/features/**'
+                    ],
+                    message: 'MAIN infrastructure cannot depend on UI or feature implementations.'
+                }]
+            }]
+        }
+    },
     {
         ...litConfigs['flat/recommended'],
         name: 'Lit Components',

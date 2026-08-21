@@ -1,13 +1,9 @@
 import { RESET_DIALOG_TAG } from '#src/content/main/features/reset-lessons/reset-lessons-dialog.js';
+import { parseMarathonId } from '#src/content/main/page-context.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 
 const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
-
-function parseMarathonId(url) {
-    const match = String(url || '').match(/marathon\/(\d+)/);
-    return match ? Number(match[1]) : null;
-}
 
 function collectLessonSections(lessonValue) {
     const sections = Array.isArray(lessonValue?.Sections)
@@ -301,6 +297,7 @@ function getErrorType(error) {
 export function createResetLessonsFeatureV2({
     transport,
     operationGuard,
+    pageContext,
     logger,
 }) {
     return createResetLessonsFeature({
@@ -308,6 +305,7 @@ export function createResetLessonsFeatureV2({
         sendWithoutResponse: transport.sendWithoutResponse,
         canStart: operationGuard.canStart,
         onActiveChange: operationGuard.guardedActiveChange('reset'),
+        getMarathonId: () => pageContext.marathonId,
         logger: logger.createChildLogger('Reset')
     });
 }
@@ -326,6 +324,7 @@ function createResetLessonsFeature({
     canStart,
     onActiveChange,
     createDialog = () => document.createElement(RESET_DIALOG_TAG),
+    getMarathonId = () => parseMarathonId(window.location.href),
     logger = { log() {} }
 }) {
     let running = false;
@@ -348,7 +347,7 @@ function createResetLessonsFeature({
             return;
         }
 
-        const marathonId = parseMarathonId(window.location.href);
+        const marathonId = getMarathonId();
         if (!marathonId) {
             window.alert('Open an Edvibe marathon page before resetting lessons.');
             return;
