@@ -1,4 +1,4 @@
-import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
+import { withExecutionHistory } from '#src/content/main/application/execution-history-operation.js';
 import { diagnosticsFromAttempts, historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 const OPERATION_TYPE = 'batch_user_management';
@@ -248,7 +248,18 @@ function buildExecutionHistoryInput({
     });
 }
 
-function createBatchUserManagementHistoryReporter({
+function mergeExecutionRows(inputRows = [], executionRows = []) {
+    const completedByEmail = new Map(
+        (Array.isArray(executionRows) ? executionRows : [])
+            .map((row) => [row.normalizedEmail, row])
+    );
+    return (Array.isArray(inputRows) ? inputRows : []).map((row) =>
+        completedByEmail.get(row.normalizedEmail) || row
+    );
+}
+
+function createBatchUserManagementHistoryOperation({
+    execute,
     persistExecution,
     onPersistence = () => {},
     getLocationHref = () => '',
@@ -256,99 +267,27 @@ function createBatchUserManagementHistoryReporter({
     now = () => new Date(),
     logger = { log() {} }
 } = {}) {
-    if (typeof persistExecution !== 'function') {
-        throw new TypeError('persistExecution is required');
-    }
-    if (typeof onPersistence !== 'function') {
-        throw new TypeError('onPersistence must be a function');
-    }
-
-    let startedAt = null;
-    let latestRows = [];
-    let terminal = false;
-    let sequence = 0;
-
-    function notify(history, currentSequence) {
-        if (currentSequence !== sequence) {
-            return history;
-        }
-        try {
-            onPersistence(history);
-        } catch (error) {
-            logger.log('Batch user management history presentation failed:', error);
-        }
-        return history;
-    }
-
-    async function persist(summary = {}, terminalStatus = null) {
-        if (!startedAt || terminal) {
-            return Object.freeze({ stored: false, skipped: true });
-        }
-        terminal = true;
-        const currentSequence = sequence;
-        let input;
-        try {
-            const completedAt = now().toISOString();
-            input = buildExecutionHistoryInput({
-                rows: latestRows,
+    return withExecutionHistory({
+        execute,
+        persistExecution,
+        onPersistence,
+        now,
+        logger,
+        buildHistoryInput({ input, result, error, startedAt, completedAt }) {
+            const executionResult = result || error?.partialResult || {};
+            const rows = mergeExecutionRows(input?.rows, executionResult?.rows);
+            const summary = error
+                ? { ...executionResult, rows, error }
+                : { ...executionResult, rows };
+            return buildExecutionHistoryInput({
+                rows,
                 summary,
                 startedAt,
                 completedAt,
                 marathonId: parseMarathonId(getLocationHref()),
                 marathonName: getMarathonName(),
-                terminalStatus
+                terminalStatus: error ? 'interrupted' : null
             });
-        } catch (persistenceError) {
-            logger.log('Batch user management history record creation failed:', persistenceError);
-            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence);
-        }
-        try {
-            const history = await persistExecution(input);
-            if (!history?.stored && history?.persistenceError) {
-                logger.log('Batch user management history persistence failed:', history.persistenceError);
-            }
-            return notify(history, currentSequence);
-        } catch (persistenceError) {
-            logger.log('Batch user management history persistence failed:', persistenceError);
-            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence);
-        }
-    }
-
-    return createExecutionAttemptReporter({
-        reset() {
-            sequence += 1;
-            startedAt = null;
-            latestRows = [];
-            terminal = false;
-        },
-        begin({ rows = [] } = {}) {
-            sequence += 1;
-            startedAt = now().toISOString();
-            latestRows = Array.isArray(rows) ? rows : [];
-            terminal = false;
-        },
-        observe({ rows } = {}) {
-            if (Array.isArray(rows)) {
-                latestRows = rows;
-            }
-        },
-        complete({ summary = {}, rows = null } = {}) {
-            if (Array.isArray(rows)) {
-                latestRows = rows;
-            }
-            return persist(summary);
-        },
-        cancel({ rows = null } = {}) {
-            if (Array.isArray(rows)) {
-                latestRows = rows;
-            }
-            return persist({}, 'cancelled');
-        },
-        interrupt({ summary = {}, rows = null, error = null } = {}) {
-            if (Array.isArray(rows)) {
-                latestRows = rows;
-            }
-            return persist(error ? { ...summary, error } : summary, 'interrupted');
         }
     });
 }
@@ -360,5 +299,6 @@ export {
     serializeRow,
     buildCounts,
     buildExecutionHistoryInput,
-    createBatchUserManagementHistoryReporter
+    mergeExecutionRows,
+    createBatchUserManagementHistoryOperation
 };
