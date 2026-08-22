@@ -611,13 +611,13 @@ export function createBatchSectionCreationFeatureV2({
     });
     const executionAttempt = Object.freeze({
         ...historyReporter,
-        resetAttempt(context) {
+        reset(context) {
             clearBatchSectionCreationHistoryButton(activeDialog);
-            return historyReporter.resetAttempt(context);
+            return historyReporter.reset(context);
         },
-        beginAttempt(context) {
+        begin(context) {
             clearBatchSectionCreationHistoryButton(activeDialog);
-            return historyReporter.beginAttempt(context);
+            return historyReporter.begin(context);
         }
     });
 
@@ -671,7 +671,7 @@ function createBatchSectionCreationFeature({
     let completedResult = null;
 
     function close() {
-        void attempt.cancelAttempt({ result: completedResult });
+        void attempt.cancel({ result: completedResult });
         running = false;
         dialog = null;
         lessons = [];
@@ -710,10 +710,10 @@ function createBatchSectionCreationFeature({
                 definition: validation.definition,
                 inspectionsByLessonId: inspections
             });
-            attempt.beginAttempt({ plan: pendingPlan });
+            attempt.begin({ plan: pendingPlan });
             dialog.showConfirmation(pendingPlan);
             if (!pendingPlan.eligible.length) {
-                void attempt.completeAttempt();
+                void attempt.complete();
             }
         } catch (error) {
             dialog.showValidationErrors([error]);
@@ -736,12 +736,12 @@ function createBatchSectionCreationFeature({
                 wait,
                 getConnectionState,
                 onProgress: (progress) => {
-                    attempt.observeAttempt({ progress });
+                    attempt.observe({ progress });
                     dialog.showExecution(progress);
                 }
             });
             dialog.showComplete(completedResult);
-            void attempt.completeAttempt({ result: completedResult });
+            void attempt.complete({ result: completedResult });
         } catch (error) {
             completedResult = error.partialResult || {
                 definition: pendingPlan.definition,
@@ -749,7 +749,7 @@ function createBatchSectionCreationFeature({
                 fatalError: error
             };
             dialog.showComplete(completedResult, error);
-            void attempt.interruptAttempt({ result: completedResult, error });
+            void attempt.interrupt({ result: completedResult, error });
         } finally {
             running = false;
         }
@@ -762,7 +762,7 @@ function createBatchSectionCreationFeature({
     }
 
     function restart() {
-        attempt.resetAttempt();
+        attempt.reset();
         pendingPlan = null;
         completedResult = null;
         dialog.showConfigure({
@@ -789,7 +789,7 @@ function createBatchSectionCreationFeature({
 
         try {
             dialog = session.ownDialog(createDialog());
-            attempt.resetAttempt();
+            attempt.reset();
             dialog.addEventListener('edvibe-dialog-close', close);
             dialog.addEventListener('edvibe-batch-section-preflight', preflight);
             dialog.addEventListener('edvibe-batch-section-confirm', confirm);

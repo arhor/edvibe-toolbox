@@ -134,14 +134,14 @@ function createBatchLessonAccessHistory({
     }
 
     const executionAttempt = createExecutionAttemptReporter({
-        resetAttempt({ lessons } = {}) {
+        reset({ lessons } = {}) {
             if (Array.isArray(lessons)) {
                 capture.lessonCatalogue = lessons.map(serializeLesson);
             }
             capture.attempt = null;
             capture.sequence += 1;
         },
-        beginAttempt(detail = {}) {
+        begin(detail = {}) {
             capture.sequence += 1;
             capture.writeAttempts.clear();
             capture.attempt = {
@@ -155,12 +155,12 @@ function createBatchLessonAccessHistory({
                 terminal: false
             };
         },
-        observeAttempt({ phase, errors = [] } = {}) {
+        observe({ phase, errors = [] } = {}) {
             if (phase === 'plan' && capture.attempt) {
                 capture.attempt.plan = buildPlan(errors);
             }
         },
-        completeAttempt({ summary = {}, errors = [] } = {}) {
+        complete({ summary = {}, errors = [] } = {}) {
             if (capture.attempt && !capture.attempt.plan) {
                 capture.attempt.plan = buildPlan(errors);
             }
@@ -168,13 +168,13 @@ function createBatchLessonAccessHistory({
                 failure?.code === 'INTERNAL_ERROR');
             return persist(summary, interrupted ? 'interrupted' : null, errors);
         },
-        cancelAttempt() {
+        cancel() {
             if (!capture.attempt?.plan || capture.attempt.terminal) {
                 return Object.freeze({ stored: false, skipped: true });
             }
             return persist({}, 'cancelled');
         },
-        interruptAttempt({ summary = {}, error = null } = {}) {
+        interrupt({ summary = {}, error = null } = {}) {
             return persist(summary, 'interrupted', error ? [error] : []);
         }
     });
@@ -229,13 +229,13 @@ export function createBatchLessonAccessFeatureV2({
     });
     const executionAttempt = Object.freeze({
         ...history.executionAttempt,
-        resetAttempt(context) {
+        reset(context) {
             clearHistoryButton(activeDialog);
-            return history.executionAttempt.resetAttempt(context);
+            return history.executionAttempt.reset(context);
         },
-        beginAttempt(context) {
+        begin(context) {
             clearHistoryButton(activeDialog);
-            return history.executionAttempt.beginAttempt(context);
+            return history.executionAttempt.begin(context);
         }
     });
 

@@ -1,10 +1,10 @@
 const EXECUTION_ATTEMPT_METHODS = Object.freeze([
-    'resetAttempt',
-    'beginAttempt',
-    'observeAttempt',
-    'completeAttempt',
-    'cancelAttempt',
-    'interruptAttempt'
+    'reset',
+    'begin',
+    'observe',
+    'complete',
+    'cancel',
+    'interrupt'
 ]);
 
 function noop() { }

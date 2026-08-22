@@ -35,7 +35,7 @@ function createBatchSectionCreationHistoryReporter({
         return history;
     }
 
-    function resetAttempt() {
+    function reset() {
         sequence += 1;
         confirmedPlan = null;
         latestResult = null;
@@ -43,7 +43,7 @@ function createBatchSectionCreationHistoryReporter({
         terminal = false;
     }
 
-    function beginAttempt({ plan } = {}) {
+    function begin({ plan } = {}) {
         sequence += 1;
         confirmedPlan = plan || null;
         latestResult = confirmedPlan
@@ -58,7 +58,7 @@ function createBatchSectionCreationHistoryReporter({
         terminal = false;
     }
 
-    function observeAttempt({ progress, result } = {}) {
+    function observe({ progress, result } = {}) {
         if (!confirmedPlan) {
             return;
         }
@@ -110,19 +110,19 @@ function createBatchSectionCreationHistoryReporter({
     }
 
     return createExecutionAttemptReporter({
-        resetAttempt,
-        beginAttempt,
-        observeAttempt,
-        completeAttempt({ result = null, fatalError = null } = {}) {
+        reset,
+        begin,
+        observe,
+        complete({ result = null, fatalError = null } = {}) {
             if (result) {
                 latestResult = result;
             }
             return persist(latestResult, fatalError ? 'interrupted' : null, fatalError);
         },
-        cancelAttempt() {
+        cancel() {
             return persist(latestResult, 'cancelled');
         },
-        interruptAttempt({ result = null, error = null } = {}) {
+        interrupt({ result = null, error = null } = {}) {
             if (result) {
                 latestResult = result;
             }

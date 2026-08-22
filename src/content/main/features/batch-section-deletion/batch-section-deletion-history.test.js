@@ -33,7 +33,7 @@ function createReporter({ plan, persistExecution }) {
         getMarathonName: () => 'Marathon',
         now: () => timestamps.shift() || new Date('2026-01-01T00:00:02.000Z')
     });
-    reporter.beginAttempt({ plan, selectedLessonIds: plan.eligible.map((entry) => entry.lessonId) });
+    reporter.begin({ plan, selectedLessonIds: plan.eligible.map((entry) => entry.lessonId) });
     return reporter;
 }
 
@@ -54,16 +54,16 @@ test('persists cancellation, interruption, success, and partial failure without 
 
     // When: cancelled before any write
     const cancelledPlan = { sectionName: 'S', selectedCount: 1, eligible: [lesson(1)], rejected: [] };
-    await createReporter({ plan: cancelledPlan, persistExecution }).cancelAttempt();
+    await createReporter({ plan: cancelledPlan, persistExecution }).cancel();
 
     // And: interrupted before a terminal result
     const interruptedPlan = { sectionName: 'S', selectedCount: 1, eligible: [lesson(2)], rejected: [] };
-    await createReporter({ plan: interruptedPlan, persistExecution }).interruptAttempt({ error: new Error('boom') });
+    await createReporter({ plan: interruptedPlan, persistExecution }).interrupt({ error: new Error('boom') });
 
     // And: successful completion
     const successful = lesson(3);
     const successfulPlan = { sectionName: 'S', selectedCount: 1, eligible: [successful], rejected: [] };
-    await createReporter({ plan: successfulPlan, persistExecution }).completeAttempt({
+    await createReporter({ plan: successfulPlan, persistExecution }).complete({
         result: { results: [{ ...successful, status: 'deleted', code: 'DELETED', message: 'Section deleted.' }] }
     });
 
@@ -71,7 +71,7 @@ test('persists cancellation, interruption, success, and partial failure without 
     const deleted = lesson(4);
     const failed = lesson(5);
     const partialPlan = { sectionName: 'S', selectedCount: 2, eligible: [deleted, failed], rejected: [] };
-    await createReporter({ plan: partialPlan, persistExecution }).completeAttempt({
+    await createReporter({ plan: partialPlan, persistExecution }).complete({
         result: {
             results: [
                 { ...deleted, status: 'deleted', code: 'DELETED', message: 'Section deleted.' },
@@ -106,7 +106,7 @@ test('keeps the visible result path usable when history persistence fails', asyn
     });
 
     // When
-    const history = await reporter.completeAttempt({
+    const history = await reporter.complete({
         result: { results: [{ ...lesson(6), status: 'deleted', code: 'DELETED', message: 'Section deleted.' }] }
     });
 

@@ -380,13 +380,13 @@ export function createBatchUserManagementFeatureV2({
     });
     const executionAttempt = Object.freeze({
         ...historyReporter,
-        resetAttempt(context) {
+        reset(context) {
             clearBatchUserManagementHistoryButton(activeDialog);
-            return historyReporter.resetAttempt(context);
+            return historyReporter.reset(context);
         },
-        beginAttempt(context) {
+        begin(context) {
             clearBatchUserManagementHistoryButton(activeDialog);
-            return historyReporter.beginAttempt(context);
+            return historyReporter.begin(context);
         }
     });
 
@@ -430,7 +430,7 @@ function createBatchUserManagementFeature({
     let dialog = null;
 
     function handleClose() {
-        void attempt.cancelAttempt({ rows: currentRows });
+        void attempt.cancel({ rows: currentRows });
         running = false;
         pupils = [];
         currentRows = [];
@@ -505,7 +505,7 @@ function createBatchUserManagementFeature({
             dialog.showChecking('Проверяем пользователей…');
             const resolution = resolveUsersByEmail(parsed.entries, pupils);
             currentRows = buildUserPlan({ rows: orderResolvedRows(parsed, resolution) });
-            attempt.resetAttempt();
+            attempt.reset();
             dialog.showReview({ rows: currentRows });
             logger.log(`Batch user management checked ${currentRows.length} row(s) for MarathonId ${marathonId}.`);
         } catch (error) {
@@ -533,7 +533,7 @@ function createBatchUserManagementFeature({
         }
 
         running = true;
-        attempt.beginAttempt({ rows: selectedRows });
+        attempt.begin({ rows: selectedRows });
         try {
             const result = await executeUserPlan({
                 marathonId,
@@ -552,7 +552,7 @@ function createBatchUserManagementFeature({
             );
             const summary = { ...result, rows: currentRows };
             dialog.showComplete(summary);
-            void attempt.completeAttempt({ summary, rows: currentRows });
+            void attempt.complete({ summary, rows: currentRows });
         } catch (error) {
             const summary = {
                 rows: currentRows,
@@ -564,14 +564,14 @@ function createBatchUserManagementFeature({
                 error
             };
             dialog.showComplete(summary);
-            void attempt.interruptAttempt({ summary, rows: currentRows, error });
+            void attempt.interrupt({ summary, rows: currentRows, error });
         } finally {
             running = false;
         }
     }
 
     function handleRestart() {
-        attempt.resetAttempt();
+        attempt.reset();
         currentRows = [];
         running = false;
     }
@@ -593,7 +593,7 @@ function createBatchUserManagementFeature({
 
         try {
             dialog = session.ownDialog(createDialog());
-            attempt.resetAttempt();
+            attempt.reset();
             dialog.addEventListener('edvibe-dialog-close', handleClose);
             dialog.addEventListener('edvibe-batch-user-management-input-change', handleInput);
             dialog.addEventListener('edvibe-batch-user-management-check', handleCheck);

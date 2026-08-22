@@ -315,36 +315,36 @@ function createBatchUserManagementHistoryReporter({
     }
 
     return createExecutionAttemptReporter({
-        resetAttempt() {
+        reset() {
             sequence += 1;
             startedAt = null;
             latestRows = [];
             terminal = false;
         },
-        beginAttempt({ rows = [] } = {}) {
+        begin({ rows = [] } = {}) {
             sequence += 1;
             startedAt = now().toISOString();
             latestRows = Array.isArray(rows) ? rows : [];
             terminal = false;
         },
-        observeAttempt({ rows } = {}) {
+        observe({ rows } = {}) {
             if (Array.isArray(rows)) {
                 latestRows = rows;
             }
         },
-        completeAttempt({ summary = {}, rows = null } = {}) {
+        complete({ summary = {}, rows = null } = {}) {
             if (Array.isArray(rows)) {
                 latestRows = rows;
             }
             return persist(summary);
         },
-        cancelAttempt({ rows = null } = {}) {
+        cancel({ rows = null } = {}) {
             if (Array.isArray(rows)) {
                 latestRows = rows;
             }
             return persist({}, 'cancelled');
         },
-        interruptAttempt({ summary = {}, rows = null, error = null } = {}) {
+        interrupt({ summary = {}, rows = null, error = null } = {}) {
             if (Array.isArray(rows)) {
                 latestRows = rows;
             }

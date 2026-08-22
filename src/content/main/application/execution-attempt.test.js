@@ -21,14 +21,14 @@ test('execution attempt reporter preserves handler context and return values', a
     // Given
     const source = {
         prefix: 'attempt',
-        completeAttempt(value) {
+        complete(value) {
             return Promise.resolve(`${this.prefix}:${value}`);
         }
     };
     const reporter = createExecutionAttemptReporter(source);
 
     // When
-    const result = await reporter.completeAttempt('done');
+    const result = await reporter.complete('done');
 
     // Then
     assert.equal(result, 'attempt:done');
@@ -36,7 +36,7 @@ test('execution attempt reporter preserves handler context and return values', a
 
 test('execution attempt reporter rejects invalid lifecycle handlers', () => {
     assert.throws(
-        () => createExecutionAttemptReporter({ beginAttempt: true }),
-        /beginAttempt must be a function/
+        () => createExecutionAttemptReporter({ begin: true }),
+        /begin must be a function/
     );
 });

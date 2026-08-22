@@ -370,7 +370,7 @@ function createBatchSectionDeletionHistoryReporter({
     }
 
     return createExecutionAttemptReporter({
-        resetAttempt() {
+        reset() {
             sequence += 1;
             plan = null;
             latestResult = null;
@@ -378,7 +378,7 @@ function createBatchSectionDeletionHistoryReporter({
             terminal = false;
             executionStarted = false;
         },
-        beginAttempt({ plan: inspectedPlan, selectedLessonIds = [] } = {}) {
+        begin({ plan: inspectedPlan, selectedLessonIds = [] } = {}) {
             sequence += 1;
             plan = enrichPlan(inspectedPlan, selectedLessonIds);
             latestResult = { plan, results: [] };
@@ -386,7 +386,7 @@ function createBatchSectionDeletionHistoryReporter({
             terminal = false;
             executionStarted = false;
         },
-        observeAttempt({ phase, progress, result } = {}) {
+        observe({ phase, progress, result } = {}) {
             if (phase === 'execution') {
                 executionStarted = true;
             }
@@ -400,7 +400,7 @@ function createBatchSectionDeletionHistoryReporter({
                 };
             }
         },
-        completeAttempt({ result = null, fatalError = null } = {}) {
+        complete({ result = null, fatalError = null } = {}) {
             if (result) {
                 latestResult = result;
             }
@@ -410,10 +410,10 @@ function createBatchSectionDeletionHistoryReporter({
                 fatalError || latestResult?.fatalError || null
             );
         },
-        cancelAttempt() {
+        cancel() {
             return persist(latestResult, 'cancelled');
         },
-        interruptAttempt({ result = null, error = null } = {}) {
+        interrupt({ result = null, error = null } = {}) {
             if (result) {
                 latestResult = result;
             }
@@ -461,13 +461,13 @@ export function createBatchSectionDeletionFeatureV2({
     });
     const executionAttempt = Object.freeze({
         ...historyReporter,
-        resetAttempt(context) {
+        reset(context) {
             clearHistoryButton(activeDialog);
-            return historyReporter.resetAttempt(context);
+            return historyReporter.reset(context);
         },
-        beginAttempt(context) {
+        begin(context) {
             clearHistoryButton(activeDialog);
-            return historyReporter.beginAttempt(context);
+            return historyReporter.begin(context);
         }
     });
 

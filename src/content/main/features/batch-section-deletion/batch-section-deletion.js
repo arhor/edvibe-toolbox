@@ -201,7 +201,7 @@ function createBatchSectionDeletionFeature({
 
         try {
             const dialog = session.ownDialog(createDialog());
-            attempt.resetAttempt();
+            attempt.reset();
             document.body.append(dialog);
             const lessons = await loadLessonCatalogue({ sendRequest, marathonId });
             dialog.configure({
@@ -221,34 +221,34 @@ function createBatchSectionDeletionFeature({
                         sectionName: input.sectionName,
                         inspectionsByLessonId
                     });
-                    attempt.beginAttempt({
+                    attempt.begin({
                         plan,
                         selectedLessonIds: input.selectedLessonIds
                     });
                     if (!plan.eligible.length) {
-                        void attempt.completeAttempt();
+                        void attempt.complete();
                     }
                     return plan;
                 },
                 async onExecute(plan, onProgress) {
-                    attempt.observeAttempt({ phase: 'execution' });
+                    attempt.observe({ phase: 'execution' });
                     try {
                         const result = await executePlan({
                             plan,
                             sendRequest,
                             wait,
                             onProgress(progress) {
-                                attempt.observeAttempt({ phase: 'progress', progress });
+                                attempt.observe({ phase: 'progress', progress });
                                 onProgress?.(progress);
                             }
                         });
-                        const history = await attempt.completeAttempt({
+                        const history = await attempt.complete({
                             result,
                             fatalError: result.fatalError || null
                         });
                         return { ...result, report: formatReport(result), history };
                     } catch (error) {
-                        await attempt.interruptAttempt({ error });
+                        await attempt.interrupt({ error });
                         throw error;
                     }
                 },
@@ -258,7 +258,7 @@ function createBatchSectionDeletionFeature({
                     openHistory(executionId);
                 },
                 onClose() {
-                    void attempt.cancelAttempt();
+                    void attempt.cancel();
                     session.close();
                 }
             });
