@@ -1,7 +1,6 @@
-import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
-import { createBatchSectionCreationHistoryReporter } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
+import { createBatchSectionCreationHistoryOperation } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
 import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
@@ -576,7 +575,6 @@ export function createBatchSectionCreationFeatureV2({
     dispatch,
 }) {
     let activeDialog = null;
-    const historyLogger = logger.createChildLogger('BatchSectionCreationHistory');
     const openHistory = (executionId) => {
         activeDialog?.close?.();
         dispatch({
@@ -584,7 +582,20 @@ export function createBatchSectionCreationFeatureV2({
             executionId
         });
     };
-    const historyReporter = createBatchSectionCreationHistoryReporter({
+    const batchSectionCreationAdapter = createImageUploadCreationAdapter({
+        recipe: dynamicImageRecipe,
+        cryptoApi: window.crypto
+    });
+    const executeWithHistory = createBatchSectionCreationHistoryOperation({
+        execute: ({ marathonId, plan, onProgress }) => executeCreationPlan({
+            marathonId,
+            plan,
+            adapter: batchSectionCreationAdapter,
+            sendRequest: transport.sendRequest,
+            wait,
+            getConnectionState: transport.getConnectionState,
+            onProgress
+        }),
         persistExecution: executionHistoryService.persistTerminal,
         getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
@@ -598,32 +609,13 @@ export function createBatchSectionCreationFeatureV2({
                 }
                 return;
             }
-            if (history?.skipped) {
-                return;
-            }
             appendBatchSectionCreationHistoryStatus(
                 activeDialog,
                 'Экранный результат сохранён, но записать историю не удалось.',
                 true
             );
         },
-        logger: historyLogger
-    });
-    const executionAttempt = Object.freeze({
-        ...historyReporter,
-        reset(context) {
-            clearBatchSectionCreationHistoryButton(activeDialog);
-            return historyReporter.reset(context);
-        },
-        begin(context) {
-            clearBatchSectionCreationHistoryButton(activeDialog);
-            return historyReporter.begin(context);
-        }
-    });
-
-    const batchSectionCreationAdapter = createImageUploadCreationAdapter({
-        recipe: dynamicImageRecipe,
-        cryptoApi: window.crypto
+        logger: logger.createChildLogger('BatchSectionCreationHistory')
     });
 
     return createBatchSectionCreationFeature({
@@ -639,7 +631,7 @@ export function createBatchSectionCreationFeatureV2({
             return activeDialog;
         },
         copyText: (text) => navigator.clipboard.writeText(text),
-        executionAttempt,
+        executeOperation: executeWithHistory,
         logger: logger.createChildLogger('BatchSectionCreation')
     });
 }
@@ -659,10 +651,17 @@ function createBatchSectionCreationFeature({
     adapter,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = async () => { },
-    executionAttempt = {},
+    executeOperation = ({ marathonId, plan, onProgress }) => executeCreationPlan({
+        marathonId,
+        plan,
+        adapter,
+        sendRequest,
+        wait,
+        getConnectionState,
+        onProgress
+    }),
     logger = { log() {} }
 }) {
-    const attempt = createExecutionAttemptReporter(executionAttempt);
     let running = false;
     let dialog = null;
     let marathonId = null;
@@ -671,7 +670,6 @@ function createBatchSectionCreationFeature({
     let completedResult = null;
 
     function close() {
-        void attempt.cancel({ result: completedResult });
         running = false;
         dialog = null;
         lessons = [];
@@ -710,11 +708,7 @@ function createBatchSectionCreationFeature({
                 definition: validation.definition,
                 inspectionsByLessonId: inspections
             });
-            attempt.begin({ plan: pendingPlan });
             dialog.showConfirmation(pendingPlan);
-            if (!pendingPlan.eligible.length) {
-                void attempt.complete();
-            }
         } catch (error) {
             dialog.showValidationErrors([error]);
         } finally {
@@ -728,20 +722,12 @@ function createBatchSectionCreationFeature({
         }
         running = true;
         try {
-            completedResult = await executeCreationPlan({
+            completedResult = await executeOperation({
                 marathonId,
                 plan: pendingPlan,
-                adapter,
-                sendRequest,
-                wait,
-                getConnectionState,
-                onProgress: (progress) => {
-                    attempt.observe({ progress });
-                    dialog.showExecution(progress);
-                }
+                onProgress: (progress) => dialog.showExecution(progress)
             });
             dialog.showComplete(completedResult);
-            void attempt.complete({ result: completedResult });
         } catch (error) {
             completedResult = error.partialResult || {
                 definition: pendingPlan.definition,
@@ -749,7 +735,6 @@ function createBatchSectionCreationFeature({
                 fatalError: error
             };
             dialog.showComplete(completedResult, error);
-            void attempt.interrupt({ result: completedResult, error });
         } finally {
             running = false;
         }
@@ -762,7 +747,6 @@ function createBatchSectionCreationFeature({
     }
 
     function restart() {
-        attempt.reset();
         pendingPlan = null;
         completedResult = null;
         dialog.showConfigure({
@@ -789,7 +773,6 @@ function createBatchSectionCreationFeature({
 
         try {
             dialog = session.ownDialog(createDialog());
-            attempt.reset();
             dialog.addEventListener('edvibe-dialog-close', close);
             dialog.addEventListener('edvibe-batch-section-preflight', preflight);
             dialog.addEventListener('edvibe-batch-section-confirm', confirm);
