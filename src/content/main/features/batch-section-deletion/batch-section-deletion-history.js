@@ -1,9 +1,10 @@
-import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
+import { withExecutionHistory } from '#src/content/main/application/execution-history-operation.js';
 import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DELETION_DIALOG_TAG } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-dialog.js';
 import * as coreApi from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
+import { wait } from '#src/shared/utils.js';
 
 const OPERATION_TYPE = 'batch-section-deletion';
 const TERMINAL_STATUSES = new Set([
@@ -46,7 +47,7 @@ function discoveryOutcome(entry = {}) {
     }[entry.code] || (entry.sectionId ? 'matched' : 'inspection_failed');
 }
 
-function enrichPlan(plan = {}, selectedLessonIds = []) {
+function enrichPlan(plan = {}, selectedLessonIds = plan?.selectedLessonIds || []) {
     const sectionName = text(plan.sectionName, 'Unnamed section', 500);
     const eligible = (plan.eligible || []).map((entry) => Object.freeze({
         ...entry,
@@ -273,31 +274,8 @@ function buildExecutionHistoryInput({
     });
 }
 
-function clearHistoryButton(dialog) {
-    dialog?.shadowRoot?.querySelector?.('.edvibe-batch-section-deletion-history')?.remove?.();
-}
-
-function appendStatus(dialog, message) {
-    const status = dialog?.shadowRoot?.querySelector?.('.status');
-    const current = status?.textContent || '';
-    dialog?.showStatus?.(`${current}${current ? ' ' : ''}${message}`);
-}
-
-function addHistoryButton(dialog, executionId, openHistory) {
-    clearHistoryButton(dialog);
-    const documentApi = dialog?.ownerDocument || globalThis.document;
-    const button = documentApi?.createElement?.('button');
-    if (!button) {
-        return;
-    }
-    button.type = 'button';
-    button.className = 'edvibe-batch-section-deletion-history';
-    button.textContent = 'Open in history';
-    button.addEventListener('click', () => openHistory(executionId));
-    dialog?.shadowRoot?.querySelector?.('footer')?.appendChild?.(button);
-}
-
-function createBatchSectionDeletionHistoryReporter({
+function createBatchSectionDeletionHistoryOperation({
+    execute,
     persistExecution,
     onPersistence = () => {},
     getLocationHref = () => '',
@@ -305,119 +283,26 @@ function createBatchSectionDeletionHistoryReporter({
     now = () => new Date(),
     logger = { log() {} }
 } = {}) {
-    if (typeof persistExecution !== 'function') {
-        throw new TypeError('persistExecution is required');
-    }
-    if (typeof onPersistence !== 'function') {
-        throw new TypeError('onPersistence must be a function');
-    }
-
-    let plan = null;
-    let latestResult = null;
-    let startedAt = null;
-    let terminal = false;
-    let sequence = 0;
-    let executionStarted = false;
-
-    function notify(history, currentSequence, terminalStatus) {
-        if (currentSequence !== sequence) {
-            return Object.freeze({ stored: false, stale: true });
-        }
-        try {
-            onPersistence(history, Object.freeze({
-                phase: executionStarted ? 'execution' : 'preflight',
-                terminalStatus
-            }));
-        } catch (error) {
-            logger.log('Batch section deletion history presentation failed:', error);
-        }
-        return history;
-    }
-
-    async function persist(result, terminalStatus = null, fatalError = null) {
-        if (!plan || terminal) {
-            return Object.freeze({ stored: false, skipped: true });
-        }
-        terminal = true;
-        const currentSequence = sequence;
-        let input;
-        try {
-            const completedAt = now().toISOString();
-            input = buildExecutionHistoryInput({
+    return withExecutionHistory({
+        execute,
+        persistExecution,
+        onPersistence,
+        now,
+        logger,
+        buildHistoryInput({ input, result, error, startedAt, completedAt }) {
+            const plan = enrichPlan(input?.plan);
+            const executionResult = result || error?.partialResult || {};
+            const fatalError = error || executionResult?.fatalError || null;
+            return buildExecutionHistoryInput({
                 plan,
-                result: result || latestResult || {},
-                startedAt: startedAt || completedAt,
+                result: executionResult,
+                startedAt,
                 completedAt,
                 marathonId: parseMarathonId(getLocationHref()),
                 marathonName: getMarathonName(),
-                terminalStatus,
+                terminalStatus: fatalError ? 'interrupted' : null,
                 fatalError
             });
-        } catch (persistenceError) {
-            logger.log('Batch section deletion history record creation failed:', persistenceError);
-            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence, terminalStatus);
-        }
-        try {
-            const history = await persistExecution(input);
-            if (!history?.stored && history?.persistenceError) {
-                logger.log('Batch section deletion history persistence failed:', history.persistenceError);
-            }
-            return notify(history, currentSequence, terminalStatus);
-        } catch (persistenceError) {
-            logger.log('Batch section deletion history persistence failed:', persistenceError);
-            return notify(Object.freeze({ stored: false, persistenceError }), currentSequence, terminalStatus);
-        }
-    }
-
-    return createExecutionAttemptReporter({
-        reset() {
-            sequence += 1;
-            plan = null;
-            latestResult = null;
-            startedAt = null;
-            terminal = false;
-            executionStarted = false;
-        },
-        begin({ plan: inspectedPlan, selectedLessonIds = [] } = {}) {
-            sequence += 1;
-            plan = enrichPlan(inspectedPlan, selectedLessonIds);
-            latestResult = { plan, results: [] };
-            startedAt = now().toISOString();
-            terminal = false;
-            executionStarted = false;
-        },
-        observe({ phase, progress, result } = {}) {
-            if (phase === 'execution') {
-                executionStarted = true;
-            }
-            if (result) {
-                latestResult = result;
-            } else if (Array.isArray(progress?.results)) {
-                latestResult = {
-                    plan,
-                    results: [...progress.results],
-                    fatalError: progress.fatalError || null
-                };
-            }
-        },
-        complete({ result = null, fatalError = null } = {}) {
-            if (result) {
-                latestResult = result;
-            }
-            return persist(
-                latestResult,
-                fatalError || latestResult?.fatalError ? 'interrupted' : null,
-                fatalError || latestResult?.fatalError || null
-            );
-        },
-        cancel() {
-            return persist(latestResult, 'cancelled');
-        },
-        interrupt({ result = null, error = null } = {}) {
-            if (result) {
-                latestResult = result;
-            }
-            return persist(latestResult, 'interrupted', error);
         }
     });
 }
@@ -429,46 +314,27 @@ export function createBatchSectionDeletionFeatureV2({
     executionHistoryService,
     dispatch,
 }) {
-    let activeDialog = null;
-    const historyLogger = logger.createChildLogger('BatchSectionDeletionHistory');
+    let latestHistory = null;
     const openHistory = (executionId) => dispatch({
         type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
         executionId
     });
-    const historyReporter = createBatchSectionDeletionHistoryReporter({
+    const executeWithHistory = createBatchSectionDeletionHistoryOperation({
+        execute: ({ plan, onProgress }) => coreApi.executePlan({
+            plan,
+            sendRequest: transport.sendRequest,
+            wait,
+            onProgress
+        }),
         persistExecution: executionHistoryService.persistTerminal,
         getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
-        onPersistence(history, context) {
-            if (context.phase !== 'preflight' || context.terminalStatus === 'cancelled') {
-                return;
-            }
-            if (history?.stored) {
-                appendStatus(activeDialog, 'Result saved to execution history.');
-                if (history.record?.id) {
-                    addHistoryButton(activeDialog, history.record.id, (executionId) => {
-                        activeDialog?.close?.();
-                        openHistory(executionId);
-                    });
-                }
-            } else if (!history?.skipped) {
-                appendStatus(activeDialog, 'The visible preflight is intact, but history could not be saved.');
-            }
+        onPersistence(history) {
+            latestHistory = history;
         },
-        logger: historyLogger
-    });
-    const executionAttempt = Object.freeze({
-        ...historyReporter,
-        reset(context) {
-            clearHistoryButton(activeDialog);
-            return historyReporter.reset(context);
-        },
-        begin(context) {
-            clearHistoryButton(activeDialog);
-            return historyReporter.begin(context);
-        }
+        logger: logger.createChildLogger('BatchSectionDeletionHistory')
     });
 
     return coreApi.createBatchSectionDeletionFeature({
@@ -478,12 +344,13 @@ export function createBatchSectionDeletionFeatureV2({
             operationGuard,
             operationName: 'batch-section-deletion'
         }),
-        createDialog: () => {
-            activeDialog = document.createElement(BATCH_SECTION_DELETION_DIALOG_TAG);
-            return activeDialog;
-        },
+        createDialog: () => document.createElement(BATCH_SECTION_DELETION_DIALOG_TAG),
         copyText: (text) => navigator.clipboard.writeText(text),
-        executionAttempt,
+        async executeOperation(input) {
+            latestHistory = null;
+            const result = await executeWithHistory(input);
+            return Object.freeze({ ...result, history: latestHistory });
+        },
         openHistory,
         logger: logger.createChildLogger('BatchSectionDeletion')
     });
@@ -506,5 +373,5 @@ export {
     materializeResults,
     serializeResult,
     buildExecutionHistoryInput,
-    createBatchSectionDeletionHistoryReporter
+    createBatchSectionDeletionHistoryOperation
 };

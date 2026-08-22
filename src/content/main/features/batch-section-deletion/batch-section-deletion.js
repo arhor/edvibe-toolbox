@@ -1,4 +1,3 @@
-import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import { createFeatureError as featureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
 import { wait } from '#src/shared/utils.js';
@@ -76,6 +75,7 @@ function buildExecutionPlan({ lessons, selectedLessonIds, sectionName, inspectio
     }
     return Object.freeze({
         sectionName: name,
+        selectedLessonIds: Object.freeze([...selected]),
         selectedCount: selected.size,
         eligible: Object.freeze(eligible),
         rejected: Object.freeze(rejected)
@@ -176,12 +176,15 @@ function createBatchSectionDeletionFeature({
     session,
     createDialog,
     copyText,
-    executionAttempt = {},
+    executeOperation = ({ plan, onProgress }) => executePlan({
+        plan,
+        sendRequest,
+        wait,
+        onProgress
+    }),
     openHistory = () => {},
     logger = { log() {} }
 }) {
-    const attempt = createExecutionAttemptReporter(executionAttempt);
-
     async function open() {
         if (session.isOpen() || !session.activate()) {
             window.alert('Another Edvibe Toolbox operation is already running.');
@@ -201,7 +204,6 @@ function createBatchSectionDeletionFeature({
 
         try {
             const dialog = session.ownDialog(createDialog());
-            attempt.reset();
             document.body.append(dialog);
             const lessons = await loadLessonCatalogue({ sendRequest, marathonId });
             dialog.configure({
@@ -215,42 +217,16 @@ function createBatchSectionDeletionFeature({
                         wait,
                         onProgress: input.onProgress
                     });
-                    const plan = buildExecutionPlan({
+                    return buildExecutionPlan({
                         lessons,
                         selectedLessonIds: input.selectedLessonIds,
                         sectionName: input.sectionName,
                         inspectionsByLessonId
                     });
-                    attempt.begin({
-                        plan,
-                        selectedLessonIds: input.selectedLessonIds
-                    });
-                    if (!plan.eligible.length) {
-                        void attempt.complete();
-                    }
-                    return plan;
                 },
                 async onExecute(plan, onProgress) {
-                    attempt.observe({ phase: 'execution' });
-                    try {
-                        const result = await executePlan({
-                            plan,
-                            sendRequest,
-                            wait,
-                            onProgress(progress) {
-                                attempt.observe({ phase: 'progress', progress });
-                                onProgress?.(progress);
-                            }
-                        });
-                        const history = await attempt.complete({
-                            result,
-                            fatalError: result.fatalError || null
-                        });
-                        return { ...result, report: formatReport(result), history };
-                    } catch (error) {
-                        await attempt.interrupt({ error });
-                        throw error;
-                    }
+                    const result = await executeOperation({ plan, onProgress });
+                    return { ...result, report: formatReport(result) };
                 },
                 onCopy: copyText,
                 onOpenHistory(executionId) {
@@ -258,7 +234,6 @@ function createBatchSectionDeletionFeature({
                     openHistory(executionId);
                 },
                 onClose() {
-                    void attempt.cancel();
                     session.close();
                 }
             });
