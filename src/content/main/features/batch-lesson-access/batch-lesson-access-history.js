@@ -1,19 +1,10 @@
-import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
+import { withExecutionHistory } from '#src/content/main/application/execution-history-operation.js';
 import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_ACCESS_DIALOG_TAG } from '#src/content/main/features/batch-lesson-access/batch-lesson-access-dialog.js';
-import * as modelApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
 import * as recordApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
 import * as batchAccessApi from '#src/content/main/features/batch-lesson-access/batch-lesson-access.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
-
-const {
-    createCapture,
-    recordWriteAttempt,
-    observeRequest,
-    serializeLesson,
-    buildObservedPlan
-} = modelApi;
-const { buildExecutionHistoryInput } = recordApi;
+import { wait } from '#src/shared/utils.js';
 
 function clearHistoryButton(dialog) {
     dialog?.shadowRoot?.querySelector?.('.edvibe-batch-access-history')?.remove?.();
@@ -38,8 +29,72 @@ function addHistoryButton(dialog, executionId, openHistory) {
     dialog?.elements?.footer?.appendChild?.(button);
 }
 
-function createBatchLessonAccessHistory({
-    sendRequest,
+function buildConfirmedExecutionHistoryPlan(plan = {}) {
+    const identitiesByEmail = new Map();
+    const selectedLessons = new Map();
+
+    function observeItem(item) {
+        const email = String(item?.email || '').trim();
+        const normalizedEmail = email.toLowerCase();
+        if (!identitiesByEmail.has(normalizedEmail)) {
+            identitiesByEmail.set(normalizedEmail, Object.freeze({
+                submittedInput: email,
+                normalizedEmail,
+                resolution: 'matched'
+            }));
+        }
+        const lessonId = Number(item?.marathonLessonId);
+        if (!selectedLessons.has(lessonId)) {
+            selectedLessons.set(lessonId, Object.freeze({
+                marathonLessonId: lessonId,
+                lessonNumber: item?.lessonNumber ?? null,
+                lessonName: item?.lessonName || `Lesson ${lessonId}`
+            }));
+        }
+    }
+
+    for (const item of [...(plan.alreadyOpen || []), ...(plan.needsOpening || [])]) {
+        observeItem(item);
+    }
+    for (const email of plan.requestedEmails || []) {
+        const normalizedEmail = String(email || '').trim().toLowerCase();
+        if (!identitiesByEmail.has(normalizedEmail)) {
+            identitiesByEmail.set(normalizedEmail, Object.freeze({
+                submittedInput: String(email || '').trim(),
+                normalizedEmail,
+                resolution: 'matched'
+            }));
+        }
+    }
+
+    function matrixItem(item, plannedOutcome, preflightAccessState) {
+        return Object.freeze({
+            submittedInput: item.email,
+            resolvedEmail: item.email,
+            pupilId: item.pupilId,
+            marathonPupilId: item.marathonPupilId,
+            marathonLessonId: item.marathonLessonId,
+            lessonNumber: item.lessonNumber,
+            lessonName: item.lessonName,
+            preflightAccessState,
+            plannedOutcome
+        });
+    }
+
+    return Object.freeze({
+        identities: Object.freeze([...identitiesByEmail.values()]),
+        selectedLessons: Object.freeze([...selectedLessons.values()]),
+        matrix: Object.freeze([
+            ...(plan.alreadyOpen || []).map((item) => matrixItem(item, 'already_open', 'open')),
+            ...(plan.needsOpening || []).map((item) => matrixItem(item, 'open', 'closed'))
+        ]),
+        discoveryFailures: Object.freeze([]),
+        operationFailures: Object.freeze([])
+    });
+}
+
+function createBatchLessonAccessHistoryOperation({
+    execute,
     persistExecution,
     onPersistence = () => {},
     getLocationHref = () => '',
@@ -47,141 +102,23 @@ function createBatchLessonAccessHistory({
     now = () => new Date(),
     logger = { log() {} }
 } = {}) {
-    if (typeof sendRequest !== 'function') {
-        throw new TypeError('sendRequest is required');
-    }
-    if (typeof persistExecution !== 'function') {
-        throw new TypeError('persistExecution is required');
-    }
-    if (typeof onPersistence !== 'function') {
-        throw new TypeError('onPersistence must be a function');
-    }
-
-    const capture = createCapture();
-
-    async function trackedSendRequest(controller, method, projectName, value) {
-        recordWriteAttempt(capture, method, value);
-        const result = await sendRequest(controller, method, projectName, value);
-        observeRequest(capture, method, value, result);
-        return result;
-    }
-
-    function buildPlan(errors = []) {
-        const attempt = capture.attempt;
-        if (!attempt) {
-            return null;
-        }
-        return buildObservedPlan({
-            submittedEmailInput: attempt.submittedEmailInput,
-            selectedLessonIds: attempt.selectedLessonIds,
-            pupils: capture.pupils,
-            lessonsByPupilId: capture.lessonsByPupilId,
-            lessonCatalogue: capture.lessonCatalogue,
-            errors
-        });
-    }
-
-    function notify(history, sequence) {
-        if (sequence !== capture.sequence) {
-            return history;
-        }
-        try {
-            onPersistence(history);
-        } catch (error) {
-            logger.log('Batch lesson access history presentation failed:', error);
-        }
-        return history;
-    }
-
-    async function persist(summary = {}, terminalStatus = null, errors = []) {
-        const attempt = capture.attempt;
-        if (!attempt || attempt.terminal) {
-            return Object.freeze({ stored: false, skipped: true });
-        }
-        attempt.terminal = true;
-        const sequence = attempt.sequence;
-        let input;
-        try {
-            const completedAt = now().toISOString();
-            const plan = attempt.plan || buildPlan(errors);
-            if (!plan) {
-                return Object.freeze({ stored: false, skipped: true });
-            }
-            input = buildExecutionHistoryInput({
-                plan,
-                summary,
-                writeAttempts: capture.writeAttempts,
-                startedAt: attempt.startedAt,
+    return withExecutionHistory({
+        execute,
+        persistExecution,
+        onPersistence,
+        now,
+        logger,
+        buildHistoryInput({ input, result, error, startedAt, completedAt }) {
+            return recordApi.buildExecutionHistoryInput({
+                plan: buildConfirmedExecutionHistoryPlan(input?.plan),
+                summary: result || error?.partialResult || {},
+                startedAt,
                 completedAt,
                 marathonId: batchAccessApi.parseMarathonId(getLocationHref()),
                 marathonName: getMarathonName(),
-                terminalStatus
+                terminalStatus: error ? 'interrupted' : null
             });
-        } catch (persistenceError) {
-            logger.log('Batch lesson access history record creation failed:', persistenceError);
-            return notify(Object.freeze({ stored: false, persistenceError }), sequence);
         }
-        try {
-            const history = await persistExecution(input);
-            if (!history?.stored && history?.persistenceError) {
-                logger.log('Batch lesson access history persistence failed:', history.persistenceError);
-            }
-            return notify(history, sequence);
-        } catch (persistenceError) {
-            logger.log('Batch lesson access history persistence failed:', persistenceError);
-            return notify(Object.freeze({ stored: false, persistenceError }), sequence);
-        }
-    }
-
-    const executionAttempt = createExecutionAttemptReporter({
-        reset({ lessons } = {}) {
-            if (Array.isArray(lessons)) {
-                capture.lessonCatalogue = lessons.map(serializeLesson);
-            }
-            capture.attempt = null;
-            capture.sequence += 1;
-        },
-        begin(detail = {}) {
-            capture.sequence += 1;
-            capture.writeAttempts.clear();
-            capture.attempt = {
-                sequence: capture.sequence,
-                startedAt: now().toISOString(),
-                submittedEmailInput: String(detail.emailInput || ''),
-                selectedLessonIds: Array.isArray(detail.selectedLessonIds)
-                    ? [...detail.selectedLessonIds]
-                    : [],
-                plan: null,
-                terminal: false
-            };
-        },
-        observe({ phase, errors = [] } = {}) {
-            if (phase === 'plan' && capture.attempt) {
-                capture.attempt.plan = buildPlan(errors);
-            }
-        },
-        complete({ summary = {}, errors = [] } = {}) {
-            if (capture.attempt && !capture.attempt.plan) {
-                capture.attempt.plan = buildPlan(errors);
-            }
-            const interrupted = (summary.failures || []).some((failure) =>
-                failure?.code === 'INTERNAL_ERROR');
-            return persist(summary, interrupted ? 'interrupted' : null, errors);
-        },
-        cancel() {
-            if (!capture.attempt?.plan || capture.attempt.terminal) {
-                return Object.freeze({ stored: false, skipped: true });
-            }
-            return persist({}, 'cancelled');
-        },
-        interrupt({ summary = {}, error = null } = {}) {
-            return persist(summary, 'interrupted', error ? [error] : []);
-        }
-    });
-
-    return Object.freeze({
-        sendRequest: trackedSendRequest,
-        executionAttempt
     });
 }
 
@@ -193,7 +130,6 @@ export function createBatchLessonAccessFeatureV2({
     dispatch,
 }) {
     let activeDialog = null;
-    const historyLogger = logger.createChildLogger('BatchAccessHistory');
     const openHistory = (executionId) => {
         activeDialog?.close?.();
         dispatch({
@@ -201,8 +137,19 @@ export function createBatchLessonAccessFeatureV2({
             executionId
         });
     };
-    const history = createBatchLessonAccessHistory({
-        sendRequest: transport.sendRequest,
+    const executeWithHistory = createBatchLessonAccessHistoryOperation({
+        execute: ({ marathonId, plan, onProgress }) => batchAccessApi.executeAccessPlan({
+            marathonId,
+            requestedEmails: plan.requestedEmails,
+            matchedUsers: plan.matchedUsers,
+            selectedLessons: plan.selectedLessonIds.length,
+            alreadyOpen: plan.alreadyOpen,
+            needsOpening: plan.needsOpening,
+            sendRequest: transport.sendRequest,
+            wait,
+            getConnectionState: transport.getConnectionState,
+            onProgress
+        }),
         persistExecution: executionHistoryService.persistTerminal,
         getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
@@ -216,31 +163,17 @@ export function createBatchLessonAccessFeatureV2({
                 }
                 return;
             }
-            if (outcome?.skipped) {
-                return;
-            }
             appendStatus(
                 activeDialog,
                 'Экранный результат сохранён, но записать историю не удалось.',
                 true
             );
         },
-        logger: historyLogger
-    });
-    const executionAttempt = Object.freeze({
-        ...history.executionAttempt,
-        reset(context) {
-            clearHistoryButton(activeDialog);
-            return history.executionAttempt.reset(context);
-        },
-        begin(context) {
-            clearHistoryButton(activeDialog);
-            return history.executionAttempt.begin(context);
-        }
+        logger: logger.createChildLogger('BatchAccessHistory')
     });
 
     return batchAccessApi.createBatchLessonAccessFeature({
-        sendRequest: history.sendRequest,
+        sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
         session: createFeatureSession({ operationGuard, operationName: 'batch-access' }),
         createDialog: () => {
@@ -248,7 +181,7 @@ export function createBatchLessonAccessFeatureV2({
             return activeDialog;
         },
         copyText: (text) => navigator.clipboard.writeText(text),
-        executionAttempt,
+        executeOperation: executeWithHistory,
         logger: logger.createChildLogger('BatchAccess')
     });
 }
@@ -263,4 +196,8 @@ const batchLessonAccessFeatureDefinition = Object.freeze({
 
 export * from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-model.js';
 export * from '#src/content/main/features/batch-lesson-access/batch-lesson-access-history-record.js';
-export { batchLessonAccessFeatureDefinition, createBatchLessonAccessHistory };
+export {
+    batchLessonAccessFeatureDefinition,
+    buildConfirmedExecutionHistoryPlan,
+    createBatchLessonAccessHistoryOperation
+};

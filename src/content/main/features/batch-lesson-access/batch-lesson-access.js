@@ -1,4 +1,3 @@
-import { createExecutionAttemptReporter } from '#src/content/main/application/execution-attempt.js';
 import {
     TRANSIENT_CODES,
     appendPage,
@@ -155,7 +154,8 @@ function createExecutionFailure(item, error, {
         marathonLessonId: item.marathonLessonId,
         attempts,
         code,
-        message
+        message,
+        diagnosticObservations: error ? [error] : []
     };
 }
 
@@ -336,10 +336,20 @@ function createBatchLessonAccessFeature({
     session,
     createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
     copyText = async () => {},
-    executionAttempt = {},
+    executeOperation = ({ marathonId, plan, onProgress }) => executeAccessPlan({
+        marathonId,
+        requestedEmails: plan.requestedEmails,
+        matchedUsers: plan.matchedUsers,
+        selectedLessons: plan.selectedLessonIds.length,
+        alreadyOpen: plan.alreadyOpen,
+        needsOpening: plan.needsOpening,
+        sendRequest,
+        wait,
+        getConnectionState,
+        onProgress
+    }),
     logger = { log() {} }
 }) {
-    const attempt = createExecutionAttemptReporter(executionAttempt);
     let running = false;
     let pupils = [];
     let lessonCatalogue = [];
@@ -349,7 +359,6 @@ function createBatchLessonAccessFeature({
     let dialog = null;
 
     function handleClose() {
-        void attempt.cancel();
         running = false;
         pupils = [];
         lessonCatalogue = [];
@@ -411,7 +420,6 @@ function createBatchLessonAccessFeature({
         };
         pendingPlan = null;
         dialog.showComplete(completedResult);
-        void attempt.complete({ summary: completedResult });
     }
 
     async function handleSubmit(event) {
@@ -429,10 +437,6 @@ function createBatchLessonAccessFeature({
                 ? [...event.detail.selectedLessonIds]
                 : []
         );
-        attempt.begin({
-            emailInput: submittedEmailInput,
-            selectedLessonIds
-        });
 
         try {
             dialog.showValidation();
@@ -447,7 +451,6 @@ function createBatchLessonAccessFeature({
                     + `${validationErrors.length} error(s).`
                 );
                 dialog.showValidationErrors(validationErrors);
-                void attempt.complete({ errors: validationErrors });
                 return;
             }
 
@@ -497,7 +500,6 @@ function createBatchLessonAccessFeature({
                     + `${preflightErrors.length} error(s), zero writes issued.`
                 );
                 dialog.showValidationErrors(preflightErrors);
-                void attempt.complete({ errors: preflightErrors });
                 return;
             }
 
@@ -508,7 +510,6 @@ function createBatchLessonAccessFeature({
                 alreadyOpen: plan.alreadyOpen,
                 needsOpening: plan.needsOpening
             });
-            attempt.observe({ phase: 'plan' });
 
             logger.log(
                 `Batch access preflight complete for MarathonId ${marathonId}; `
@@ -533,7 +534,6 @@ function createBatchLessonAccessFeature({
                 + `(${getErrorCode(error)}).`
             );
             dialog.showValidationErrors([error]);
-            void attempt.complete({ errors: [error] });
         } finally {
             running = false;
         }
@@ -550,16 +550,9 @@ function createBatchLessonAccessFeature({
 
         try {
             try {
-                completedResult = await executeAccessPlan({
+                completedResult = await executeOperation({
                     marathonId,
-                    requestedEmails: executionPlan.requestedEmails,
-                    matchedUsers: executionPlan.matchedUsers,
-                    selectedLessons: executionPlan.selectedLessonIds.length,
-                    alreadyOpen: executionPlan.alreadyOpen,
-                    needsOpening: executionPlan.needsOpening,
-                    sendRequest,
-                    wait,
-                    getConnectionState,
+                    plan: executionPlan,
                     onProgress: (progress) => dialog.showExecution(progress)
                 });
             } catch (error) {
@@ -586,9 +579,7 @@ function createBatchLessonAccessFeature({
                 );
             }
             dialog.showComplete(completedResult);
-            void attempt.complete({ summary: completedResult });
         } catch (error) {
-            void attempt.interrupt({ summary: completedResult || {}, error });
             throw error;
         } finally {
             running = false;
@@ -603,7 +594,6 @@ function createBatchLessonAccessFeature({
     }
 
     function handleRestart() {
-        attempt.reset({ lessons: lessonCatalogue });
         pendingPlan = null;
         completedResult = null;
         running = false;
@@ -630,7 +620,6 @@ function createBatchLessonAccessFeature({
 
         try {
             dialog = session.ownDialog(createDialog());
-            attempt.reset();
             dialog.addEventListener('edvibe-dialog-close', handleClose);
             dialog.addEventListener('edvibe-batch-access-input-change', (event) => {
                 const parsed = parseEmailInput(event?.detail?.emailInput);
@@ -669,7 +658,6 @@ function createBatchLessonAccessFeature({
                 + `${pupils.length} pupil(s), ${lessonCatalogue.length} lesson(s), `
                 + `catalogue PupilId ${firstPupilId}.`
             );
-            attempt.reset({ lessons: lessonCatalogue });
             dialog.showConfigure({
                 lessons: lessonCatalogue
             });
