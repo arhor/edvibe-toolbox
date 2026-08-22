@@ -154,7 +154,8 @@ function createExecutionFailure(item, error, {
         marathonLessonId: item.marathonLessonId,
         attempts,
         code,
-        message
+        message,
+        diagnosticObservations: error ? [error] : []
     };
 }
 
@@ -335,6 +336,18 @@ function createBatchLessonAccessFeature({
     session,
     createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
     copyText = async () => {},
+    executeOperation = ({ marathonId, plan, onProgress }) => executeAccessPlan({
+        marathonId,
+        requestedEmails: plan.requestedEmails,
+        matchedUsers: plan.matchedUsers,
+        selectedLessons: plan.selectedLessonIds.length,
+        alreadyOpen: plan.alreadyOpen,
+        needsOpening: plan.needsOpening,
+        sendRequest,
+        wait,
+        getConnectionState,
+        onProgress
+    }),
     logger = { log() {} }
 }) {
     let running = false;
@@ -537,16 +550,9 @@ function createBatchLessonAccessFeature({
 
         try {
             try {
-                completedResult = await executeAccessPlan({
+                completedResult = await executeOperation({
                     marathonId,
-                    requestedEmails: executionPlan.requestedEmails,
-                    matchedUsers: executionPlan.matchedUsers,
-                    selectedLessons: executionPlan.selectedLessonIds.length,
-                    alreadyOpen: executionPlan.alreadyOpen,
-                    needsOpening: executionPlan.needsOpening,
-                    sendRequest,
-                    wait,
-                    getConnectionState,
+                    plan: executionPlan,
                     onProgress: (progress) => dialog.showExecution(progress)
                 });
             } catch (error) {

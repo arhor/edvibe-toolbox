@@ -1,6 +1,6 @@
 import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
-import { createHistoryAwareDialog } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
+import { createBatchSectionCreationHistoryOperation } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
 import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
@@ -539,6 +539,34 @@ function formatCreationReport(result) {
     return lines.join('\n').trim();
 }
 
+function clearBatchSectionCreationHistoryButton(dialog) {
+    dialog?.shadowRoot?.querySelector?.('.edvibe-batch-section-history')?.remove?.();
+}
+
+function appendBatchSectionCreationHistoryStatus(dialog, message, isError = false) {
+    const current = dialog?.elements?.status?.textContent || '';
+    dialog?.setStatus?.(
+        `${current}${current ? ' ' : ''}${message}`,
+        isError ? 'error' : ''
+    );
+}
+
+function addBatchSectionCreationHistoryButton(dialog, executionId, openHistory) {
+    clearBatchSectionCreationHistoryButton(dialog);
+    const documentApi = dialog?.ownerDocument || globalThis.document;
+    const button = documentApi?.createElement?.('button');
+    if (!button) {
+        return;
+    }
+    button.type = 'button';
+    button.className = 'edvibe-batch-section-history';
+    button.textContent = 'Открыть в истории';
+    button.addEventListener('click', () => openHistory(executionId));
+    const footer = dialog?.elements?.footer
+        || dialog?.shadowRoot?.querySelector?.('.edvibe-batch-section-footer');
+    footer?.appendChild?.(button);
+}
+
 export function createBatchSectionCreationFeatureV2({
     transport,
     operationGuard,
@@ -546,23 +574,48 @@ export function createBatchSectionCreationFeatureV2({
     executionHistoryService,
     dispatch,
 }) {
-    const createBatchSectionCreationDialog = createHistoryAwareDialog({
-        createDialog: () => document.createElement(BATCH_SECTION_DIALOG_TAG),
-        persistExecution: executionHistoryService.persistTerminal,
-        openHistory: (executionId) => dispatch({
+    let activeDialog = null;
+    const openHistory = (executionId) => {
+        activeDialog?.close?.();
+        dispatch({
             type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
             executionId
+        });
+    };
+    const batchSectionCreationAdapter = createImageUploadCreationAdapter({
+        recipe: dynamicImageRecipe,
+        cryptoApi: window.crypto
+    });
+    const executeWithHistory = createBatchSectionCreationHistoryOperation({
+        execute: ({ marathonId, plan, onProgress }) => executeCreationPlan({
+            marathonId,
+            plan,
+            adapter: batchSectionCreationAdapter,
+            sendRequest: transport.sendRequest,
+            wait,
+            getConnectionState: transport.getConnectionState,
+            onProgress
         }),
+        persistExecution: executionHistoryService.persistTerminal,
         getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
+        onPersistence(history) {
+            if (history?.stored) {
+                appendBatchSectionCreationHistoryStatus(activeDialog, 'Результат сохранён в истории.');
+                if (history.record?.id) {
+                    addBatchSectionCreationHistoryButton(activeDialog, history.record.id, openHistory);
+                }
+                return;
+            }
+            appendBatchSectionCreationHistoryStatus(
+                activeDialog,
+                'Экранный результат сохранён, но записать историю не удалось.',
+                true
+            );
+        },
         logger: logger.createChildLogger('BatchSectionCreationHistory')
-    });
-
-    const batchSectionCreationAdapter = createImageUploadCreationAdapter({
-        recipe: dynamicImageRecipe,
-        cryptoApi: window.crypto
     });
 
     return createBatchSectionCreationFeature({
@@ -573,8 +626,12 @@ export function createBatchSectionCreationFeatureV2({
             operationName: 'batch-section-creation'
         }),
         adapter: batchSectionCreationAdapter,
-        createDialog: createBatchSectionCreationDialog,
+        createDialog: () => {
+            activeDialog = document.createElement(BATCH_SECTION_DIALOG_TAG);
+            return activeDialog;
+        },
         copyText: (text) => navigator.clipboard.writeText(text),
+        executeOperation: executeWithHistory,
         logger: logger.createChildLogger('BatchSectionCreation')
     });
 }
@@ -594,6 +651,15 @@ function createBatchSectionCreationFeature({
     adapter,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = async () => { },
+    executeOperation = ({ marathonId, plan, onProgress }) => executeCreationPlan({
+        marathonId,
+        plan,
+        adapter,
+        sendRequest,
+        wait,
+        getConnectionState,
+        onProgress
+    }),
     logger = { log() {} }
 }) {
     let running = false;
@@ -656,13 +722,9 @@ function createBatchSectionCreationFeature({
         }
         running = true;
         try {
-            completedResult = await executeCreationPlan({
+            completedResult = await executeOperation({
                 marathonId,
                 plan: pendingPlan,
-                adapter,
-                sendRequest,
-                wait,
-                getConnectionState,
                 onProgress: (progress) => dialog.showExecution(progress)
             });
             dialog.showComplete(completedResult);

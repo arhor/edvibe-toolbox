@@ -11,7 +11,7 @@ import { loadAllPupils } from '#src/content/main/infrastructure/edvibe-marathon-
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 import { USER_MANAGEMENT_DIALOG_TAG, USER_MANAGEMENT_OVERLAY_ID } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.js';
-import { createHistoryAwareDialog } from '#src/content/main/features/batch-user-management/batch-user-management-history.js';
+import { createBatchUserManagementHistoryOperation } from '#src/content/main/features/batch-user-management/batch-user-management-history.js';
 
 function parseEmailInput(value) {
     return parseSharedEmailInput(value, { includeItems: true });
@@ -97,7 +97,8 @@ function createOperationFailure(error) {
         status: 'failed',
         attempts: error?.attempts || 1,
         code: error?.code || 'UNKNOWN_ERROR',
-        message: error?.message || 'The operation failed.'
+        message: error?.message || 'The operation failed.',
+        diagnosticObservations: error ? [error] : []
     };
 }
 
@@ -311,6 +312,32 @@ function orderResolvedRows(parsed, resolution) {
         });
 }
 
+function clearBatchUserManagementHistoryButton(dialog) {
+    dialog?.shadowRoot?.querySelector?.('.edvibe-batch-user-management-history')?.remove?.();
+}
+
+function appendBatchUserManagementHistoryStatus(dialog, message) {
+    const current = dialog?.elements?.status?.textContent || '';
+    dialog?.setStatus?.(`${current}${current ? ' ' : ''}${message}`);
+}
+
+function addBatchUserManagementHistoryButton(dialog, executionId, openHistory) {
+    clearBatchUserManagementHistoryButton(dialog);
+    const documentApi = dialog?.ownerDocument || globalThis.document;
+    const button = documentApi?.createElement?.('button');
+    if (!button) {
+        return;
+    }
+    button.type = 'button';
+    button.className = 'edvibe-batch-user-management-history';
+    button.textContent = 'Открыть в истории';
+    button.addEventListener('click', () => openHistory(executionId));
+    dialog?.elements?.footer?.appendChild?.(button);
+    if (!dialog?.elements?.footer) {
+        dialog?.shadowRoot?.querySelector?.('.edvibe-batch-user-management-footer')?.appendChild?.(button);
+    }
+}
+
 export function createBatchUserManagementFeatureV2({
     transport,
     operationGuard,
@@ -318,17 +345,41 @@ export function createBatchUserManagementFeatureV2({
     executionHistoryService,
     dispatch,
 }) {
-    const createBatchUserManagementDialog = createHistoryAwareDialog({
-        createDialog: () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
-        persistExecution: executionHistoryService.persistTerminal,
-        openHistory: (executionId) => dispatch({
+    let activeDialog = null;
+    const openHistory = (executionId) => {
+        activeDialog?.close?.();
+        dispatch({
             type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
             executionId
+        });
+    };
+    const executeWithHistory = createBatchUserManagementHistoryOperation({
+        execute: ({ marathonId, rows, onProgress }) => executeUserPlan({
+            marathonId,
+            rows,
+            sendRequest: transport.sendRequest,
+            wait,
+            getConnectionState: transport.getConnectionState,
+            onProgress
         }),
+        persistExecution: executionHistoryService.persistTerminal,
         getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
+        onPersistence(history) {
+            if (history?.stored) {
+                appendBatchUserManagementHistoryStatus(activeDialog, 'Результат сохранён в истории.');
+                if (history.record?.id) {
+                    addBatchUserManagementHistoryButton(activeDialog, history.record.id, openHistory);
+                }
+                return;
+            }
+            appendBatchUserManagementHistoryStatus(
+                activeDialog,
+                'Экранный результат сохранён, но записать историю не удалось.'
+            );
+        },
         logger: logger.createChildLogger('BatchUserManagementHistory')
     });
 
@@ -339,7 +390,11 @@ export function createBatchUserManagementFeatureV2({
             operationGuard,
             operationName: 'batch-user-management'
         }),
-        createDialog: createBatchUserManagementDialog,
+        createDialog: () => {
+            activeDialog = document.createElement(USER_MANAGEMENT_DIALOG_TAG);
+            return activeDialog;
+        },
+        executeOperation: executeWithHistory,
         logger: logger.createChildLogger('BatchUserManagement')
     });
 }
@@ -357,6 +412,14 @@ function createBatchUserManagementFeature({
     getConnectionState,
     session,
     createDialog = () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
+    executeOperation = ({ marathonId, rows, onProgress }) => executeUserPlan({
+        marathonId,
+        rows,
+        sendRequest,
+        wait,
+        getConnectionState,
+        onProgress
+    }),
     logger = { log() {} }
 }) {
     let running = false;
@@ -468,12 +531,9 @@ function createBatchUserManagementFeature({
 
         running = true;
         try {
-            const result = await executeUserPlan({
+            const result = await executeOperation({
                 marathonId,
                 rows: selectedRows,
-                sendRequest,
-                wait,
-                getConnectionState,
                 onProgress: (progress) => dialog.showExecution(progress)
             });
             const completedByEmail = new Map(
@@ -483,9 +543,10 @@ function createBatchUserManagementFeature({
             currentRows = selectedRows.map((row) =>
                 completedByEmail.get(row.normalizedEmail) || row
             );
-            dialog.showComplete({ ...result, rows: currentRows });
+            const summary = { ...result, rows: currentRows };
+            dialog.showComplete(summary);
         } catch (error) {
-            dialog.showComplete({
+            const summary = {
                 rows: currentRows,
                 completed: 0,
                 total: 0,
@@ -493,7 +554,8 @@ function createBatchUserManagementFeature({
                 failures: 1,
                 attempts: error?.attempts || 1,
                 error
-            });
+            };
+            dialog.showComplete(summary);
         } finally {
             running = false;
         }

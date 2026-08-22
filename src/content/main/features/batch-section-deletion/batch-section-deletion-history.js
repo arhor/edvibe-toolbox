@@ -1,8 +1,10 @@
+import { withExecutionHistory } from '#src/content/main/application/execution-history-operation.js';
 import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DELETION_DIALOG_TAG } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-dialog.js';
 import * as coreApi from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
+import { wait } from '#src/shared/utils.js';
 
 const OPERATION_TYPE = 'batch-section-deletion';
 const TERMINAL_STATUSES = new Set([
@@ -45,7 +47,7 @@ function discoveryOutcome(entry = {}) {
     }[entry.code] || (entry.sectionId ? 'matched' : 'inspection_failed');
 }
 
-function enrichPlan(plan = {}, selectedLessonIds = []) {
+function enrichPlan(plan = {}, selectedLessonIds = plan?.selectedLessonIds || []) {
     const sectionName = text(plan.sectionName, 'Unnamed section', 500);
     const eligible = (plan.eligible || []).map((entry) => Object.freeze({
         ...entry,
@@ -272,163 +274,34 @@ function buildExecutionHistoryInput({
     });
 }
 
-function appendStatus(dialog, message) {
-    const status = dialog.shadowRoot?.querySelector?.('.status');
-    const current = status?.textContent || '';
-    dialog.showStatus?.(`${current}${current ? ' ' : ''}${message}`);
-}
-
-function addHistoryButton(dialog, executionId, openHistory) {
-    const documentApi = dialog.ownerDocument || globalThis.document;
-    const button = documentApi?.createElement?.('button');
-    if (!button) {
-        return;
-    }
-    button.type = 'button';
-    button.className = 'edvibe-batch-section-deletion-history';
-    button.textContent = 'Open in history';
-    button.addEventListener('click', () => openHistory?.(executionId));
-    dialog.shadowRoot?.querySelector?.('footer')?.appendChild?.(button);
-}
-
-function createHistoryAwareFeature(options = {}) {
-    const {
-        createFeature = coreApi.createBatchSectionDeletionFeature,
-        createDialog,
+function createBatchSectionDeletionHistoryOperation({
+    execute,
+    persistExecution,
+    onPersistence = () => {},
+    getLocationHref = () => '',
+    getMarathonName = () => null,
+    now = () => new Date(),
+    logger = { log() {} }
+} = {}) {
+    return withExecutionHistory({
+        execute,
         persistExecution,
-        getLocationHref = () => '',
-        getMarathonName = () => null,
-        now = () => new Date(),
-        logger = { log() {} },
-        ...featureOptions
-    } = options;
-    if (typeof createDialog !== 'function') {
-        throw new TypeError('createDialog is required');
-    }
-    if (typeof persistExecution !== 'function') {
-        throw new TypeError('persistExecution is required');
-    }
-
-    function createTrackedDialog() {
-        const dialog = createDialog();
-        const originalConfigure = dialog.configure.bind(dialog);
-        let plan = null;
-        let latestResult = null;
-        let startedAt = null;
-        let terminal = false;
-        let sequence = 0;
-
-        async function persist(result, terminalStatus = null, fatalError = null) {
-            const currentSequence = sequence;
-            try {
-                const completedAt = now().toISOString();
-                const input = buildExecutionHistoryInput({
-                    plan,
-                    result: result || latestResult || {},
-                    startedAt: startedAt || completedAt,
-                    completedAt,
-                    marathonId: parseMarathonId(getLocationHref()),
-                    marathonName: getMarathonName(),
-                    terminalStatus,
-                    fatalError
-                });
-                const history = await persistExecution(input);
-                return currentSequence === sequence
-                    ? history
-                    : Object.freeze({ stored: false, stale: true });
-            } catch (persistenceError) {
-                logger.log('Batch section deletion history persistence failed:', persistenceError);
-                return Object.freeze({ stored: false, persistenceError });
-            }
-        }
-
-        dialog.configure = (config = {}) => {
-            const originalInspect = config.onInspect;
-            const originalExecute = config.onExecute;
-            const originalClose = config.onClose;
-            const originalOpenHistory = config.onOpenHistory;
-            return originalConfigure({
-                ...config,
-                async onInspect(input) {
-                    const inspected = await originalInspect(input);
-                    sequence += 1;
-                    plan = enrichPlan(inspected, input?.selectedLessonIds || []);
-                    latestResult = { plan, results: [] };
-                    startedAt = now().toISOString();
-                    terminal = false;
-                    if (!plan.eligible.length) {
-                        terminal = true;
-                        void persist(latestResult).then((history) => {
-                            if (history?.stored) {
-                                appendStatus(dialog, 'Result saved to execution history.');
-                                if (history.record?.id) {
-                                    addHistoryButton(dialog, history.record.id, originalOpenHistory);
-                                }
-                            } else if (history?.persistenceError) {
-                                appendStatus(dialog, 'The visible preflight is intact, but history could not be saved.');
-                            }
-                        });
-                    }
-                    return plan;
-                },
-                async onExecute(confirmedPlan, onProgress) {
-                    plan = enrichPlan(confirmedPlan, confirmedPlan.selectedLessonIds || []);
-                    startedAt = startedAt || now().toISOString();
-                    terminal = false;
-                    try {
-                        const result = await originalExecute(plan, (progress = {}) => {
-                            if (Array.isArray(progress.results)) {
-                                latestResult = {
-                                    plan,
-                                    results: [...progress.results],
-                                    fatalError: progress.fatalError || null
-                                };
-                            }
-                            onProgress?.(progress);
-                        });
-                        latestResult = result;
-                        terminal = true;
-                        const history = await persist(
-                            result,
-                            result.fatalError ? 'interrupted' : null,
-                            result.fatalError || null
-                        );
-                        return { ...result, history };
-                    } catch (error) {
-                        terminal = true;
-                        await persist(latestResult, 'interrupted', error);
-                        throw error;
-                    }
-                },
-                onOpenHistory: originalOpenHistory,
-                onClose() {
-                    if (plan && !terminal) {
-                        terminal = true;
-                        void persist(latestResult, 'cancelled');
-                    }
-                    originalClose?.();
-                }
-            });
-        };
-        return dialog;
-    }
-
-    return createFeature({ ...featureOptions, createDialog: createTrackedDialog, logger });
-}
-
-function installHistoryAwareFeature(baseApi = coreApi) {
-    return Object.freeze({
-        ...baseApi,
-        createBatchSectionDeletionFeature(options = {}) {
-            return createHistoryAwareFeature({
-                ...options,
-                createFeature: baseApi.createBatchSectionDeletionFeature,
-                getLocationHref: options.getLocationHref || (() => globalThis.location?.href || ''),
-                getMarathonName: options.getMarathonName || (() => (
-                    globalThis.document?.querySelector?.('h1')?.textContent?.trim()
-                    || globalThis.document?.title
-                    || null
-                ))
+        onPersistence,
+        now,
+        logger,
+        buildHistoryInput({ input, result, error, startedAt, completedAt }) {
+            const plan = enrichPlan(input?.plan);
+            const executionResult = result || error?.partialResult || {};
+            const fatalError = error || executionResult?.fatalError || null;
+            return buildExecutionHistoryInput({
+                plan,
+                result: executionResult,
+                startedAt,
+                completedAt,
+                marathonId: parseMarathonId(getLocationHref()),
+                marathonName: getMarathonName(),
+                terminalStatus: fatalError ? 'interrupted' : null,
+                fatalError
             });
         }
     });
@@ -441,7 +314,30 @@ export function createBatchSectionDeletionFeatureV2({
     executionHistoryService,
     dispatch,
 }) {
-    return createBatchSectionDeletionFeature({
+    let latestHistory = null;
+    const openHistory = (executionId) => dispatch({
+        type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
+        executionId
+    });
+    const executeWithHistory = createBatchSectionDeletionHistoryOperation({
+        execute: ({ plan, onProgress }) => coreApi.executePlan({
+            plan,
+            sendRequest: transport.sendRequest,
+            wait,
+            onProgress
+        }),
+        persistExecution: executionHistoryService.persistTerminal,
+        getLocationHref: () => window.location.href,
+        getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
+            || document.title
+            || null,
+        onPersistence(history) {
+            latestHistory = history;
+        },
+        logger: logger.createChildLogger('BatchSectionDeletionHistory')
+    });
+
+    return coreApi.createBatchSectionDeletionFeature({
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
         session: createFeatureSession({
@@ -450,11 +346,12 @@ export function createBatchSectionDeletionFeatureV2({
         }),
         createDialog: () => document.createElement(BATCH_SECTION_DELETION_DIALOG_TAG),
         copyText: (text) => navigator.clipboard.writeText(text),
-        persistExecution: executionHistoryService.persistTerminal,
-        openHistory: (executionId) => dispatch({
-            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
-            executionId
-        }),
+        async executeOperation(input) {
+            latestHistory = null;
+            const result = await executeWithHistory(input);
+            return Object.freeze({ ...result, history: latestHistory });
+        },
+        openHistory,
         logger: logger.createChildLogger('BatchSectionDeletion')
     });
 }
@@ -467,10 +364,6 @@ const batchSectionDeletionFeatureDefinition = Object.freeze({
     }
 });
 
-function createBatchSectionDeletionFeature(options = {}) {
-    return installHistoryAwareFeature(coreApi).createBatchSectionDeletionFeature(options);
-}
-
 export {
     batchSectionDeletionFeatureDefinition,
     OPERATION_TYPE,
@@ -480,7 +373,5 @@ export {
     materializeResults,
     serializeResult,
     buildExecutionHistoryInput,
-    createHistoryAwareFeature,
-    installHistoryAwareFeature,
-    createBatchSectionDeletionFeature
+    createBatchSectionDeletionHistoryOperation
 };
