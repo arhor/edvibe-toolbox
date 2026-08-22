@@ -579,8 +579,6 @@ function createBatchLessonAccessFeature({
                 );
             }
             dialog.showComplete(completedResult);
-        } catch (error) {
-            throw error;
         } finally {
             running = false;
         }
