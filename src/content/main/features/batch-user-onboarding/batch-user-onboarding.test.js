@@ -7,7 +7,6 @@ import {
     resolveOnboardingRows
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-planning.js';
 import {
-    buildExecutionHistoryInput,
     formatReport
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-reporting.js';
 import { parseEmailInput } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding.js';
@@ -106,11 +105,6 @@ test('server-rejected grouped additions retain full shared retry diagnostics', a
     assert.equal(result.diagnostics[0].attempts[0].requestSummary.token, 'do-not-store');
     assert.equal(result.diagnostics[0].attempts[0].requestSummary.note, 'x'.repeat(400));
 
-    const history = buildExecutionHistoryInput({
-        marathonId: 1, startedAt: 1, completedAt: 2, result
-    });
-    assert.equal(history.diagnostics.length, 1);
-    assert.equal(history.results[0].data.operations[0].diagnostics.reference, 'add-group');
     assert.match(formatReport(result), /request request-2.*server DUPLICATE.*Already enrolled.*42ms/);
 });
 
@@ -148,8 +142,6 @@ test('curator assignment and operation-wide failures preserve terminal diagnosti
     assert.equal(result.rows[0].assignResult.diagnostics.operation, 'assign_curator');
     assert.equal(result.rows[0].assignResult.diagnostics.attempts[0].requestId, 'assign-1');
     assert.equal(result.fatalError.diagnostics.attempts[0].requestId, 'assign-1');
-    const history = buildExecutionHistoryInput({ marathonId: 1, startedAt: 1, completedAt: 2, result });
-    assert.equal(history.fatalError.diagnostics.attempts[0].method, 'AddModeratorsToPupil');
 });
 
 test('revalidation failures attach diagnostics to rejected operations and fatal error', async () => {

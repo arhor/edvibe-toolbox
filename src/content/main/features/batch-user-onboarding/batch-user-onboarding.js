@@ -9,6 +9,7 @@ import {
     executePlan,
     revalidateRows
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-execution.js';
+import { createRecordedExecution } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-history.js';
 import {
     buildAddRequest,
     buildAssignRequest,
@@ -17,9 +18,7 @@ import {
     resolveOnboardingRows
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-planning.js';
 import {
-    OPERATION_TYPE,
     buildCounts,
-    buildExecutionHistoryInput,
     formatReport,
     inferRowStatus
 } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-reporting.js';
@@ -44,10 +43,10 @@ export function createBatchUserOnboardingFeatureV2({
     operationGuard,
     logger,
     executionHistoryService,
-    dispatch,
     edvibeApi,
     pageContext,
 }) {
+    const historyLogger = logger.createChildLogger('BatchUserOnboardingHistory');
     return createBatchUserOnboardingFeature({
         sendRequest: transport.sendRequest,
         getConnectionState: transport.getConnectionState,
@@ -57,10 +56,12 @@ export function createBatchUserOnboardingFeatureV2({
         }),
         createDialog: () => document.createElement(BATCH_USER_ONBOARDING_DIALOG_TAG),
         copyText: (text) => navigator.clipboard.writeText(text),
-        persistExecution: executionHistoryService.persistTerminal,
-        openHistory: (executionId) => dispatch({
-            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
-            executionId
+        executeOperation: createRecordedExecution({
+            executePlan,
+            persistExecution: executionHistoryService.persistTerminal,
+            getMarathonName: () => pageContext.marathonName,
+            now: () => new Date(),
+            logger: historyLogger
         }),
         getMarathonId: () => pageContext.marathonId,
         getMarathonName: () => pageContext.marathonName,
@@ -82,13 +83,11 @@ function createBatchUserOnboardingFeature({
     sendRequest,
     getConnectionState,
     session,
+    executeOperation = executePlan,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = (text) => navigator.clipboard.writeText(text),
-    persistExecution = async () => Object.freeze({ stored: false }),
-    openHistory = () => { },
     getLocationHref = () => window.location.href,
     getMarathonId = () => parseMarathonId(getLocationHref()),
-    getMarathonName = () => document.querySelector('h1')?.textContent?.trim() || document.title || null,
     getRequestContext = () => ({ host: window.location.hostname }),
     loadPupils = ({ marathonId }) => loadAllPupils({ sendRequest, marathonId }),
     now = () => new Date(),
@@ -156,8 +155,7 @@ function createBatchUserOnboardingFeature({
                     return plan;
                 },
                 async onExecute(plan, onProgress) {
-                    const startedAt = now().toISOString();
-                    const result = await executePlan({
+                    const result = await executeOperation({
                         plan,
                         marathonId,
                         sendRequest,
@@ -168,27 +166,9 @@ function createBatchUserOnboardingFeature({
                         onProgress
                     });
                     const report = formatReport(result);
-                    const completedAt = now().toISOString();
-                    let history;
-                    try {
-                        history = await persistExecution(buildExecutionHistoryInput({
-                            marathonId,
-                            marathonName: getMarathonName(),
-                            startedAt,
-                            completedAt,
-                            result
-                        }));
-                    } catch (persistenceError) {
-                        history = Object.freeze({ stored: false, persistenceError });
-                        logger.log('Batch user onboarding history persistence failed:', persistenceError);
-                    }
-                    return { ...result, report, history };
+                    return { ...result, report };
                 },
                 onCopy: copyText,
-                onOpenHistory(executionId) {
-                    session.close();
-                    openHistory(executionId);
-                },
                 onClose() {
                     session.close();
                 }
@@ -207,11 +187,9 @@ function createBatchUserOnboardingFeature({
 
 export {
     DIALOG_TAG,
-    OPERATION_TYPE,
     buildAddRequest,
     buildAssignRequest,
     buildCounts,
-    buildExecutionHistoryInput,
     buildExecutionPlan,
     batchUserOnboardingFeatureDefinition,
     createBatchUserOnboardingFeature,
