@@ -26,6 +26,8 @@ jobs:
         run: npm ci
       - name: Run ESLint
         run: npm run lint
+      - name: Run TypeScript
+        run: npm run typecheck
       - name: Run test suite
         run: npm test
       - name: Build production extension

@@ -6,6 +6,7 @@ import perfectionist from 'eslint-plugin-perfectionist';
 import { configs as wcConfigs } from 'eslint-plugin-wc';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
     globalIgnores(['dist/']),
@@ -61,13 +62,35 @@ export default defineConfig([
         }
     },
     {
+        name: 'typescript baseline',
+        files: ['**/*.{ts,mts,cts}'],
+        languageOptions: {
+            parser: tseslint.parser,
+        },
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            ...tseslint.configs.recommended[1].rules,
+            ...tseslint.configs.recommended[2].rules,
+            'no-unused-vars': 'off',
+            '@typescript-eslint/no-unused-vars': ['error', {
+                argsIgnorePattern: '^_',
+                caughtErrorsIgnorePattern: '^_',
+                varsIgnorePattern: '^_'
+            }]
+        }
+    },
+    {
         name: 'node scripts and tests',
         files: [
             '**/*.test.js',
+            '**/*.test.ts',
             '**/*test-fixtures.js',
-            'scripts/**/*.{js,mjs,cjs}',
-            'vite.config.mjs',
-            'eslint.config.mjs'
+            '**/*test-fixtures.ts',
+            'scripts/**/*.{js,mjs,cjs,ts,mts,cts}',
+            'vite.config.{js,mjs,ts,mts}',
+            'eslint.config.{js,mjs,ts,mts}'
         ],
         languageOptions: {
             globals: {
@@ -80,7 +103,7 @@ export default defineConfig([
     {
         name: 'shared runtime boundary',
         files: [
-            'src/shared/**/*.js',
+            'src/shared/**/*.{js,ts}',
         ],
         rules: {
             'better-mutation/no-mutating-functions': 'error',
@@ -100,7 +123,7 @@ export default defineConfig([
     {
         name: 'MAIN application boundary',
         files: [
-            'src/content/main/application/**/*.js',
+            'src/content/main/application/**/*.{js,ts}',
         ],
         rules: {
             'no-restricted-imports': ['error', {
@@ -114,7 +137,7 @@ export default defineConfig([
     {
         name: 'MAIN infrastructure boundary',
         files: [
-            'src/content/main/infrastructure/**/*.js',
+            'src/content/main/infrastructure/**/*.{js,ts}',
         ],
         rules: {
             'no-restricted-imports': ['error', {
@@ -129,18 +152,18 @@ export default defineConfig([
         ...litConfigs['flat/recommended'],
         name: 'Lit Components',
         files: [
-            'src/content/main/components/**/*.js',
-            'src/content/main/features/**/*-dialog.js',
-            'src/popup/components/**/*.js',
+            'src/content/main/components/**/*.{js,ts}',
+            'src/content/main/features/**/*-dialog.{js,ts}',
+            'src/popup/components/**/*.{js,ts}',
         ],
     },
     {
         ...wcConfigs['flat/recommended'],
         name: 'Web Components',
         files: [
-            'src/content/main/components/**/*.js',
-            'src/content/main/features/**/*-dialog.js',
-            'src/popup/components/**/*.js',
+            'src/content/main/components/**/*.{js,ts}',
+            'src/content/main/features/**/*-dialog.{js,ts}',
+            'src/popup/components/**/*.{js,ts}',
         ],
     }
 ]);

@@ -11,6 +11,10 @@
         "allowJs": true,
         "checkJs": false,
         "noEmit": true,
+        "isolatedModules": true,
+        "skipLibCheck": true,
+        "verbatimModuleSyntax": true,
+        "erasableSyntaxOnly": true,
         "types": [
             "chrome",
             "node"
@@ -18,12 +22,15 @@
     },
     "include": [
         "src/**/*.js",
+        "src/**/*.ts",
         "scripts/**/*.js",
         "scripts/**/*.mjs",
         "scripts/**/*.cjs",
+        "scripts/**/*.ts",
         "*.js",
         "*.mjs",
-        "*.cjs"
+        "*.cjs",
+        "*.ts"
     ],
     "exclude": [
         "dist",

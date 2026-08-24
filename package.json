@@ -12,7 +12,8 @@
     "build": "vite build",
     "check:build-output": "node scripts/check-build-output.js",
     "lint": "eslint . --fix",
-    "test": "node --test \"src/**/*.test.js\""
+    "test": "node --test \"src/**/*.test.{js,ts}\"",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "jszip": "3.10.1",
@@ -31,6 +32,8 @@
     "eslint-plugin-perfectionist": "5.10.1",
     "eslint-plugin-wc": "3.1.0",
     "globals": "17.9.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.67.0",
     "vite": "8.2.1",
     "vite-plugin-zip-pack": "1.2.4"
   }
