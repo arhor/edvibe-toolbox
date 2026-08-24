@@ -332,6 +332,7 @@ function freezePlan({
 function createBatchLessonAccessFeature({
     sendRequest,
     getConnectionState,
+    executePlan = executeAccessPlan,
     session,
     createDialog = () => document.createElement(BATCH_ACCESS_DIALOG_TAG),
     copyText = async () => {},
@@ -537,7 +538,7 @@ function createBatchLessonAccessFeature({
 
         try {
             try {
-                completedResult = await executeAccessPlan({
+                completedResult = await executePlan({
                     marathonId,
                     requestedEmails: executionPlan.requestedEmails,
                     matchedUsers: executionPlan.matchedUsers,
