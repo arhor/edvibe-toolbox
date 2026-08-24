@@ -49,14 +49,14 @@ npm run build
 npm run check:build-output
 ```
 
-`npm run dev` builds in watch mode. `npm test` and `npm run test:ci` run the colocated Node.js test suite. `npm run build` creates the production extension in `dist/`, and `npm run check:build-output` validates its generated shape and regression budgets.
+`npm run dev` builds in watch mode. `npm test` runs the colocated Node.js test suite. `npm run build` creates the production extension in `dist/`, and `npm run check:build-output` validates its generated shape and regression budgets.
 
 For manual browser validation, load `dist/` with Chrome's **Load unpacked** action. Rebuild and reload the extension card before testing changed workflows.
 
 ## Build And Generated Files
 
 - Source files are authoritative. Never hand-edit files under `dist/`.
-- Pull requests are validated with `npm ci`, linting, `npm run test:ci`, a production build, and the build-output check.
+- Pull requests are validated with `npm ci`, linting, `npm test`, a production build, and the build-output check.
 - PR authors do not need to commit regenerated `dist/` output.
 - After a successful source change reaches `master`, CI rebuilds and synchronizes `dist/` only when generated output changed.
 - Runtime libraries are npm dependencies imported from source and bundled by Vite. Do not add copied/minified vendor files as an alternative dependency mechanism.

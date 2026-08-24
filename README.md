@@ -86,12 +86,11 @@ Tests are colocated with the source modules they cover and use kebab-case names 
 ```bash
 npm run lint
 npm test
-npm run test:ci
 npm run build
 npm run check:build-output
 ```
 
-`npm run test:ci` currently runs the same Node.js suite as `npm test`. GitHub Actions is the authoritative validation environment.
+GitHub Actions is the authoritative validation environment.
 
 Tests should protect observable behavior and runtime contracts rather than source text or directory shape. In particular, messaging tests should validate popup ↔ ISOLATED ↔ MAIN contracts, while `npm run check:build-output` remains responsible for generated extension structure and bundle budgets.
 

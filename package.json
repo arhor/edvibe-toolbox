@@ -12,8 +12,7 @@
     "build": "vite build",
     "check:build-output": "node scripts/check-build-output.js",
     "lint": "eslint . --fix",
-    "test": "node --test \"src/**/*.test.js\"",
-    "test:ci": "npm test"
+    "test": "node --test \"src/**/*.test.js\""
   },
   "dependencies": {
     "jszip": "3.10.1",
