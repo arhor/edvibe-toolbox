@@ -14,10 +14,10 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-export const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
-export const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
+const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
+const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
 
-export class BatchUserManagementDialog extends LitElement {
+class BatchUserManagementDialog extends LitElement {
     static styles = [
         componentFoundationStyles,
         dialogFoundationStyles,
@@ -338,18 +338,48 @@ export class BatchUserManagementDialog extends LitElement {
                         </section>
                     </div>
                     <div class="edvibe-batch-user-management-live-region">
-                        <p class=${statusClass} data-part="status" role="status" aria-live="polite">${this.statusMessage}</p>
-                        <progress class="edvibe-batch-user-management-progress" data-part="progress" max=${this.progress.total}
-                            value=${this.progress.completed} ?hidden=${!this.progress.visible}></progress>
+                        <p class=${statusClass} data-part="status" role="status" aria-live="polite">
+                            ${this.statusMessage}
+                        </p>
+                        <progress
+                            class="edvibe-batch-user-management-progress" 
+                            data-part="progress" 
+                            max=${this.progress.total} 
+                            value=${this.progress.completed} 
+                            ?hidden=${!this.progress.visible}
+                        ></progress>
                     </div>
                     <footer class="edvibe-batch-user-management-footer" data-part="actions">
-                        <button class="edvibe-batch-user-management-restart" data-control="secondary" type="button" ?hidden=${!completed}
-                            ?disabled=${!completed} @click=${this.handleRestart}>Запустить другую группу</button>
-                        <button class="edvibe-batch-user-management-start" data-control type="button" ?hidden=${this.mode !== 'review'}
-                            ?disabled=${!this.canStart()} @click=${this.handleStart}>Начать обработку</button>
-                        <button class="edvibe-batch-user-management-check" data-control type="button"
-                            ?hidden=${!['configure', 'validation-error'].includes(this.mode)} ?disabled=${!this.canCheck()}
-                            @click=${this.handleCheck}>Проверить пользователей</button>
+                        <button
+                            class="edvibe-batch-user-management-restart" 
+                            data-control="secondary" 
+                            type="button" 
+                            ?hidden=${!completed}
+                            ?disabled=${!completed} 
+                            @click=${this.handleRestart}
+                        >
+                            Запустить другую группу
+                        </button>
+                        <button
+                            class="edvibe-batch-user-management-start" 
+                            data-control 
+                            type="button" 
+                            ?hidden=${this.mode !== 'review'}
+                            ?disabled=${!this.canStart()} 
+                            @click=${this.handleStart}
+                        >
+                            Начать обработку
+                        </button>
+                        <button
+                            class="edvibe-batch-user-management-check" 
+                            data-control 
+                            type="button"
+                            ?hidden=${!['configure', 'validation-error'].includes(this.mode)} 
+                            ?disabled=${!this.canCheck()}
+                            @click=${this.handleCheck}
+                        >
+                            Проверить пользователей
+                        </button>
                     </footer>
                 </section>
             </div>
@@ -358,3 +388,5 @@ export class BatchUserManagementDialog extends LitElement {
 }
 
 customElements.define(USER_MANAGEMENT_DIALOG_TAG, BatchUserManagementDialog);
+
+export { USER_MANAGEMENT_DIALOG_TAG, USER_MANAGEMENT_OVERLAY_ID, BatchUserManagementDialog };

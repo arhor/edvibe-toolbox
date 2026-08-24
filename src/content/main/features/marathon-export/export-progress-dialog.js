@@ -110,8 +110,6 @@ class ExportProgressDialog extends LitElement {
     }
 }
 
-if (!customElements.get(EXPORT_PROGRESS_TAG)) {
-    customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
-}
+customElements.define(EXPORT_PROGRESS_TAG, ExportProgressDialog);
 
 export { EXPORT_PROGRESS_TAG, ExportProgressDialog };

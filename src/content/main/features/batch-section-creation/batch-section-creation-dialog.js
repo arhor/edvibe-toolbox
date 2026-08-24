@@ -622,8 +622,6 @@ class BatchSectionCreationDialog extends LitElement {
     }
 }
 
-if (!customElements.get(BATCH_SECTION_DIALOG_TAG)) {
-    customElements.define(BATCH_SECTION_DIALOG_TAG, BatchSectionCreationDialog);
-}
+customElements.define(BATCH_SECTION_DIALOG_TAG, BatchSectionCreationDialog);
 
-export {BatchSectionCreationDialog, BATCH_SECTION_DIALOG_TAG, BATCH_SECTION_OVERLAY_ID};
+export { BatchSectionCreationDialog, BATCH_SECTION_DIALOG_TAG, BATCH_SECTION_OVERLAY_ID };

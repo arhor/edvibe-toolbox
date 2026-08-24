@@ -4,7 +4,9 @@ import { popupToolCardStyles } from '#src/popup/components/popup-tool-card.style
 import { getToolViewModel } from '#src/popup/popup-model.js';
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
 
-export class PopupToolCard extends LitElement {
+const POPUP_TOOL_CARD_TAG = 'popup-tool-card';
+
+class PopupToolCard extends LitElement {
     static styles = [
         popupElementStyles,
         popupToolCardStyles,
@@ -78,4 +80,6 @@ export class PopupToolCard extends LitElement {
     }
 }
 
-customElements.define('popup-tool-card', PopupToolCard);
+customElements.define(POPUP_TOOL_CARD_TAG, PopupToolCard);
+
+export { POPUP_TOOL_CARD_TAG, PopupToolCard };

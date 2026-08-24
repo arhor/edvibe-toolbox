@@ -4,7 +4,9 @@ import { popupToolGroupStyles } from '#src/popup/components/popup-tool-group.sty
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
 import '#src/popup/components/popup-tool-card.js';
 
-export class PopupToolGroup extends LitElement {
+const POPUP_TOOL_GROUP_TAG = 'popup-tool-group';
+
+class PopupToolGroup extends LitElement {
     static styles = [
         popupElementStyles,
         popupToolGroupStyles,
@@ -44,4 +46,6 @@ export class PopupToolGroup extends LitElement {
     }
 }
 
-customElements.define('popup-tool-group', PopupToolGroup);
+customElements.define(POPUP_TOOL_GROUP_TAG, PopupToolGroup);
+
+export { POPUP_TOOL_GROUP_TAG, PopupToolGroup };

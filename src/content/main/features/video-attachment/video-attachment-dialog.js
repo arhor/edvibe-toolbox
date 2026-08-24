@@ -425,8 +425,6 @@ class VideoAttachmentDialog extends LitElement {
     }
 }
 
-if (!customElements.get(VIDEO_ATTACHMENT_DIALOG_TAG)) {
-    customElements.define(VIDEO_ATTACHMENT_DIALOG_TAG, VideoAttachmentDialog);
-}
+customElements.define(VIDEO_ATTACHMENT_DIALOG_TAG, VideoAttachmentDialog);
 
 export { VIDEO_ATTACHMENT_DIALOG_TAG, VideoAttachmentDialog };

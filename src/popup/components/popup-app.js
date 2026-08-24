@@ -50,7 +50,9 @@ function subscribeToExportStatus(listener) {
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
 }
 
-export class PopupApp extends LitElement {
+const POPUP_APP_TAG = 'popup-app';
+
+class PopupApp extends LitElement {
     static styles = [
         popupElementStyles,
         popupAppStyles,
@@ -219,4 +221,6 @@ export class PopupApp extends LitElement {
     }
 }
 
-customElements.define('popup-app', PopupApp);
+customElements.define(POPUP_APP_TAG, PopupApp);
+
+export { POPUP_APP_TAG, PopupApp };

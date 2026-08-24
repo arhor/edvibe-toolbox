@@ -4,10 +4,10 @@ import { actionRecorderDialogStyles } from '#src/content/main/features/action-re
 import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import { controlStyles, dialogShellStyles, emptyStateStyles, fieldStyles, noticeStyles } from '#src/content/main/styles/primitives.js';
 
-export const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
-export const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
+const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
+const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
 
-export class ActionRecorderDialog extends LitElement {
+class ActionRecorderDialog extends LitElement {
     static styles = [
         componentFoundationStyles,
         dialogFoundationStyles,
@@ -298,3 +298,5 @@ export class ActionRecorderDialog extends LitElement {
 }
 
 customElements.define(RECORDER_DIALOG_TAG, ActionRecorderDialog);
+
+export { RECORDER_DIALOG_TAG, RECORDER_DIALOG_ID, ActionRecorderDialog };

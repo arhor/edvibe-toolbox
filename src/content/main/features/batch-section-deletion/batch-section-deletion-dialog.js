@@ -170,9 +170,11 @@ class BatchSectionDeletionDialog extends LitElement {
     renderPlanGroup(title, items, formatter) {
         return html`
             <h4>${title}</h4>
-            <ul>${items.length
-                ? items.map((item) => html`<li>${formatter(item)}</li>`)
-                : html`<li>None</li>`}</ul>
+            <ul>
+                ${items.length
+                    ? items.map((item) => html`<li>${formatter(item)}</li>`)
+                    : html`<li>None</li>`}
+            </ul>
         `;
     }
 
@@ -184,14 +186,21 @@ class BatchSectionDeletionDialog extends LitElement {
             <section class="preflight" data-notice>
                 <h3>Preflight</h3>
                 <dl>
-                    <div><dt>Selected</dt><dd>${this.plan.selectedCount}</dd></div>
-                    <div><dt>Eligible</dt><dd>${this.plan.eligible.length}</dd></div>
-                    <div><dt>Rejected</dt><dd>${this.plan.rejected.length}</dd></div>
+                    <div>
+                        <dt>Selected</dt>
+                        <dd>${this.plan.selectedCount}</dd>
+                    </div>
+                    <div>
+                        <dt>Eligible</dt>
+                        <dd>${this.plan.eligible.length}</dd>
+                    </div>
+                    <div>
+                        <dt>Rejected</dt>
+                        <dd>${this.plan.rejected.length}</dd>
+                    </div>
                 </dl>
-                ${this.renderPlanGroup('Will delete', this.plan.eligible,
-                    (item) => `#${item.number} ${item.name} → section ${item.sectionId}`)}
-                ${this.renderPlanGroup('Will not modify', this.plan.rejected,
-                    (item) => `#${item.number} ${item.name}: ${item.code} — ${item.message}`)}
+                ${this.renderPlanGroup('Will delete', this.plan.eligible, (item) => `#${item.number} ${item.name} → section ${item.sectionId}`)}
+                ${this.renderPlanGroup('Will not modify', this.plan.rejected, (item) => `#${item.number} ${item.name}: ${item.code} — ${item.message}`)}
             </section>
         `;
     }
@@ -203,20 +212,31 @@ class BatchSectionDeletionDialog extends LitElement {
             <div class="overlay" data-part="overlay">
                 <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="title">
                     <header>
-                        <div><h2 id="title">Delete section from lessons</h2><p>Every lesson is inspected before any deletion.</p></div>
-                        <button class="icon close" data-control="secondary" type="button" aria-label="Close" ?disabled=${this.busy}
-                            @click=${() => this.close()}>×</button>
+                        <div>
+                            <h2 id="title">Delete section from lessons</h2>
+                            <p>Every lesson is inspected before any deletion.</p>
+                        </div>
+                        <button class="icon close" data-control="secondary" type="button" aria-label="Close" ?disabled=${this.busy} @click=${() => this.close()}>
+                            ×
+                        </button>
                     </header>
                     <main>
-                        <label data-field>Exact section name<input class="section-name" type="text" autocomplete="off"
-                            placeholder="Ogłoszenie" .value=${this.sectionName} ?disabled=${this.busy}
-                            @input=${(event) => {
+                        <label data-field>
+                            Exact section name
+                            <input class="section-name" type="text" autocomplete="off" placeholder="Ogłoszenie" .value=${this.sectionName} ?disabled=${this.busy} @input=${(event) => {
                                 this.sectionName = event.currentTarget.value; 
-                            }}></label>
+                            }}>
+                        </label>
                         <div class="toolbar" data-part="actions">
-                            <button class="select-all" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.selectAll}>Select all</button>
-                            <button class="clear" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.clearSelection}>Clear</button>
-                            <span class="selection">${this.selectedLessonIds.size} selected</span>
+                            <button class="select-all" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.selectAll}>
+                                Select all
+                            </button>
+                            <button class="clear" data-control="secondary" type="button" ?disabled=${this.busy} @click=${this.clearSelection}>
+                                Clear
+                            </button>
+                            <span class="selection">
+                                ${this.selectedLessonIds.size} selected
+                            </span>
                         </div>
                         <div class="lessons">
                             ${lessons.map((lesson) => html`
@@ -232,22 +252,30 @@ class BatchSectionDeletionDialog extends LitElement {
                         <div class="status" data-notice ?hidden=${!this.statusVisible}>${this.statusMessage}</div>
                         ${this.renderPlan()}
                         <section class="result" ?hidden=${!this.resultVisible}>
-                            <label data-field><span>Report</span><textarea readonly .value=${this.resultReport}></textarea></label>
+                            <label data-field>
+                                <span>Report</span>
+                                <textarea readonly .value=${this.resultReport}></textarea>
+                            </label>
                             <div class="result-actions" data-part="actions">
-                                <button class="copy" data-control="secondary" type="button" ?disabled=${this.busy}
-                                    @click=${() => this.options?.onCopy?.(this.resultReport)}>Copy report</button>
-                                <button class="history" data-control type="button" ?hidden=${!this.executionId}
-                                    ?disabled=${this.busy} @click=${this.openHistory}>Open in history</button>
+                                <button class="copy" data-control="secondary" type="button" ?disabled=${this.busy} @click=${() => this.options?.onCopy?.(this.resultReport)}>
+                                    Copy report
+                                </button>
+                                <button class="history" data-control type="button" ?hidden=${!this.executionId} ?disabled=${this.busy} @click=${this.openHistory}>
+                                    Open in history
+                                </button>
                             </div>
                         </section>
                     </main>
                     <footer data-part="actions">
-                        <button class="secondary close" data-control="secondary" type="button" ?disabled=${this.busy}
-                            @click=${() => this.close()}>Cancel</button>
-                        <button class="inspect" data-control type="button" ?hidden=${this.resultVisible} ?disabled=${this.busy}
-                            @click=${this.inspect}>${this.plan ? 'Run preflight again' : 'Inspect selected lessons'}</button>
-                        <button class="danger execute" data-control="danger" type="button" ?hidden=${!canExecute} ?disabled=${this.busy}
-                            @click=${this.execute}>Confirm deletion</button>
+                        <button class="secondary close" data-control="secondary" type="button" ?disabled=${this.busy} @click=${() => this.close()}>
+                            Cancel
+                        </button>
+                        <button class="inspect" data-control type="button" ?hidden=${this.resultVisible} ?disabled=${this.busy} @click=${this.inspect}>
+                            ${this.plan ? 'Run preflight again' : 'Inspect selected lessons'}
+                        </button>
+                        <button class="danger execute" data-control="danger" type="button" ?hidden=${!canExecute} ?disabled=${this.busy} @click=${this.execute}>
+                            Confirm deletion
+                        </button>
                     </footer>
                 </section>
             </div>
@@ -255,8 +283,6 @@ class BatchSectionDeletionDialog extends LitElement {
     }
 }
 
-if (!customElements.get(BATCH_SECTION_DELETION_DIALOG_TAG)) {
-    customElements.define(BATCH_SECTION_DELETION_DIALOG_TAG, BatchSectionDeletionDialog);
-}
+customElements.define(BATCH_SECTION_DELETION_DIALOG_TAG, BatchSectionDeletionDialog);
 
-export {BATCH_SECTION_DELETION_DIALOG_TAG, BatchSectionDeletionDialog};
+export { BATCH_SECTION_DELETION_DIALOG_TAG, BatchSectionDeletionDialog };
