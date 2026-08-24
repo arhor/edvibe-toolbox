@@ -1,6 +1,6 @@
 import { createFeatureSession } from '#src/content/main/application/feature-session.js';
 import { BATCH_SECTION_DIALOG_TAG } from '#src/content/main/features/batch-section-creation/batch-section-creation-dialog.js';
-import { createHistoryAwareDialog } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
+import { createRecordedExecution } from '#src/content/main/features/batch-section-creation/batch-section-creation-history.js';
 import { createImageUploadCreationAdapter, dynamicImageRecipe } from '#src/content/main/features/batch-section-creation/batch-section-image-upload.js';
 import { createFeatureError, parseMarathonId } from '#src/content/main/features/batch-workflow-primitives.js';
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
@@ -544,20 +544,16 @@ export function createBatchSectionCreationFeatureV2({
     operationGuard,
     logger,
     executionHistoryService,
-    dispatch,
 }) {
-    const createBatchSectionCreationDialog = createHistoryAwareDialog({
-        createDialog: () => document.createElement(BATCH_SECTION_DIALOG_TAG),
+    const historyLogger = logger.createChildLogger('BatchSectionCreationHistory');
+    const recordedExecution = createRecordedExecution({
+        executePlan: executeCreationPlan,
         persistExecution: executionHistoryService.persistTerminal,
-        openHistory: (executionId) => dispatch({
-            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
-            executionId
-        }),
-        getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
-        logger: logger.createChildLogger('BatchSectionCreationHistory')
+        now: () => new Date(),
+        logger: historyLogger
     });
 
     const batchSectionCreationAdapter = createImageUploadCreationAdapter({
@@ -573,7 +569,8 @@ export function createBatchSectionCreationFeatureV2({
             operationName: 'batch-section-creation'
         }),
         adapter: batchSectionCreationAdapter,
-        createDialog: createBatchSectionCreationDialog,
+        executePlan: recordedExecution,
+        createDialog: () => document.createElement(BATCH_SECTION_DIALOG_TAG),
         copyText: (text) => navigator.clipboard.writeText(text),
         logger: logger.createChildLogger('BatchSectionCreation')
     });
@@ -592,6 +589,7 @@ function createBatchSectionCreationFeature({
     getConnectionState,
     session,
     adapter,
+    executePlan = executeCreationPlan,
     createDialog = () => document.createElement(DIALOG_TAG),
     copyText = async () => { },
     logger = { log() {} }
@@ -656,7 +654,7 @@ function createBatchSectionCreationFeature({
         }
         running = true;
         try {
-            completedResult = await executeCreationPlan({
+            completedResult = await executePlan({
                 marathonId,
                 plan: pendingPlan,
                 adapter,
