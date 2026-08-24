@@ -1,27 +1,123 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { serializeResult } from '#src/content/main/features/batch-section-deletion/batch-section-deletion-history.js';
-import { buildExecutionHistoryInput as buildLegacyHistory } from '#src/content/main/features/batch-section-deletion/batch-section-deletion.js';
-function attempt(correlationId, requestId, transportCode = 'SERVER_REJECTED') {
-    return { correlationId, operationName: 'write', controller: 'C', method: 'POST', projectName: 'P', requestId, attemptNumber: 1, startedAt: '2026-01-01T00:00:00.000Z', completedAt: null, durationMs: null, outcome: 'failure', transportCode, serverErrorCode: 'DENIED', serverErrorMessage: null, requestSummary: null, responseSummary: null };
+import {
+    buildExecutionHistoryInput,
+    createRecordedExecution
+} from '#src/content/main/features/batch-section-deletion/batch-section-deletion-history.js';
+
+function clock(...timestamps) {
+    let index = 0;
+    return () => new Date(timestamps[index++]);
 }
-test('preserves server rejection and transport failure diagnostics for deletion requests', () => {
-    for (const [code, id] of [['SERVER_REJECTED', 'reject-1'], ['REQUEST_TIMEOUT', 'timeout-2']]) {
-        const result = serializeResult({ lessonId: 1, number: 1, name: 'L', status: 'failed', code, attempts: 1, diagnostics: { requestAttempts: [attempt('lesson:1', id, code)] } }, { sectionName: 'S' }, null);
-        assert.equal(result.diagnostics.requestAttempts[0].requestId, id);
-    }
+
+test('buildExecutionHistoryInput should record one successful function call when execution returns', () => {
+    // Given
+    const plan = {
+        sectionName: 'Introduction',
+        eligible: [{ lessonId: 1, sectionId: 7 }],
+        rejected: []
+    };
+    const parameters = {
+        plan,
+        requestDelayMs: 100,
+        sendRequest() {},
+        onProgress() {}
+    };
+    const result = { plan, results: [{ lessonId: 1, status: 'deleted' }], fatalError: null };
+
+    // When
+    const record = buildExecutionHistoryInput({
+        parameters,
+        result,
+        startedAt: '2026-01-01T00:00:00.000Z',
+        completedAt: '2026-01-01T00:00:01.000Z',
+        marathonId: '42',
+        marathonName: 'Marathon'
+    });
+
+    // Then
+    assert.equal(record.status, 'completed');
+    assert.equal(record.results.length, 1);
+    assert.deepEqual(record.results[0].data, {
+        parameters: { plan, requestDelayMs: 100 },
+        result
+    });
 });
 
-test('the legacy builder converts a transport error and correlates it to its lesson', () => {
-    const error = Object.assign(new Error('timeout'), { code: 'REQUEST_TIMEOUT', diagnostics: {
-        request: { controller: 'C', method: 'POST', requestId: 'legacy-timeout', startedAt: 1 }
-    } });
-    const entry = { lessonId: 9, number: 1, name: 'L', status: 'failed', code: error.code,
-        message: error.message, diagnosticObservations: [error] };
-    const record = buildLegacyHistory({ marathonId: '1', startedAt: '2026-01-01T00:00:00.000Z',
-        completedAt: '2026-01-01T00:00:01.000Z', result: { plan: { selectedCount: 1,
-            eligible: [entry], sectionName: 'S' }, results: [entry], fatalError: null } });
-    assert.equal(record.results[0].diagnostics.requestAttempts[0].requestId, 'legacy-timeout');
-    assert.equal(record.results[0].diagnostics.requestAttempts[0].correlationId, 'delete-section:9');
+test('buildExecutionHistoryInput should record one failed function call when execution throws', () => {
+    // Given
+    const error = Object.assign(new Error('Stopped'), {
+        code: 'INTERNAL_ERROR',
+        partialResult: { results: [{ lessonId: 1, status: 'not_attempted' }] }
+    });
+
+    // When
+    const record = buildExecutionHistoryInput({
+        parameters: { plan: { eligible: [], rejected: [] } },
+        error,
+        startedAt: '2026-01-01T00:00:00.000Z',
+        completedAt: '2026-01-01T00:00:01.000Z',
+        marathonId: '42'
+    });
+
+    // Then
+    assert.equal(record.status, 'interrupted');
+    assert.equal(record.counts.failed, 1);
+    assert.deepEqual(record.results[0].data.error, {
+        name: 'Error',
+        code: 'INTERNAL_ERROR',
+        message: 'Stopped',
+        partialResult: error.partialResult
+    });
+});
+
+test('recorded execution should persist only after executePlan returns', async () => {
+    // Given
+    const events = [];
+    const parameters = { plan: { eligible: [], rejected: [] } };
+    const result = { results: [] };
+    const execute = createRecordedExecution({
+        executeOperation: async (received) => {
+            events.push(['execute', received]);
+            return result;
+        },
+        persistExecution: async (record) => events.push(['persist', record]),
+        getMarathonId: () => '42',
+        getMarathonName: () => 'Marathon',
+        now: clock('2026-01-01T00:00:00.000Z', '2026-01-01T00:00:01.000Z'),
+        logger: { log() {} }
+    });
+
+    // When
+    const actual = await execute(parameters);
+
+    // Then
+    assert.equal(actual, result);
+    assert.deepEqual(events.map(([event]) => event), ['execute', 'persist']);
+    assert.equal(events[1][1].results[0].data.result, result);
+});
+
+test('recorded execution should persist the thrown error and preserve rejection when executePlan fails', async () => {
+    // Given
+    const records = [];
+    const error = Object.assign(new Error('Stopped'), { code: 'INTERNAL_ERROR' });
+    const execute = createRecordedExecution({
+        executeOperation: async () => {
+            throw error;
+        },
+        persistExecution: async (record) => records.push(record),
+        getMarathonId: () => '42',
+        getMarathonName: () => null,
+        now: clock('2026-01-01T00:00:00.000Z', '2026-01-01T00:00:01.000Z'),
+        logger: { log() {} }
+    });
+
+    // When
+    const rejection = await execute({ plan: {} }).catch((caught) => caught);
+
+    // Then
+    assert.equal(rejection, error);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].results[0].data.error.code, 'INTERNAL_ERROR');
 });
