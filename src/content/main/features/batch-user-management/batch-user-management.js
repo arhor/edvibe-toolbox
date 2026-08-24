@@ -11,7 +11,7 @@ import { loadAllPupils } from '#src/content/main/infrastructure/edvibe-marathon-
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 import { USER_MANAGEMENT_DIALOG_TAG, USER_MANAGEMENT_OVERLAY_ID } from '#src/content/main/features/batch-user-management/batch-user-management-dialog.js';
-import { createHistoryAwareDialog } from '#src/content/main/features/batch-user-management/batch-user-management-history.js';
+import { createRecordedExecution } from '#src/content/main/features/batch-user-management/batch-user-management-history.js';
 
 function parseEmailInput(value) {
     return parseSharedEmailInput(value, { includeItems: true });
@@ -316,20 +316,16 @@ export function createBatchUserManagementFeatureV2({
     operationGuard,
     logger,
     executionHistoryService,
-    dispatch,
 }) {
-    const createBatchUserManagementDialog = createHistoryAwareDialog({
-        createDialog: () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
+    const historyLogger = logger.createChildLogger('BatchUserManagementHistory');
+    const recordedExecution = createRecordedExecution({
+        executePlan: executeUserPlan,
         persistExecution: executionHistoryService.persistTerminal,
-        openHistory: (executionId) => dispatch({
-            type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
-            executionId
-        }),
-        getLocationHref: () => window.location.href,
         getMarathonName: () => document.querySelector('h1')?.textContent?.trim()
             || document.title
             || null,
-        logger: logger.createChildLogger('BatchUserManagementHistory')
+        now: () => new Date(),
+        logger: historyLogger
     });
 
     return createBatchUserManagementFeature({
@@ -339,7 +335,8 @@ export function createBatchUserManagementFeatureV2({
             operationGuard,
             operationName: 'batch-user-management'
         }),
-        createDialog: createBatchUserManagementDialog,
+        executePlan: recordedExecution,
+        createDialog: () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
         logger: logger.createChildLogger('BatchUserManagement')
     });
 }
@@ -356,6 +353,7 @@ function createBatchUserManagementFeature({
     sendRequest,
     getConnectionState,
     session,
+    executePlan = executeUserPlan,
     createDialog = () => document.createElement(USER_MANAGEMENT_DIALOG_TAG),
     logger = { log() {} }
 }) {
@@ -468,7 +466,7 @@ function createBatchUserManagementFeature({
 
         running = true;
         try {
-            const result = await executeUserPlan({
+            const result = await executePlan({
                 marathonId,
                 rows: selectedRows,
                 sendRequest,
