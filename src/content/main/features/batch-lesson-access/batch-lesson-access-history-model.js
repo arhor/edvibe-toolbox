@@ -2,14 +2,6 @@ import * as batchAccessApi from '#src/content/main/features/batch-lesson-access/
 
 const OPERATION_TYPE = 'batch_lesson_access';
 
-function freezeObject(value) {
-    return Object.freeze({ ...value });
-}
-
-function freezeItems(items) {
-    return Object.freeze(items.map((item) => freezeObject(item)));
-}
-
 function normalizeEmail(value) {
     return String(value || '').trim().toLowerCase();
 }
@@ -23,21 +15,21 @@ function getMarathonPupilId(pupil) {
 }
 
 function serializePupil(pupil) {
-    return freezeObject({
+    return {
         email: String(pupil?.Email || '').trim() || null,
         pupilId: getPupilId(pupil),
         marathonPupilId: getMarathonPupilId(pupil)
-    });
+    };
 }
 
 function serializeLesson(lesson) {
     const number = Number(lesson?.Number);
-    return freezeObject({
+    return {
         marathonLessonId: lesson?.MarathonLessonId ?? null,
         lessonNumber: Number.isFinite(number) ? number + 1 : null,
         lessonName: String(lesson?.Name || '').trim() || null,
         isOpen: typeof lesson?.IsOpen === 'boolean' ? lesson.IsOpen : null
-    });
+    };
 }
 
 function splitSubmittedInputs(value) {
@@ -53,9 +45,9 @@ function splitSubmittedInputs(value) {
             continue;
         }
         seen.add(normalizedEmail);
-        entries.push(freezeObject({ submittedInput, normalizedEmail }));
+        entries.push({ submittedInput, normalizedEmail });
     }
-    return Object.freeze(entries);
+    return entries;
 }
 
 function lessonKey(email, marathonLessonId) {
@@ -67,7 +59,7 @@ function attemptKey(marathonPupilId, marathonLessonId) {
 }
 
 function serializeError(error, fallbackCode, fallbackMessage) {
-    return freezeObject({
+    return {
         code: typeof error?.code === 'string' ? error.code : fallbackCode,
         message: String(error?.message || fallbackMessage),
         email: String(error?.email || '').trim() || null,
@@ -76,7 +68,7 @@ function serializeError(error, fallbackCode, fallbackMessage) {
         attempts: Number.isInteger(error?.attempts) ? error.attempts : 0,
         type: typeof error?.type === 'string' ? error.type : null,
         count: Number.isInteger(error?.count) ? error.count : null
-    });
+    };
 }
 
 function createCapture() {
@@ -143,7 +135,7 @@ function buildIdentityResolution({ submittedEmailInput, pupils }) {
     return submitted.map((entry) => {
         if (malformed.has(entry.normalizedEmail)) {
             const invalid = malformed.get(entry.normalizedEmail);
-            return freezeObject({
+            return {
                 ...entry,
                 resolution: 'malformed',
                 resolvedEmail: null,
@@ -152,11 +144,11 @@ function buildIdentityResolution({ submittedEmailInput, pupils }) {
                 code: invalid.code,
                 message: invalid.message,
                 offendingCharacters: invalid.offendingCharacters
-            });
+            };
         }
         const candidates = pupilsByEmail.get(entry.normalizedEmail) || [];
         if (candidates.length === 0) {
-            return freezeObject({
+            return {
                 ...entry,
                 resolution: 'missing',
                 resolvedEmail: null,
@@ -164,10 +156,10 @@ function buildIdentityResolution({ submittedEmailInput, pupils }) {
                 marathonPupilId: null,
                 code: 'USER_NOT_FOUND',
                 message: `No marathon pupil found for ${entry.submittedInput}.`
-            });
+            };
         }
         if (candidates.length > 1) {
-            return freezeObject({
+            return {
                 ...entry,
                 resolution: 'ambiguous',
                 resolvedEmail: null,
@@ -175,10 +167,10 @@ function buildIdentityResolution({ submittedEmailInput, pupils }) {
                 marathonPupilId: null,
                 code: 'USER_AMBIGUOUS',
                 message: `Multiple marathon pupils found for ${entry.submittedInput}.`
-            });
+            };
         }
         const pupil = candidates[0];
-        return freezeObject({
+        return {
             ...entry,
             resolution: 'matched',
             resolvedEmail: pupil.email,
@@ -186,20 +178,20 @@ function buildIdentityResolution({ submittedEmailInput, pupils }) {
             marathonPupilId: pupil.marathonPupilId,
             code: null,
             message: null
-        });
+        };
     });
 }
 
 function selectedLessonMetadata(selectedLessonIds, lessonCatalogue) {
     const byId = new Map(lessonCatalogue.map((lesson) => [lesson.marathonLessonId, lesson]));
-    return freezeItems(selectedLessonIds.map((marathonLessonId) => {
+    return selectedLessonIds.map((marathonLessonId) => {
         const lesson = byId.get(marathonLessonId);
         return {
             marathonLessonId,
             lessonNumber: lesson?.lessonNumber ?? null,
             lessonName: lesson?.lessonName || `Lesson ${marathonLessonId}`
         };
-    }));
+    });
 }
 
 function findDiscoveryError(errors, identity) {
@@ -220,11 +212,11 @@ function buildObservedPlan({
 }) {
     const identities = buildIdentityResolution({ submittedEmailInput, pupils });
     const selectedLessons = selectedLessonMetadata(selectedLessonIds, lessonCatalogue);
-    const serializedErrors = freezeItems(errors.map((error) => serializeError(
+    const serializedErrors = errors.map((error) => serializeError(
         error,
         'LESSON_ACCESS_PREFLIGHT_FAILED',
         'The lesson-access preflight failed.'
-    )));
+    ));
     const matrix = [];
     const discoveryFailures = [];
     const representedErrorCodes = new Set([
@@ -241,7 +233,7 @@ function buildObservedPlan({
             && error.marathonLessonId === null
             && !error.type
             && !representedErrorCodes.has(error.code))
-        .map((error) => freezeObject({
+        .map((error) => ({
             code: error.code,
             message: error.message,
             attempts: error.attempts,
@@ -256,7 +248,7 @@ function buildObservedPlan({
         if (!Array.isArray(lessons)) {
             const source = findDiscoveryError(serializedErrors, identity);
             if (source) {
-                discoveryFailures.push(freezeObject({
+                discoveryFailures.push({
                     submittedEmail: identity.submittedInput,
                     resolvedEmail: identity.resolvedEmail,
                     pupilId: identity.pupilId,
@@ -264,10 +256,10 @@ function buildObservedPlan({
                     code: source.code || 'LESSON_STATE_DISCOVERY_FAILED',
                     message: source.message || `Could not load lesson access for ${identity.resolvedEmail}.`,
                     attempts: source.attempts || 0
-                }));
+                });
             }
             for (const selected of selectedLessons) {
-                matrix.push(freezeObject({
+                matrix.push({
                     ...identity,
                     ...selected,
                     preflightAccessState: 'unknown',
@@ -276,7 +268,7 @@ function buildObservedPlan({
                     message: source
                         ? 'The lesson state could not be loaded, so this combination was not attempted.'
                         : 'Validation stopped before this confirmed user and lesson combination could be prepared.'
-                }));
+                });
             }
             continue;
         }
@@ -291,30 +283,30 @@ function buildObservedPlan({
         for (const selected of selectedLessons) {
             const states = matchingByLessonId.get(selected.marathonLessonId) || [];
             if (states.length === 0) {
-                matrix.push(freezeObject({
+                matrix.push({
                     ...identity,
                     ...selected,
                     preflightAccessState: 'unknown',
                     plannedOutcome: 'rejected',
                     code: 'LESSON_NOT_RETURNED',
                     message: `Lesson ${selected.marathonLessonId} was not returned for ${identity.resolvedEmail}.`
-                }));
+                });
                 continue;
             }
             if (states.length > 1) {
-                matrix.push(freezeObject({
+                matrix.push({
                     ...identity,
                     ...selected,
                     preflightAccessState: 'unknown',
                     plannedOutcome: 'rejected',
                     code: 'LESSON_STATE_AMBIGUOUS',
                     message: `Multiple lesson states were returned for lesson ${selected.marathonLessonId}.`
-                }));
+                });
                 continue;
             }
             const state = states[0];
             if (typeof state.isOpen !== 'boolean') {
-                matrix.push(freezeObject({
+                matrix.push({
                     ...identity,
                     ...selected,
                     lessonNumber: state.lessonNumber ?? selected.lessonNumber,
@@ -323,10 +315,10 @@ function buildObservedPlan({
                     plannedOutcome: 'rejected',
                     code: 'INVALID_ACCESS_STATE',
                     message: `Lesson ${selected.marathonLessonId} returned an invalid access state.`
-                }));
+                });
                 continue;
             }
-            matrix.push(freezeObject({
+            matrix.push({
                 ...identity,
                 ...selected,
                 lessonNumber: state.lessonNumber ?? selected.lessonNumber,
@@ -335,23 +327,22 @@ function buildObservedPlan({
                 plannedOutcome: state.isOpen ? 'already_open' : 'pending',
                 code: null,
                 message: null
-            }));
+            });
         }
     }
 
-    return Object.freeze({
-        identities: freezeItems(identities),
+    return {
+        identities,
         selectedLessons,
-        matrix: freezeItems(matrix),
-        discoveryFailures: freezeItems(discoveryFailures),
-        operationFailures: freezeItems(operationFailures),
+        matrix,
+        discoveryFailures,
+        operationFailures,
         errors: serializedErrors
-    });
+    };
 }
 
 export {
     OPERATION_TYPE,
-    freezeObject,
     normalizeEmail,
     serializePupil,
     serializeLesson,

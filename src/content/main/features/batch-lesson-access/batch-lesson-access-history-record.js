@@ -1,6 +1,5 @@
 import {
     OPERATION_TYPE,
-    freezeObject,
     normalizeEmail,
     lessonKey,
     attemptKey
@@ -8,16 +7,17 @@ import {
 import { historyDiagnostics } from '#src/content/main/infrastructure/history-diagnostics.js';
 
 const REJECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE']);
+const STATUS_MAP = {
+    opened: 'success',
+    already_open: 'noop',
+    rejected: 'rejected',
+    failed: 'failed',
+    not_attempted: 'not_attempted'
+};
 
 function resultFromMatrix(item, outcome, attempts, code, message, diagnosticSource = null) {
-    const status = {
-        opened: 'success',
-        already_open: 'noop',
-        rejected: 'rejected',
-        failed: 'failed',
-        not_attempted: 'not_attempted'
-    }[outcome];
-    return freezeObject({
+    const status = STATUS_MAP[outcome];
+    return {
         itemId: lessonKey(item.resolvedEmail || item.submittedInput, item.marathonLessonId),
         label: `${item.resolvedEmail || item.submittedInput} — ${item.lessonNumber || '?'}. ${item.lessonName}`,
         status,
@@ -25,7 +25,7 @@ function resultFromMatrix(item, outcome, attempts, code, message, diagnosticSour
         message,
         attempts,
         ...(historyDiagnostics(diagnosticSource) ? { diagnostics: historyDiagnostics(diagnosticSource) } : {}),
-        data: freezeObject({
+        data: {
             submittedEmail: item.submittedInput,
             resolvedEmail: item.resolvedEmail,
             pupilId: item.pupilId,
@@ -35,8 +35,8 @@ function resultFromMatrix(item, outcome, attempts, code, message, diagnosticSour
             lessonName: item.lessonName,
             preflightAccessState: item.preflightAccessState,
             outcome
-        })
-    });
+        }
+    };
 }
 
 function buildMatrixResults(plan, summary = {}, writeAttempts = new Map()) {
@@ -89,26 +89,26 @@ function buildMatrixResults(plan, summary = {}, writeAttempts = new Map()) {
 function inputFailureResults(identities) {
     return identities
         .filter((identity) => identity.resolution !== 'matched')
-        .map((identity) => freezeObject({
+        .map((identity) => ({
             itemId: `input:${identity.normalizedEmail || identity.submittedInput}`,
             label: identity.submittedInput,
             status: 'rejected',
             code: identity.code,
             message: identity.message,
             attempts: 0,
-            data: freezeObject({
+            data: {
                 submittedInput: identity.submittedInput,
                 normalizedEmail: identity.normalizedEmail,
                 resolution: identity.resolution,
                 ...(identity.offendingCharacters?.length
                     ? {offendingCharacters: identity.offendingCharacters}
                     : {})
-            })
+            }
         }));
 }
 
 function operationFailureResults(failures) {
-    return failures.map((failure, index) => freezeObject({
+    return failures.map((failure, index) => ({
         itemId: `operation:${index + 1}:${failure.code}`,
         label: failure.kind === 'input' ? 'Submitted request' : 'Lesson-access preflight',
         status: failure.kind === 'input' ? 'rejected' : 'failed',
@@ -116,12 +116,12 @@ function operationFailureResults(failures) {
         message: failure.message,
         attempts: failure.attempts,
         ...(historyDiagnostics(failure) ? { diagnostics: historyDiagnostics(failure) } : {}),
-        data: freezeObject({ stage: failure.kind === 'input' ? 'input_validation' : 'preflight' })
+        data: { stage: failure.kind === 'input' ? 'input_validation' : 'preflight' }
     }));
 }
 
 function discoveryFailureResults(failures) {
-    return failures.map((failure) => freezeObject({
+    return failures.map((failure) => ({
         itemId: `discovery:${normalizeEmail(failure.resolvedEmail || failure.submittedEmail)}`,
         label: failure.resolvedEmail || failure.submittedEmail,
         status: 'failed',
@@ -129,20 +129,20 @@ function discoveryFailureResults(failures) {
         message: failure.message,
         attempts: failure.attempts,
         ...(historyDiagnostics(failure) ? { diagnostics: historyDiagnostics(failure) } : {}),
-        data: freezeObject({
+        data: {
             submittedEmail: failure.submittedEmail,
             resolvedEmail: failure.resolvedEmail,
             pupilId: failure.pupilId,
             marathonPupilId: failure.marathonPupilId,
             stage: 'lesson_state_discovery'
-        })
+        }
     }));
 }
 
 function buildSummary(plan, matrixResults) {
     const matchedUsers = plan.identities.filter((identity) => identity.resolution === 'matched').length;
     const countOutcome = (outcome) => matrixResults.filter((result) => result.data.outcome === outcome).length;
-    return Object.freeze({
+    return {
         requestedInputs: plan.identities.length,
         matchedUsers,
         selectedLessons: plan.selectedLessons.length,
@@ -155,7 +155,7 @@ function buildSummary(plan, matrixResults) {
         inputFailures: plan.identities.filter((identity) => identity.resolution !== 'matched').length,
         discoveryFailures: plan.discoveryFailures.length,
         operationFailures: plan.operationFailures.length
-    });
+    };
 }
 
 function inferTerminalStatus(explicitStatus, operationSummary) {
@@ -189,13 +189,13 @@ function buildExecutionHistoryInput({
     const operationSummary = buildSummary(plan, matrixResults);
     const attempted = operationSummary.newlyOpened + operationSummary.rejected + operationSummary.failedWrites;
     const failed = operationSummary.rejected + operationSummary.failedWrites;
-    return Object.freeze({
+    return {
         operationType: OPERATION_TYPE,
         startedAt,
         completedAt,
         status: inferTerminalStatus(terminalStatus, operationSummary),
-        pageContext: Object.freeze({ marathonId, marathonName }),
-        counts: Object.freeze({
+        pageContext: { marathonId, marathonName },
+        counts: {
             requested: operationSummary.requestedInputs,
             eligible: operationSummary.totalCombinations,
             attempted,
@@ -206,10 +206,10 @@ function buildExecutionHistoryInput({
                 + operationSummary.operationFailures,
             failed,
             notAttempted: operationSummary.notAttempted
-        }),
-        results: Object.freeze([...inputResults, ...operationResults, ...discoveryResults, ...matrixResults]),
+        },
+        results: [...inputResults, ...operationResults, ...discoveryResults, ...matrixResults],
         message: JSON.stringify(operationSummary)
-    });
+    };
 }
 
 export { buildExecutionHistoryInput };
