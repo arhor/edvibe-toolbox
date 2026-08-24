@@ -9,7 +9,7 @@ import {
     resolvePageContext
 } from '#src/popup/popup-model.js';
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
-import '#src/popup/components/popup-tool-group.js';
+import '#src/popup/components/popup-tool-group.ts';
 import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/messaging/index.js';
 
 async function getPageContext() {
