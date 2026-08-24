@@ -105,6 +105,9 @@ export default defineConfig([
         files: [
             'src/shared/**/*.{js,ts}',
         ],
+        plugins: {
+            'better-mutation': betterMutation,
+        },
         rules: {
             'better-mutation/no-mutating-functions': 'error',
             'better-mutation/no-mutating-methods': 'error',
