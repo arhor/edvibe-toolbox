@@ -12,7 +12,7 @@
     "build": "vite build",
     "check:build-output": "node scripts/check-build-output.js",
     "lint": "eslint . --fix",
-    "test": "node --import ./scripts/test-css-loader.mjs --test \"src/**/*.test.js\"",
+    "test": "node --test \"src/**/*.test.js\"",
     "test:ci": "npm test"
   },
   "dependencies": {
