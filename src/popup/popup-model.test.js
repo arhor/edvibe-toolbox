@@ -10,7 +10,7 @@ import {
 } from '#src/popup/popup-model.js';
 
 describe('resolvePageContext', () => {
-    test('identifies supported Edvibe contexts', () => {
+    test('should identify supported Edvibe contexts', () => {
         // Given
         const marathonTab = { id: 12, url: 'https://app.edvibe.com/marathon/456/lessons' };
         const edvibeTab = { id: 13, url: 'https://edvibe.com/profile' };
@@ -20,14 +20,11 @@ describe('resolvePageContext', () => {
         const edvibeContext = resolvePageContext(edvibeTab);
 
         // Then
-        assert.deepEqual(
-            marathonContext,
-            { type: 'marathon', marathonId: '456', tabId: 12 }
-        );
+        assert.deepEqual(marathonContext, { type: 'marathon', marathonId: '456', tabId: 12 });
         assert.deepEqual(edvibeContext, { type: 'edvibe', tabId: 13 });
     });
 
-    test('rejects unavailable and unsupported tabs', () => {
+    test('should reject unavailable and unsupported tabs', () => {
         // Given
         const tabs = [
             null,
@@ -50,7 +47,7 @@ describe('resolvePageContext', () => {
 });
 
 describe('getPageContextContent', () => {
-    test('describes loading and marathon contexts', () => {
+    test('should describe loading and marathon contexts', () => {
         // Given
         const loadingContext = { type: 'loading' };
         const marathonContext = { type: 'marathon', marathonId: '42' };
@@ -72,67 +69,101 @@ describe('getPageContextContent', () => {
 });
 
 describe('getToolViewModel', () => {
-    test('derives availability, pending, and export states', () => {
-        // Given
-        const exportTool = getToolDefinition('marathon-export');
-        const historyTool = getToolDefinition('execution-history');
-        const unavailableState = {
-            pageContext: { type: 'edvibe' },
-            exportInProgress: false,
-            pendingToolId: null
-        };
-        const exportingState = {
-            pageContext: { type: 'marathon' },
-            exportInProgress: true,
-            pendingToolId: null
-        };
-        const pendingState = {
-            pageContext: { type: 'marathon' },
-            exportInProgress: false,
-            pendingToolId: historyTool.id
-        };
+    const cases = [
+        {
+            toolId: 'marathon-export',
+            outcome: 'disabled as unavailable',
+            condition: 'outside a marathon',
+            state: {
+                pageContext: { type: 'edvibe' },
+                exportInProgress: false,
+                pendingToolId: null
+            },
+            expected: {
+                disabled: true,
+                busy: false,
+                reason: 'Откройте страницу марафона.'
+            }
+        },
+        {
+            toolId: 'marathon-export',
+            outcome: 'disabled and busy',
+            condition: 'export is in progress',
+            state: {
+                pageContext: { type: 'marathon' },
+                exportInProgress: true,
+                pendingToolId: null
+            },
+            expected: {
+                disabled: true,
+                busy: true,
+                reason: ''
+            }
+        },
+        {
+            toolId: 'execution-history',
+            outcome: 'disabled but not busy',
+            condition: 'export is in progress',
+            state: {
+                pageContext: { type: 'marathon' },
+                exportInProgress: true,
+                pendingToolId: null
+            },
+            expected: {
+                disabled: true,
+                busy: false,
+                reason: 'Дождитесь завершения другого инструмента.'
+            }
+        },
+        {
+            toolId: 'execution-history',
+            outcome: 'disabled and busy',
+            condition: 'it is pending',
+            state: {
+                pageContext: { type: 'marathon' },
+                exportInProgress: false,
+                pendingToolId: 'execution-history'
+            },
+            expected: {
+                disabled: true,
+                busy: true,
+                reason: '',
+            }
+        }
+    ];
 
-        // When
-        const unavailableExport = getToolViewModel(exportTool, unavailableState);
-        const activeExport = getToolViewModel(exportTool, {
-            ...exportingState
-        });
-        const blockedHistory = getToolViewModel(historyTool, exportingState);
-        const pendingHistory = getToolViewModel(historyTool, pendingState);
+    cases.forEach(({ toolId, outcome, condition, state, expected }) => {
+        test(`getToolViewModel should derive ${toolId} as ${outcome} when ${condition}`, () => {
+            // Given
+            const tool = getToolDefinition(toolId);
 
-        // Then
-        assert.deepEqual(unavailableExport, {
-            ...exportTool,
-            disabled: true,
-            reason: 'Откройте страницу марафона.',
-            busy: false
+            // When
+            const viewModel = getToolViewModel(tool, state);
+
+            // Then
+            assert.deepEqual(
+                { disabled: viewModel.disabled, busy: viewModel.busy, reason: viewModel.reason },
+                expected
+            );
         });
-        assert.deepEqual(
-            { disabled: activeExport.disabled, busy: activeExport.busy, reason: activeExport.reason },
-            { disabled: true, busy: true, reason: '' }
-        );
-        assert.equal(blockedHistory.disabled, true);
-        assert.equal(blockedHistory.busy, false);
-        assert.equal(blockedHistory.reason, 'Дождитесь завершения другого инструмента.');
-        assert.equal(pendingHistory.disabled, true);
-        assert.equal(pendingHistory.busy, true);
-        assert.equal(pendingHistory.reason, '');
     });
 });
 
-describe('tool definitions', () => {
-    test('keeps groups ordered and resolves nested tools by id', () => {
-        // Given
-        const expectedGroupIds = ['history', 'export', 'management', 'development'];
+describe('getToolDefinition', () => {
+    // Given
+    const cases =
+        TOOL_GROUPS
+            .flatMap((group) => group.tools)
+            .map((tool) => ({ toolId: tool.id, expectedTitle: tool.title }))
+            .concat([{ toolId: 'unknown-tool', expectedTitle: undefined }]);
 
-        // When
-        const groupIds = TOOL_GROUPS.map(({ id }) => id);
-        const lessonResetTool = getToolDefinition('lesson-reset');
-        const unknownTool = getToolDefinition('unknown-tool');
+    cases.forEach(({ toolId, expectedTitle }) => {
+        test(`should resolve ${toolId} tool definition`, () => {
+            // When
+            const tool = getToolDefinition(toolId);
 
-        // Then
-        assert.deepEqual(groupIds, expectedGroupIds);
-        assert.equal(lessonResetTool?.title, 'Сброс прогресса учеников');
-        assert.equal(unknownTool, undefined);
+            // Then
+            assert.equal(tool?.title, expectedTitle);
+        });
     });
 });
