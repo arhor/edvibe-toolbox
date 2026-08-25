@@ -266,7 +266,7 @@ export {
     getToolDefinition,
     getToolViewModel,
     getUnavailableReason,
-    resolvePageContext
+    resolvePageContext,
 };
 
 export type {
@@ -275,5 +275,5 @@ export type {
     ToolDefinition,
     ToolGroup,
     ToolViewModel,
-    ToolViewState
+    ToolViewState,
 };

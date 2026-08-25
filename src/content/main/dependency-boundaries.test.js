@@ -1,7 +1,6 @@
+import { ESLint } from 'eslint';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-
-import { ESLint } from 'eslint';
 
 const eslint = new ESLint({ fix: false });
 

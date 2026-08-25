@@ -57,7 +57,9 @@ test('feature session should release guard ownership exactly once on normal clos
     // Given
     const operationGuard = createOperationGuard();
     let removeCount = 0;
-    const dialog = createDialog({ remove: () => { removeCount += 1; } });
+    const dialog = createDialog({ remove: () => {
+        removeCount += 1; 
+    } });
     const session = createFeatureSession({ operationGuard, operationName: 'example' });
     session.activate();
     session.ownDialog(dialog);
@@ -78,7 +80,9 @@ test('feature session should release the guard while retaining an initialization
     // Given
     const operationGuard = createOperationGuard();
     let removeCount = 0;
-    const dialog = createDialog({ remove: () => { removeCount += 1; } });
+    const dialog = createDialog({ remove: () => {
+        removeCount += 1; 
+    } });
     const session = createFeatureSession({ operationGuard, operationName: 'example' });
     session.activate();
     session.ownDialog(dialog);
