@@ -1,13 +1,63 @@
 import { POPUP_COMMANDS } from '#src/shared/messaging/index.js';
 
-function freezeToolGroup(group) {
+import type { PopupCommand } from '#src/shared/messaging/model.js';
+
+type ToolRequirement = 'edvibe' | 'marathon';
+type ToolAppearance = 'danger';
+
+interface ToolDefinition {
+    readonly id: string;
+    readonly title: string;
+    readonly description: string;
+    readonly command: PopupCommand;
+    readonly requirement: ToolRequirement;
+    readonly busyLabel: string;
+    readonly appearance?: ToolAppearance;
+    readonly closeOnSuccess?: boolean;
+}
+
+interface ToolGroup {
+    readonly id: string;
+    readonly title: string;
+    readonly tools: readonly ToolDefinition[];
+}
+
+type PageContext =
+    | { readonly type: 'loading' }
+    | { readonly type: 'unavailable' }
+    | { readonly type: 'unsupported'; readonly tabId: number }
+    | { readonly type: 'edvibe'; readonly tabId: number }
+    | { readonly type: 'marathon'; readonly marathonId: string; readonly tabId: number };
+
+interface PageContextContent {
+    readonly title: string;
+    readonly description: string;
+}
+
+interface ToolViewState {
+    readonly pageContext: PageContext;
+    readonly exportInProgress: boolean;
+    readonly pendingToolId: string | null;
+}
+
+interface ToolViewModel extends ToolDefinition {
+    readonly disabled: boolean;
+    readonly reason: string;
+    readonly busy: boolean;
+}
+
+function freezeToolGroup(group: { id: string; title: string; tools: ToolDefinition[] }): ToolGroup {
     return Object.freeze({
         ...group,
-        tools: Object.freeze(group.tools.map(Object.freeze))
+        tools: Object.freeze(group.tools.map((tool) => Object.freeze(tool)))
     });
 }
 
-const TOOL_GROUPS = Object.freeze([
+function defineToolGroups(groups: Array<{ id: string; title: string; tools: ToolDefinition[] }>): readonly ToolGroup[] {
+    return Object.freeze(groups.map(freezeToolGroup));
+}
+
+const TOOL_GROUPS = defineToolGroups([
     {
         id: 'history',
         title: 'История',
@@ -124,16 +174,16 @@ const TOOL_GROUPS = Object.freeze([
             }
         ]
     }
-].map(freezeToolGroup));
+]);
 
-const PAGE_CONTEXT_CONTENT = Object.freeze({
+const PAGE_CONTEXT_CONTENT: Readonly<Record<'loading' | 'edvibe' | 'unsupported' | 'unavailable', PageContextContent>> = Object.freeze({
     loading: Object.freeze({ title: 'Проверяем страницу…', description: 'Определяем доступные инструменты' }),
     edvibe: Object.freeze({ title: 'Страница Edvibe', description: 'Откройте страницу марафона для работы с инструментами' }),
     unsupported: Object.freeze({ title: 'Не страница Edvibe', description: 'Toolbox работает на страницах edvibe.com' }),
     unavailable: Object.freeze({ title: 'Страница недоступна', description: 'Не удалось определить активную вкладку' })
 });
 
-function resolvePageContext(tab) {
+function resolvePageContext(tab: Pick<chrome.tabs.Tab, 'id' | 'url'> | null | undefined): PageContext {
     if (!tab?.id || !tab.url) {
         return { type: 'unavailable' };
     }
@@ -156,17 +206,22 @@ function resolvePageContext(tab) {
         : { type: 'edvibe', tabId: tab.id };
 }
 
-function getPageContextContent(pageContext) {
+function getPageContextContent(pageContext: PageContext | null | undefined): PageContextContent {
     if (pageContext?.type === 'marathon') {
         return {
             title: `Марафон #${pageContext.marathonId}`,
             description: 'Инструменты марафона доступны'
         };
     }
-    return PAGE_CONTEXT_CONTENT[pageContext?.type] || PAGE_CONTEXT_CONTENT.unavailable;
+    return pageContext?.type === 'loading'
+        || pageContext?.type === 'edvibe'
+        || pageContext?.type === 'unsupported'
+        || pageContext?.type === 'unavailable'
+        ? PAGE_CONTEXT_CONTENT[pageContext.type]
+        : PAGE_CONTEXT_CONTENT.unavailable;
 }
 
-function getUnavailableReason(tool, pageContext) {
+function getUnavailableReason(tool: ToolDefinition, pageContext: PageContext): string {
     if (tool.requirement === 'edvibe') {
         return pageContext.type === 'edvibe' || pageContext.type === 'marathon'
             ? ''
@@ -178,7 +233,7 @@ function getUnavailableReason(tool, pageContext) {
     }
 }
 
-function getToolDefinition(toolId) {
+function getToolDefinition(toolId: string): ToolDefinition | undefined {
     for (const group of TOOL_GROUPS) {
         const tool = group.tools.find((item) => item.id === toolId);
         if (tool) {
@@ -188,7 +243,10 @@ function getToolDefinition(toolId) {
     return undefined;
 }
 
-function getToolViewModel(tool, { pageContext, exportInProgress, pendingToolId }) {
+function getToolViewModel(
+    tool: ToolDefinition,
+    { pageContext, exportInProgress, pendingToolId }: ToolViewState
+): ToolViewModel {
     const unavailableReason = getUnavailableReason(tool, pageContext);
     const isBusy = tool.id === 'marathon-export' && exportInProgress;
     const isPending = pendingToolId === tool.id;
@@ -209,4 +267,13 @@ export {
     getToolViewModel,
     getUnavailableReason,
     resolvePageContext
+};
+
+export type {
+    PageContext,
+    PageContextContent,
+    ToolDefinition,
+    ToolGroup,
+    ToolViewModel,
+    ToolViewState
 };

@@ -2,6 +2,7 @@ import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { popupToolGroupStyles } from '#src/popup/components/popup-tool-group.styles.js';
+import type { PageContext, ToolDefinition } from '#src/popup/popup-model.js';
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
 import '#src/popup/components/popup-tool-card.js';
 
@@ -18,10 +19,10 @@ class PopupToolGroup extends LitElement {
     title = '';
 
     @property({ attribute: false })
-    tools: Array<Record<string, unknown>> = [];
+    tools: readonly ToolDefinition[] = [];
 
     @property({ attribute: false })
-    pageContext: Record<string, unknown> = { type: 'loading' };
+    pageContext: PageContext = { type: 'loading' };
 
     @property({ type: Boolean })
     exportInProgress = false;
