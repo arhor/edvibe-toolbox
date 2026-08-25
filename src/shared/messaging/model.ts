@@ -9,7 +9,7 @@ export const POPUP_COMMANDS = {
     OPEN_BATCH_SECTION_DELETION: 'OPEN_BATCH_SECTION_DELETION',
     OPEN_VIDEO_ATTACHMENT: 'OPEN_VIDEO_ATTACHMENT',
     OPEN_EXECUTION_HISTORY: 'OPEN_EXECUTION_HISTORY'
-};
+} as const;
 
 export const WINDOW_MESSAGE_TYPES = {
     START_EXPORT: 'EDVIBE_TOOLBOX_START_ALL',
@@ -25,26 +25,26 @@ export const WINDOW_MESSAGE_TYPES = {
     EXPORT_STATUS: 'EDVIBE_TOOLBOX_EXPORT_STATUS',
     STORAGE_REQUEST: 'EDVIBE_TOOLBOX_STORAGE_REQUEST',
     STORAGE_RESPONSE: 'EDVIBE_TOOLBOX_STORAGE_RESPONSE'
-};
+} as const;
 
 export const RUNTIME_MESSAGE_ACTIONS = {
     EXPORT_STATUS: 'EXPORT_STATUS'
-};
+} as const;
 
 export const EXPORT_STATES = {
     STARTED: 'started',
     COMPLETE: 'complete',
     ERROR: 'error'
-};
+} as const;
 
 export const STORAGE_ACTIONS = {
     GET: 'get',
     SET: 'set'
-};
+} as const;
 
 export const STORAGE_KEYS = {
     EXECUTION_HISTORY_PREFERENCES: 'executionHistoryPreferences'
-};
+} as const;
 
 export const COMMAND_ROUTES = {
     [POPUP_COMMANDS.START_EXPORT]: {
@@ -87,9 +87,16 @@ export const COMMAND_ROUTES = {
         type: WINDOW_MESSAGE_TYPES.OPEN_EXECUTION_HISTORY,
         info: 'Execution history opened.'
     }
-};
+} as const;
 
-export const MAIN_COMMAND_TYPES = new Set(Object.values(COMMAND_ROUTES).map(({ type }) => type));
-export const EXPORT_STATE_VALUES = new Set(Object.values(EXPORT_STATES));
-export const STORAGE_ACTION_VALUES = new Set(Object.values(STORAGE_ACTIONS));
-export const STORAGE_KEY_VALUES = new Set(Object.values(STORAGE_KEYS));
+export type PopupCommand = typeof POPUP_COMMANDS[keyof typeof POPUP_COMMANDS];
+export type MainCommandType = typeof COMMAND_ROUTES[keyof typeof COMMAND_ROUTES]['type'];
+export type ExportState = typeof EXPORT_STATES[keyof typeof EXPORT_STATES];
+export type StorageAction = typeof STORAGE_ACTIONS[keyof typeof STORAGE_ACTIONS];
+export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
+export type CommandRoute = typeof COMMAND_ROUTES[PopupCommand];
+
+export const MAIN_COMMAND_TYPES: ReadonlySet<string> = new Set(Object.values(COMMAND_ROUTES).map(({ type }) => type));
+export const EXPORT_STATE_VALUES: ReadonlySet<string> = new Set(Object.values(EXPORT_STATES));
+export const STORAGE_ACTION_VALUES: ReadonlySet<string> = new Set(Object.values(STORAGE_ACTIONS));
+export const STORAGE_KEY_VALUES: ReadonlySet<string> = new Set(Object.values(STORAGE_KEYS));
