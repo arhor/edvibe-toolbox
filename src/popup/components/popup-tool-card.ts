@@ -1,33 +1,33 @@
 import { html, LitElement, nothing } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
 import { popupToolCardStyles } from '#src/popup/components/popup-tool-card.styles.js';
 import { getToolViewModel } from '#src/popup/popup-model.js';
+import type { PageContext, ToolDefinition, ToolViewModel } from '#src/popup/popup-model.js';
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
 
 const POPUP_TOOL_CARD_TAG = 'popup-tool-card';
 
+@customElement(POPUP_TOOL_CARD_TAG)
 class PopupToolCard extends LitElement {
     static styles = [
         popupElementStyles,
         popupToolCardStyles,
     ];
 
-    static properties = {
-        tool: { attribute: false },
-        pageContext: { attribute: false },
-        exportInProgress: { type: Boolean },
-        pendingToolId: { attribute: false }
-    };
+    @property({ attribute: false })
+    tool = {} as ToolDefinition;
 
-    constructor() {
-        super();
-        this.tool = {};
-        this.pageContext = { type: 'loading' };
-        this.exportInProgress = false;
-        this.pendingToolId = null;
-    }
+    @property({ attribute: false })
+    pageContext: PageContext = { type: 'loading' };
 
-    get toolViewModel() {
+    @property({ type: Boolean })
+    exportInProgress = false;
+
+    @property({ attribute: false })
+    pendingToolId: string | null = null;
+
+    get toolViewModel(): ToolViewModel {
         return getToolViewModel(this.tool, {
             pageContext: this.pageContext,
             exportInProgress: this.exportInProgress,
@@ -79,7 +79,5 @@ class PopupToolCard extends LitElement {
         `;
     }
 }
-
-customElements.define(POPUP_TOOL_CARD_TAG, PopupToolCard);
 
 export { POPUP_TOOL_CARD_TAG, PopupToolCard };
