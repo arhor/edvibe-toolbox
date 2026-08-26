@@ -1,4 +1,6 @@
 import { html, LitElement, nothing } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
 
 import { popupAppStyles } from '#src/popup/components/popup-app.styles.js';
 import {
@@ -8,21 +10,32 @@ import {
     getUnavailableReason,
     resolvePageContext
 } from '#src/popup/popup-model.js';
+import type { PageContext } from '#src/popup/popup-model.js';
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
-import '#src/popup/components/popup-tool-group.ts';
+import '#src/popup/components/popup-tool-group.js';
 import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/messaging/index.js';
+import type { PopupCommand, RuntimeExportStatusMessage } from '#src/shared/messaging/index.js';
 
-async function getPageContext() {
+interface PopupStatus {
+    readonly message: string;
+    readonly isError: boolean;
+}
+
+interface PopupToolActivateDetail {
+    readonly toolId: string;
+}
+
+async function getPageContext(): Promise<PageContext> {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     return resolvePageContext(tab);
 }
 
-async function getExportInProgress() {
+async function getExportInProgress(): Promise<boolean> {
     const result = await chrome.storage.local.get('exportInProgress');
     return Boolean(result.exportInProgress);
 }
 
-function sendCommand(tabId, action) {
+function sendCommand(tabId: number, action: PopupCommand): Promise<unknown> {
     const message = { action };
 
     if (!isPopupCommandMessage(message)) {
@@ -40,8 +53,8 @@ function sendCommand(tabId, action) {
     });
 }
 
-function subscribeToExportStatus(listener) {
-    const handleMessage = (message) => {
+function subscribeToExportStatus(listener: (message: RuntimeExportStatusMessage) => void): () => void {
+    const handleMessage = (message: unknown) => {
         if (isRuntimeExportStatusMessage(message)) {
             listener(message);
         }
@@ -52,39 +65,37 @@ function subscribeToExportStatus(listener) {
 
 const POPUP_APP_TAG = 'popup-app';
 
+@customElement(POPUP_APP_TAG)
 class PopupApp extends LitElement {
     static styles = [
         popupElementStyles,
         popupAppStyles,
     ];
 
-    static properties = {
-        pageContext: { state: true },
-        initialized: { state: true },
-        exportInProgress: { state: true },
-        pendingToolId: { state: true },
-        status: { state: true }
-    };
+    @state()
+    pageContext: PageContext = { type: 'loading' };
 
-    constructor() {
-        super();
-        this.pageContext = { type: 'loading' };
-        this.initialized = false;
-        this.exportInProgress = false;
-        this.pendingToolId = null;
-        this.status = null;
-        this.connectionVersion = 0;
-        this.exportStatusObserved = false;
-        this.unsubscribeFromExportStatus = null;
-    }
+    @state()
+    initialized: boolean = false;
+
+    @state()
+    exportInProgress: boolean = false;
+
+    @state()
+    pendingToolId: string | null = null;
+
+    @state()
+    status: PopupStatus | null = null;
+
+    connectionVersion: number = 0;
+    exportStatusObserved: boolean = false;
+    unsubscribeFromExportStatus: (() => void) | null = null;
 
     connectedCallback() {
         super.connectedCallback();
         const version = ++this.connectionVersion;
         this.exportStatusObserved = false;
-        this.unsubscribeFromExportStatus = subscribeToExportStatus((message) => {
-            this.handleExportStatus(message);
-        });
+        this.unsubscribeFromExportStatus = subscribeToExportStatus((message) => this.handleExportStatus(message));
         void this.initialize(version);
     }
 
@@ -95,7 +106,7 @@ class PopupApp extends LitElement {
         super.disconnectedCallback();
     }
 
-    async initialize(version) {
+    async initialize(version: number): Promise<void> {
         const [pageContextResult, exportInProgressResult] = await Promise.allSettled([
             getPageContext(),
             getExportInProgress()
@@ -114,28 +125,32 @@ class PopupApp extends LitElement {
         this.initialized = true;
     }
 
-    handleExportStatus(message) {
+    handleExportStatus(message: RuntimeExportStatusMessage): void {
         this.exportStatusObserved = true;
         this.exportInProgress = message.state === EXPORT_STATES.STARTED;
 
-        if (message.state === EXPORT_STATES.COMPLETE) {
-            this.status = {
-                message: 'Экспорт завершён.',
-                isError: false
-            };
-        } else if (message.state === EXPORT_STATES.ERROR) {
-            this.status = {
-                message: message.message || 'Не удалось экспортировать марафон.',
-                isError: true
-            };
+        switch (message.state) {
+            case EXPORT_STATES.COMPLETE:
+                this.status = {
+                    message: 'Экспорт завершён.',
+                    isError: false
+                };
+                break;
+            case EXPORT_STATES.ERROR:
+                this.status = {
+                    message: message.message || 'Не удалось экспортировать марафон.',
+                    isError: true
+                };
+                break;
         }
     }
 
-    async executeTool(toolId) {
+    async executeTool(toolId: string): Promise<void> {
         const tool = getToolDefinition(toolId);
+        const tabId = 'tabId' in this.pageContext ? this.pageContext.tabId : undefined;
         if (!tool
             || getUnavailableReason(tool, this.pageContext)
-            || !this.pageContext.tabId
+            || tabId === undefined
             || this.exportInProgress
             || this.pendingToolId !== null) {
             return;
@@ -149,7 +164,7 @@ class PopupApp extends LitElement {
 
         const version = this.connectionVersion;
         try {
-            await sendCommand(this.pageContext.tabId, tool.command);
+            await sendCommand(tabId, tool.command);
 
             if (version !== this.connectionVersion || !this.isConnected) {
                 return;
@@ -167,13 +182,13 @@ class PopupApp extends LitElement {
             }
             this.pendingToolId = null;
             this.status = {
-                message: error.message || 'Не удалось запустить инструмент.',
+                message: error instanceof Error ? error.message : 'Не удалось запустить инструмент.',
                 isError: true
             };
         }
     }
 
-    handleToolActivate(event) {
+    handleToolActivate(event: CustomEvent<PopupToolActivateDetail>): void {
         void this.executeTool(event.detail.toolId);
     }
 
@@ -212,7 +227,7 @@ class PopupApp extends LitElement {
                 ` : nothing}
 
                 ${this.status ? html`
-                    <p class="popup-status ${this.status.isError ? 'is-error' : ''}" role="status">
+                    <p class="popup-status ${classMap({ 'is-error': this.status.isError })}" role="status">
                         ${this.status.message}
                     </p>
                 ` : nothing}
@@ -220,7 +235,5 @@ class PopupApp extends LitElement {
         `;
     }
 }
-
-customElements.define(POPUP_APP_TAG, PopupApp);
 
 export { POPUP_APP_TAG, PopupApp };
