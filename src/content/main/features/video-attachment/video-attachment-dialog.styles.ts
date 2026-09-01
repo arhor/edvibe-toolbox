@@ -15,12 +15,12 @@ export const videoAttachmentDialogStyles = css`
         justify-content: space-between;
         gap: 16px;
         padding: 18px 22px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
     }
 
     .dialog footer {
         border-bottom: 0;
-        border-top: 1px solid var(--edvibe-border-subtle);
+        border-top: 1px solid var(--toolfox-border-subtle);
     }
 
     .dialog h2,
@@ -32,7 +32,7 @@ export const videoAttachmentDialogStyles = css`
     .dialog header p,
     .selection-header p {
         margin-top: 4px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
     }
 
     .icon {
@@ -51,9 +51,9 @@ export const videoAttachmentDialogStyles = css`
 
     .selection-panel {
         overflow: hidden;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     .selection-header {
@@ -62,7 +62,7 @@ export const videoAttachmentDialogStyles = css`
         justify-content: space-between;
         gap: 16px;
         padding: 14px 16px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
     }
 
     .selection-header h3 {
@@ -77,7 +77,7 @@ export const videoAttachmentDialogStyles = css`
 
     .selection-header strong {
         flex: none;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
     }
 
@@ -94,7 +94,7 @@ export const videoAttachmentDialogStyles = css`
     }
 
     .lesson-node + .lesson-node {
-        border-top: 1px solid var(--edvibe-border-subtle);
+        border-top: 1px solid var(--toolfox-border-subtle);
     }
 
     .lesson-row {
@@ -110,8 +110,8 @@ export const videoAttachmentDialogStyles = css`
         height: 28px;
         padding: 0;
         border: 0;
-        border-radius: var(--edvibe-radius-control);
-        color: var(--edvibe-text-muted);
+        border-radius: var(--toolfox-radius-control);
+        color: var(--toolfox-text-muted);
         background: transparent;
         cursor: pointer;
         font: inherit;
@@ -120,11 +120,11 @@ export const videoAttachmentDialogStyles = css`
     }
 
     .expander:hover:not(:disabled) {
-        background: var(--edvibe-surface-subtle);
+        background: var(--toolfox-surface-subtle);
     }
 
     .expander:focus-visible {
-        outline: 2px solid var(--edvibe-focus-outline);
+        outline: 2px solid var(--toolfox-focus-outline);
         outline-offset: 2px;
     }
 
@@ -141,7 +141,7 @@ export const videoAttachmentDialogStyles = css`
     .section-check input {
         flex: none;
         margin: 0;
-        accent-color: var(--edvibe-primary);
+        accent-color: var(--toolfox-primary);
     }
 
     .lesson-title,
@@ -157,7 +157,7 @@ export const videoAttachmentDialogStyles = css`
 
     .lesson-meta {
         margin-left: 12px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 11px;
     }
 
@@ -166,20 +166,20 @@ export const videoAttachmentDialogStyles = css`
     }
 
     .section-list {
-        border-left: 1px solid var(--edvibe-border-subtle);
+        border-left: 1px solid var(--toolfox-border-subtle);
         padding-left: 14px;
     }
 
     .section-check {
         min-height: 34px;
         padding: 3px 0;
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 12px;
     }
 
     .tree-message {
         padding: 10px 12px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
     }
 
