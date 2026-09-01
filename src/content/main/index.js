@@ -5,7 +5,7 @@ import { Logger } from '#src/shared/logger.js';
 
 const logger = new Logger({ namespace: 'MAIN' });
 
-logger.log('Initializing Toolbox modules...');
+logger.log('Initializing Toolfox modules...');
 
 const dispatcher = new FeatureDispatcher({
     features, 
@@ -21,4 +21,4 @@ window.addEventListener('message', ({ source, data }) => {
     dispatcher.dispatch(data);
 });
 
-logger.log('Toolbox modules ready.');
+logger.log('Toolfox modules ready.');
