@@ -340,7 +340,7 @@ function createVideoAttachmentFeature({
 }) {
     function open() {
         if (session.isOpen() || !session.activate()) {
-            alertUser('Another Edvibe Toolbox operation is already running.');
+            alertUser('Another Toolfox operation is already running.');
             return;
         }
 
