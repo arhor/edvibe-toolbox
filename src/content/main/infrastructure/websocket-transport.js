@@ -56,7 +56,7 @@ function createWebSocketTransport({
     let activeSocketRecord = null;
     let latestQualifiedSocketId = 0;
     let nextSocketId = 1;
-    const toolboxSendingSockets = new WeakSet();
+    const toolfoxSendingSockets = new WeakSet();
     const pendingRequests = new Map();
     const responseDiagnostics = new WeakMap();
     const frameObservers = new Set();
@@ -195,14 +195,14 @@ function createWebSocketTransport({
         const pending = data?.RequestId
             ? pendingRequests.get(data.RequestId)
             : null;
-        const isToolboxResponse = Boolean(
+        const isToolfoxResponse = Boolean(
             pending && pending.socketId === record.socketId
         );
         emitFrame({
             direction: 'inbound',
             socketId: record.socketId,
             data: event.data,
-            origin: isToolboxResponse ? 'toolbox' : 'page'
+            origin: isToolfoxResponse ? 'toolfox' : 'page'
         });
 
         if (typeof event.data !== 'string') {
@@ -273,7 +273,7 @@ function createWebSocketTransport({
         const nativeSend = socket.send;
 
         socket.send = function observedSend(data) {
-            const origin = toolboxSendingSockets.has(socket) ? 'toolbox' : 'page';
+            const origin = toolfoxSendingSockets.has(socket) ? 'toolfox' : 'page';
             emitFrame({
                 direction: 'outbound',
                 socketId: record.socketId,
@@ -378,11 +378,11 @@ function createWebSocketTransport({
             logger.log(`→ ${controller}.${method} [${packet.RequestId}]`);
 
             try {
-                toolboxSendingSockets.add(socketRecord.socket);
+                toolfoxSendingSockets.add(socketRecord.socket);
                 try {
                     socketRecord.socket.send(JSON.stringify(packet));
                 } finally {
-                    toolboxSendingSockets.delete(socketRecord.socket);
+                    toolfoxSendingSockets.delete(socketRecord.socket);
                 }
             } catch (error) {
                 clearTimeoutFn(timeoutId);
@@ -409,11 +409,11 @@ function createWebSocketTransport({
         const socketRecord = requireOpenSocket(controller, method);
         const packet = createPacket(controller, method, projectName, valueObject);
         logger.log(`→ ${controller}.${method} [${packet.RequestId}] (no response expected)`);
-        toolboxSendingSockets.add(socketRecord.socket);
+        toolfoxSendingSockets.add(socketRecord.socket);
         try {
             socketRecord.socket.send(JSON.stringify(packet));
         } finally {
-            toolboxSendingSockets.delete(socketRecord.socket);
+            toolfoxSendingSockets.delete(socketRecord.socket);
         }
     }
 
