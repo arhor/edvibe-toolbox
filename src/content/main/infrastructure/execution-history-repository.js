@@ -1,7 +1,8 @@
 import * as recordApi from '#src/content/main/infrastructure/execution-history-record.js';
 import * as indexedDbApi from '#src/content/main/infrastructure/indexeddb.js';
 
-const HISTORY_DATABASE_NAME = 'edvibe-toolbox';
+const HISTORY_DATABASE_NAME = 'toolfox';
+const LEGACY_HISTORY_DATABASE_NAME = 'edvibe-toolbox';
 const HISTORY_DATABASE_VERSION = 1;
 const HISTORY_STORE_NAME = 'executionHistory';
 
@@ -59,35 +60,169 @@ function matchesFilters(record, filters = {}) {
     return true;
 }
 
+function createLegacyHistoryDatabaseApi(indexedDBFactory) {
+    if (!indexedDBFactory?.open || !indexedDBFactory?.deleteDatabase) {
+        throw new TypeError('IndexedDB factory is required for legacy history migration');
+    }
+
+    async function legacyDatabaseExists() {
+        if (typeof indexedDBFactory.databases !== 'function') {
+            return true;
+        }
+        const databases = await indexedDBFactory.databases();
+        return databases.some(({ name }) => name === LEGACY_HISTORY_DATABASE_NAME);
+    }
+
+    async function readAll() {
+        if (!await legacyDatabaseExists()) {
+            return null;
+        }
+
+        return new Promise((resolve, reject) => {
+            const request = indexedDBFactory.open(LEGACY_HISTORY_DATABASE_NAME);
+            let createdDuringProbe = false;
+
+            request.onupgradeneeded = (event) => {
+                if (event.oldVersion === 0) {
+                    createdDuringProbe = true;
+                    request.transaction?.abort();
+                }
+            };
+            request.onerror = () => {
+                if (createdDuringProbe && request.error?.name === 'AbortError') {
+                    resolve(null);
+                    return;
+                }
+                reject(request.error || new Error('Failed to open legacy execution history database'));
+            };
+            request.onsuccess = () => {
+                const db = request.result;
+                if (!db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+                    db.close();
+                    resolve([]);
+                    return;
+                }
+
+                const transaction = db.transaction(HISTORY_STORE_NAME, 'readonly');
+                const getAllRequest = transaction.objectStore(HISTORY_STORE_NAME).getAll();
+                const fail = () => {
+                    db.close();
+                    reject(transaction.error || getAllRequest.error || new Error('Failed to read legacy execution history'));
+                };
+
+                getAllRequest.onerror = fail;
+                transaction.onerror = fail;
+                transaction.onabort = fail;
+                transaction.oncomplete = () => {
+                    const records = Array.from(getAllRequest.result || []);
+                    db.close();
+                    resolve(records);
+                };
+            };
+        });
+    }
+
+    function deleteDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDBFactory.deleteDatabase(LEGACY_HISTORY_DATABASE_NAME);
+            let settled = false;
+            const settle = (value) => {
+                if (!settled) {
+                    settled = true;
+                    resolve(value);
+                }
+            };
+            request.onsuccess = () => settle(true);
+            request.onblocked = () => settle(false);
+            request.onerror = () => {
+                if (!settled) {
+                    settled = true;
+                    reject(request.error || new Error('Failed to delete legacy execution history database'));
+                }
+            };
+        });
+    }
+
+    return Object.freeze({ readAll, deleteDatabase });
+}
+
+async function migrateLegacyExecutionHistory({
+    legacyDatabaseApi,
+    repository,
+    validateRecord = recordApi.validateExecutionRecord
+}) {
+    const records = await legacyDatabaseApi.readAll();
+    if (records === null) {
+        return Object.freeze({ found: false, copied: 0, deleted: false });
+    }
+
+    let copied = 0;
+    for (const record of records) {
+        validateRecord(record);
+        const executionId = String(record.id);
+        if (await repository.get(executionId)) {
+            continue;
+        }
+        await repository.put(record);
+        copied += 1;
+    }
+
+    const deleted = await legacyDatabaseApi.deleteDatabase();
+    return Object.freeze({ found: true, copied, deleted });
+}
+
 function createExecutionHistoryRepository(options = {}) {
     const api = options.indexedDbApi || indexedDbApi;
     if (!api?.createIndexedDb) {
         throw new TypeError('IndexedDB API is required');
     }
-    const db = api.createIndexedDb(HISTORY_DB_DEFINITION, { indexedDB: options.indexedDB });
+    const indexedDBFactory = options.indexedDB || globalThis.indexedDB;
+    const db = api.createIndexedDb(HISTORY_DB_DEFINITION, { indexedDB: indexedDBFactory });
     const repository = db.repository(HISTORY_STORE_NAME);
+    const legacyDatabaseApi = options.legacyDatabaseApi
+        || (indexedDBFactory ? createLegacyHistoryDatabaseApi(indexedDBFactory) : null);
+    let migrationPromise = null;
+
+    function ensureLegacyMigration() {
+        if (!legacyDatabaseApi) {
+            return Promise.resolve();
+        }
+        if (!migrationPromise) {
+            migrationPromise = migrateLegacyExecutionHistory({
+                legacyDatabaseApi,
+                repository
+            });
+        }
+        return migrationPromise;
+    }
 
     return Object.freeze({
         async persist(record) {
+            await ensureLegacyMigration();
             recordApi.validateExecutionRecord(record);
             await repository.put(record);
             return recordApi.cloneExecutionRecord(record);
         },
         async get(executionId) {
+            await ensureLegacyMigration();
             const record = await repository.get(String(executionId));
             return record ? recordApi.cloneExecutionRecord(record) : null;
         },
         async list(filters = {}) {
+            await ensureLegacyMigration();
             const records = await repository.newest('completedAt');
             return records.filter((record) => matchesFilters(record, filters)).map(recordApi.cloneExecutionRecord);
         },
         async delete(executionId) {
+            await ensureLegacyMigration();
             await repository.delete(String(executionId));
         },
         async clear() {
+            await ensureLegacyMigration();
             await repository.clear();
         },
-        count() {
+        async count() {
+            await ensureLegacyMigration();
             return repository.count();
         },
         close() {
@@ -98,9 +233,12 @@ function createExecutionHistoryRepository(options = {}) {
 
 export {
     HISTORY_DATABASE_NAME,
+    LEGACY_HISTORY_DATABASE_NAME,
     HISTORY_DATABASE_VERSION,
     HISTORY_STORE_NAME,
     HISTORY_DB_DEFINITION,
     matchesFilters,
+    createLegacyHistoryDatabaseApi,
+    migrateLegacyExecutionHistory,
     createExecutionHistoryRepository
 };
