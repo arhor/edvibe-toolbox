@@ -13,7 +13,7 @@ import {
     noticeStyles
 } from '#src/content/main/styles/primitives.js';
 
-const EXECUTION_HISTORY_DIALOG_TAG = 'edvibe-toolbox-execution-history-dialog';
+const EXECUTION_HISTORY_DIALOG_TAG = 'toolfox-execution-history-dialog';
 const STATUS_LABELS = Object.freeze({
     completed: 'Completed',
     completed_with_failures: 'Completed with failures',
@@ -463,7 +463,7 @@ class ExecutionHistoryDialog extends LitElement {
                 <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="history-title">
                     <header class="dialog-header">
                         <div>
-                            <p class="eyebrow">Edvibe Toolbox</p>
+                            <p class="eyebrow">Toolfox</p>
                             <h2 id="history-title">Execution history</h2>
                             <p class="header-copy">Browse terminal operation reports stored in this browser.</p>
                         </div>
