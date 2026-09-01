@@ -274,7 +274,7 @@ test('createWebSocketTransport should preserve native constructor and static sem
     assert.throws(() => root.WebSocket('wss://compat.test'), TypeError);
 });
 
-test('createWebSocketTransport should not let an unrelated newer socket steal Toolbox traffic', () => {
+test('createWebSocketTransport should not let an unrelated newer socket steal Toolfox traffic', () => {
     // Given
     const { transport, root, socket: edvibeSocket } = setup();
     edvibeSocket.sent = [];
@@ -344,7 +344,7 @@ test('createWebSocketTransport should ignore matching request IDs received on an
     assert.equal(unrelatedSocket.sent.length, 0);
 });
 
-test('createWebSocketTransport should keep frame observation and Toolbox origin tagging across sockets', () => {
+test('createWebSocketTransport should keep frame observation and Toolfox origin tagging across sockets', () => {
     // Given
     const { transport, root, socket: edvibeSocket } = setup();
     const frames = [];
@@ -366,7 +366,7 @@ test('createWebSocketTransport should keep frame observation and Toolbox origin 
                 data: 'plain-page-frame'
             },
             {
-                direction: 'outbound', socketId: 1, origin: 'toolbox',
+                direction: 'outbound', socketId: 1, origin: 'toolfox',
                 data: edvibeSocket.sent[0]
             }
         ]

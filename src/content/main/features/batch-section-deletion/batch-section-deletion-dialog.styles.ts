@@ -15,12 +15,12 @@ export const batchSectionDeletionDialogStyles = css`
         justify-content: space-between;
         gap: 16px;
         padding: 18px 22px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
     }
 
     .dialog footer {
         border-bottom: 0;
-        border-top: 1px solid var(--edvibe-border-subtle);
+        border-top: 1px solid var(--toolfox-border-subtle);
     }
 
     .dialog h2,
@@ -30,7 +30,7 @@ export const batchSectionDeletionDialogStyles = css`
 
     .dialog header p {
         margin-top: 4px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
     }
 
     .icon {
@@ -55,15 +55,15 @@ export const batchSectionDeletionDialogStyles = css`
 
     .selection {
         margin-left: auto;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
     }
 
     .lessons {
         max-height: 280px;
         overflow: auto;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     .lesson {
@@ -71,7 +71,7 @@ export const batchSectionDeletionDialogStyles = css`
         align-items: center;
         gap: 10px;
         padding: 10px 12px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
         font-weight: 400;
     }
 
@@ -82,8 +82,8 @@ export const batchSectionDeletionDialogStyles = css`
     .preflight,
     .result {
         padding: 14px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
     }
 
     .preflight {

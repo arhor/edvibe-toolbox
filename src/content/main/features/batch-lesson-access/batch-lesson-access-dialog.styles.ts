@@ -31,7 +31,7 @@ export const batchLessonAccessDialogStyles = css`
     .edvibe-batch-access-header h2,
     .edvibe-batch-access-lesson-heading h3 {
         margin: 0;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
     }
 
     .edvibe-batch-access-header h2 {
@@ -41,7 +41,7 @@ export const batchLessonAccessDialogStyles = css`
 
     .edvibe-batch-access-description {
         margin: 5px 0 0;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 13px;
         line-height: 1.4;
     }
@@ -62,7 +62,7 @@ export const batchLessonAccessDialogStyles = css`
 
     .edvibe-batch-access-email-field,
     .edvibe-batch-access-lesson-heading h3 {
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 13px;
     }
 
@@ -79,7 +79,7 @@ export const batchLessonAccessDialogStyles = css`
 
     .edvibe-batch-access-email-error {
         flex-basis: 100%;
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .edvibe-batch-access-lesson-heading {
@@ -90,7 +90,7 @@ export const batchLessonAccessDialogStyles = css`
         flex-wrap: wrap;
         justify-content: flex-end;
         gap: 8px 12px;
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 13px;
     }
 
@@ -110,9 +110,9 @@ export const batchLessonAccessDialogStyles = css`
         overflow: auto;
         max-height: 248px;
         margin-top: 10px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     .edvibe-batch-access-errors,
@@ -128,8 +128,8 @@ export const batchLessonAccessDialogStyles = css`
         align-items: flex-start;
         gap: 10px;
         padding: 11px 12px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
-        color: var(--edvibe-text);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
+        color: var(--toolfox-text);
         font-size: 14px;
         line-height: 1.4;
         cursor: pointer;
@@ -140,11 +140,11 @@ export const batchLessonAccessDialogStyles = css`
     }
 
     .edvibe-batch-access-lesson:hover {
-        background: var(--edvibe-info-surface);
+        background: var(--toolfox-info-surface);
     }
 
     .edvibe-batch-access-lesson:focus-within {
-        outline: 2px solid var(--edvibe-focus-outline);
+        outline: 2px solid var(--toolfox-focus-outline);
         outline-offset: -2px;
     }
 
@@ -189,8 +189,8 @@ export const batchLessonAccessDialogStyles = css`
         width: 16px;
         height: 16px;
         margin-right: 7px;
-        border: 2px solid var(--edvibe-info-border);
-        border-top-color: var(--edvibe-primary);
+        border: 2px solid var(--toolfox-info-border);
+        border-top-color: var(--toolfox-primary);
         border-radius: 50%;
         vertical-align: -3px;
         animation: edvibe-batch-access-spin .8s linear infinite;
@@ -210,7 +210,7 @@ export const batchLessonAccessDialogStyles = css`
     }
 
     .edvibe-batch-access-status.is-error {
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .edvibe-batch-access-progress {

@@ -1,11 +1,11 @@
 ---
 name: web-components-best-practices
-description: Design, implement, optimize, or review Edvibe Toolbox Web Components with Lit. Use for component APIs, reactive state, Lit templates, lifecycle, Shadow DOM, events, styling, accessibility, testing, performance, or refactoring dynamic UI into maintainable custom elements.
+description: Design, implement, optimize, or review Toolfox Web Components with Lit. Use for component APIs, reactive state, Lit templates, lifecycle, Shadow DOM, events, styling, accessibility, testing, performance, or refactoring dynamic UI into maintainable custom elements.
 ---
 
 # Web Components Best Practices
 
-Edvibe Toolbox uses Lit as the standard implementation layer for custom elements. Build components with platform-native semantics and Lit's reactive rendering model rather than maintaining parallel imperative DOM synchronization code.
+Toolfox uses Lit as the standard implementation layer for custom elements. Build components with platform-native semantics and Lit's reactive rendering model rather than maintaining parallel imperative DOM synchronization code.
 
 ## Workflow
 
@@ -20,7 +20,7 @@ Read [lifecycle-and-patterns.md](references/lifecycle-and-patterns.md) when life
 
 ## Non-negotiable Practices
 
-- Extend `LitElement` for Toolbox UI custom elements unless the task has a concrete reason to use another base.
+- Extend `LitElement` for Toolfox UI custom elements unless the task has a concrete reason to use another base.
 - Use lowercase hyphenated custom-element names. When registering with plain `customElements.define()`, guard against duplicate evaluation (e.g. check `customElements.get(tag)` first). Lit's `@customElement` decorator registers unconditionally, so components using it must rely on their module being evaluated only once instead.
 - Keep constructors cheap. Initialize state and stable dependencies; do not perform network work or depend on connection/layout there.
 - Represent externally visible state as reactive data and let `render()` produce the corresponding markup.

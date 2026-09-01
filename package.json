@@ -1,9 +1,9 @@
 {
-  "name": "edvibe-toolbox",
+  "name": "toolfox",
   "type": "module",
   "version": "1.0.0",
   "private": true,
-  "description": "Chrome extension utilities for Edvibe workflows",
+  "description": "Browser extension toolkit for productivity workflows",
   "imports": {
     "#src/*": "./src/*"
   },

@@ -39,7 +39,7 @@ function sendCommand(tabId: number, action: PopupCommand): Promise<unknown> {
     const message = { action };
 
     if (!isPopupCommandMessage(message)) {
-        return Promise.reject(new Error('Unsupported Toolbox command.'));
+        return Promise.reject(new Error('Unsupported Toolfox command.'));
     }
 
     return new Promise((resolve, reject) => {
@@ -196,9 +196,9 @@ class PopupApp extends LitElement {
         const contextContent = getPageContextContent(this.pageContext);
         return html`
             <header class="app-header">
-                <div class="app-mark" aria-hidden="true">ET</div>
+                <div class="app-mark" aria-hidden="true">TF</div>
                 <div>
-                    <h1>Edvibe Toolbox</h1>
+                    <h1>Toolfox</h1>
                     <p>Инструменты для текущей страницы</p>
                 </div>
             </header>

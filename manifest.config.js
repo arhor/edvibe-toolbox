@@ -7,9 +7,9 @@ export const ContentScripts = {
 
 export default defineManifest({
     manifest_version: 3,
-    name: 'Edvibe Toolbox',
+    name: 'Toolfox',
     version: '1.0',
-    description: 'A universal toolkit for automation and backup on the Edvibe platform.',
+    description: 'A browser toolkit for productivity and workflow automation.',
     permissions: [
         'storage',
         'activeTab'

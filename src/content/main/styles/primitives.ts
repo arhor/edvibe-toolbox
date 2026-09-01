@@ -4,11 +4,11 @@ export const dialogShellStyles = css`
     [data-part="overlay"] {
         position: fixed;
         inset: 0;
-        z-index: var(--edvibe-z-dialog);
+        z-index: var(--toolfox-z-dialog);
         display: grid;
         place-items: center;
         padding: 16px;
-        background: var(--edvibe-overlay);
+        background: var(--toolfox-overlay);
         box-sizing: border-box;
     }
 
@@ -22,11 +22,11 @@ export const dialogShellStyles = css`
         max-width: calc(100vw - 32px);
         max-height: calc(100vh - 32px);
         overflow: hidden;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-dialog);
-        color: var(--edvibe-text);
-        background: var(--edvibe-surface);
-        box-shadow: var(--edvibe-shadow-dialog);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-dialog);
+        color: var(--toolfox-text);
+        background: var(--toolfox-surface);
+        box-shadow: var(--toolfox-shadow-dialog);
     }
 
     @media (max-width: 640px) {
@@ -43,38 +43,38 @@ export const controlStyles = css`
     [data-control] {
         min-height: 36px;
         padding: 8px 12px;
-        border: 1px solid var(--edvibe-primary);
-        border-radius: var(--edvibe-radius-control);
-        color: var(--edvibe-surface);
-        background: var(--edvibe-primary);
+        border: 1px solid var(--toolfox-primary);
+        border-radius: var(--toolfox-radius-control);
+        color: var(--toolfox-surface);
+        background: var(--toolfox-primary);
         cursor: pointer;
         font: inherit;
         font-weight: 700;
     }
 
     [data-control="secondary"] {
-        border-color: var(--edvibe-border);
-        color: var(--edvibe-text);
-        background: var(--edvibe-surface);
+        border-color: var(--toolfox-border);
+        color: var(--toolfox-text);
+        background: var(--toolfox-surface);
     }
 
     [data-control="danger"] {
-        border-color: var(--edvibe-danger-border);
-        color: var(--edvibe-danger);
-        background: var(--edvibe-surface);
+        border-color: var(--toolfox-danger-border);
+        color: var(--toolfox-danger);
+        background: var(--toolfox-surface);
     }
 
     [data-control]:focus-visible,
     [data-field] :is(input, textarea, select):focus-visible {
-        outline: 2px solid var(--edvibe-focus-outline);
+        outline: 2px solid var(--toolfox-focus-outline);
         outline-offset: 2px;
-        box-shadow: 0 0 0 4px var(--edvibe-focus-halo);
+        box-shadow: 0 0 0 4px var(--toolfox-focus-halo);
     }
 
     [data-control]:disabled,
     [data-field] :is(input, textarea, select):disabled {
-        color: var(--edvibe-text-muted);
-        background: var(--edvibe-surface-subtle);
+        color: var(--toolfox-text-muted);
+        background: var(--toolfox-surface-subtle);
         cursor: default;
         opacity: .72;
     }
@@ -91,7 +91,7 @@ export const fieldStyles = css`
     [data-field] {
         display: grid;
         gap: 4px;
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 13px;
         font-weight: 650;
     }
@@ -101,15 +101,15 @@ export const fieldStyles = css`
         min-width: 0;
         box-sizing: border-box;
         padding: 9px 10px;
-        border: 1px solid var(--edvibe-border);
-        border-radius: var(--edvibe-radius-control);
-        color: var(--edvibe-text);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border);
+        border-radius: var(--toolfox-radius-control);
+        color: var(--toolfox-text);
+        background: var(--toolfox-surface);
         font: inherit;
     }
 
     [data-part="help"] {
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 11px;
         line-height: 1.4;
     }
@@ -118,40 +118,40 @@ export const fieldStyles = css`
 export const noticeStyles = css`
     [data-notice] {
         padding: 10px 12px;
-        border: 1px solid var(--edvibe-info-border);
-        border-radius: var(--edvibe-radius-control);
-        color: var(--edvibe-info);
-        background: var(--edvibe-info-surface);
+        border: 1px solid var(--toolfox-info-border);
+        border-radius: var(--toolfox-radius-control);
+        color: var(--toolfox-info);
+        background: var(--toolfox-info-surface);
         font-size: 12px;
         line-height: 1.45;
     }
 
     [data-notice="success"] {
-        border-color: var(--edvibe-success-border);
-        color: var(--edvibe-success);
-        background: var(--edvibe-success-surface);
+        border-color: var(--toolfox-success-border);
+        color: var(--toolfox-success);
+        background: var(--toolfox-success-surface);
     }
 
     [data-notice="warning"] {
-        border-color: var(--edvibe-warning-border);
-        color: var(--edvibe-warning);
-        background: var(--edvibe-warning-surface);
+        border-color: var(--toolfox-warning-border);
+        color: var(--toolfox-warning);
+        background: var(--toolfox-warning-surface);
     }
 
     [data-notice="danger"] {
-        border-color: var(--edvibe-danger-border);
-        color: var(--edvibe-danger);
-        background: var(--edvibe-danger-surface);
+        border-color: var(--toolfox-danger-border);
+        color: var(--toolfox-danger);
+        background: var(--toolfox-danger-surface);
     }
 `;
 
 export const progressStyles = css`
     [data-part="progress"] {
-        accent-color: var(--edvibe-primary);
+        accent-color: var(--toolfox-primary);
     }
 
     [data-part="status"] {
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
     }
 `;
@@ -159,9 +159,9 @@ export const progressStyles = css`
 export const emptyStateStyles = css`
     [data-part="empty-state"] {
         padding: 24px;
-        border: 1px dashed var(--edvibe-border);
-        border-radius: var(--edvibe-radius-panel);
-        color: var(--edvibe-text-muted);
+        border: 1px dashed var(--toolfox-border);
+        border-radius: var(--toolfox-radius-panel);
+        color: var(--toolfox-text-muted);
         text-align: center;
     }
 `;

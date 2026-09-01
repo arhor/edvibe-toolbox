@@ -172,7 +172,7 @@ describe('initializeIsolatedBridge', () => {
 
         // When
         harness.dispatchWindow(createExportStatusMessage(EXPORT_STATES.ERROR, 'Network failed'));
-        harness.dispatchWindow({ type: 'EDVIBE_TOOLBOX_EXPORT_STATUS', state: 'unknown' });
+        harness.dispatchWindow({ type: 'TOOLFOX_EXPORT_STATUS', state: 'unknown' });
         harness.dispatchWindow(
             createExportStatusMessage(EXPORT_STATES.STARTED),
             { differentWindow: true }

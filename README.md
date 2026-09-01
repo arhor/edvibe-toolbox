@@ -1,11 +1,11 @@
-# Edvibe Toolbox
+# Toolfox
 
-**Edvibe Toolbox** is a Google Chrome extension for automating routine processes, extending interface capabilities, and optimizing workflows on the Edvibe platform.
+**Toolfox** is a Google Chrome extension for adding focused productivity tools and workflow automation to supported web applications. Edvibe is the first supported integration.
 
 ## ✨ Key Features
 
 - **Process Automation:** execute repetitive Edvibe actions through the extension popup and in-page workflows.
-- **Data Management:** analyze, intercept, and process Edvibe data needed by Toolbox features.
+- **Data Management:** analyze, intercept, and process Edvibe data needed by Toolfox features.
 - **Interface Customization:** provide focused UI enhancements for supported workflows.
 - **WebSocket Action Recorder:** capture a manual Edvibe workflow as correlated request/response operations, copy `sendRequest(...)` scaffolding, and export a local JSON trace without opening DevTools.
 
@@ -29,10 +29,10 @@ After updating to a newer repository revision, click **Reload** on the extension
 
 ## 🛠️ Tech Stack
 
-Edvibe Toolbox targets **Manifest V3** and uses a bundled browser-extension toolchain:
+Toolfox targets **Manifest V3** and uses a bundled browser-extension toolchain:
 
 - **Vite + CRXJS** build the extension and its popup, ISOLATED-world, and MAIN-world runtimes.
-- **Lit** is the standard implementation for Toolbox Web Components and reactive UI.
+- **Lit** is the standard implementation for Toolfox Web Components and reactive UI.
 - Runtime libraries such as **JSZip** and **Turndown** are installed through npm and bundled into the extension.
 - **Node.js test runner** provides the colocated behavioral/unit test suite.
 
@@ -44,7 +44,7 @@ The source tree follows runtime ownership:
 
 - `src/popup/` owns the extension popup and popup components.
 - `src/content/isolated/` owns the Chrome extension ISOLATED-world bridge. It validates and routes messages between Chrome runtime APIs and the page.
-- `src/content/main/` owns the page MAIN-world runtime, Edvibe transport, workflows, in-page UI, persistence, and execution history.
+- `src/content/main/` owns the page MAIN-world runtime, site-specific transports and workflows, in-page UI, persistence, and execution history.
 - `src/content/main/features/` contains feature slices.
 - `src/content/main/components/` contains reusable MAIN-world UI components.
 - `src/content/main/infrastructure/` contains MAIN-wide services and runtime infrastructure.
@@ -96,7 +96,7 @@ Tests should protect observable behavior and runtime contracts rather than sourc
 
 ## UI Conventions
 
-Dynamic Toolbox UI is implemented as Lit custom elements. Keep component state reactive and markup declarative, preserve public methods/events when refactoring, and compose styles through Lit `css` modules and `static styles`.
+Dynamic Toolfox UI is implemented as Lit custom elements. Keep component state reactive and markup declarative, preserve public methods/events when refactoring, and compose styles through Lit `css` modules and `static styles`.
 
 Extension-wide design tokens live in `src/shared/ui-design-tokens.js`. Reusable MAIN visual foundations live in `src/content/main/styles/`, reusable MAIN components in `src/content/main/components/`, and feature-specific styles beside their feature components. See `docs/design-foundations.md` before introducing a new shared UI convention.
 

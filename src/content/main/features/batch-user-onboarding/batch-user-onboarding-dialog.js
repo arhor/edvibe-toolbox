@@ -14,7 +14,7 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-const BATCH_USER_ONBOARDING_DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
+const BATCH_USER_ONBOARDING_DIALOG_TAG = 'toolfox-batch-user-onboarding-dialog';
 
 class BatchUserOnboardingDialog extends LitElement {
     static styles = [
@@ -345,12 +345,12 @@ class BatchUserOnboardingDialog extends LitElement {
             <div class="overlay" data-part="overlay" @click=${(event) => {
                 if (event.target === event.currentTarget) {
                     this.close();
-                } 
+                }
             }}>
                 <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="batch-user-onboarding-title">
                     <header class="header">
                         <div>
-                            <p class="eyebrow">Edvibe Toolbox</p>
+                            <p class="eyebrow">Toolfox</p>
                             <h2 id="batch-user-onboarding-title">Добавить пользователей и назначить куратора</h2>
                             <p class="description">Проверьте весь список, подготовьте неизменяемый план и только потом подтвердите запись.</p>
                         </div>
@@ -364,7 +364,7 @@ class BatchUserOnboardingDialog extends LitElement {
                                 <span>Email пользователей</span>
                                 <textarea class="emails" rows="5" placeholder="user@example.com" .value=${this.emailInput} ?disabled=${this.mode !== 'configure'} @input=${(event) => {
                                     this.emailInput = event.currentTarget.value;
-                                    this.updateEmailCounts(); 
+                                    this.updateEmailCounts();
                                 }}></textarea>
                             </label>
                             <div class="email-state" data-part="help" aria-live="polite">
@@ -375,8 +375,8 @@ class BatchUserOnboardingDialog extends LitElement {
                             <label class="field curator-field" data-field>
                                 <span>Целевой куратор</span>
                                 <select class="curator" .value=${this.targetModeratorId} ?disabled=${!['configure', 'review'].includes(this.mode)} @change=${(event) => {
-                                    this.targetModeratorId = event.currentTarget.value; 
-                                    this.plan = null; 
+                                    this.targetModeratorId = event.currentTarget.value;
+                                    this.plan = null;
                                 }}>
                                     <option value="">Не выбран</option>
                                     ${(this.options?.moderators || []).map((moderator) => html`

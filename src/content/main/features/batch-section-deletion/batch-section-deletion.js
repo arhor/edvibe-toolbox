@@ -2,7 +2,7 @@ import { createFeatureError as featureError, parseMarathonId } from '#src/conten
 import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrastructure/edvibe-marathon-api.js';
 import { wait } from '#src/shared/utils.js';
 
-const DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
+const DIALOG_TAG = 'toolfox-batch-section-deletion-dialog';
 const EXPECTED_WRITE_CODES = new Set(['SERVER_REJECTED', 'INVALID_RESPONSE', 'REQUEST_TIMEOUT', 'SEND_FAILED', 'WS_UNAVAILABLE']);
 
 function normalizeSectionName(value) {
@@ -154,7 +154,7 @@ async function executePlan({ plan, sendRequest, wait, requestDelayMs = 300, onPr
 
 function formatReport(result) {
     const lines = [
-        'Edvibe Toolbox: batch section deletion',
+        'Toolfox: batch section deletion',
         `Section: ${result.plan.sectionName}`,
         `Selected: ${result.plan.selectedCount}`,
         `Eligible: ${result.plan.eligible.length}`,
@@ -180,7 +180,7 @@ function createBatchSectionDeletionFeature({
 }) {
     async function open() {
         if (session.isOpen() || !session.activate()) {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+            window.alert('Another Toolfox operation is already running.');
             return;
         }
         const marathonId = parseMarathonId(window.location.href);

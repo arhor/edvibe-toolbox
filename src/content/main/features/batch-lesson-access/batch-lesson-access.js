@@ -14,8 +14,8 @@ const OPERATIONAL_WRITE_CODES = new Set([
     'SERVER_REJECTED',
     'INVALID_RESPONSE'
 ]);
-const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
-const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
+const BATCH_ACCESS_DIALOG_TAG = 'toolfox-batch-access-dialog';
+const BATCH_ACCESS_OVERLAY_ID = 'toolfox-batch-access-overlay';
 
 function getPupilId(pupil) {
     return pupil.PupilId === undefined ? pupil.Id : pupil.PupilId;
@@ -600,7 +600,7 @@ function createBatchLessonAccessFeature({
             return;
         }
         if (!session.activate()) {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+            window.alert('Another Toolfox operation is already running.');
             return;
         }
 

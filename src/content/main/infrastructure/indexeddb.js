@@ -340,7 +340,7 @@ function createIndexedDb(definition, options = {}) {
                 abort(reason) {
                     if (reason !== undefined && transaction.error === null) {
                         try {
-                            Object.defineProperty(transaction, '__edvibeAbortReason', { value: reason });
+                            Object.defineProperty(transaction, '__toolfoxAbortReason', { value: reason });
                         } catch (_) {
                             // Native transactions may be non-extensible.
                         }
@@ -366,7 +366,7 @@ function createIndexedDb(definition, options = {}) {
             const [value] = await Promise.all([Promise.resolve(result), completion]);
             return value;
         } catch (error) {
-            const cause = transaction.__edvibeAbortReason || error;
+            const cause = transaction.__toolfoxAbortReason || error;
             throw wrapError('IndexedDB transaction did not commit', context, cause);
         }
     }

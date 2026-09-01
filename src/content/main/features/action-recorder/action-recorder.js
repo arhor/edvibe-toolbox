@@ -152,7 +152,7 @@ export function createActionRecorderFeatureV2({
                     throw error;
                 }
             } else {
-                window.alert('Another Edvibe Toolbox operation is already running.');
+                window.alert('Another Toolfox operation is already running.');
             }
         }
     };

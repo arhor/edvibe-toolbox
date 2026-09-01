@@ -16,8 +16,8 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-const BATCH_ACCESS_DIALOG_TAG = 'edvibe-toolbox-batch-access-dialog';
-const BATCH_ACCESS_OVERLAY_ID = 'edvibe-toolbox-batch-access-overlay';
+const BATCH_ACCESS_DIALOG_TAG = 'toolfox-batch-access-dialog';
+const BATCH_ACCESS_OVERLAY_ID = 'toolfox-batch-access-overlay';
 
 class BatchLessonAccessDialog extends LitElement {
     static styles = [

@@ -2,7 +2,7 @@ import { css } from 'lit';
 
 export const actionRecorderDialogStyles = css`
     :host {
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 13px;
         line-height: 1.45;
     }
@@ -18,7 +18,7 @@ export const actionRecorderDialogStyles = css`
         max-height: calc(100vh - 56px);
         margin: 0 auto;
         flex-direction: column;
-        background: var(--edvibe-surface-app);
+        background: var(--toolfox-surface-app);
     }
 
     .recorder-header,
@@ -28,8 +28,8 @@ export const actionRecorderDialogStyles = css`
         justify-content: space-between;
         align-items: center;
         padding: 16px 18px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
-        background: var(--edvibe-surface);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
+        background: var(--toolfox-surface);
     }
 
     .recorder-header h2,
@@ -45,7 +45,7 @@ export const actionRecorderDialogStyles = css`
 
     .recorder-subtitle {
         margin-top: 3px !important;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
     }
 
@@ -66,24 +66,24 @@ export const actionRecorderDialogStyles = css`
 
     .recorder-toolbar {
         padding-block: 11px;
-        background: var(--edvibe-surface-subtle);
+        background: var(--toolfox-surface-subtle);
     }
 
     .state-dot {
         width: 9px;
         height: 9px;
         border-radius: 50%;
-        background: var(--edvibe-text-muted);
+        background: var(--toolfox-text-muted);
     }
 
     .recorder-state[data-status="recording"] .state-dot {
-        background: var(--edvibe-danger);
-        box-shadow: 0 0 0 4px var(--edvibe-danger-border);
+        background: var(--toolfox-danger);
+        box-shadow: 0 0 0 4px var(--toolfox-danger-border);
     }
 
     .elapsed {
         min-width: 34px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-variant-numeric: tabular-nums;
     }
 
@@ -95,12 +95,12 @@ export const actionRecorderDialogStyles = css`
     .recorder-summary {
         margin: 13px 0;
         flex-wrap: wrap;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
     }
 
     .recorder-summary > span {
         padding-right: 10px;
-        border-right: 1px solid var(--edvibe-border-subtle);
+        border-right: 1px solid var(--toolfox-border-subtle);
     }
 
     .recorder-summary label {
@@ -122,10 +122,10 @@ export const actionRecorderDialogStyles = css`
     }
 
     .operation {
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
-        box-shadow: var(--edvibe-shadow-card);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
+        box-shadow: var(--toolfox-shadow-card);
     }
 
     .operation > summary {
@@ -139,7 +139,7 @@ export const actionRecorderDialogStyles = css`
 
     .operation-sequence,
     .operation-duration {
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-variant-numeric: tabular-nums;
     }
 
@@ -151,20 +151,20 @@ export const actionRecorderDialogStyles = css`
 
     .operation-result {
         text-align: right;
-        color: var(--edvibe-success);
+        color: var(--toolfox-success);
     }
 
     .operation-result.is-error {
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .operation-content {
         padding: 0 12px 12px;
-        border-top: 1px solid var(--edvibe-border-subtle);
+        border-top: 1px solid var(--toolfox-border-subtle);
     }
 
     .operation-content > p {
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         word-break: break-all;
     }
 
@@ -177,10 +177,10 @@ export const actionRecorderDialogStyles = css`
         width: 100%;
         overflow: auto;
         padding: 10px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-control);
-        color: var(--edvibe-text);
-        background: var(--edvibe-surface-subtle);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-control);
+        color: var(--toolfox-text);
+        background: var(--toolfox-surface-subtle);
         font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
         white-space: pre-wrap;
         word-break: break-word;
@@ -197,13 +197,13 @@ export const actionRecorderDialogStyles = css`
     }
 
     .other-section > summary {
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         cursor: pointer;
     }
 
     .copy-fallback {
         margin-top: 14px;
-        color: var(--edvibe-warning);
+        color: var(--toolfox-warning);
     }
 
     .copy-fallback textarea {
@@ -216,18 +216,18 @@ export const actionRecorderDialogStyles = css`
 
     .recorder-indicator {
         position: fixed;
-        z-index: var(--edvibe-z-dialog);
+        z-index: var(--toolfox-z-dialog);
         right: 20px;
         bottom: 20px;
         display: flex;
         gap: 7px;
         align-items: center;
         padding: 9px 12px;
-        border: 1px solid var(--edvibe-border);
-        border-radius: var(--edvibe-radius-pill);
-        color: var(--edvibe-text);
-        background: var(--edvibe-surface);
-        box-shadow: var(--edvibe-shadow-card);
+        border: 1px solid var(--toolfox-border);
+        border-radius: var(--toolfox-radius-pill);
+        color: var(--toolfox-text);
+        background: var(--toolfox-surface);
+        box-shadow: var(--toolfox-shadow-card);
         cursor: pointer;
     }
 
@@ -235,12 +235,12 @@ export const actionRecorderDialogStyles = css`
         width: 9px;
         height: 9px;
         border-radius: 50%;
-        background: var(--edvibe-text-muted);
+        background: var(--toolfox-text-muted);
     }
 
     .recorder-indicator.is-recording > span:first-child {
-        background: var(--edvibe-danger);
-        box-shadow: 0 0 0 3px var(--edvibe-danger-border);
+        background: var(--toolfox-danger);
+        box-shadow: 0 0 0 3px var(--toolfox-danger-border);
     }
 
     @media (max-width: 720px) {

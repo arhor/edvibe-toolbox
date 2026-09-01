@@ -9,7 +9,7 @@ import {
     noticeStyles
 } from '#src/content/main/styles/primitives.js';
 
-const BATCH_SECTION_DELETION_DIALOG_TAG = 'edvibe-toolbox-batch-section-deletion-dialog';
+const BATCH_SECTION_DELETION_DIALOG_TAG = 'toolfox-batch-section-deletion-dialog';
 
 class BatchSectionDeletionDialog extends LitElement {
     static styles = [
@@ -224,7 +224,7 @@ class BatchSectionDeletionDialog extends LitElement {
                         <label data-field>
                             Exact section name
                             <input class="section-name" type="text" autocomplete="off" placeholder="Ogłoszenie" .value=${this.sectionName} ?disabled=${this.busy} @input=${(event) => {
-                                this.sectionName = event.currentTarget.value; 
+                                this.sectionName = event.currentTarget.value;
                             }}>
                         </label>
                         <div class="toolbar" data-part="actions">

@@ -13,8 +13,8 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-const RESET_DIALOG_TAG = 'edvibe-toolbox-reset-dialog';
-const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
+const RESET_DIALOG_TAG = 'toolfox-reset-dialog';
+const RESET_OVERLAY_ID = 'toolfox-reset-overlay';
 
 class ResetLessonsDialog extends LitElement {
     static styles = [

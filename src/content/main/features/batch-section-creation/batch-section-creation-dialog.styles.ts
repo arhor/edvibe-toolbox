@@ -28,13 +28,13 @@ export const batchSectionCreationDialogStyles = css`
         justify-content: space-between;
         gap: 22px;
         padding: 22px 24px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
-        background: var(--edvibe-surface-subtle);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
+        background: var(--toolfox-surface-subtle);
     }
 
     .edvibe-batch-section-eyebrow {
         margin: 0 0 4px;
-        color: var(--edvibe-primary);
+        color: var(--toolfox-primary);
         font-size: 11px;
         font-weight: 750;
         letter-spacing: .09em;
@@ -48,7 +48,7 @@ export const batchSectionCreationDialogStyles = css`
     .edvibe-batch-section-results h3,
     .edvibe-batch-section-errors h3 {
         margin: 0;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
     }
 
     .edvibe-batch-section-header h2 {
@@ -59,7 +59,7 @@ export const batchSectionCreationDialogStyles = css`
     .edvibe-batch-section-description,
     .edvibe-batch-section-heading-row p {
         margin: 5px 0 0;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 13px;
         line-height: 1.45;
     }
@@ -99,7 +99,7 @@ export const batchSectionCreationDialogStyles = css`
     }
 
     .edvibe-batch-section-lesson:focus-within {
-        outline: 2px solid var(--edvibe-focus-outline);
+        outline: 2px solid var(--toolfox-focus-outline);
         outline-offset: -2px;
     }
 
@@ -139,9 +139,9 @@ export const batchSectionCreationDialogStyles = css`
     .edvibe-batch-section-lessons {
         overflow: auto;
         max-height: 390px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     .edvibe-batch-section-lesson {
@@ -149,8 +149,8 @@ export const batchSectionCreationDialogStyles = css`
         align-items: flex-start;
         gap: 10px;
         padding: 11px 12px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
-        color: var(--edvibe-text);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
+        color: var(--toolfox-text);
         font-size: 13px;
         line-height: 1.4;
         cursor: pointer;
@@ -161,7 +161,7 @@ export const batchSectionCreationDialogStyles = css`
     }
 
     .edvibe-batch-section-lesson:hover {
-        background: var(--edvibe-surface-subtle);
+        background: var(--toolfox-surface-subtle);
     }
 
     .edvibe-batch-section-lesson input {
@@ -176,9 +176,9 @@ export const batchSectionCreationDialogStyles = css`
 
     .edvibe-batch-section-block {
         padding: 13px;
-        border: 1px solid var(--edvibe-info-border);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-info-surface);
+        border: 1px solid var(--toolfox-info-border);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-info-surface);
     }
 
     .edvibe-batch-section-block header {
@@ -188,7 +188,7 @@ export const batchSectionCreationDialogStyles = css`
     }
 
     .edvibe-batch-section-block strong {
-        color: var(--edvibe-info);
+        color: var(--toolfox-info);
         font-size: 13px;
     }
 
@@ -210,14 +210,14 @@ export const batchSectionCreationDialogStyles = css`
     .edvibe-batch-section-preview {
         margin-top: 14px;
         padding: 14px;
-        border: 1px dashed var(--edvibe-border);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface-subtle);
+        border: 1px dashed var(--toolfox-border);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface-subtle);
     }
 
     .edvibe-batch-section-preview-name {
         margin: 8px 0;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
         font-size: 14px;
         font-weight: 700;
     }
@@ -261,8 +261,8 @@ export const batchSectionCreationDialogStyles = css`
     .edvibe-batch-section-results {
         margin-top: 18px;
         padding: 14px 16px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
         font-size: 13px;
         line-height: 1.48;
     }
@@ -278,17 +278,17 @@ export const batchSectionCreationDialogStyles = css`
         grid-template-columns: minmax(160px, 1fr) auto;
         gap: 4px 12px;
         padding: 11px 12px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     .edvibe-batch-section-result strong {
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
     }
 
     .edvibe-batch-section-result > span {
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-weight: 700;
     }
 
@@ -296,24 +296,24 @@ export const batchSectionCreationDialogStyles = css`
     .edvibe-batch-section-result small {
         grid-column: 1 / -1;
         margin: 0;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         overflow-wrap: anywhere;
     }
 
     .edvibe-batch-section-result.is-created {
-        border-color: var(--edvibe-success-border);
-        background: var(--edvibe-success-surface);
+        border-color: var(--toolfox-success-border);
+        background: var(--toolfox-success-surface);
     }
 
     .edvibe-batch-section-result.is-failed,
     .edvibe-batch-section-result.is-partially_created {
-        border-color: var(--edvibe-warning-border);
-        background: var(--edvibe-warning-surface);
+        border-color: var(--toolfox-warning-border);
+        background: var(--toolfox-warning-surface);
     }
 
     .edvibe-batch-section-result.is-rejected,
     .edvibe-batch-section-result.is-not_attempted {
-        background: var(--edvibe-surface-subtle);
+        background: var(--toolfox-surface-subtle);
     }
 
     .edvibe-batch-section-fatal-note {
@@ -335,8 +335,8 @@ export const batchSectionCreationDialogStyles = css`
         width: 16px;
         height: 16px;
         margin-right: 7px;
-        border: 2px solid var(--edvibe-info-border);
-        border-top-color: var(--edvibe-primary);
+        border: 2px solid var(--toolfox-info-border);
+        border-top-color: var(--toolfox-primary);
         border-radius: 50%;
         vertical-align: -3px;
         animation: edvibe-batch-section-spin .8s linear infinite;
@@ -356,11 +356,11 @@ export const batchSectionCreationDialogStyles = css`
     }
 
     .edvibe-batch-section-status[data-state="error"] {
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .edvibe-batch-section-status[data-state="warning"] {
-        color: var(--edvibe-warning);
+        color: var(--toolfox-warning);
     }
 
     .edvibe-batch-section-progress {

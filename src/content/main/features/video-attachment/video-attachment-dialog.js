@@ -13,7 +13,7 @@ import {
     noticeStyles
 } from '#src/content/main/styles/primitives.js';
 
-const VIDEO_ATTACHMENT_DIALOG_TAG = 'edvibe-toolbox-video-attachment-dialog';
+const VIDEO_ATTACHMENT_DIALOG_TAG = 'toolfox-video-attachment-dialog';
 
 function createLessonEntry(lesson) {
     return Object.freeze({

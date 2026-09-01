@@ -27,14 +27,14 @@ export const batchUserManagementDialogStyles = css`
 
     .edvibe-batch-user-management-header h2 {
         margin: 0;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
         font-size: 21px;
         line-height: 1.3;
     }
 
     .edvibe-batch-user-management-description {
         margin: 5px 0 0;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 13px;
         line-height: 1.4;
     }
@@ -70,29 +70,29 @@ export const batchUserManagementDialogStyles = css`
 
     .edvibe-batch-user-management-email-error {
         flex-basis: 100%;
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .edvibe-batch-user-management-table-wrap {
         overflow: auto;
         max-height: 350px;
         margin-top: 18px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     .edvibe-batch-user-management-table {
         width: 100%;
         border-collapse: collapse;
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 13px;
     }
 
     .edvibe-batch-user-management-table th,
     .edvibe-batch-user-management-table td {
         padding: 11px 12px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
         text-align: left;
         vertical-align: top;
     }
@@ -101,8 +101,8 @@ export const batchUserManagementDialogStyles = css`
         position: sticky;
         top: 0;
         z-index: 1;
-        color: var(--edvibe-text);
-        background: var(--edvibe-surface-subtle);
+        color: var(--toolfox-text);
+        background: var(--toolfox-surface-subtle);
         font-size: 12px;
         font-weight: 700;
     }
@@ -134,7 +134,7 @@ export const batchUserManagementDialogStyles = css`
 
     .edvibe-batch-user-management-result {
         min-width: 220px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         overflow-wrap: anywhere;
     }
 
@@ -170,7 +170,7 @@ export const batchUserManagementDialogStyles = css`
     }
 
     .edvibe-batch-user-management-status.is-error {
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .edvibe-batch-user-management-progress {

@@ -2,7 +2,7 @@ import { createFeatureSession } from '#src/content/main/application/feature-sess
 import { EXECUTION_HISTORY_DIALOG_TAG } from '#src/content/main/features/execution-history/execution-history-dialog.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
-const HISTORY_OVERLAY_ID = 'edvibe-toolbox-execution-history';
+const HISTORY_OVERLAY_ID = 'toolfox-execution-history';
 
 export function createExecutionHistoryFeatureV2({
     operationGuard,
@@ -28,7 +28,7 @@ function createExecutionHistoryFeature({
             return;
         }
         if (!session.activate()) {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+            window.alert('Another Toolfox operation is already running.');
             return;
         }
         try {

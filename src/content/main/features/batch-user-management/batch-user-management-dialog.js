@@ -14,8 +14,8 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-const USER_MANAGEMENT_DIALOG_TAG = 'edvibe-toolbox-batch-user-management-dialog';
-const USER_MANAGEMENT_OVERLAY_ID = 'edvibe-toolbox-batch-user-management-overlay';
+const USER_MANAGEMENT_DIALOG_TAG = 'toolfox-batch-user-management-dialog';
+const USER_MANAGEMENT_OVERLAY_ID = 'toolfox-batch-user-management-overlay';
 
 class BatchUserManagementDialog extends LitElement {
     static styles = [

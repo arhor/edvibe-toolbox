@@ -4,13 +4,13 @@ Guidance for AI agents working in this repository.
 
 ## Project Overview
 
-Edvibe Toolbox is a Manifest V3 Chrome extension for automating workflows on `edvibe.com`. Source code is JavaScript, browser UI components use Lit, npm manages dependencies, and CRXJS/Vite produces the loadable extension under `dist/`.
+Toolfox is a Manifest V3 Chrome extension for adding focused productivity tools and workflow automation to supported web applications. Edvibe is the first supported integration. Source code is JavaScript, browser UI components use Lit, npm manages dependencies, and CRXJS/Vite produces the loadable extension under `dist/`.
 
 The extension has three deliberately separate runtime owners:
 
 - `src/popup/` owns the extension popup, its components, and popup-global presentation.
 - `src/content/isolated/` runs in Chrome's extension ISOLATED world and owns the bridge between Chrome runtime APIs and page messages.
-- `src/content/main/` runs in the page MAIN world and owns Edvibe-facing transport, workflows, in-page UI, persistence, and runtime orchestration.
+- `src/content/main/` runs in the page MAIN world and owns site-facing transport, workflows, in-page UI, persistence, and runtime orchestration.
 
 Code under `src/shared/` is reserved for contracts or primitives that genuinely need to be consumed by more than one runtime. Keep runtime-owned implementation out of shared code.
 

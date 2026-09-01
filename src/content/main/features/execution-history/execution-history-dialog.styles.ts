@@ -2,11 +2,11 @@ import { css } from 'lit';
 
 export const executionHistoryDialogStyles = css`
     :host {
-        --history-accent: var(--edvibe-primary);
-        --history-text: var(--edvibe-text);
-        --history-muted: var(--edvibe-text-muted);
-        --history-border: var(--edvibe-border-subtle);
-        --history-surface: var(--edvibe-surface);
+        --history-accent: var(--toolfox-primary);
+        --history-text: var(--toolfox-text);
+        --history-muted: var(--toolfox-text-muted);
+        --history-border: var(--toolfox-border-subtle);
+        --history-surface: var(--toolfox-surface);
         color: var(--history-text);
     }
 
@@ -19,7 +19,7 @@ export const executionHistoryDialogStyles = css`
         grid-template-rows: auto minmax(0, 1fr) auto;
         width: min(1180px, 96vw);
         height: min(820px, 94vh);
-        background: var(--edvibe-surface-app);
+        background: var(--toolfox-surface-app);
     }
 
     .dialog-header,
@@ -90,7 +90,7 @@ export const executionHistoryDialogStyles = css`
         gap: 10px;
         padding: 14px;
         border: 1px solid var(--history-border);
-        border-radius: var(--edvibe-radius-panel);
+        border-radius: var(--toolfox-radius-panel);
         background: var(--history-surface);
     }
 
@@ -134,9 +134,9 @@ export const executionHistoryDialogStyles = css`
     }
 
     .state-card.is-error {
-        border-color: var(--edvibe-danger-border);
-        color: var(--edvibe-danger);
-        background: var(--edvibe-danger-surface);
+        border-color: var(--toolfox-danger-border);
+        color: var(--toolfox-danger);
+        background: var(--toolfox-danger-surface);
     }
 
     .record-list {
@@ -152,7 +152,7 @@ export const executionHistoryDialogStyles = css`
         margin-bottom: 8px;
         padding: 13px;
         border: 1px solid var(--history-border);
-        border-radius: var(--edvibe-radius-card);
+        border-radius: var(--toolfox-radius-card);
         color: var(--history-text);
         background: var(--history-surface);
         font: inherit;
@@ -162,13 +162,13 @@ export const executionHistoryDialogStyles = css`
 
     .record-card:hover,
     .record-card[aria-pressed="true"] {
-        border-color: var(--edvibe-info-border);
-        box-shadow: var(--edvibe-shadow-card);
+        border-color: var(--toolfox-info-border);
+        box-shadow: var(--toolfox-shadow-card);
     }
 
     .record-card:focus-visible,
     summary:focus-visible {
-        outline: 3px solid var(--edvibe-focus-outline);
+        outline: 3px solid var(--toolfox-focus-outline);
         outline-offset: 2px;
     }
 
@@ -189,27 +189,27 @@ export const executionHistoryDialogStyles = css`
         display: inline-flex;
         flex: none;
         padding: 3px 7px;
-        border-radius: var(--edvibe-radius-pill);
+        border-radius: var(--toolfox-radius-pill);
         color: var(--history-muted);
-        background: var(--edvibe-surface-subtle);
+        background: var(--toolfox-surface-subtle);
         font-size: 10px;
         font-weight: 800;
     }
 
     .record-card[data-status="completed"] .status-chip {
-        color: var(--edvibe-success);
-        background: var(--edvibe-success-surface);
+        color: var(--toolfox-success);
+        background: var(--toolfox-success-surface);
     }
 
     .record-card[data-status="completed_with_failures"] .status-chip {
-        color: var(--edvibe-warning);
-        background: var(--edvibe-warning-surface);
+        color: var(--toolfox-warning);
+        background: var(--toolfox-warning-surface);
     }
 
     .record-card[data-status="interrupted"] .status-chip,
     .record-card[data-status="cancelled"] .status-chip {
-        color: var(--edvibe-danger);
-        background: var(--edvibe-danger-surface);
+        color: var(--toolfox-danger);
+        background: var(--toolfox-danger-surface);
     }
 
     .record-context,
@@ -243,9 +243,9 @@ export const executionHistoryDialogStyles = css`
         height: 52px;
         place-items: center;
         margin-bottom: 12px;
-        border-radius: var(--edvibe-radius-panel);
+        border-radius: var(--toolfox-radius-panel);
         color: var(--history-accent);
-        background: var(--edvibe-info-surface);
+        background: var(--toolfox-info-surface);
         font-size: 24px;
     }
 
@@ -290,8 +290,8 @@ export const executionHistoryDialogStyles = css`
         min-width: 0;
         padding: 12px;
         border: 1px solid var(--history-border);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface-subtle);
     }
 
     .summary-grid dt {
@@ -317,8 +317,8 @@ export const executionHistoryDialogStyles = css`
         display: grid;
         gap: 2px;
         padding: 11px;
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface-subtle);
     }
 
     .counts strong {
@@ -343,7 +343,7 @@ export const executionHistoryDialogStyles = css`
         margin-bottom: 8px;
         padding: 12px;
         border: 1px solid var(--history-border);
-        border-radius: var(--edvibe-radius-panel);
+        border-radius: var(--toolfox-radius-panel);
     }
 
     .outcome-card > div {
@@ -354,7 +354,7 @@ export const executionHistoryDialogStyles = css`
 
     .outcome-card p {
         margin-top: 5px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
         line-height: 1.45;
     }
@@ -375,9 +375,9 @@ export const executionHistoryDialogStyles = css`
         overflow: auto;
         margin: 7px 0 0;
         padding: 10px;
-        border-radius: var(--edvibe-radius-control);
+        border-radius: var(--toolfox-radius-control);
         color: var(--history-text);
-        background: var(--edvibe-surface-subtle);
+        background: var(--toolfox-surface-subtle);
         font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
         white-space: pre-wrap;
     }
@@ -385,9 +385,9 @@ export const executionHistoryDialogStyles = css`
     .interruptions {
         margin-bottom: 22px;
         padding: 14px;
-        border: 1px solid var(--edvibe-danger-border);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-danger-surface);
+        border: 1px solid var(--toolfox-danger-border);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-danger-surface);
     }
 
     .interruptions > .muted {
@@ -396,7 +396,7 @@ export const executionHistoryDialogStyles = css`
 
     .diagnostics > summary {
         cursor: pointer;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-weight: 800;
     }
 
@@ -410,8 +410,8 @@ export const executionHistoryDialogStyles = css`
         min-width: 0;
         padding: 11px;
         border: 1px solid var(--history-border);
-        border-radius: var(--edvibe-radius-control);
-        background: var(--edvibe-surface-subtle);
+        border-radius: var(--toolfox-radius-control);
+        background: var(--toolfox-surface-subtle);
     }
 
     .diagnostic-metadata {
@@ -484,7 +484,7 @@ export const executionHistoryDialogStyles = css`
 
     .retention-settings summary {
         cursor: pointer;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
         font-weight: 800;
     }
