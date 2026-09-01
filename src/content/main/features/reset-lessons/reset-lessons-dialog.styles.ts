@@ -30,20 +30,20 @@ export const resetLessonsDialogStyles = css`
 
     .edvibe-reset-title {
         margin: 0;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
         font-size: 21px;
         line-height: 1.3;
     }
 
     .edvibe-reset-subtitle {
         margin: 5px 0 0;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 13px;
     }
 
     .edvibe-reset-step-indicator {
         margin-right: 8px;
-        color: var(--edvibe-primary);
+        color: var(--toolfox-primary);
         font-weight: 700;
     }
 
@@ -68,7 +68,7 @@ export const resetLessonsDialogStyles = css`
     .edvibe-reset-label {
         display: block;
         margin-bottom: 7px;
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 13px;
         font-weight: 650;
     }
@@ -77,9 +77,9 @@ export const resetLessonsDialogStyles = css`
         overflow: auto;
         max-height: 250px;
         margin-top: 10px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     .edvibe-reset-pupils-shell {
@@ -102,9 +102,9 @@ export const resetLessonsDialogStyles = css`
         align-items: center;
         justify-content: center;
         gap: 10px;
-        border-radius: var(--edvibe-radius-panel);
-        background: color-mix(in srgb, var(--edvibe-surface) 72%, transparent);
-        color: var(--edvibe-text);
+        border-radius: var(--toolfox-radius-panel);
+        background: color-mix(in srgb, var(--toolfox-surface) 72%, transparent);
+        color: var(--toolfox-text);
         font-size: 13px;
         font-weight: 650;
     }
@@ -112,8 +112,8 @@ export const resetLessonsDialogStyles = css`
     .edvibe-reset-spinner {
         width: 22px;
         height: 22px;
-        border: 3px solid var(--edvibe-info-border);
-        border-top-color: var(--edvibe-primary);
+        border: 3px solid var(--toolfox-info-border);
+        border-top-color: var(--toolfox-primary);
         border-radius: 50%;
         animation: edvibe-reset-spinner-rotate .8s linear infinite;
     }
@@ -125,9 +125,9 @@ export const resetLessonsDialogStyles = css`
         gap: 10px;
         padding: 11px 12px;
         border: 0;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
-        background: var(--edvibe-surface);
-        color: var(--edvibe-text);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
+        background: var(--toolfox-surface);
+        color: var(--toolfox-text);
         font: inherit;
         text-align: left;
         cursor: pointer;
@@ -139,11 +139,11 @@ export const resetLessonsDialogStyles = css`
 
     .edvibe-reset-row:hover,
     .edvibe-reset-row.is-selected {
-        background: var(--edvibe-info-surface);
+        background: var(--toolfox-info-surface);
     }
 
     .edvibe-reset-row:focus-visible {
-        outline: 3px solid var(--edvibe-focus-outline);
+        outline: 3px solid var(--toolfox-focus-outline);
         outline-offset: -3px;
     }
 
@@ -171,7 +171,7 @@ export const resetLessonsDialogStyles = css`
 
     .edvibe-reset-row-email {
         margin-top: 2px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
     }
 
@@ -216,18 +216,18 @@ export const resetLessonsDialogStyles = css`
     }
 
     .edvibe-reset-status.is-error {
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .edvibe-reset-status.is-success {
-        color: var(--edvibe-success);
+        color: var(--toolfox-success);
     }
 
     .edvibe-reset-progress {
         display: none;
         height: 11px;
         margin-top: 10px;
-        accent-color: var(--edvibe-danger);
+        accent-color: var(--toolfox-danger);
     }
 
     .edvibe-reset-progress.is-visible {
