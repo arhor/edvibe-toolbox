@@ -4,8 +4,8 @@ import { actionRecorderDialogStyles } from '#src/content/main/features/action-re
 import { componentFoundationStyles, dialogFoundationStyles } from '#src/content/main/styles/foundations.js';
 import { controlStyles, dialogShellStyles, emptyStateStyles, fieldStyles, noticeStyles } from '#src/content/main/styles/primitives.js';
 
-const RECORDER_DIALOG_TAG = 'edvibe-toolbox-action-recorder';
-const RECORDER_DIALOG_ID = 'edvibe-toolbox-action-recorder';
+const RECORDER_DIALOG_TAG = 'toolfox-action-recorder';
+const RECORDER_DIALOG_ID = 'toolfox-action-recorder';
 
 class ActionRecorderDialog extends LitElement {
     static styles = [
@@ -22,7 +22,7 @@ class ActionRecorderDialog extends LitElement {
     static properties = {
         state: { state: true },
         minimized: { state: true },
-        showToolbox: { state: true },
+        showToolfox: { state: true },
         elapsedLabel: { state: true }
     };
 
@@ -31,7 +31,7 @@ class ActionRecorderDialog extends LitElement {
         this.callbacks = {};
         this.state = { status: 'idle', session: null };
         this.minimized = false;
-        this.showToolbox = false;
+        this.showToolfox = false;
         this.elapsedLabel = '';
         this.elapsedTimer = null;
     }
@@ -132,7 +132,7 @@ class ActionRecorderDialog extends LitElement {
 
     visibleOperations() {
         return (this.state.session?.operations || []).filter(
-            (operation) => this.showToolbox || operation.origin === 'page'
+            (operation) => this.showToolfox || operation.origin === 'page'
         );
     }
 
@@ -270,10 +270,10 @@ class ActionRecorderDialog extends LitElement {
                             <span><strong class="frame-count">${this.state.session?.frameCount || 0}</strong> кадров</span>
                             <span><strong class="byte-count">${this.formatBytes(this.state.session?.storedBytes || 0)}</strong> текста</span>
                             <label>
-                                <input class="show-toolbox" type="checkbox" .checked=${this.showToolbox} @change=${(event) => {
-                                    this.showToolbox = event.currentTarget.checked;
+                                <input class="show-toolfox" type="checkbox" .checked=${this.showToolfox} @change=${(event) => {
+                                    this.showToolfox = event.currentTarget.checked;
                                 }}>
-                                Показать трафик Toolbox
+                                Показать трафик Toolfox
                             </label>
                         </div>
                         <p class="recorder-notice" data-notice="success" role="status" ?hidden=${!this.state.notice}>${this.state.notice || ''}</p>
