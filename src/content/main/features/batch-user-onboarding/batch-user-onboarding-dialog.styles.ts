@@ -29,7 +29,7 @@ export const batchUserOnboardingDialogStyles = css`
 
     .eyebrow {
         margin: 0 0 4px;
-        color: var(--edvibe-primary);
+        color: var(--toolfox-primary);
         font-size: 11px;
         font-weight: 750;
         letter-spacing: .08em;
@@ -38,14 +38,14 @@ export const batchUserOnboardingDialogStyles = css`
 
     .header h2 {
         margin: 0;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
         font-size: 21px;
         line-height: 1.3;
     }
 
     .description {
         margin: 5px 0 0;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 13px;
         line-height: 1.4;
     }
@@ -97,7 +97,7 @@ export const batchUserOnboardingDialogStyles = css`
 
     .email-error {
         flex-basis: 100%;
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .curator-field {
@@ -121,34 +121,34 @@ export const batchUserOnboardingDialogStyles = css`
         justify-content: space-between;
         gap: 12px;
         margin-bottom: 8px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
     }
 
     .review-toolbar strong {
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
     }
 
     .table-wrap {
         overflow: auto;
         max-height: 390px;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface);
     }
 
     table {
         width: 100%;
         min-width: 1020px;
         border-collapse: collapse;
-        color: var(--edvibe-text);
+        color: var(--toolfox-text);
         font-size: 12px;
     }
 
     th,
     td {
         padding: 10px 11px;
-        border-bottom: 1px solid var(--edvibe-border-subtle);
+        border-bottom: 1px solid var(--toolfox-border-subtle);
         text-align: left;
         vertical-align: top;
     }
@@ -157,8 +157,8 @@ export const batchUserOnboardingDialogStyles = css`
         position: sticky;
         top: 0;
         z-index: 1;
-        background: var(--edvibe-surface-subtle);
-        color: var(--edvibe-text);
+        background: var(--toolfox-surface-subtle);
+        color: var(--toolfox-text);
         font-weight: 700;
     }
 
@@ -186,7 +186,7 @@ export const batchUserOnboardingDialogStyles = css`
 
     td small {
         margin-top: 3px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
     }
 
     .is-error,
@@ -195,33 +195,33 @@ export const batchUserOnboardingDialogStyles = css`
     }
 
     .is-error {
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     .row-status {
         min-width: 190px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
     }
 
     .preflight,
     .result {
         margin-top: 18px;
         padding: 14px;
-        border: 1px solid var(--edvibe-info-border);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-info-surface);
+        border: 1px solid var(--toolfox-info-border);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-info-surface);
     }
 
     .preflight h3 {
         margin: 0 0 7px;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
         font-size: 15px;
     }
 
     .preflight p,
     .preflight ul {
         margin: 7px 0 0;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
         line-height: 1.45;
     }
