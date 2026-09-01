@@ -179,8 +179,10 @@ function createExecutionHistoryRepository(options = {}) {
     const indexedDBFactory = options.indexedDB || globalThis.indexedDB;
     const db = api.createIndexedDb(HISTORY_DB_DEFINITION, { indexedDB: indexedDBFactory });
     const repository = db.repository(HISTORY_STORE_NAME);
+    const canMigrateLegacy = typeof indexedDBFactory?.open === 'function'
+        && typeof indexedDBFactory?.deleteDatabase === 'function';
     const legacyDatabaseApi = options.legacyDatabaseApi
-        || (indexedDBFactory ? createLegacyHistoryDatabaseApi(indexedDBFactory) : null);
+        || (canMigrateLegacy ? createLegacyHistoryDatabaseApi(indexedDBFactory) : null);
     let migrationPromise = null;
 
     function ensureLegacyMigration() {
