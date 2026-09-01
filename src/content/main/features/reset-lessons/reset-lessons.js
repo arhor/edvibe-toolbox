@@ -4,7 +4,7 @@ import { parseMarathonId } from '#src/content/main/page-context.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 
-const RESET_OVERLAY_ID = 'edvibe-toolbox-reset-overlay';
+const RESET_OVERLAY_ID = 'toolfox-reset-overlay';
 
 function collectLessonSections(lessonValue) {
     const sections = Array.isArray(lessonValue?.Sections)
@@ -333,7 +333,7 @@ function createResetLessonsFeature({
             return;
         }
         if (!session.activate()) {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+            window.alert('Another Toolfox operation is already running.');
             return;
         }
 
