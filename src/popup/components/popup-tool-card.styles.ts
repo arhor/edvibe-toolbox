@@ -10,11 +10,11 @@ export const popupToolCardStyles = css`
         width: 100%;
         margin: 0;
         padding: 13px;
-        border: 1px solid var(--edvibe-border);
-        border-radius: var(--edvibe-radius-panel);
-        color: var(--edvibe-text);
-        background: var(--edvibe-surface);
-        box-shadow: var(--edvibe-shadow-card);
+        border: 1px solid var(--toolfox-border);
+        border-radius: var(--toolfox-radius-panel);
+        color: var(--toolfox-text);
+        background: var(--toolfox-surface);
+        box-shadow: var(--toolfox-shadow-card);
         cursor: pointer;
         font: inherit;
         text-align: left;
@@ -23,40 +23,40 @@ export const popupToolCardStyles = css`
     }
 
     button:hover:not(:disabled) {
-        border-color: color-mix(in srgb, var(--edvibe-brand) 45%, var(--edvibe-border));
-        box-shadow: 0 4px 12px color-mix(in srgb, var(--edvibe-text-strong) 9%, transparent);
+        border-color: color-mix(in srgb, var(--toolfox-brand) 45%, var(--toolfox-border));
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--toolfox-text-strong) 9%, transparent);
         transform: translateY(-1px);
     }
 
     button:focus-visible {
-        outline: 2px solid var(--edvibe-focus-outline);
+        outline: 2px solid var(--toolfox-focus-outline);
         outline-offset: 2px;
-        box-shadow: 0 0 0 4px var(--edvibe-focus-halo);
+        box-shadow: 0 0 0 4px var(--toolfox-focus-halo);
     }
 
     button:disabled {
-        color: var(--edvibe-text-muted);
-        background: var(--edvibe-surface-subtle);
+        color: var(--toolfox-text-muted);
+        background: var(--toolfox-surface-subtle);
         box-shadow: none;
         cursor: default;
         opacity: .72;
     }
 
     button:disabled .tool-title {
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
     }
 
     button[data-danger="true"]:not(:disabled) {
-        border-color: var(--edvibe-danger-border);
+        border-color: var(--toolfox-danger-border);
     }
 
     button[data-danger="true"]:not(:disabled) .tool-title {
-        color: var(--edvibe-danger);
+        color: var(--toolfox-danger);
     }
 
     button[data-danger="true"]:hover:not(:disabled) {
-        border-color: var(--edvibe-danger);
-        background: var(--edvibe-danger-surface);
+        border-color: var(--toolfox-danger);
+        background: var(--toolfox-danger-surface);
     }
 
     .tool-card-header {
@@ -73,7 +73,7 @@ export const popupToolCardStyles = css`
 
     .tool-title {
         margin: 0;
-        color: var(--edvibe-text-strong);
+        color: var(--toolfox-text-strong);
         font-size: 13px;
         line-height: 1.35;
     }
@@ -82,19 +82,19 @@ export const popupToolCardStyles = css`
     .tool-requirement {
         display: block;
         margin-top: 4px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 11px;
         line-height: 1.4;
     }
 
     .tool-requirement {
-        color: var(--edvibe-warning);
+        color: var(--toolfox-warning);
     }
 
     .tool-busy {
         display: block;
         margin-top: 5px;
-        color: var(--edvibe-brand);
+        color: var(--toolfox-brand);
         font-size: 11px;
         font-weight: 650;
         line-height: 1.4;
