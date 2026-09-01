@@ -7,7 +7,7 @@ export const popupToolGroupStyles = css`
 
     .tool-group-title {
         margin: 0 0 7px 2px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.07em;
