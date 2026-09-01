@@ -1,7 +1,7 @@
 import { css, unsafeCSS } from 'lit';
 
 import {
-    TOOLBOX_DESIGN_TOKENS,
+    TOOLFOX_DESIGN_TOKENS,
     createDesignTokenDeclarations
 } from '#src/shared/ui-design-tokens.js';
 
@@ -10,10 +10,10 @@ const tokenDeclarations = unsafeCSS(createDesignTokenDeclarations());
 export const componentFoundationStyles = css`
     :host {
         ${tokenDeclarations}
-        --edvibe-dialog-z-index: var(--edvibe-z-dialog);
-        --edvibe-overlay-background: var(--edvibe-overlay);
-        --edvibe-muted-text: var(--edvibe-text-muted);
-        --edvibe-radius: var(--edvibe-radius-dialog);
+        --toolfox-dialog-z-index: var(--toolfox-z-dialog);
+        --toolfox-overlay-background: var(--toolfox-overlay);
+        --toolfox-muted-text: var(--toolfox-text-muted);
+        --toolfox-radius: var(--toolfox-radius-dialog);
     }
 
     button,
@@ -26,8 +26,8 @@ export const componentFoundationStyles = css`
 
 export const dialogFoundationStyles = css`
     :host {
-        font-family: var(--edvibe-font-family);
+        font-family: var(--toolfox-font-family);
     }
 `;
 
-export { TOOLBOX_DESIGN_TOKENS };
+export { TOOLFOX_DESIGN_TOKENS };
