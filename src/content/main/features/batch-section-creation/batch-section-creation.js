@@ -7,8 +7,8 @@ import { getLessonById, loadAllMarathonLessons } from '#src/content/main/infrast
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 
-const DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
-const OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
+const DIALOG_TAG = 'toolfox-batch-section-creation-dialog';
+const OVERLAY_ID = 'toolfox-batch-section-creation-overlay';
 const TRANSIENT_CODES = new Set(['WS_UNAVAILABLE', 'REQUEST_TIMEOUT', 'SEND_FAILED']);
 const EXPECTED_WRITE_CODES = new Set([
     ...TRANSIENT_CODES,
@@ -697,7 +697,7 @@ function createBatchSectionCreationFeature({
             return;
         }
         if (!session.activate()) {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+            window.alert('Another Toolfox operation is already running.');
             return;
         }
         marathonId = parseMarathonId(window.location.href);
