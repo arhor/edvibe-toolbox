@@ -11,7 +11,7 @@ export const batchSectionImageUploadStyles = css`
         justify-content: space-between;
         gap: 12px;
         margin-top: 8px;
-        color: var(--edvibe-text-muted);
+        color: var(--toolfox-text-muted);
         font-size: 12px;
         line-height: 1.4;
     }
@@ -35,8 +35,8 @@ export const batchSectionImageUploadStyles = css`
         max-height: 240px;
         margin-top: 10px;
         object-fit: contain;
-        border: 1px solid var(--edvibe-border-subtle);
-        border-radius: var(--edvibe-radius-panel);
-        background: var(--edvibe-surface-subtle);
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-panel);
+        background: var(--toolfox-surface-subtle);
     }
 `;
