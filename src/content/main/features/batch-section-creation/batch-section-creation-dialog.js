@@ -16,8 +16,8 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-const BATCH_SECTION_DIALOG_TAG = 'edvibe-toolbox-batch-section-creation-dialog';
-const BATCH_SECTION_OVERLAY_ID = 'edvibe-toolbox-batch-section-creation-overlay';
+const BATCH_SECTION_DIALOG_TAG = 'toolfox-batch-section-creation-dialog';
+const BATCH_SECTION_OVERLAY_ID = 'toolfox-batch-section-creation-overlay';
 
 class BatchSectionCreationDialog extends LitElement {
     static styles = [
@@ -545,7 +545,7 @@ class BatchSectionCreationDialog extends LitElement {
                 <section class="edvibe-batch-section-card" data-part="dialog" role="dialog" aria-modal="true"
                     aria-labelledby="edvibe-batch-section-title">
                     <header class="edvibe-batch-section-header">
-                        <div><p class="edvibe-batch-section-eyebrow">Edvibe Toolbox</p>
+                        <div><p class="edvibe-batch-section-eyebrow">Toolfox</p>
                             <h2 id="edvibe-batch-section-title">Создать раздел в нескольких уроках</h2>
                             <p class="edvibe-batch-section-description">Соберите раздел один раз, проверьте план и примените его к выбранным урокам.</p></div>
                         <button class="edvibe-batch-section-close" data-control="secondary" type="button" aria-label="Закрыть"
