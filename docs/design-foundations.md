@@ -1,6 +1,6 @@
-# Toolbox design foundations
+# Toolfox design foundations
 
-This document is the canonical design vocabulary for Edvibe Toolbox UI. It is
+This document is the canonical design vocabulary for Toolfox UI. It is
 derived from the popup and the MAIN-world components as they exist today. It
 defines what later primitives and migrations should converge on; it does not
 require an existing feature to change appearance merely to replace a literal.
@@ -44,39 +44,39 @@ below documents that exported contract and must change with it.
 
 | Token | Canonical value | Purpose |
 | --- | --- | --- |
-| `--edvibe-font-family` | `"Segoe UI", Inter, Arial, system-ui, sans-serif` | Controls and in-page UI typography |
-| `--edvibe-z-dialog` | `2147483647` | Top-level MAIN dialog layer |
-| `--edvibe-overlay` | `rgba(15, 23, 42, 0.6)` | Modal backdrop |
-| `--edvibe-surface` | `#fff` | Dialogs, cards, fields, and raised panels |
-| `--edvibe-surface-subtle` | `#f8fafc` | Secondary panels and disabled surfaces |
-| `--edvibe-surface-app` | `#f4f6fa` | Popup application background |
-| `--edvibe-text` | `#1f2937` | Default text |
-| `--edvibe-text-strong` | `#111827` | Headings and emphasized values |
-| `--edvibe-text-muted` | `#6b7280` | Descriptions, metadata, and empty states |
-| `--edvibe-border` | `#d1d5db` | Controls and ordinary boundaries |
-| `--edvibe-border-subtle` | `#e5e7eb` | Section and row separators |
-| `--edvibe-primary` | `#2563eb` | Primary actions, active controls, and progress |
-| `--edvibe-brand` | `#4055d3` | Toolbox identity and popup activity accents |
-| `--edvibe-danger` | `#b91c1c` | Destructive actions and error text |
-| `--edvibe-danger-surface` | `#fef2f2` | Error notice background |
-| `--edvibe-danger-border` | `#fecaca` | Error notice boundary |
-| `--edvibe-warning` | `#9a3412` | Warning text |
-| `--edvibe-warning-surface` | `#fff7ed` | Warning notice background |
-| `--edvibe-warning-border` | `#fed7aa` | Warning notice boundary |
-| `--edvibe-success` | `#166534` | Success text and state |
-| `--edvibe-success-surface` | `#f0fdf4` | Success notice background |
-| `--edvibe-success-border` | `#bbf7d0` | Success notice boundary |
-| `--edvibe-info` | `#1e3a8a` | Informational text |
-| `--edvibe-info-surface` | `#eff6ff` | Informational panel background |
-| `--edvibe-info-border` | `#bfdbfe` | Informational panel boundary |
-| `--edvibe-focus-outline` | `#2563eb` | Solid `:focus-visible` outline with sufficient contrast |
-| `--edvibe-focus-halo` | `rgba(37, 99, 235, 0.25)` | Optional outer halo used in addition to the solid outline |
-| `--edvibe-radius-control` | `8px` | Inputs, buttons, and notices |
-| `--edvibe-radius-panel` | `10px` | Cards, rows, and secondary panels |
-| `--edvibe-radius-dialog` | `16px` | Modal surface |
-| `--edvibe-radius-pill` | `999px` | Progress tracks, badges, and chips |
-| `--edvibe-shadow-card` | `0 2px 7px rgba(30, 42, 70, 0.04)` | Low-elevation interactive card |
-| `--edvibe-shadow-dialog` | `0 24px 80px rgba(15, 23, 42, 0.38)` | Modal elevation |
+| `--toolfox-font-family` | `"Segoe UI", Inter, Arial, system-ui, sans-serif` | Controls and in-page UI typography |
+| `--toolfox-z-dialog` | `2147483647` | Top-level MAIN dialog layer |
+| `--toolfox-overlay` | `rgba(15, 23, 42, 0.6)` | Modal backdrop |
+| `--toolfox-surface` | `#fff` | Dialogs, cards, fields, and raised panels |
+| `--toolfox-surface-subtle` | `#f8fafc` | Secondary panels and disabled surfaces |
+| `--toolfox-surface-app` | `#f4f6fa` | Popup application background |
+| `--toolfox-text` | `#1f2937` | Default text |
+| `--toolfox-text-strong` | `#111827` | Headings and emphasized values |
+| `--toolfox-text-muted` | `#6b7280` | Descriptions, metadata, and empty states |
+| `--toolfox-border` | `#d1d5db` | Controls and ordinary boundaries |
+| `--toolfox-border-subtle` | `#e5e7eb` | Section and row separators |
+| `--toolfox-primary` | `#2563eb` | Primary actions, active controls, and progress |
+| `--toolfox-brand` | `#4055d3` | Toolfox identity and popup activity accents |
+| `--toolfox-danger` | `#b91c1c` | Destructive actions and error text |
+| `--toolfox-danger-surface` | `#fef2f2` | Error notice background |
+| `--toolfox-danger-border` | `#fecaca` | Error notice boundary |
+| `--toolfox-warning` | `#9a3412` | Warning text |
+| `--toolfox-warning-surface` | `#fff7ed` | Warning notice background |
+| `--toolfox-warning-border` | `#fed7aa` | Warning notice boundary |
+| `--toolfox-success` | `#166534` | Success text and state |
+| `--toolfox-success-surface` | `#f0fdf4` | Success notice background |
+| `--toolfox-success-border` | `#bbf7d0` | Success notice boundary |
+| `--toolfox-info` | `#1e3a8a` | Informational text |
+| `--toolfox-info-surface` | `#eff6ff` | Informational panel background |
+| `--toolfox-info-border` | `#bfdbfe` | Informational panel boundary |
+| `--toolfox-focus-outline` | `#2563eb` | Solid `:focus-visible` outline with sufficient contrast |
+| `--toolfox-focus-halo` | `rgba(37, 99, 235, 0.25)` | Optional outer halo used in addition to the solid outline |
+| `--toolfox-radius-control` | `8px` | Inputs, buttons, and notices |
+| `--toolfox-radius-panel` | `10px` | Cards, rows, and secondary panels |
+| `--toolfox-radius-dialog` | `16px` | Modal surface |
+| `--toolfox-radius-pill` | `999px` | Progress tracks, badges, and chips |
+| `--toolfox-shadow-card` | `0 2px 7px rgba(30, 42, 70, 0.04)` | Low-elevation interactive card |
+| `--toolfox-shadow-dialog` | `0 24px 80px rgba(15, 23, 42, 0.38)` | Modal elevation |
 
 Spacing remains a deliberately small scale: `4px`, `8px`, `12px`, `16px`,
 `24px`, and `32px`. Components may use an intermediate value when layout
