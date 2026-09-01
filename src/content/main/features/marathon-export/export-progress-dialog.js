@@ -11,7 +11,7 @@ import {
     progressStyles
 } from '#src/content/main/styles/primitives.js';
 
-const EXPORT_PROGRESS_TAG = 'edvibe-toolbox-export-progress';
+const EXPORT_PROGRESS_TAG = 'toolfox-export-progress';
 
 class ExportProgressDialog extends LitElement {
     static styles = [
