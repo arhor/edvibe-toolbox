@@ -32,7 +32,7 @@ import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 import { wait } from '#src/shared/utils.js';
 import { BATCH_USER_ONBOARDING_DIALOG_TAG } from '#src/content/main/features/batch-user-onboarding/batch-user-onboarding-dialog.js';
 
-const DIALOG_TAG = 'edvibe-toolbox-batch-user-onboarding-dialog';
+const DIALOG_TAG = 'toolfox-batch-user-onboarding-dialog';
 
 function parseEmailInput(value) {
     return parseSharedEmailInput(value, { includeItems: true });
@@ -95,7 +95,7 @@ function createBatchUserOnboardingFeature({
 }) {
     async function open() {
         if (session.isOpen() || !session.activate()) {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+            window.alert('Another Toolfox operation is already running.');
             return;
         }
         const marathonId = getMarathonId();
