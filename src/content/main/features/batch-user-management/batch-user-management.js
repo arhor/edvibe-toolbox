@@ -507,7 +507,7 @@ function createBatchUserManagementFeature({
             return;
         }
         if (!session.activate()) {
-            window.alert('Another Edvibe Toolbox operation is already running.');
+            window.alert('Another Toolfox operation is already running.');
             return;
         }
         marathonId = parseMarathonId(window.location.href);
