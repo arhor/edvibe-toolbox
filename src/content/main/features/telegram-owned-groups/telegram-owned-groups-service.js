@@ -1,5 +1,9 @@
 const SUPPORTED_STATE = 'supported';
 const GROUP_TYPES = new Set(['group', 'supergroup']);
+const TELEGRAM_GROUP_SORT_ORDERS = Object.freeze({
+    NEWEST_FIRST: 'newest-first',
+    OLDEST_FIRST: 'oldest-first'
+});
 
 function normalizeActivityTimestamp(value) {
     if (!value) {
@@ -31,7 +35,7 @@ function normalizeOwnedGroup(candidate) {
     });
 }
 
-function compareOwnedTelegramGroups(left, right) {
+function compareOwnedTelegramGroups(left, right, sortOrder = TELEGRAM_GROUP_SORT_ORDERS.NEWEST_FIRST) {
     const leftActivity = normalizeActivityTimestamp(left?.lastActivityAt);
     const rightActivity = normalizeActivityTimestamp(right?.lastActivityAt);
 
@@ -42,7 +46,9 @@ function compareOwnedTelegramGroups(left, right) {
         if (rightActivity === null) {
             return -1;
         }
-        return rightActivity - leftActivity;
+        return sortOrder === TELEGRAM_GROUP_SORT_ORDERS.OLDEST_FIRST
+            ? leftActivity - rightActivity
+            : rightActivity - leftActivity;
     }
 
     const leftTitle = String(left?.title || '').toLowerCase();
@@ -54,8 +60,9 @@ function compareOwnedTelegramGroups(left, right) {
     return Number(left?.peerId) - Number(right?.peerId);
 }
 
-function sortOwnedTelegramGroups(groups) {
-    return Object.freeze(Array.from(groups || []).sort(compareOwnedTelegramGroups));
+function sortOwnedTelegramGroups(groups, sortOrder = TELEGRAM_GROUP_SORT_ORDERS.NEWEST_FIRST) {
+    return Object.freeze(Array.from(groups || [])
+        .sort((left, right) => compareOwnedTelegramGroups(left, right, sortOrder)));
 }
 
 function filterOwnedTelegramGroups(groups, query = '') {
@@ -100,7 +107,11 @@ function getSelectedOwnedGroups(groups, selectedPeerIds) {
         .filter(({ peerId }) => selected.has(Number(peerId))));
 }
 
-function createOwnedTelegramGroupsView(groups, query = '') {
+function createOwnedTelegramGroupsView(
+    groups,
+    query = '',
+    sortOrder = TELEGRAM_GROUP_SORT_ORDERS.NEWEST_FIRST
+) {
     const source = Array.from(groups || []);
     if (source.length === 0) {
         return Object.freeze({
@@ -109,7 +120,10 @@ function createOwnedTelegramGroupsView(groups, query = '') {
         });
     }
 
-    const visibleGroups = filterOwnedTelegramGroups(source, query);
+    const visibleGroups = sortOwnedTelegramGroups(
+        filterOwnedTelegramGroups(source, query),
+        sortOrder
+    );
     return Object.freeze({
         groups: visibleGroups,
         state: visibleGroups.length === 0 ? 'filtered-empty' : 'ready'
@@ -176,5 +190,6 @@ export {
     loadOwnedTelegramGroups,
     normalizeOwnedGroup,
     sortOwnedTelegramGroups,
+    TELEGRAM_GROUP_SORT_ORDERS,
     toggleOwnedGroupSelection
 };
