@@ -75,6 +75,16 @@ export const telegramOwnedGroupsDialogStyles = css`
         background: var(--toolfox-danger-surface);
     }
 
+    .filter-empty-state {
+        min-height: 140px;
+    }
+
+    .toolbar {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
     .group-list {
         display: grid;
         gap: 10px;
@@ -121,7 +131,7 @@ export const telegramOwnedGroupsDialogStyles = css`
     }
 
     .summary {
-        margin: 0 0 12px;
+        margin: 0;
         color: var(--toolfox-text-muted);
         font-size: 12px;
     }
