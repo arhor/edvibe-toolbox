@@ -3,12 +3,11 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export const ContentScripts = {
     ISOLATED: 'src/content/isolated/index.js',
     MAIN: 'src/content/main/index.js',
+    TELEGRAM_WEB_K_MAIN: 'src/content/main/telegram-web-k.js'
 };
 
-export const ContentScriptMatches = [
-    '*://*.edvibe.com/*',
-    'https://web.telegram.org/k/*'
-];
+const EDVIBE_MATCHES = ['*://*.edvibe.com/*'];
+const TELEGRAM_WEB_K_MATCHES = ['https://web.telegram.org/k/*'];
 
 export default defineManifest({
     manifest_version: 3,
@@ -24,14 +23,26 @@ export default defineManifest({
     },
     content_scripts: [
         {
-            matches: ContentScriptMatches,
+            matches: EDVIBE_MATCHES,
             js: [ContentScripts.ISOLATED],
             run_at: 'document_start',
             world: 'ISOLATED'
         },
         {
-            matches: ContentScriptMatches,
+            matches: EDVIBE_MATCHES,
             js: [ContentScripts.MAIN],
+            run_at: 'document_start',
+            world: 'MAIN'
+        },
+        {
+            matches: TELEGRAM_WEB_K_MATCHES,
+            js: [ContentScripts.ISOLATED],
+            run_at: 'document_start',
+            world: 'ISOLATED'
+        },
+        {
+            matches: TELEGRAM_WEB_K_MATCHES,
+            js: [ContentScripts.TELEGRAM_WEB_K_MAIN],
             run_at: 'document_start',
             world: 'MAIN'
         }
