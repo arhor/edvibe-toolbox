@@ -11,7 +11,7 @@ const BUDGETS = Object.freeze({
     isolatedBytes: 50_000,
     popupBytes: 100_000,
     totalJavaScriptBytes: 650_000,
-    maxJavaScriptFiles: 3
+    maxJavaScriptFiles: 4
 });
 
 async function walk(directory) {
@@ -50,21 +50,30 @@ function assertBudget(label, actual, limit) {
     }
 }
 
+function uniqueEntries(contentScripts, world) {
+    return [...new Set(
+        contentScripts
+            .filter((contentScript) => contentScript.world === world)
+            .flatMap((contentScript) => contentScript.js || [])
+    )];
+}
+
 async function main() {
     const manifest = JSON.parse(await readFile(path.join(distDir, 'manifest.json'), 'utf8'));
-    const mainEntry = manifest.content_scripts?.find(({ world }) => world === 'MAIN')?.js?.[0];
-    const isolatedEntry = manifest.content_scripts?.find(({ world }) => world === 'ISOLATED')?.js?.[0];
-    if (!mainEntry || !isolatedEntry) {
+    const contentScripts = manifest.content_scripts || [];
+    const mainEntries = uniqueEntries(contentScripts, 'MAIN');
+    const isolatedEntries = uniqueEntries(contentScripts, 'ISOLATED');
+    if (mainEntries.length === 0 || isolatedEntries.length === 0) {
         throw new Error('Built manifest must expose MAIN and ISOLATED content-script entry points.');
     }
 
+    const contentScriptEntries = new Set([...mainEntries, ...isolatedEntries]);
     const allFiles = await walk(distDir);
     const javascriptFiles = allFiles.filter((file) => file.endsWith('.js'));
-    const mainFile = path.join(distDir, mainEntry);
-    const isolatedFile = path.join(distDir, isolatedEntry);
-    const popupFiles = javascriptFiles.filter((file) => file !== mainFile && file !== isolatedFile);
+    const contentScriptFiles = [...contentScriptEntries].map((entry) => path.join(distDir, entry));
+    const popupFiles = javascriptFiles.filter((file) => !contentScriptFiles.includes(file));
 
-    if (!javascriptFiles.includes(mainFile) || !javascriptFiles.includes(isolatedFile)) {
+    if (contentScriptFiles.some((file) => !javascriptFiles.includes(file))) {
         throw new Error('Built content-script entry points are missing from dist/.');
     }
     if (popupFiles.length !== 1) {
@@ -81,16 +90,20 @@ async function main() {
     }
     measurements.sort((left, right) => right.bytes - left.bytes);
 
-    const mainBytes = measurements.find(({ file }) => file === mainEntry)?.bytes ?? 0;
-    const isolatedBytes = measurements.find(({ file }) => file === isolatedEntry)?.bytes ?? 0;
+    const bytesForEntries = (entries) => entries.reduce((total, entry) => {
+        const measurement = measurements.find(({ file }) => file === entry);
+        return total + (measurement?.bytes ?? 0);
+    }, 0);
+    const mainBytes = bytesForEntries(mainEntries);
+    const isolatedBytes = bytesForEntries(isolatedEntries);
     const popupBytes = popupFiles.reduce((total, file) => {
         const measurement = measurements.find(({ file: name }) => name === relative(file));
         return total + (measurement?.bytes ?? 0);
     }, 0);
     const totalJavaScriptBytes = measurements.reduce((total, { bytes }) => total + bytes, 0);
 
-    assertBudget('MAIN bundle', mainBytes, BUDGETS.mainBytes);
-    assertBudget('ISOLATED bundle', isolatedBytes, BUDGETS.isolatedBytes);
+    assertBudget('MAIN bundles', mainBytes, BUDGETS.mainBytes);
+    assertBudget('ISOLATED bundles', isolatedBytes, BUDGETS.isolatedBytes);
     assertBudget('Popup JavaScript', popupBytes, BUDGETS.popupBytes);
     assertBudget('Total JavaScript', totalJavaScriptBytes, BUDGETS.totalJavaScriptBytes);
     if (javascriptFiles.length > BUDGETS.maxJavaScriptFiles) {
