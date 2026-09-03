@@ -90,6 +90,7 @@ describe('Telegram Web K normalization', () => {
         });
 
         assert.deepEqual(group, {
+            isActive: true,
             isBroadcast: false,
             isCreator: true,
             isGroup: true,
@@ -98,8 +99,37 @@ describe('Telegram Web K normalization', () => {
             type: 'group'
         });
         assert.equal(supergroup.type, 'supergroup');
+        assert.equal(supergroup.isActive, true);
         assert.equal(supergroup.isGroup, true);
         assert.equal('pFlags' in supergroup, false);
+    });
+
+    test('should mark left, deactivated, and migrated groups inactive', () => {
+        const peers = [
+            normalizeTelegramPeer(-10, {
+                _: 'chat',
+                title: 'Left',
+                pFlags: { creator: true, left: true }
+            }),
+            normalizeTelegramPeer(-20, {
+                _: 'chat',
+                title: 'Deactivated',
+                pFlags: { creator: true, deactivated: true }
+            }),
+            normalizeTelegramPeer(-30, {
+                _: 'chat',
+                title: 'Migrated',
+                migrated_to: { _: 'inputChannel', channel_id: 30 },
+                pFlags: { creator: true }
+            }),
+            normalizeTelegramPeer(-40, {
+                _: 'channel',
+                title: 'Left supergroup',
+                pFlags: { creator: true, left: true, megagroup: true }
+            })
+        ];
+
+        assert.deepEqual(peers.map(({ isActive }) => isActive), [false, false, false, false]);
     });
 
     test('should create only group candidates', () => {
@@ -108,6 +138,7 @@ describe('Telegram Web K normalization', () => {
             dialog: { peerId: -10, topMessageId: 2 },
             lastActivityAt: '2026-09-03T07:00:00.000Z',
             peer: {
+                isActive: true,
                 isCreator: true,
                 isGroup: true,
                 peerId: -10,
@@ -119,6 +150,7 @@ describe('Telegram Web K normalization', () => {
         assert.deepEqual(candidate, {
             canSendText: true,
             groupType: 'group',
+            isActive: true,
             isCreator: true,
             lastActivityAt: '2026-09-03T07:00:00.000Z',
             peerId: -10,
@@ -197,10 +229,39 @@ describe('TelegramWebKAdapter', () => {
         assert.equal(candidate.peerId, -10);
         assert.equal(candidate.title, 'Toolfox test group');
         assert.equal(candidate.groupType, 'supergroup');
+        assert.equal(candidate.isActive, true);
         assert.equal(candidate.isCreator, true);
         assert.equal(candidate.canSendText, true);
         assert.equal(candidate.lastActivityAt, new Date(1788422400 * 1000).toISOString());
         assert.ok(runtime.calls.some((call) => call[0] === 'hasRights' && call[1] === 10 && call[2] === 'send_plain'));
+    });
+
+    test('should not probe message activity or send rights for inactive owned groups', async () => {
+        const runtime = createRuntime({
+            dialogs: [{ peerId: -10, top_message: 100 }],
+            messages: { '-10:100': { date: 1788422400 } },
+            peers: {
+                '-10': {
+                    _: 'chat',
+                    title: 'Left group',
+                    pFlags: { creator: true, left: true }
+                }
+            }
+        });
+        const adapter = createTelegramWebKAdapter({
+            globalObject: runtime.globalObject,
+            location: new URL('https://web.telegram.org/k/')
+        });
+        const [dialog] = (await adapter.listDialogs()).items;
+
+        const candidate = await adapter.resolveGroupCandidate(dialog);
+
+        assert.equal(candidate.isActive, false);
+        assert.equal(candidate.isCreator, true);
+        assert.equal(candidate.canSendText, null);
+        assert.equal(candidate.lastActivityAt, null);
+        assert.equal(runtime.calls.some(([name]) => name === 'getMessageByPeer'), false);
+        assert.equal(runtime.calls.some(([name]) => name === 'hasRights'), false);
     });
 
     test('should send text through the existing Telegram manager facade', async () => {
