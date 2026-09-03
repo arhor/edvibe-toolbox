@@ -1,3 +1,4 @@
+import { deleteOwnedTelegramGroups } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-deletion.js';
 import { TELEGRAM_OWNED_GROUPS_DIALOG_TAG } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-dialog.js';
 import { loadOwnedTelegramGroups } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
@@ -30,6 +31,7 @@ function createTelegramOwnedGroupsFeature({
         dialog = documentApi.createElement(TELEGRAM_OWNED_GROUPS_DIALOG_TAG);
         dialog.configure({
             onClose: close,
+            onDelete: (groups, options) => deleteOwnedTelegramGroups(adapter, groups, options),
             onLoad: () => loadOwnedTelegramGroups(adapter)
         });
         (documentApi.body || documentApi.documentElement).append(dialog);
