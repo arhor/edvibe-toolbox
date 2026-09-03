@@ -18,7 +18,7 @@ describe('normalizeOwnedGroup', () => {
             title: 'Basic group'
         });
         const supergroup = normalizeOwnedGroup({
-            canSendText: false,
+            canSendText: true,
             groupType: 'supergroup',
             isActive: true,
             isCreator: true,
@@ -36,19 +36,20 @@ describe('normalizeOwnedGroup', () => {
             title: 'Basic group'
         });
         assert.equal(supergroup.kind, 'supergroup');
-        assert.equal(supergroup.canSendText, false);
+        assert.equal(supergroup.canSendText, true);
     });
 
-    test('should exclude non-creator, inactive, channel, and direct-chat shapes', () => {
+    test('should exclude non-creator, inactive, non-sendable, channel, and direct-chat shapes', () => {
         const cases = [
-            { groupType: 'group', isActive: true, isCreator: false, peerId: -1 },
-            { groupType: 'group', isActive: false, isCreator: true, peerId: -2 },
-            { groupType: 'channel', isActive: true, isCreator: true, peerId: -3 },
-            { groupType: 'user', isActive: true, isCreator: true, peerId: 4 },
+            { groupType: 'group', isActive: true, isCreator: false, canSendText: true, peerId: -1 },
+            { groupType: 'group', isActive: false, isCreator: true, canSendText: true, peerId: -2 },
+            { groupType: 'group', isActive: true, isCreator: true, canSendText: false, peerId: -3 },
+            { groupType: 'channel', isActive: true, isCreator: true, canSendText: true, peerId: -4 },
+            { groupType: 'user', isActive: true, isCreator: true, canSendText: true, peerId: 5 },
             null
         ];
 
-        assert.deepEqual(cases.map(normalizeOwnedGroup), [null, null, null, null, null]);
+        assert.deepEqual(cases.map(normalizeOwnedGroup), [null, null, null, null, null, null]);
     });
 });
 
