@@ -44,17 +44,30 @@ describe('normalizeOwnedGroup', () => {
         assert.equal(supergroup.canSendText, true);
     });
 
-    test('should exclude non-creator, inactive, non-sendable, channel, and direct-chat shapes', () => {
+    test('should keep non-sendable owned groups available for non-send actions', () => {
+        const group = normalizeOwnedGroup({
+            canSendText: false,
+            groupType: 'group',
+            isActive: true,
+            isCreator: true,
+            peerId: -30,
+            title: 'Read-only right now'
+        });
+
+        assert.equal(group.peerId, -30);
+        assert.equal(group.canSendText, false);
+    });
+
+    test('should exclude non-creator, inactive, channel, and direct-chat shapes', () => {
         const cases = [
             { groupType: 'group', isActive: true, isCreator: false, canSendText: true, peerId: -1 },
             { groupType: 'group', isActive: false, isCreator: true, canSendText: true, peerId: -2 },
-            { groupType: 'group', isActive: true, isCreator: true, canSendText: false, peerId: -3 },
             { groupType: 'channel', isActive: true, isCreator: true, canSendText: true, peerId: -4 },
             { groupType: 'user', isActive: true, isCreator: true, canSendText: true, peerId: 5 },
             null
         ];
 
-        assert.deepEqual(cases.map(normalizeOwnedGroup), [null, null, null, null, null, null]);
+        assert.deepEqual(cases.map(normalizeOwnedGroup), [null, null, null, null, null]);
     });
 });
 
