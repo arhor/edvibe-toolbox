@@ -1,9 +1,8 @@
-import { html, LitElement, nothing } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 import { popupToolGroupStyles } from '#src/popup/components/popup-tool-group.styles.js';
 import type { PageContext, ToolDefinition } from '#src/popup/popup-model.js';
-import { getRelevantTools } from '#src/popup/tool-visibility.js';
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
 import '#src/popup/components/popup-tool-card.js';
 
@@ -32,15 +31,10 @@ class PopupToolGroup extends LitElement {
     pendingToolId: string | null = null;
 
     render() {
-        const relevantTools = getRelevantTools(this.tools, this.pageContext);
-        if (relevantTools.length === 0) {
-            return nothing;
-        }
-
         return html`
             <h2 class="tool-group-title">${this.title}</h2>
             <div class="tool-list">
-                ${relevantTools.map((tool) => html`
+                ${this.tools.map((tool) => html`
                     <popup-tool-card
                         .tool=${tool}
                         .pageContext=${this.pageContext}
