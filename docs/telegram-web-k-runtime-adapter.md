@@ -6,7 +6,7 @@ This document records the private Telegram Web K integration facts that Toolfox 
 
 The initial integration targets Telegram Web K at `https://web.telegram.org/k/`. Telegram Web A is intentionally unsupported.
 
-Toolfox loads its generic MAIN/ISOLATED content-script entry points on Telegram Web K, but MAIN composition is platform-aware. Edvibe dependencies and features are created only for Edvibe pages. Telegram Web K receives a minimal context exposing the Toolfox-owned `TelegramWebKAdapter`.
+Toolfox reuses the existing ISOLATED bridge on both supported platforms while keeping MAIN composition separate. Edvibe retains its existing `src/content/main/index.js` entry and dependency graph. Telegram Web K uses its own minimal MAIN entry, `src/content/main/telegram-web-k.js`, which creates only the Telegram context and adapter. Loading Telegram Web K therefore does not import or initialize the Edvibe feature graph.
 
 Feature code must depend on semantic adapter operations and normalized values. It must not reference Telegram globals, manager names, IndexedDB records, or raw Telegram objects.
 
