@@ -1,21 +1,31 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isolateDialogKeyboardEvents } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups.js';
+import {
+    createTelegramOwnedGroupsFeature,
+    isolateDialogKeyboardEvents
+} from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups.js';
 
 function createDialog() {
     const listeners = new Map();
     const handledKeys = [];
     return {
         handledKeys,
+        isConnected: false,
         addEventListener(type, listener) {
             listeners.set(type, listener);
+        },
+        configure(options) {
+            this.options = options;
         },
         dispatch(type, event) {
             listeners.get(type)?.(event);
         },
         handleKeydownBound(event) {
             handledKeys.push(event.key);
+        },
+        remove() {
+            this.isConnected = false;
         }
     };
 }
@@ -52,4 +62,43 @@ test('owned-group dialog keyboard isolation should preserve dialog Escape handli
 
     assert.equal(propagationStopped, true);
     assert.deepEqual(dialog.handledKeys, ['Escape']);
+});
+
+test('owned-group feature should suppress Telegram Escape only while dialog is open', () => {
+    let escapeHandler = null;
+    let unregisterCalls = 0;
+    const dialog = createDialog();
+    const adapter = {
+        globalObject: {
+            appNavigationController: {
+                registerEscapeHandler(handler) {
+                    escapeHandler = handler;
+                    return () => {
+                        unregisterCalls += 1;
+                    };
+                }
+            }
+        }
+    };
+    const documentApi = {
+        body: {
+            append(element) {
+                element.isConnected = true;
+            }
+        },
+        createElement() {
+            return dialog;
+        }
+    };
+    const feature = createTelegramOwnedGroupsFeature({ adapter, documentApi });
+
+    feature.open();
+
+    assert.equal(escapeHandler(), false);
+    assert.equal(unregisterCalls, 0);
+
+    dialog.options.onClose();
+
+    assert.equal(unregisterCalls, 1);
+    assert.equal(dialog.isConnected, false);
 });
