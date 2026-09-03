@@ -93,6 +93,25 @@ function normalizeDialogSummary(dialog) {
     });
 }
 
+async function resolveDialogPaginationCursor(dialogsStorage, dialogs, currentOffset) {
+    if (typeof dialogsStorage?.getDialogIndex !== 'function') {
+        throw new TypeError('Telegram dialog cursor helper is unavailable.');
+    }
+
+    const indexes = await Promise.all(dialogs.map((dialog) => (
+        dialogsStorage.getDialogIndex(dialog)
+    )));
+    const nextOffset = indexes.reduce((lowest, value) => {
+        const index = toFiniteNumber(value);
+        return index !== null && index < lowest ? index : lowest;
+    }, currentOffset || Infinity);
+
+    if (!Number.isFinite(nextOffset) || nextOffset === currentOffset) {
+        throw new TypeError('Telegram dialog pagination did not advance.');
+    }
+    return nextOffset;
+}
+
 function normalizePeerType(peer) {
     if (peer?._ === 'chat') {
         return 'group';
@@ -280,7 +299,8 @@ export class TelegramWebKAdapter {
         const safeOffset = Math.max(0, Math.trunc(offset));
         try {
             const managers = this.getManagers();
-            const result = await managers.dialogsStorage.getDialogs({
+            const dialogsStorage = managers.dialogsStorage;
+            const result = await dialogsStorage.getDialogs({
                 limit: safeLimit,
                 offsetIndex: safeOffset
             });
@@ -293,10 +313,18 @@ export class TelegramWebKAdapter {
                 .map(normalizeDialogSummary)
                 .filter(Boolean);
             const count = toFiniteNumber(result.count);
-            const nextOffset = rawPageSize === 0
-                || (count !== null && safeOffset + rawPageSize >= count)
-                ? null
-                : safeOffset + rawPageSize;
+            let nextOffset = null;
+            if (rawPageSize > 0 && result.isEnd === false) {
+                nextOffset = await resolveDialogPaginationCursor(
+                    dialogsStorage,
+                    result.dialogs,
+                    safeOffset
+                );
+            } else if (rawPageSize > 0 && typeof result.isEnd !== 'boolean') {
+                nextOffset = count !== null && safeOffset + rawPageSize >= count
+                    ? null
+                    : safeOffset + rawPageSize;
+            }
 
             return Object.freeze({
                 count,
