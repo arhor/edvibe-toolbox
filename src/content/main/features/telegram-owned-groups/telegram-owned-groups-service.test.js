@@ -4,9 +4,11 @@ import { describe, test } from 'node:test';
 import {
     createOwnedTelegramGroupsView,
     filterOwnedTelegramGroups,
+    getSelectedOwnedGroups,
     loadOwnedTelegramGroups,
     normalizeOwnedGroup,
-    sortOwnedTelegramGroups
+    sortOwnedTelegramGroups,
+    toggleOwnedGroupSelection
 } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 
 describe('normalizeOwnedGroup', () => {
@@ -42,17 +44,30 @@ describe('normalizeOwnedGroup', () => {
         assert.equal(supergroup.canSendText, true);
     });
 
-    test('should exclude non-creator, inactive, non-sendable, channel, and direct-chat shapes', () => {
+    test('should keep non-sendable owned groups available for non-send actions', () => {
+        const group = normalizeOwnedGroup({
+            canSendText: false,
+            groupType: 'group',
+            isActive: true,
+            isCreator: true,
+            peerId: -30,
+            title: 'Read-only right now'
+        });
+
+        assert.equal(group.peerId, -30);
+        assert.equal(group.canSendText, false);
+    });
+
+    test('should exclude non-creator, inactive, channel, and direct-chat shapes', () => {
         const cases = [
             { groupType: 'group', isActive: true, isCreator: false, canSendText: true, peerId: -1 },
             { groupType: 'group', isActive: false, isCreator: true, canSendText: true, peerId: -2 },
-            { groupType: 'group', isActive: true, isCreator: true, canSendText: false, peerId: -3 },
             { groupType: 'channel', isActive: true, isCreator: true, canSendText: true, peerId: -4 },
             { groupType: 'user', isActive: true, isCreator: true, canSendText: true, peerId: 5 },
             null
         ];
 
-        assert.deepEqual(cases.map(normalizeOwnedGroup), [null, null, null, null, null, null]);
+        assert.deepEqual(cases.map(normalizeOwnedGroup), [null, null, null, null, null]);
     });
 });
 
@@ -123,6 +138,35 @@ describe('owned Telegram group list presentation', () => {
 
         assert.deepEqual(filteredEmpty, { groups: [], state: 'filtered-empty' });
         assert.deepEqual(accountEmpty, { groups: [], state: 'empty' });
+    });
+});
+
+describe('owned Telegram group selection', () => {
+    test('should keep selected peer ids independent from the filtered visible collection', () => {
+        const groups = [
+            { peerId: -10, title: 'Alpha' },
+            { peerId: -20, title: 'Beta' },
+            { peerId: -30, title: 'Gamma' }
+        ];
+        let selected = toggleOwnedGroupSelection([], -10, true);
+        selected = toggleOwnedGroupSelection(selected, -30, true);
+
+        const filtered = createOwnedTelegramGroupsView(groups, 'alpha');
+        const targets = getSelectedOwnedGroups(groups, selected);
+
+        assert.deepEqual(filtered.groups.map(({ peerId }) => peerId), [-10]);
+        assert.deepEqual(selected, [-10, -30]);
+        assert.deepEqual(targets.map(({ peerId }) => peerId), [-10, -30]);
+    });
+
+    test('should select and deselect without mutating the previous selection', () => {
+        const initial = Object.freeze([-10]);
+        const added = toggleOwnedGroupSelection(initial, -20, true);
+        const removed = toggleOwnedGroupSelection(added, -10, false);
+
+        assert.deepEqual(initial, [-10]);
+        assert.deepEqual(added, [-10, -20]);
+        assert.deepEqual(removed, [-20]);
     });
 });
 

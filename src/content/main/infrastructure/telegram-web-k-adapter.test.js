@@ -14,11 +14,24 @@ function createRuntime({
     dialogs = [],
     peers = {},
     messages = {},
-    canSend = true
+    canSend = true,
+    deleteFailures = {}
 } = {}) {
     const calls = [];
     const managers = {
         appChatsManager: {
+            async deleteChannel(chatId) {
+                calls.push(['deleteChannel', chatId]);
+                if (deleteFailures.supergroup) {
+                    throw deleteFailures.supergroup;
+                }
+            },
+            async deleteChat(chatId) {
+                calls.push(['deleteChat', chatId]);
+                if (deleteFailures.group) {
+                    throw deleteFailures.group;
+                }
+            },
             async hasRights(chatId, right) {
                 calls.push(['hasRights', chatId, right]);
                 return canSend;
@@ -55,7 +68,7 @@ function createRuntime({
             return managers;
         }
     };
-    return { calls, globalObject };
+    return { calls, globalObject, managers };
 }
 
 describe('Telegram Web K runtime detection', () => {
@@ -262,6 +275,41 @@ describe('TelegramWebKAdapter', () => {
         assert.equal(candidate.lastActivityAt, null);
         assert.equal(runtime.calls.some(([name]) => name === 'getMessageByPeer'), false);
         assert.equal(runtime.calls.some(([name]) => name === 'hasRights'), false);
+    });
+
+    test('should delete basic groups and supergroups through the matching Telegram manager operations', async () => {
+        const runtime = createRuntime();
+        const adapter = createTelegramWebKAdapter({
+            globalObject: runtime.globalObject,
+            location: new URL('https://web.telegram.org/k/')
+        });
+
+        assert.deepEqual(await adapter.deleteGroup(-10, 'group'), { ok: true });
+        assert.deepEqual(await adapter.deleteGroup(-20, 'supergroup'), { ok: true });
+        assert.ok(runtime.calls.some((call) => call[0] === 'deleteChat' && call[1] === 10));
+        assert.ok(runtime.calls.some((call) => call[0] === 'deleteChannel' && call[1] === 20));
+    });
+
+    test('should preserve Telegram error codes from destructive runtime calls', async () => {
+        const runtime = createRuntime({
+            deleteFailures: {
+                group: { type: 'CHAT_ADMIN_REQUIRED' },
+                supergroup: { type: 'FLOOD_WAIT_30' }
+            }
+        });
+        const adapter = createTelegramWebKAdapter({
+            globalObject: runtime.globalObject,
+            location: new URL('https://web.telegram.org/k/')
+        });
+
+        await assert.rejects(
+            () => adapter.deleteGroup(-10, 'group'),
+            (error) => error.code === 'CHAT_ADMIN_REQUIRED' && error.operation === 'delete-group'
+        );
+        await assert.rejects(
+            () => adapter.deleteGroup(-20, 'supergroup'),
+            (error) => error.code === 'FLOOD_WAIT_30' && error.operation === 'delete-supergroup'
+        );
     });
 
     test('should send text through the existing Telegram manager facade', async () => {

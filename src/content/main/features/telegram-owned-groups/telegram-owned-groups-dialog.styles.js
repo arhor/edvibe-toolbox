@@ -85,7 +85,9 @@ export const telegramOwnedGroupsDialogStyles = css`
         margin-bottom: 12px;
     }
 
-    .group-list {
+    .group-list,
+    .result-list,
+    .review-list {
         display: grid;
         gap: 10px;
         margin: 0;
@@ -94,22 +96,54 @@ export const telegramOwnedGroupsDialogStyles = css`
     }
 
     .group-card {
-        display: grid;
-        gap: 9px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
         padding: 14px 16px;
         border: 1px solid var(--toolfox-border-subtle);
         border-radius: var(--toolfox-radius-panel);
         background: var(--toolfox-surface-subtle);
     }
 
-    .group-heading {
+    .group-card.is-selected {
+        border-color: var(--toolfox-primary);
+        background: var(--toolfox-primary-surface, var(--toolfox-surface-subtle));
+    }
+
+    .selection-control {
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        min-width: 24px;
+        min-height: 24px;
+        cursor: pointer;
+    }
+
+    .selection-control input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--toolfox-primary);
+        cursor: pointer;
+    }
+
+    .group-body {
+        display: grid;
+        flex: 1 1 auto;
+        gap: 9px;
+        min-width: 0;
+    }
+
+    .group-heading,
+    .result-heading {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
         gap: 12px;
     }
 
-    .group-heading strong {
+    .group-heading strong,
+    .result-heading strong {
         min-width: 0;
         overflow-wrap: anywhere;
         font-size: 14px;
@@ -134,6 +168,74 @@ export const telegramOwnedGroupsDialogStyles = css`
         margin: 0;
         color: var(--toolfox-text-muted);
         font-size: 12px;
+    }
+
+    .group-actions,
+    .selection-actions {
+        margin-top: 14px;
+    }
+
+    .operation-panel {
+        display: grid;
+        gap: 16px;
+    }
+
+    .operation-panel h3,
+    .operation-copy {
+        margin: 0;
+    }
+
+    .operation-copy {
+        margin-top: 5px;
+        color: var(--toolfox-text-muted);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .review-list li,
+    .result-card {
+        display: grid;
+        gap: 5px;
+        padding: 11px 13px;
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-control);
+        background: var(--toolfox-surface-subtle);
+    }
+
+    .review-list li {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: baseline;
+    }
+
+    .review-list span,
+    .result-heading span {
+        color: var(--toolfox-text-muted);
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .result-deleted {
+        border-color: var(--toolfox-success-border);
+    }
+
+    .result-failed {
+        border-color: var(--toolfox-danger-border);
+    }
+
+    .result-not-attempted {
+        border-color: var(--toolfox-warning-border);
+    }
+
+    .result-deleting {
+        border-color: var(--toolfox-primary);
+    }
+
+    .result-error {
+        margin: 0;
+        color: var(--toolfox-text-muted);
+        font-size: 11px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
     }
 
     @media (max-width: 640px) {

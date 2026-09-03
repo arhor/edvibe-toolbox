@@ -176,12 +176,31 @@ function normalizeLastActivity(message) {
     return new Date(unixSeconds * 1000).toISOString();
 }
 
+function extractTelegramErrorCode(cause) {
+    for (const value of [cause?.type, cause?.error_message, cause?.code]) {
+        if (typeof value === 'string' && /^[A-Z][A-Z0-9_]*(?:_\d+)?$/.test(value)) {
+            return value;
+        }
+    }
+    return null;
+}
+
 function createRuntimeCallError(operation, cause) {
     return new TelegramWebKRuntimeError(
         `Telegram Web K operation "${operation}" failed.`,
         {
             cause,
-            code: 'TELEGRAM_WEB_K_RUNTIME_CALL_FAILED',
+            code: extractTelegramErrorCode(cause) || 'TELEGRAM_WEB_K_RUNTIME_CALL_FAILED',
+            operation
+        }
+    );
+}
+
+function createOperationUnavailableError(operation) {
+    return new TelegramWebKRuntimeError(
+        `Telegram Web K operation "${operation}" is unavailable in the current runtime.`,
+        {
+            code: 'TELEGRAM_WEB_K_OPERATION_UNAVAILABLE',
             operation
         }
     );
@@ -368,6 +387,34 @@ export class TelegramWebKAdapter {
         });
     }
 
+    async deleteGroup(peerId, kind) {
+        const normalizedPeerId = toFiniteNumber(peerId);
+        if (normalizedPeerId === null || normalizedPeerId >= 0) {
+            throw new TypeError('peerId must identify a Telegram group');
+        }
+        if (kind !== 'group' && kind !== 'supergroup') {
+            throw new TypeError('kind must be "group" or "supergroup"');
+        }
+
+        const operation = kind === 'supergroup' ? 'delete-supergroup' : 'delete-group';
+        try {
+            const managers = this.getManagers();
+            const chatsManager = managers.appChatsManager;
+            const methodName = kind === 'supergroup' ? 'deleteChannel' : 'deleteChat';
+            if (typeof chatsManager?.[methodName] !== 'function') {
+                throw createOperationUnavailableError(operation);
+            }
+
+            await chatsManager[methodName](Math.abs(normalizedPeerId));
+            return Object.freeze({ ok: true });
+        } catch (cause) {
+            if (cause instanceof TelegramWebKRuntimeError) {
+                throw cause;
+            }
+            throw createRuntimeCallError(operation, cause);
+        }
+    }
+
     async sendText(peerId, text) {
         const normalizedPeerId = toFiniteNumber(peerId);
         if (normalizedPeerId === null) {
@@ -412,7 +459,7 @@ export class TelegramWebKAdapter {
                     lastActivity: true,
                     peerResolution: true
                 }),
-                requiresLiveValidation: Object.freeze(['sendText'])
+                requiresLiveValidation: Object.freeze(['deleteGroup', 'sendText'])
             });
         } catch (cause) {
             return Object.freeze({

@@ -1,7 +1,12 @@
 import { LitElement, html, nothing } from 'lit';
 
+import { reconcileDeletedOwnedGroups } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-deletion.js';
 import { telegramOwnedGroupsDialogStyles } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-dialog.styles.js';
-import { createOwnedTelegramGroupsView } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
+import {
+    createOwnedTelegramGroupsView,
+    getSelectedOwnedGroups,
+    toggleOwnedGroupSelection
+} from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
@@ -9,7 +14,8 @@ import {
 import {
     controlStyles,
     dialogShellStyles,
-    fieldStyles
+    fieldStyles,
+    noticeStyles
 } from '#src/content/main/styles/primitives.js';
 
 const TELEGRAM_OWNED_GROUPS_DIALOG_TAG = 'toolfox-telegram-owned-groups-dialog';
@@ -42,6 +48,16 @@ function formatSendability(canSendText) {
     return 'Возможность отправки неизвестна';
 }
 
+function formatDeleteStatus(status) {
+    switch (status) {
+        case 'deleted': return 'Удалена';
+        case 'deleting': return 'Удаляется…';
+        case 'failed': return 'Ошибка';
+        case 'not-attempted': return 'Не выполнено';
+        default: return 'Ожидает';
+    }
+}
+
 class TelegramOwnedGroupsDialog extends LitElement {
     static styles = [
         componentFoundationStyles,
@@ -49,6 +65,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         dialogShellStyles,
         controlStyles,
         fieldStyles,
+        noticeStyles,
         telegramOwnedGroupsDialogStyles
     ];
 
@@ -57,7 +74,12 @@ class TelegramOwnedGroupsDialog extends LitElement {
         groups: { state: true },
         viewState: { state: true },
         message: { state: true },
-        filterQuery: { state: true }
+        filterQuery: { state: true },
+        actionStage: { state: true },
+        selectionAction: { state: true },
+        selectedPeerIds: { state: true },
+        deleteProgress: { state: true },
+        operationError: { state: true }
     };
 
     constructor() {
@@ -67,11 +89,32 @@ class TelegramOwnedGroupsDialog extends LitElement {
         this.viewState = 'loading';
         this.message = 'Загружаем группы текущего аккаунта…';
         this.filterQuery = '';
+        this.actionStage = 'browse';
+        this.selectionAction = null;
+        this.selectedPeerIds = [];
+        this.deleteProgress = null;
+        this.operationError = '';
         this.loadPromise = null;
         this.handleKeydownBound = (event) => {
-            if (event.key === 'Escape') {
-                this.close();
+            if (event.key !== 'Escape') {
+                return;
             }
+            if (this.actionStage === 'running') {
+                return;
+            }
+            if (this.actionStage === 'confirm') {
+                this.cancelConfirmation();
+                return;
+            }
+            if (this.actionStage === 'select') {
+                this.cancelSelection();
+                return;
+            }
+            if (this.actionStage === 'results') {
+                this.finishDeleteResults();
+                return;
+            }
+            this.close();
         };
     }
 
@@ -94,6 +137,14 @@ class TelegramOwnedGroupsDialog extends LitElement {
         super.disconnectedCallback();
     }
 
+    resetActionState() {
+        this.actionStage = 'browse';
+        this.selectionAction = null;
+        this.selectedPeerIds = [];
+        this.deleteProgress = null;
+        this.operationError = '';
+    }
+
     async load() {
         if (!this.options?.onLoad || this.loadPromise) {
             return this.loadPromise;
@@ -102,6 +153,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         this.viewState = 'loading';
         this.groups = [];
         this.message = 'Загружаем группы текущего аккаунта…';
+        this.resetActionState();
         this.loadPromise = (async () => {
             try {
                 const result = await this.options.onLoad();
@@ -135,11 +187,82 @@ class TelegramOwnedGroupsDialog extends LitElement {
     }
 
     close() {
-        this.options?.onClose?.();
+        if (this.actionStage !== 'running') {
+            this.options?.onClose?.();
+        }
     }
 
     handleFilterInput(event) {
         this.filterQuery = event.currentTarget?.value || '';
+    }
+
+    startSelection(action) {
+        this.selectionAction = action;
+        this.selectedPeerIds = [];
+        this.actionStage = 'select';
+        this.deleteProgress = null;
+        this.operationError = '';
+    }
+
+    cancelSelection() {
+        this.resetActionState();
+    }
+
+    handleSelectionChange(event, peerId) {
+        this.selectedPeerIds = toggleOwnedGroupSelection(
+            this.selectedPeerIds,
+            peerId,
+            Boolean(event.currentTarget?.checked)
+        );
+    }
+
+    requestDeleteConfirmation() {
+        if (
+            this.selectionAction !== 'delete'
+            || getSelectedOwnedGroups(this.groups, this.selectedPeerIds).length === 0
+        ) {
+            return;
+        }
+        this.actionStage = 'confirm';
+    }
+
+    cancelConfirmation() {
+        this.actionStage = 'select';
+    }
+
+    async confirmDelete() {
+        const selectedGroups = getSelectedOwnedGroups(this.groups, this.selectedPeerIds);
+        if (selectedGroups.length === 0 || typeof this.options?.onDelete !== 'function') {
+            return;
+        }
+
+        this.actionStage = 'running';
+        this.operationError = '';
+        try {
+            const result = await this.options.onDelete(selectedGroups, {
+                confirmed: true,
+                onProgress: (progress) => {
+                    this.deleteProgress = progress;
+                }
+            });
+            this.deleteProgress = result;
+            this.groups = [...reconcileDeletedOwnedGroups(this.groups, result.results)];
+        } catch (error) {
+            this.operationError = error instanceof Error
+                ? error.message
+                : 'Не удалось выполнить удаление групп.';
+        } finally {
+            this.selectedPeerIds = [];
+            this.actionStage = 'results';
+        }
+    }
+
+    finishDeleteResults() {
+        this.resetActionState();
+        this.viewState = this.groups.length > 0 ? 'ready' : 'empty';
+        if (this.viewState === 'empty') {
+            this.message = 'У текущего аккаунта не найдено созданных им активных групп.';
+        }
     }
 
     renderState() {
@@ -173,27 +296,43 @@ class TelegramOwnedGroupsDialog extends LitElement {
         `;
     }
 
-    renderGroup(group) {
+    renderGroup(group, { selectable = false } = {}) {
+        const selected = this.selectedPeerIds.includes(group.peerId);
         return html`
-            <li class="group-card" data-peer-id=${String(group.peerId)}>
-                <div class="group-heading">
-                    <strong>${group.title}</strong>
-                    <span class="kind">${formatGroupKind(group.kind)}</span>
-                </div>
-                <div class="metadata">
-                    <span>Последняя активность: ${formatActivity(group.lastActivityAt)}</span>
-                    <span>${formatSendability(group.canSendText)}</span>
+            <li class="group-card ${selected ? 'is-selected' : ''}" data-peer-id=${String(group.peerId)}>
+                ${selectable ? html`
+                    <label class="selection-control">
+                        <input
+                            type="checkbox"
+                            .checked=${selected}
+                            aria-label=${`Выбрать ${group.title}`}
+                            @change=${(event) => this.handleSelectionChange(event, group.peerId)}
+                        >
+                    </label>
+                ` : nothing}
+                <div class="group-body">
+                    <div class="group-heading">
+                        <strong>${group.title}</strong>
+                        <span class="kind">${formatGroupKind(group.kind)}</span>
+                    </div>
+                    <div class="metadata">
+                        <span>Последняя активность: ${formatActivity(group.lastActivityAt)}</span>
+                        <span>${formatSendability(group.canSendText)}</span>
+                    </div>
                 </div>
             </li>
         `;
     }
 
-    renderReady() {
-        const view = createOwnedTelegramGroupsView(this.groups, this.filterQuery);
+    renderFilterToolbar(view) {
         const isFiltered = this.filterQuery.trim() !== '';
-        const summary = isFiltered
+        const selectedCount = this.selectedPeerIds.length;
+        const resultSummary = isFiltered
             ? `Показано: ${view.groups.length} из ${this.groups.length}`
             : `Найдено групп: ${this.groups.length}`;
+        const summary = this.actionStage === 'select'
+            ? `Выбрано: ${selectedCount} · ${resultSummary}`
+            : resultSummary;
 
         return html`
             <div class="toolbar">
@@ -208,16 +347,147 @@ class TelegramOwnedGroupsDialog extends LitElement {
                 </label>
                 <p class="summary" aria-live="polite">${summary}</p>
             </div>
+        `;
+    }
+
+    renderBrowseActions() {
+        return html`
+            <div class="group-actions" data-part="actions">
+                <button
+                    type="button"
+                    data-control="danger"
+                    @click=${() => this.startSelection('delete')}
+                >Удалить группы</button>
+            </div>
+        `;
+    }
+
+    renderSelectionActions() {
+        const selectedCount = this.selectedPeerIds.length;
+        return html`
+            <div class="selection-actions" data-part="actions">
+                <button type="button" data-control="secondary" @click=${this.cancelSelection}>Отмена</button>
+                <button
+                    type="button"
+                    data-control="danger"
+                    ?disabled=${selectedCount === 0}
+                    @click=${this.requestDeleteConfirmation}
+                >Проверить удаление (${selectedCount})</button>
+            </div>
+        `;
+    }
+
+    renderDeleteConfirmation() {
+        const selectedGroups = getSelectedOwnedGroups(this.groups, this.selectedPeerIds);
+        return html`
+            <div class="operation-panel confirmation-panel">
+                <div data-notice="danger">
+                    <strong>Необратимое действие.</strong>
+                    Эти группы будут удалены для всех участников. Уже удалённую группу нельзя восстановить через Toolfox.
+                </div>
+                <div>
+                    <h3>Удалить групп: ${selectedGroups.length}?</h3>
+                    <p class="operation-copy">Проверьте список перед подтверждением.</p>
+                </div>
+                <ul class="review-list">
+                    ${selectedGroups.map((group) => html`
+                        <li>
+                            <strong>${group.title}</strong>
+                            <span>${formatGroupKind(group.kind)}</span>
+                        </li>
+                    `)}
+                </ul>
+                <div data-part="actions">
+                    <button type="button" data-control="secondary" @click=${this.cancelConfirmation}>Назад</button>
+                    <button type="button" data-control="danger" @click=${this.confirmDelete}>
+                        Да, удалить ${selectedGroups.length}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    renderDeleteResultItem(result) {
+        const hasError = result.status === 'failed' || result.status === 'not-attempted';
+        return html`
+            <li class="result-card result-${result.status}">
+                <div class="result-heading">
+                    <strong>${result.title}</strong>
+                    <span>${formatDeleteStatus(result.status)}</span>
+                </div>
+                ${hasError ? html`
+                    <p class="result-error">
+                        ${result.errorCode ? `${result.errorCode}: ` : ''}${result.errorMessage || 'Неизвестная ошибка.'}
+                    </p>
+                ` : nothing}
+            </li>
+        `;
+    }
+
+    renderDeleteProgress() {
+        const progress = this.deleteProgress;
+        const isRunning = this.actionStage === 'running';
+        const counts = progress?.counts || {
+            deleted: 0,
+            failed: 0,
+            notAttempted: 0,
+            pending: 0,
+            total: 0
+        };
+        const title = isRunning ? 'Удаляем группы…' : 'Удаление завершено';
+
+        return html`
+            <div class="operation-panel" aria-live="polite">
+                <div>
+                    <h3>${title}</h3>
+                    <p class="operation-copy">
+                        Удалено: ${counts.deleted} · Ошибок: ${counts.failed} · Не выполнено: ${counts.notAttempted} · Всего: ${counts.total}
+                    </p>
+                </div>
+                ${this.operationError ? html`
+                    <div data-notice="danger">${this.operationError}</div>
+                ` : nothing}
+                ${progress?.results?.length ? html`
+                    <ul class="result-list">
+                        ${progress.results.map((result) => this.renderDeleteResultItem(result))}
+                    </ul>
+                ` : nothing}
+                ${!isRunning ? html`
+                    <div data-part="actions">
+                        <button type="button" data-control @click=${this.finishDeleteResults}>Вернуться к группам</button>
+                    </div>
+                ` : nothing}
+            </div>
+        `;
+    }
+
+    renderGroupList() {
+        const view = createOwnedTelegramGroupsView(this.groups, this.filterQuery);
+        const selecting = this.actionStage === 'select';
+        return html`
+            ${this.renderFilterToolbar(view)}
             ${view.state === 'filtered-empty' ? this.renderFilterEmptyState() : html`
                 <ul class="group-list">
-                    ${view.groups.map((group) => this.renderGroup(group))}
+                    ${view.groups.map((group) => this.renderGroup(group, { selectable: selecting }))}
                 </ul>
             `}
+            ${selecting ? this.renderSelectionActions() : this.renderBrowseActions()}
         `;
+    }
+
+    renderReady() {
+        if (this.actionStage === 'confirm') {
+            return this.renderDeleteConfirmation();
+        }
+        if (this.actionStage === 'running' || this.actionStage === 'results') {
+            return this.renderDeleteProgress();
+        }
+        return this.renderGroupList();
     }
 
     render() {
         const isReady = this.viewState === 'ready';
+        const isRunning = this.actionStage === 'running';
         return html`
             <div class="overlay" data-part="overlay">
                 <section class="dialog" data-part="dialog" role="dialog" aria-modal="true" aria-labelledby="telegram-groups-title">
@@ -227,7 +497,15 @@ class TelegramOwnedGroupsDialog extends LitElement {
                             <h2 id="telegram-groups-title">Мои группы</h2>
                             <p class="header-copy">Только активные группы, создателем которых является текущий Telegram-аккаунт.</p>
                         </div>
-                        <button class="icon-button" data-control="secondary" type="button" data-action="close" aria-label="Закрыть" @click=${this.close}>×</button>
+                        <button
+                            class="icon-button"
+                            data-control="secondary"
+                            type="button"
+                            data-action="close"
+                            aria-label="Закрыть"
+                            ?disabled=${isRunning}
+                            @click=${this.close}
+                        >×</button>
                     </header>
                     <div class="content">
                         ${isReady ? this.renderReady() : this.renderState()}
@@ -244,6 +522,7 @@ export {
     TELEGRAM_OWNED_GROUPS_DIALOG_TAG,
     TelegramOwnedGroupsDialog,
     formatActivity,
+    formatDeleteStatus,
     formatGroupKind,
     formatSendability
 };
