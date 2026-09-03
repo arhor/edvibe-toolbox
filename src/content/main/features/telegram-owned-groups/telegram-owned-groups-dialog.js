@@ -240,6 +240,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         this.operationError = '';
         try {
             const result = await this.options.onDelete(selectedGroups, {
+                confirmed: true,
                 onProgress: (progress) => {
                     this.deleteProgress = progress;
                 }
