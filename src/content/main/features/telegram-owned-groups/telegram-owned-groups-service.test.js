@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import {
+    createOwnedTelegramGroupsView,
+    filterOwnedTelegramGroups,
     loadOwnedTelegramGroups,
-    normalizeOwnedGroup
+    normalizeOwnedGroup,
+    sortOwnedTelegramGroups
 } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 
 describe('normalizeOwnedGroup', () => {
@@ -53,6 +56,76 @@ describe('normalizeOwnedGroup', () => {
     });
 });
 
+describe('owned Telegram group list presentation', () => {
+    test('should sort newest activity first without treating pinned order as activity', () => {
+        const source = Object.freeze([
+            Object.freeze({
+                lastActivityAt: '2026-09-01T08:00:00.000Z',
+                peerId: -10,
+                pinned: true,
+                title: 'Pinned but older'
+            }),
+            Object.freeze({
+                lastActivityAt: null,
+                peerId: -30,
+                title: 'No activity'
+            }),
+            Object.freeze({
+                lastActivityAt: '2026-09-03T08:00:00.000Z',
+                peerId: -20,
+                title: 'Newest'
+            })
+        ]);
+
+        const sorted = sortOwnedTelegramGroups(source);
+
+        assert.deepEqual(sorted.map(({ peerId }) => peerId), [-20, -10, -30]);
+        assert.deepEqual(source.map(({ peerId }) => peerId), [-10, -30, -20]);
+    });
+
+    test('should use deterministic title and peer-id fallbacks for equal or missing activity', () => {
+        const equalActivity = '2026-09-03T08:00:00.000Z';
+        const groups = [
+            { lastActivityAt: null, peerId: -4, title: 'Zulu' },
+            { lastActivityAt: equalActivity, peerId: -2, title: 'Beta' },
+            { lastActivityAt: null, peerId: -3, title: 'Alpha' },
+            { lastActivityAt: equalActivity, peerId: -1, title: 'alpha' },
+            { lastActivityAt: equalActivity, peerId: -5, title: 'Alpha' }
+        ];
+
+        const forward = sortOwnedTelegramGroups(groups);
+        const reverse = sortOwnedTelegramGroups([...groups].reverse());
+
+        assert.deepEqual(forward.map(({ peerId }) => peerId), [-5, -1, -2, -3, -4]);
+        assert.deepEqual(reverse.map(({ peerId }) => peerId), [-5, -1, -2, -3, -4]);
+    });
+
+    test('should filter titles case-insensitively after trimming the query', () => {
+        const groups = Object.freeze([
+            Object.freeze({ peerId: -1, title: 'Alpha Team' }),
+            Object.freeze({ peerId: -2, title: 'Beta group' }),
+            Object.freeze({ peerId: -3, title: 'ALPHABET' })
+        ]);
+
+        const filtered = filterOwnedTelegramGroups(groups, '  alpha  ');
+        const restored = filterOwnedTelegramGroups(groups, '   ');
+
+        assert.deepEqual(filtered.map(({ peerId }) => peerId), [-1, -3]);
+        assert.deepEqual(restored.map(({ peerId }) => peerId), [-1, -2, -3]);
+        assert.equal(groups.length, 3);
+    });
+
+    test('should distinguish an empty filter result from an account with no owned groups', () => {
+        const filteredEmpty = createOwnedTelegramGroupsView([
+            { peerId: -1, title: 'Alpha Team' }
+        ], 'missing');
+        const accountEmpty = createOwnedTelegramGroupsView([], 'missing');
+
+        assert.deepEqual(filteredEmpty, { groups: [], state: 'filtered-empty' });
+        assert.deepEqual(accountEmpty, { groups: [], state: 'empty' });
+    });
+});
+
 describe('loadOwnedTelegramGroups', () => {
     test('should paginate all dialogs and retain only owned active groups', async () => {
         const calls = [];
@@ -69,12 +142,12 @@ describe('loadOwnedTelegramGroups', () => {
                 calls.push(['listDialogs', limit, offset]);
                 if (offset === 0) {
                     return {
-                        items: [{ peerId: 101 }, { peerId: -10 }, { peerId: -30 }],
+                        items: [{ peerId: 101 }, { peerId: -20 }, { peerId: -30 }],
                         nextOffset: 3
                     };
                 }
                 return {
-                    items: [{ peerId: -20 }, { peerId: -40 }, { peerId: -50 }],
+                    items: [{ peerId: -10 }, { peerId: -40 }, { peerId: -50 }],
                     nextOffset: null
                 };
             },
