@@ -4,6 +4,17 @@ import { sendMessageToOwnedTelegramGroups } from '#src/content/main/features/tel
 import { loadOwnedTelegramGroups } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
 
+function isolateDialogKeyboardEvents(dialog) {
+    if (!dialog?.addEventListener) {
+        return;
+    }
+
+    dialog.addEventListener('keydown', (event) => {
+        dialog.handleKeydownBound?.(event);
+        event.stopPropagation();
+    });
+}
+
 function createTelegramOwnedGroupsFeature({
     adapter,
     documentApi = globalThis.document,
@@ -30,6 +41,7 @@ function createTelegramOwnedGroupsFeature({
         }
 
         dialog = documentApi.createElement(TELEGRAM_OWNED_GROUPS_DIALOG_TAG);
+        isolateDialogKeyboardEvents(dialog);
         dialog.configure({
             onClose: close,
             onDelete: (groups, options) => deleteOwnedTelegramGroups(adapter, groups, options),
@@ -62,5 +74,6 @@ const telegramOwnedGroupsFeatureDefinition = Object.freeze({
 
 export {
     createTelegramOwnedGroupsFeature,
+    isolateDialogKeyboardEvents,
     telegramOwnedGroupsFeatureDefinition
 };
