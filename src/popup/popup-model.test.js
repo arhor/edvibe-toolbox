@@ -11,21 +11,32 @@ import {
 
 describe('resolvePageContext', () => {
     test('should identify supported Edvibe contexts', () => {
-        // Given
         const marathonTab = { id: 12, url: 'https://app.edvibe.com/marathon/456/lessons' };
         const edvibeTab = { id: 13, url: 'https://edvibe.com/profile' };
 
-        // When
         const marathonContext = resolvePageContext(marathonTab);
         const edvibeContext = resolvePageContext(edvibeTab);
 
-        // Then
         assert.deepEqual(marathonContext, { type: 'marathon', marathonId: '456', tabId: 12 });
         assert.deepEqual(edvibeContext, { type: 'edvibe', tabId: 13 });
     });
 
+    test('should identify Telegram Web K without accepting other Telegram apps', () => {
+        assert.deepEqual(
+            resolvePageContext({ id: 20, url: 'https://web.telegram.org/k/' }),
+            { type: 'telegram-web-k', tabId: 20 }
+        );
+        assert.deepEqual(
+            resolvePageContext({ id: 21, url: 'https://web.telegram.org/k/?account=2' }),
+            { type: 'telegram-web-k', tabId: 21 }
+        );
+        assert.deepEqual(
+            resolvePageContext({ id: 22, url: 'https://web.telegram.org/a/' }),
+            { type: 'unsupported', tabId: 22 }
+        );
+    });
+
     test('should reject unavailable and unsupported tabs', () => {
-        // Given
         const tabs = [
             null,
             { id: 1 },
@@ -33,10 +44,8 @@ describe('resolvePageContext', () => {
             { id: 3, url: 'https://not-edvibe.com/marathon/456' }
         ];
 
-        // When
         const contexts = tabs.map(resolvePageContext);
 
-        // Then
         assert.deepEqual(contexts, [
             { type: 'unavailable' },
             { type: 'unavailable' },
@@ -47,16 +56,11 @@ describe('resolvePageContext', () => {
 });
 
 describe('getPageContextContent', () => {
-    test('should describe loading and marathon contexts', () => {
-        // Given
-        const loadingContext = { type: 'loading' };
-        const marathonContext = { type: 'marathon', marathonId: '42' };
+    test('should describe loading, marathon, and Telegram contexts', () => {
+        const loadingContent = getPageContextContent({ type: 'loading' });
+        const marathonContent = getPageContextContent({ type: 'marathon', marathonId: '42' });
+        const telegramContent = getPageContextContent({ type: 'telegram-web-k', tabId: 20 });
 
-        // When
-        const loadingContent = getPageContextContent(loadingContext);
-        const marathonContent = getPageContextContent(marathonContext);
-
-        // Then
         assert.deepEqual(loadingContent, {
             title: 'Проверяем страницу…',
             description: 'Определяем доступные инструменты'
@@ -64,6 +68,10 @@ describe('getPageContextContent', () => {
         assert.deepEqual(marathonContent, {
             title: 'Марафон #42',
             description: 'Инструменты марафона доступны'
+        });
+        assert.deepEqual(telegramContent, {
+            title: 'Telegram Web K',
+            description: 'Инструменты Telegram доступны для текущего аккаунта'
         });
     });
 });
@@ -129,18 +137,44 @@ describe('getToolViewModel', () => {
                 busy: true,
                 reason: '',
             }
+        },
+        {
+            toolId: 'telegram-owned-groups',
+            outcome: 'enabled',
+            condition: 'Telegram Web K is active',
+            state: {
+                pageContext: { type: 'telegram-web-k' },
+                exportInProgress: false,
+                pendingToolId: null
+            },
+            expected: {
+                disabled: false,
+                busy: false,
+                reason: ''
+            }
+        },
+        {
+            toolId: 'telegram-owned-groups',
+            outcome: 'disabled as unavailable',
+            condition: 'an Edvibe page is active',
+            state: {
+                pageContext: { type: 'edvibe' },
+                exportInProgress: false,
+                pendingToolId: null
+            },
+            expected: {
+                disabled: true,
+                busy: false,
+                reason: 'Откройте Telegram Web K.'
+            }
         }
     ];
 
     cases.forEach(({ toolId, outcome, condition, state, expected }) => {
         test(`getToolViewModel should derive ${toolId} as ${outcome} when ${condition}`, () => {
-            // Given
             const tool = getToolDefinition(toolId);
-
-            // When
             const viewModel = getToolViewModel(tool, state);
 
-            // Then
             assert.deepEqual(
                 { disabled: viewModel.disabled, busy: viewModel.busy, reason: viewModel.reason },
                 expected
@@ -150,7 +184,6 @@ describe('getToolViewModel', () => {
 });
 
 describe('getToolDefinition', () => {
-    // Given
     const cases =
         TOOL_GROUPS
             .flatMap((group) => group.tools)
@@ -159,10 +192,7 @@ describe('getToolDefinition', () => {
 
     cases.forEach(({ toolId, expectedTitle }) => {
         test(`should resolve ${toolId} tool definition`, () => {
-            // When
             const tool = getToolDefinition(toolId);
-
-            // Then
             assert.equal(tool?.title, expectedTitle);
         });
     });
