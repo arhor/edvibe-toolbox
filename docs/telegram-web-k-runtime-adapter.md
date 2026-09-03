@@ -39,7 +39,7 @@ The adapter is intentionally the only Toolfox module that knows these names and 
 - `canSendText(peerId)` — checks the current runtime's plain-text permission for a chat peer;
 - `resolveGroupCandidate(dialog)` — combines normalized group metadata, ownership, last activity, and send capability;
 - `sendText(peerId, text)` — sends plain text through the already-authenticated Telegram Web session;
-- `probe()` — non-mutating runtime validation for discovery, peer resolution, and last-activity calls. Sending remains explicitly pending until a live test message is performed.
+- `probe()` — non-mutating runtime validation for discovery, peer resolution, and last-activity calls. It never sends a message; the mutating `sendText` path is validated manually as described below.
 
 Normalized objects deliberately omit Telegram manager references and raw flags.
 
@@ -51,20 +51,21 @@ When the expected boundary is absent or rejects the expected call shape, Toolfox
 
 ## Production field validation
 
-Status: **pending live production validation**.
+Status: **verified on live production Telegram Web K on 2026-09-03**.
 
-The production check must be performed in a logged-in Telegram Web K tab with a dedicated group that is safe to receive a test message. Do not record credentials, cookies, session/auth keys, message contents, peer identifiers, group titles, or private data in GitHub.
+A logged-in Web K session was used with a dedicated test group. No credentials, cookies, session/auth keys, message contents, peer identifiers, or group titles were retained.
 
-Only structural facts should be retained, for example:
+The live runtime confirmed that:
 
-- whether `createProxiedManagersForAccount` exists;
-- whether dialog paging succeeds and returns an array;
-- whether peer resolution returns a recognized group shape;
-- whether top-message resolution provides a numeric `date`;
-- whether `hasRights(..., 'send_plain')` returns a boolean;
-- whether one test message is successfully sent to the dedicated group.
+- `createProxiedManagersForAccount` is available for the active account and returns a usable manager facade;
+- dialog paging with `offsetIndex` and `limit` succeeds and returns dialog arrays;
+- peer resolution returns the expected basic-group shape (`_ === 'chat'`);
+- top-message resolution exposes a numeric `date`;
+- `appChatsManager.hasRights(chatId, 'send_plain')` returns a boolean send capability;
+- a group created by the active account exposes `pFlags.creator === true`;
+- `appMessagesManager.sendText({ peerId, text })` successfully delivered one test text message to that dedicated group through the already-authenticated Web K session.
 
-After this check, update this section with the validation date and the structural result. If production differs from the source-verified contract, adapt only the Telegram adapter rather than leaking a compatibility branch into feature code.
+This field validation confirms the adapter's current production boundary without requiring a second login, Bot API credentials, DOM automation, or direct storage access. If production later differs from this contract, compatibility changes belong inside the Telegram adapter rather than feature code.
 
 ## Upstream references
 
