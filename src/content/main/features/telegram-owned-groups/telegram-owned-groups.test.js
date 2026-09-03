@@ -18,6 +18,9 @@ function createDialog() {
         configure(options) {
             this.options = options;
         },
+        connect() {
+            this.isConnected = true;
+        },
         dispatch(type, event) {
             listeners.get(type)?.(event);
         },
@@ -83,7 +86,7 @@ test('owned-group feature should suppress Telegram Escape only while dialog is o
     const documentApi = {
         body: {
             append(element) {
-                element.isConnected = true;
+                element.connect();
             }
         },
         createElement() {
@@ -96,6 +99,7 @@ test('owned-group feature should suppress Telegram Escape only while dialog is o
 
     assert.equal(escapeHandler(), false);
     assert.equal(unregisterCalls, 0);
+    assert.equal(dialog.isConnected, true);
 
     dialog.options.onClose();
 
