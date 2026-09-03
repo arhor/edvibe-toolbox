@@ -449,19 +449,20 @@ class TelegramOwnedGroupsDialog extends LitElement {
         `;
     }
 
-    renderBrowseActions() {
+    renderBrowseActions(disabled = false) {
         const canStartSend = this.groups.some((group) => group.canSendText !== false);
         return html`
             <footer class="group-actions" data-part="actions">
                 <button
                     type="button"
                     data-control
-                    ?disabled=${!canStartSend}
+                    ?disabled=${disabled || !canStartSend}
                     @click=${() => this.startSelection('send')}
                 >Отправить сообщение</button>
                 <button
                     type="button"
                     data-control="danger"
+                    ?disabled=${disabled}
                     @click=${() => this.startSelection('delete')}
                 >Удалить группы</button>
             </footer>
@@ -671,6 +672,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         const selecting = this.actionStage === 'select';
         return html`
             <div class="group-browser">
+                ${this.renderBrowseActions(selecting)}
                 ${this.renderFilterToolbar(view)}
                 <div class="group-list-region">
                     ${view.state === 'filtered-empty' ? this.renderFilterEmptyState() : html`
@@ -679,7 +681,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
                         </ul>
                     `}
                 </div>
-                ${selecting ? this.renderSelectionActions() : this.renderBrowseActions()}
+                ${selecting ? this.renderSelectionActions() : nothing}
             </div>
         `;
     }
