@@ -14,9 +14,24 @@ function group(peerId, title, kind = 'group') {
 describe('deleteOwnedTelegramGroups', () => {
     test('should reject execution without selected targets', async () => {
         await assert.rejects(
-            () => deleteOwnedTelegramGroups({ deleteGroup() {} }, []),
+            () => deleteOwnedTelegramGroups({ deleteGroup() {} }, [], { confirmed: true }),
             /At least one Telegram group/
         );
+    });
+
+    test('should perform zero deletion calls without explicit confirmation', async () => {
+        const calls = [];
+        const adapter = {
+            async deleteGroup(peerId) {
+                calls.push(peerId);
+            }
+        };
+
+        await assert.rejects(
+            () => deleteOwnedTelegramGroups(adapter, [group(-10, 'One')]),
+            /Explicit confirmation is required/
+        );
+        assert.deepEqual(calls, []);
     });
 
     test('should delete groups sequentially and preserve mixed results', async () => {
@@ -43,7 +58,7 @@ describe('deleteOwnedTelegramGroups', () => {
             group(-30, 'Third')
         ];
 
-        const summary = await deleteOwnedTelegramGroups(adapter, targets);
+        const summary = await deleteOwnedTelegramGroups(adapter, targets, { confirmed: true });
 
         assert.equal(maxActiveCalls, 1);
         assert.deepEqual(calls, [
@@ -85,7 +100,7 @@ describe('deleteOwnedTelegramGroups', () => {
             group(-40, 'Fourth')
         ];
 
-        const summary = await deleteOwnedTelegramGroups(adapter, targets);
+        const summary = await deleteOwnedTelegramGroups(adapter, targets, { confirmed: true });
 
         assert.deepEqual(calls, [-10, -20]);
         assert.deepEqual(summary.results.map(({ status }) => status), [
@@ -106,6 +121,7 @@ describe('deleteOwnedTelegramGroups', () => {
         let progressCalls = 0;
 
         const summary = await deleteOwnedTelegramGroups(adapter, [group(-10, 'One')], {
+            confirmed: true,
             onProgress(snapshot) {
                 snapshots.push(snapshot.results.map(({ status }) => status));
                 progressCalls += 1;
