@@ -1,12 +1,20 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { getRelevantTools } from '#src/popup/tool-visibility.js';
+import {
+    getRelevantToolGroups,
+    getRelevantTools
+} from '#src/popup/tool-visibility.js';
 
 const tools = [
     { id: 'edvibe', requirement: 'edvibe' },
     { id: 'marathon', requirement: 'marathon' },
     { id: 'telegram', requirement: 'telegram' }
+];
+
+const groups = [
+    { id: 'edvibe-group', title: 'Edvibe', tools: tools.slice(0, 2) },
+    { id: 'telegram-group', title: 'Telegram', tools: [tools[2]] }
 ];
 
 function visibleIds(pageContext) {
@@ -30,5 +38,20 @@ describe('popup tool visibility', () => {
         assert.deepEqual(visibleIds({ type: 'unsupported', tabId: 3 }), []);
         assert.deepEqual(visibleIds({ type: 'unavailable' }), []);
         assert.deepEqual(visibleIds({ type: 'loading' }), []);
+    });
+
+    test('should omit irrelevant groups entirely instead of rendering empty group hosts', () => {
+        assert.deepEqual(
+            getRelevantToolGroups(groups, { type: 'edvibe', tabId: 1 }).map(({ id }) => id),
+            ['edvibe-group']
+        );
+        assert.deepEqual(
+            getRelevantToolGroups(groups, { type: 'telegram-web-k', tabId: 2 }).map(({ id }) => id),
+            ['telegram-group']
+        );
+        assert.deepEqual(
+            getRelevantToolGroups(groups, { type: 'unsupported', tabId: 3 }),
+            []
+        );
     });
 });
