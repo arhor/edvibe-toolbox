@@ -115,7 +115,7 @@ function isActiveGroupPeer(peer, type) {
     }
 
     const flags = peer?.pFlags || {};
-    if (flags.left || flags.kicked || flags.deactivated) {
+    if (flags.left || flags.deactivated) {
         return false;
     }
     return !(type === 'group' && peer?.migrated_to);
