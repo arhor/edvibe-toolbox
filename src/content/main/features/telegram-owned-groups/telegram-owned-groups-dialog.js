@@ -1,24 +1,26 @@
 import { LitElement, html, nothing } from 'lit';
 
 import { telegramOwnedGroupsDialogStyles } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-dialog.styles.js';
+import { createOwnedTelegramGroupsView } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 import {
     componentFoundationStyles,
     dialogFoundationStyles
 } from '#src/content/main/styles/foundations.js';
 import {
     controlStyles,
-    dialogShellStyles
+    dialogShellStyles,
+    fieldStyles
 } from '#src/content/main/styles/primitives.js';
 
 const TELEGRAM_OWNED_GROUPS_DIALOG_TAG = 'toolfox-telegram-owned-groups-dialog';
 
 function formatActivity(value) {
     if (!value) {
-        return 'Нет данных об активности';
+        return 'нет данных';
     }
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-        return 'Нет данных об активности';
+        return 'нет данных';
     }
     return new Intl.DateTimeFormat(undefined, {
         dateStyle: 'medium',
@@ -46,6 +48,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         dialogFoundationStyles,
         dialogShellStyles,
         controlStyles,
+        fieldStyles,
         telegramOwnedGroupsDialogStyles
     ];
 
@@ -53,7 +56,8 @@ class TelegramOwnedGroupsDialog extends LitElement {
         options: { state: true },
         groups: { state: true },
         viewState: { state: true },
-        message: { state: true }
+        message: { state: true },
+        filterQuery: { state: true }
     };
 
     constructor() {
@@ -62,6 +66,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         this.groups = [];
         this.viewState = 'loading';
         this.message = 'Загружаем группы текущего аккаунта…';
+        this.filterQuery = '';
         this.loadPromise = null;
         this.handleKeydownBound = (event) => {
             if (event.key === 'Escape') {
@@ -133,6 +138,10 @@ class TelegramOwnedGroupsDialog extends LitElement {
         this.options?.onClose?.();
     }
 
+    handleFilterInput(event) {
+        this.filterQuery = event.currentTarget?.value || '';
+    }
+
     renderState() {
         const isError = this.viewState === 'error';
         const canRetry = isError || this.viewState === 'unsupported';
@@ -155,6 +164,15 @@ class TelegramOwnedGroupsDialog extends LitElement {
         `;
     }
 
+    renderFilterEmptyState() {
+        return html`
+            <div class="state-card filter-empty-state" data-part="filter-empty-state" aria-live="polite">
+                <h3>Ничего не найдено</h3>
+                <p>Измените фильтр, чтобы снова увидеть подходящие группы.</p>
+            </div>
+        `;
+    }
+
     renderGroup(group) {
         return html`
             <li class="group-card" data-peer-id=${String(group.peerId)}>
@@ -163,10 +181,38 @@ class TelegramOwnedGroupsDialog extends LitElement {
                     <span class="kind">${formatGroupKind(group.kind)}</span>
                 </div>
                 <div class="metadata">
-                    <span>${formatActivity(group.lastActivityAt)}</span>
+                    <span>Последняя активность: ${formatActivity(group.lastActivityAt)}</span>
                     <span>${formatSendability(group.canSendText)}</span>
                 </div>
             </li>
+        `;
+    }
+
+    renderReady() {
+        const view = createOwnedTelegramGroupsView(this.groups, this.filterQuery);
+        const isFiltered = this.filterQuery.trim() !== '';
+        const summary = isFiltered
+            ? `Показано: ${view.groups.length} из ${this.groups.length}`
+            : `Найдено групп: ${this.groups.length}`;
+
+        return html`
+            <div class="toolbar">
+                <label data-field>
+                    <span>Фильтр по названию</span>
+                    <input
+                        type="search"
+                        placeholder="Начните вводить название…"
+                        .value=${this.filterQuery}
+                        @input=${this.handleFilterInput}
+                    >
+                </label>
+                <p class="summary" aria-live="polite">${summary}</p>
+            </div>
+            ${view.state === 'filtered-empty' ? this.renderFilterEmptyState() : html`
+                <ul class="group-list">
+                    ${view.groups.map((group) => this.renderGroup(group))}
+                </ul>
+            `}
         `;
     }
 
@@ -184,12 +230,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
                         <button class="icon-button" data-control="secondary" type="button" data-action="close" aria-label="Закрыть" @click=${this.close}>×</button>
                     </header>
                     <div class="content">
-                        ${isReady ? html`
-                            <p class="summary">Найдено групп: ${this.groups.length}</p>
-                            <ul class="group-list">
-                                ${this.groups.map((group) => this.renderGroup(group))}
-                            </ul>
-                        ` : this.renderState()}
+                        ${isReady ? this.renderReady() : this.renderState()}
                     </div>
                 </section>
             </div>
