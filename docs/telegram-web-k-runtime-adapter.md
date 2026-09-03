@@ -25,6 +25,8 @@ Reviewed against the current Telegram Web K source on 2026-09-03 (`morethanwords
 - `appMessagesManager.getMessageByPeer(peerId, topMessageId)` resolves the dialog's top message; its `date` field is Unix seconds and is normalized by Toolfox to an ISO timestamp.
 - For chat peers, Telegram's own peer-id helpers derive the chat id as `Math.abs(peerId)`. `appChatsManager.hasRights(chatId, 'send_plain')` provides the text-send permission check used by the adapter.
 - `appMessagesManager.sendText({ peerId, text })` is the current text-send path.
+- Creator-owned basic groups are deleted through `appChatsManager.deleteChat(chatId)`, which invokes MTProto `messages.deleteChat` rather than leaving or locally hiding the group.
+- Creator-owned supergroups are deleted through `appChatsManager.deleteChannel(chatId)`, which invokes MTProto `channels.deleteChannel`.
 
 The adapter is intentionally the only Toolfox module that knows these names and shapes.
 
@@ -38,8 +40,9 @@ The adapter is intentionally the only Toolfox module that knows these names and 
 - `getLastActivity(dialog)` — returns an ISO timestamp or `null`;
 - `canSendText(peerId)` — checks the current runtime's plain-text permission for a chat peer;
 - `resolveGroupCandidate(dialog)` — combines normalized group metadata, ownership, last activity, and send capability;
+- `deleteGroup(peerId, kind)` — deletes a creator-owned basic group or supergroup through the matching authenticated Web K manager operation;
 - `sendText(peerId, text)` — sends plain text through the already-authenticated Telegram Web session;
-- `probe()` — non-mutating runtime validation for discovery, peer resolution, and last-activity calls. It never sends a message; the mutating `sendText` path is validated manually as described below.
+- `probe()` — non-mutating runtime validation for discovery, peer resolution, and last-activity calls. It never deletes a group or sends a message; the mutating `deleteGroup` and `sendText` paths require dedicated live validation.
 
 Normalized objects deliberately omit Telegram manager references and raw flags.
 
@@ -47,11 +50,11 @@ Normalized objects deliberately omit Telegram manager references and raw flags.
 
 The content script starts at `document_start`, before Telegram necessarily mounts its runtime globals. A missing manager factory is therefore not cached as a permanent failure. The adapter checks compatibility lazily when an operation is requested and can become supported later in the same page lifecycle.
 
-When the expected boundary is absent or rejects the expected call shape, Toolfox raises `TelegramWebKRuntimeError` with a Toolfox-owned error code. The host page is not modified to emulate missing Telegram APIs, and Toolfox does not fall back to DOM automation or direct IndexedDB reads.
+When the expected boundary is absent or rejects the expected call shape, Toolfox raises `TelegramWebKRuntimeError` with a Toolfox-owned error code. Telegram RPC error identifiers exposed by the runtime (for example `CHAT_ADMIN_REQUIRED` or `FLOOD_WAIT_30`) are preserved when available so feature workflows can distinguish target-local failures from conditions that should interrupt a batch. The host page is not modified to emulate missing Telegram APIs, and Toolfox does not fall back to DOM automation or direct IndexedDB reads.
 
 ## Production field validation
 
-Status: **verified on live production Telegram Web K on 2026-09-03**.
+Status: **discovery and text-send paths verified on live production Telegram Web K on 2026-09-03; destructive deletion path source-verified and intentionally requires a disposable-group validation**.
 
 A logged-in Web K session was used with a dedicated test group. No credentials, cookies, session/auth keys, message contents, peer identifiers, or group titles were retained.
 
@@ -65,7 +68,9 @@ The live runtime confirmed that:
 - a group created by the active account exposes `pFlags.creator === true`;
 - `appMessagesManager.sendText({ peerId, text })` successfully delivered one test text message to that dedicated group through the already-authenticated Web K session.
 
-This field validation confirms the adapter's current production boundary without requiring a second login, Bot API credentials, DOM automation, or direct storage access. If production later differs from this contract, compatibility changes belong inside the Telegram adapter rather than feature code.
+The deletion implementation follows Telegram Web K's own current source paths (`appChatsManager.deleteChat` / `deleteChannel`) and deliberately does not substitute leave/history-removal semantics. Because deletion is irreversible, it should be production-validated only against an explicitly disposable group before relying on it for real cleanup batches.
+
+This boundary does not require a second login, Bot API credentials, DOM automation, or direct storage access. If production later differs from this contract, compatibility changes belong inside the Telegram adapter rather than feature code.
 
 ## Upstream references
 
