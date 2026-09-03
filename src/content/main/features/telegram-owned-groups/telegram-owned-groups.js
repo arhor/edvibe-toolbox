@@ -1,7 +1,20 @@
 import { deleteOwnedTelegramGroups } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-deletion.js';
 import { TELEGRAM_OWNED_GROUPS_DIALOG_TAG } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-dialog.js';
+import { sendMessageToOwnedTelegramGroups } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-messaging.js';
 import { loadOwnedTelegramGroups } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
+import { registerTelegramWebKEscapeGuard } from '#src/content/main/infrastructure/telegram-web-k-navigation-guard.js';
 import { WINDOW_MESSAGE_TYPES } from '#src/shared/messaging/index.js';
+
+function isolateDialogKeyboardEvents(dialog) {
+    if (!dialog?.addEventListener) {
+        return;
+    }
+
+    dialog.addEventListener('keydown', (event) => {
+        dialog.handleKeydownBound?.(event);
+        event.stopPropagation();
+    });
+}
 
 function createTelegramOwnedGroupsFeature({
     adapter,
@@ -16,8 +29,11 @@ function createTelegramOwnedGroupsFeature({
     }
 
     let dialog = null;
+    let unregisterEscapeGuard = null;
 
     function close() {
+        unregisterEscapeGuard?.();
+        unregisterEscapeGuard = null;
         dialog?.remove();
         dialog = null;
     }
@@ -29,10 +45,18 @@ function createTelegramOwnedGroupsFeature({
         }
 
         dialog = documentApi.createElement(TELEGRAM_OWNED_GROUPS_DIALOG_TAG);
+        isolateDialogKeyboardEvents(dialog);
+        unregisterEscapeGuard = registerTelegramWebKEscapeGuard(adapter);
         dialog.configure({
             onClose: close,
             onDelete: (groups, options) => deleteOwnedTelegramGroups(adapter, groups, options),
-            onLoad: () => loadOwnedTelegramGroups(adapter)
+            onLoad: () => loadOwnedTelegramGroups(adapter),
+            onSend: (groups, text, options) => sendMessageToOwnedTelegramGroups(
+                adapter,
+                groups,
+                text,
+                options
+            )
         });
         (documentApi.body || documentApi.documentElement).append(dialog);
         logger.log('Telegram owned-group browser opened.');
@@ -55,5 +79,6 @@ const telegramOwnedGroupsFeatureDefinition = Object.freeze({
 
 export {
     createTelegramOwnedGroupsFeature,
+    isolateDialogKeyboardEvents,
     telegramOwnedGroupsFeatureDefinition
 };

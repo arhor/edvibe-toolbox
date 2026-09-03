@@ -81,7 +81,6 @@ export const telegramOwnedGroupsDialogStyles = css`
 
     .group-browser {
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
         gap: 12px;
         min-height: 220px;
     }
@@ -117,6 +116,7 @@ export const telegramOwnedGroupsDialogStyles = css`
     }
 
     .group-card {
+        position: relative;
         display: flex;
         align-items: flex-start;
         gap: 12px;
@@ -131,21 +131,37 @@ export const telegramOwnedGroupsDialogStyles = css`
         background: var(--toolfox-primary-surface, var(--toolfox-surface-subtle));
     }
 
+    .group-card.is-unavailable {
+        opacity: .68;
+    }
+
     .selection-control {
-        display: grid;
-        place-items: center;
-        flex: 0 0 auto;
-        min-width: 24px;
-        min-height: 24px;
+        position: absolute;
+        inset: 0;
+        display: block;
+        min-width: 0;
+        min-height: 0;
         cursor: pointer;
     }
 
     .selection-control input {
+        position: absolute;
+        top: 14px;
+        left: 16px;
         width: 18px;
         height: 18px;
         margin: 0;
         accent-color: var(--toolfox-primary);
         cursor: pointer;
+    }
+
+    .selection-control + .group-body {
+        padding-left: 30px;
+    }
+
+    .selection-control.is-disabled,
+    .selection-control.is-disabled input {
+        cursor: not-allowed;
     }
 
     .group-body {
@@ -191,19 +207,58 @@ export const telegramOwnedGroupsDialogStyles = css`
         font-size: 12px;
     }
 
-    .group-actions,
+    .group-actions {
+        order: -2;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 0;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--toolfox-border-subtle);
+    }
+
     .selection-actions {
+        display: grid;
+        gap: 10px;
         margin-top: 0;
         padding-top: 14px;
         border-top: 1px solid var(--toolfox-border-subtle);
     }
 
-    .group-actions {
-        justify-content: flex-end;
+    .send-selection-actions {
+        display: contents;
     }
 
-    .selection-actions {
+    .send-selection-actions .message-composer {
+        order: -1;
+    }
+
+    .send-selection-actions .selection-note {
+        padding-top: 14px;
+        border-top: 1px solid var(--toolfox-border-subtle);
+    }
+
+    .selection-action-buttons {
+        display: flex;
         justify-content: space-between;
+        gap: 10px;
+    }
+
+    .message-composer {
+        display: grid;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .message-composer textarea {
+        min-height: 104px;
+        resize: vertical;
+    }
+
+    .selection-note {
+        margin: 0;
+        color: var(--toolfox-text-muted);
+        font-size: 11px;
+        line-height: 1.4;
     }
 
     .operation-panel {
@@ -245,7 +300,27 @@ export const telegramOwnedGroupsDialogStyles = css`
         font-weight: 700;
     }
 
-    .result-deleted {
+    .message-review-section {
+        display: grid;
+        gap: 7px;
+    }
+
+    .message-review {
+        margin: 0;
+        padding: 12px 14px;
+        overflow: auto;
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-control);
+        background: var(--toolfox-surface-subtle);
+        color: var(--toolfox-text);
+        font: inherit;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+    }
+
+    .result-deleted,
+    .result-sent {
         border-color: var(--toolfox-success-border);
     }
 
@@ -257,7 +332,8 @@ export const telegramOwnedGroupsDialogStyles = css`
         border-color: var(--toolfox-warning-border);
     }
 
-    .result-deleting {
+    .result-deleting,
+    .result-sending {
         border-color: var(--toolfox-primary);
     }
 
@@ -285,6 +361,12 @@ export const telegramOwnedGroupsDialogStyles = css`
 
         .sort-button {
             width: 100%;
+        }
+
+        .group-actions,
+        .selection-action-buttons {
+            align-items: stretch;
+            flex-direction: column;
         }
     }
 `;
