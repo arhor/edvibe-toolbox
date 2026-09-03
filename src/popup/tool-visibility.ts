@@ -1,4 +1,4 @@
-import type { PageContext, ToolDefinition } from '#src/popup/popup-model.js';
+import type { PageContext, ToolDefinition, ToolGroup } from '#src/popup/popup-model.js';
 
 function isToolRelevantToPage(tool: ToolDefinition, pageContext: PageContext): boolean {
     if (pageContext.type === 'telegram-web-k') {
@@ -10,8 +10,27 @@ function isToolRelevantToPage(tool: ToolDefinition, pageContext: PageContext): b
     return false;
 }
 
-function getRelevantTools(tools: readonly ToolDefinition[], pageContext: PageContext): readonly ToolDefinition[] {
+function getRelevantTools(
+    tools: readonly ToolDefinition[],
+    pageContext: PageContext
+): readonly ToolDefinition[] {
     return tools.filter((tool) => isToolRelevantToPage(tool, pageContext));
 }
 
-export { getRelevantTools, isToolRelevantToPage };
+function getRelevantToolGroups(
+    groups: readonly ToolGroup[],
+    pageContext: PageContext
+): readonly ToolGroup[] {
+    return groups.flatMap((group) => {
+        const tools = getRelevantTools(group.tools, pageContext);
+        return tools.length === 0
+            ? []
+            : [Object.freeze({ ...group, tools: Object.freeze([...tools]) })];
+    });
+}
+
+export {
+    getRelevantToolGroups,
+    getRelevantTools,
+    isToolRelevantToPage
+};
