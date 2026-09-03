@@ -69,7 +69,10 @@ function emitProgress(onProgress, results) {
     }
 }
 
-async function deleteOwnedTelegramGroups(adapter, groups, { onProgress } = {}) {
+async function deleteOwnedTelegramGroups(adapter, groups, {
+    confirmed = false,
+    onProgress
+} = {}) {
     if (!adapter || typeof adapter.deleteGroup !== 'function') {
         throw new TypeError('Telegram adapter with deleteGroup() is required.');
     }
@@ -77,6 +80,9 @@ async function deleteOwnedTelegramGroups(adapter, groups, { onProgress } = {}) {
     const targets = Array.from(groups || []);
     if (targets.length === 0) {
         throw new TypeError('At least one Telegram group must be selected for deletion.');
+    }
+    if (confirmed !== true) {
+        throw new TypeError('Explicit confirmation is required before deleting Telegram groups.');
     }
 
     const results = targets.map((group) => createDeleteResult(group, DELETE_STATUSES.PENDING));
