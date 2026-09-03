@@ -387,9 +387,9 @@ export class TelegramWebKAdapter {
                 capabilities: Object.freeze({
                     dialogDiscovery: true,
                     lastActivity: true,
-                    peerResolution: true,
-                    sendText: true
-                })
+                    peerResolution: true
+                }),
+                requiresLiveValidation: Object.freeze(['sendText'])
             });
         } catch (cause) {
             return Object.freeze({
