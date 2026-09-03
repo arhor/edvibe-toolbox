@@ -81,7 +81,6 @@ export const telegramOwnedGroupsDialogStyles = css`
 
     .group-browser {
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
         gap: 12px;
         min-height: 220px;
     }
@@ -200,21 +199,21 @@ export const telegramOwnedGroupsDialogStyles = css`
         font-size: 12px;
     }
 
-    .group-actions,
-    .selection-actions {
-        margin-top: 0;
-        padding-top: 14px;
-        border-top: 1px solid var(--toolfox-border-subtle);
-    }
-
     .group-actions {
+        order: -1;
         justify-content: space-between;
         gap: 10px;
+        margin: 0;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--toolfox-border-subtle);
     }
 
     .selection-actions {
         display: grid;
         gap: 10px;
+        margin-top: 0;
+        padding-top: 14px;
+        border-top: 1px solid var(--toolfox-border-subtle);
     }
 
     .selection-action-buttons {
