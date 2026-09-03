@@ -5,6 +5,11 @@ export const ContentScripts = {
     MAIN: 'src/content/main/index.js',
 };
 
+export const ContentScriptMatches = [
+    '*://*.edvibe.com/*',
+    'https://web.telegram.org/k/*'
+];
+
 export default defineManifest({
     manifest_version: 3,
     name: 'Toolfox',
@@ -19,13 +24,13 @@ export default defineManifest({
     },
     content_scripts: [
         {
-            matches: ['*://*.edvibe.com/*'],
+            matches: ContentScriptMatches,
             js: [ContentScripts.ISOLATED],
             run_at: 'document_start',
             world: 'ISOLATED'
         },
         {
-            matches: ['*://*.edvibe.com/*'],
+            matches: ContentScriptMatches,
             js: [ContentScripts.MAIN],
             run_at: 'document_start',
             world: 'MAIN'
