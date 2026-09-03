@@ -1,6 +1,15 @@
 const SUPPORTED_STATE = 'supported';
 const GROUP_TYPES = new Set(['group', 'supergroup']);
 
+function normalizeActivityTimestamp(value) {
+    if (!value) {
+        return null;
+    }
+
+    const timestamp = Date.parse(value);
+    return Number.isFinite(timestamp) ? timestamp : null;
+}
+
 function normalizeOwnedGroup(candidate) {
     if (
         !candidate
@@ -20,6 +29,61 @@ function normalizeOwnedGroup(candidate) {
         lastActivityAt: candidate.lastActivityAt || null,
         peerId: Number(candidate.peerId),
         title: String(candidate.title || '').trim() || 'Без названия'
+    });
+}
+
+function compareOwnedTelegramGroups(left, right) {
+    const leftActivity = normalizeActivityTimestamp(left?.lastActivityAt);
+    const rightActivity = normalizeActivityTimestamp(right?.lastActivityAt);
+
+    if (leftActivity !== rightActivity) {
+        if (leftActivity === null) {
+            return 1;
+        }
+        if (rightActivity === null) {
+            return -1;
+        }
+        return rightActivity - leftActivity;
+    }
+
+    const leftTitle = String(left?.title || '').toLowerCase();
+    const rightTitle = String(right?.title || '').toLowerCase();
+    if (leftTitle !== rightTitle) {
+        return leftTitle < rightTitle ? -1 : 1;
+    }
+
+    return Number(left?.peerId) - Number(right?.peerId);
+}
+
+function sortOwnedTelegramGroups(groups) {
+    return Object.freeze(Array.from(groups || []).sort(compareOwnedTelegramGroups));
+}
+
+function filterOwnedTelegramGroups(groups, query = '') {
+    const source = Array.from(groups || []);
+    const normalizedQuery = String(query || '').trim().toLowerCase();
+    if (!normalizedQuery) {
+        return Object.freeze(source);
+    }
+
+    return Object.freeze(source.filter((group) => String(group?.title || '')
+        .toLowerCase()
+        .includes(normalizedQuery)));
+}
+
+function createOwnedTelegramGroupsView(groups, query = '') {
+    const source = Array.from(groups || []);
+    if (source.length === 0) {
+        return Object.freeze({
+            groups: Object.freeze([]),
+            state: 'empty'
+        });
+    }
+
+    const visibleGroups = filterOwnedTelegramGroups(source, query);
+    return Object.freeze({
+        groups: visibleGroups,
+        state: visibleGroups.length === 0 ? 'filtered-empty' : 'ready'
     });
 }
 
@@ -67,7 +131,7 @@ async function loadOwnedTelegramGroups(adapter, { pageSize = 100 } = {}) {
         offset = page.nextOffset;
     }
 
-    const groups = Object.freeze([...groupsByPeerId.values()]);
+    const groups = sortOwnedTelegramGroups(groupsByPeerId.values());
     return Object.freeze({
         groups,
         reason: null,
@@ -76,6 +140,10 @@ async function loadOwnedTelegramGroups(adapter, { pageSize = 100 } = {}) {
 }
 
 export {
+    compareOwnedTelegramGroups,
+    createOwnedTelegramGroupsView,
+    filterOwnedTelegramGroups,
     loadOwnedTelegramGroups,
-    normalizeOwnedGroup
+    normalizeOwnedGroup,
+    sortOwnedTelegramGroups
 };
