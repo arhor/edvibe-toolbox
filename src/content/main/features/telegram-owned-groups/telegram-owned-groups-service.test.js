@@ -4,9 +4,11 @@ import { describe, test } from 'node:test';
 import {
     createOwnedTelegramGroupsView,
     filterOwnedTelegramGroups,
+    getSelectedOwnedGroups,
     loadOwnedTelegramGroups,
     normalizeOwnedGroup,
-    sortOwnedTelegramGroups
+    sortOwnedTelegramGroups,
+    toggleOwnedGroupSelection
 } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 
 describe('normalizeOwnedGroup', () => {
@@ -123,6 +125,35 @@ describe('owned Telegram group list presentation', () => {
 
         assert.deepEqual(filteredEmpty, { groups: [], state: 'filtered-empty' });
         assert.deepEqual(accountEmpty, { groups: [], state: 'empty' });
+    });
+});
+
+describe('owned Telegram group selection', () => {
+    test('should keep selected peer ids independent from the filtered visible collection', () => {
+        const groups = [
+            { peerId: -10, title: 'Alpha' },
+            { peerId: -20, title: 'Beta' },
+            { peerId: -30, title: 'Gamma' }
+        ];
+        let selected = toggleOwnedGroupSelection([], -10, true);
+        selected = toggleOwnedGroupSelection(selected, -30, true);
+
+        const filtered = createOwnedTelegramGroupsView(groups, 'alpha');
+        const targets = getSelectedOwnedGroups(groups, selected);
+
+        assert.deepEqual(filtered.groups.map(({ peerId }) => peerId), [-10]);
+        assert.deepEqual(selected, [-10, -30]);
+        assert.deepEqual(targets.map(({ peerId }) => peerId), [-10, -30]);
+    });
+
+    test('should select and deselect without mutating the previous selection', () => {
+        const initial = Object.freeze([-10]);
+        const added = toggleOwnedGroupSelection(initial, -20, true);
+        const removed = toggleOwnedGroupSelection(added, -10, false);
+
+        assert.deepEqual(initial, [-10]);
+        assert.deepEqual(added, [-10, -20]);
+        assert.deepEqual(removed, [-20]);
     });
 });
 
