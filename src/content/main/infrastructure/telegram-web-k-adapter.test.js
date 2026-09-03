@@ -152,6 +152,28 @@ describe('TelegramWebKAdapter', () => {
         assert.equal('unread_count' in page.items[0], false);
     });
 
+    test('should preserve missing message ids and advance by the raw Telegram page size', async () => {
+        const runtime = createRuntime({
+            dialogs: [
+                { peerId: null, top_message: null },
+                { peerId: -10, top_message: null },
+                { peerId: -20, top_message: 200 }
+            ]
+        });
+        const adapter = createTelegramWebKAdapter({
+            globalObject: runtime.globalObject,
+            location: new URL('https://web.telegram.org/k/')
+        });
+
+        const page = await adapter.listDialogs({ limit: 2, offset: 0 });
+
+        assert.deepEqual(page, {
+            count: 3,
+            items: [{ peerId: -10, topMessageId: null }],
+            nextOffset: 2
+        });
+    });
+
     test('should resolve an owned group candidate with last activity and send capability', async () => {
         const runtime = createRuntime({
             dialogs: [{ peerId: -10, top_message: 100 }],
