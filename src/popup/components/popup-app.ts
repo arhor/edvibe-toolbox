@@ -12,6 +12,7 @@ import {
 } from '#src/popup/popup-model.js';
 import type { PageContext } from '#src/popup/popup-model.js';
 import { popupElementStyles } from '#src/popup/styles/primitives.js';
+import { getRelevantToolGroups } from '#src/popup/tool-visibility.js';
 import '#src/popup/components/popup-tool-group.js';
 import { EXPORT_STATES, isPopupCommandMessage, isRuntimeExportStatusMessage } from '#src/shared/messaging/index.js';
 import type { PopupCommand, RuntimeExportStatusMessage } from '#src/shared/messaging/index.js';
@@ -194,6 +195,7 @@ class PopupApp extends LitElement {
 
     render() {
         const contextContent = getPageContextContent(this.pageContext);
+        const toolGroups = getRelevantToolGroups(TOOL_GROUPS, this.pageContext);
         return html`
             <header class="app-header">
                 <div class="app-mark" aria-hidden="true">TF</div>
@@ -212,9 +214,9 @@ class PopupApp extends LitElement {
                     </div>
                 </section>
 
-                ${this.initialized ? html`
+                ${this.initialized && toolGroups.length > 0 ? html`
                     <div class="tool-groups">
-                        ${TOOL_GROUPS.map((group) => html`
+                        ${toolGroups.map((group) => html`
                             <popup-tool-group
                                 .title=${group.title}
                                 .tools=${group.tools}
