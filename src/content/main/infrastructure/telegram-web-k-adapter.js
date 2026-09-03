@@ -23,6 +23,10 @@ function isRecord(value) {
 }
 
 function toFiniteNumber(value) {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
 }
@@ -250,14 +254,15 @@ export class TelegramWebKAdapter {
                 throw new TypeError('Unexpected Telegram dialog page shape.');
             }
 
+            const rawPageSize = result.dialogs.length;
             const items = result.dialogs
                 .map(normalizeDialogSummary)
                 .filter(Boolean);
             const count = toFiniteNumber(result.count);
-            const nextOffset = items.length === 0
-                || (count !== null && safeOffset + items.length >= count)
+            const nextOffset = rawPageSize === 0
+                || (count !== null && safeOffset + rawPageSize >= count)
                 ? null
-                : safeOffset + items.length;
+                : safeOffset + rawPageSize;
 
             return Object.freeze({
                 count,
