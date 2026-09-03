@@ -5,6 +5,7 @@ import { telegramOwnedGroupsDialogStyles } from '#src/content/main/features/tele
 import {
     createOwnedTelegramGroupsView,
     getSelectedOwnedGroups,
+    TELEGRAM_GROUP_SORT_ORDERS,
     toggleOwnedGroupSelection
 } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 import {
@@ -75,6 +76,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         viewState: { state: true },
         message: { state: true },
         filterQuery: { state: true },
+        sortOrder: { state: true },
         actionStage: { state: true },
         selectionAction: { state: true },
         selectedPeerIds: { state: true },
@@ -89,6 +91,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
         this.viewState = 'loading';
         this.message = 'Загружаем группы текущего аккаунта…';
         this.filterQuery = '';
+        this.sortOrder = TELEGRAM_GROUP_SORT_ORDERS.NEWEST_FIRST;
         this.actionStage = 'browse';
         this.selectionAction = null;
         this.selectedPeerIds = [];
@@ -194,6 +197,12 @@ class TelegramOwnedGroupsDialog extends LitElement {
 
     handleFilterInput(event) {
         this.filterQuery = event.currentTarget?.value || '';
+    }
+
+    toggleSortOrder() {
+        this.sortOrder = this.sortOrder === TELEGRAM_GROUP_SORT_ORDERS.NEWEST_FIRST
+            ? TELEGRAM_GROUP_SORT_ORDERS.OLDEST_FIRST
+            : TELEGRAM_GROUP_SORT_ORDERS.NEWEST_FIRST;
     }
 
     startSelection(action) {
@@ -333,18 +342,30 @@ class TelegramOwnedGroupsDialog extends LitElement {
         const summary = this.actionStage === 'select'
             ? `Выбрано: ${selectedCount} · ${resultSummary}`
             : resultSummary;
+        const sortLabel = this.sortOrder === TELEGRAM_GROUP_SORT_ORDERS.NEWEST_FIRST
+            ? 'Новые → старые'
+            : 'Старые → новые';
 
         return html`
             <div class="toolbar">
-                <label data-field>
-                    <span>Фильтр по названию</span>
-                    <input
-                        type="search"
-                        placeholder="Начните вводить название…"
-                        .value=${this.filterQuery}
-                        @input=${this.handleFilterInput}
-                    >
-                </label>
+                <div class="toolbar-controls">
+                    <label class="filter-field" data-field>
+                        <span>Фильтр по названию</span>
+                        <input
+                            type="search"
+                            placeholder="Начните вводить название…"
+                            .value=${this.filterQuery}
+                            @input=${this.handleFilterInput}
+                        >
+                    </label>
+                    <button
+                        class="sort-button"
+                        type="button"
+                        data-control="secondary"
+                        aria-label="Изменить порядок сортировки по последней активности"
+                        @click=${this.toggleSortOrder}
+                    >${sortLabel}</button>
+                </div>
                 <p class="summary" aria-live="polite">${summary}</p>
             </div>
         `;
@@ -352,20 +373,20 @@ class TelegramOwnedGroupsDialog extends LitElement {
 
     renderBrowseActions() {
         return html`
-            <div class="group-actions" data-part="actions">
+            <footer class="group-actions" data-part="actions">
                 <button
                     type="button"
                     data-control="danger"
                     @click=${() => this.startSelection('delete')}
                 >Удалить группы</button>
-            </div>
+            </footer>
         `;
     }
 
     renderSelectionActions() {
         const selectedCount = this.selectedPeerIds.length;
         return html`
-            <div class="selection-actions" data-part="actions">
+            <footer class="selection-actions" data-part="actions">
                 <button type="button" data-control="secondary" @click=${this.cancelSelection}>Отмена</button>
                 <button
                     type="button"
@@ -373,7 +394,7 @@ class TelegramOwnedGroupsDialog extends LitElement {
                     ?disabled=${selectedCount === 0}
                     @click=${this.requestDeleteConfirmation}
                 >Проверить удаление (${selectedCount})</button>
-            </div>
+            </footer>
         `;
     }
 
@@ -462,16 +483,24 @@ class TelegramOwnedGroupsDialog extends LitElement {
     }
 
     renderGroupList() {
-        const view = createOwnedTelegramGroupsView(this.groups, this.filterQuery);
+        const view = createOwnedTelegramGroupsView(
+            this.groups,
+            this.filterQuery,
+            this.sortOrder
+        );
         const selecting = this.actionStage === 'select';
         return html`
-            ${this.renderFilterToolbar(view)}
-            ${view.state === 'filtered-empty' ? this.renderFilterEmptyState() : html`
-                <ul class="group-list">
-                    ${view.groups.map((group) => this.renderGroup(group, { selectable: selecting }))}
-                </ul>
-            `}
-            ${selecting ? this.renderSelectionActions() : this.renderBrowseActions()}
+            <div class="group-browser">
+                ${this.renderFilterToolbar(view)}
+                <div class="group-list-region">
+                    ${view.state === 'filtered-empty' ? this.renderFilterEmptyState() : html`
+                        <ul class="group-list">
+                            ${view.groups.map((group) => this.renderGroup(group, { selectable: selecting }))}
+                        </ul>
+                    `}
+                </div>
+                ${selecting ? this.renderSelectionActions() : this.renderBrowseActions()}
+            </div>
         `;
     }
 

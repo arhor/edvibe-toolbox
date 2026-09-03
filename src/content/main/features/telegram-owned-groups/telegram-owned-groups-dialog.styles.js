@@ -79,10 +79,31 @@ export const telegramOwnedGroupsDialogStyles = css`
         min-height: 140px;
     }
 
+    .group-browser {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 12px;
+        min-height: 220px;
+    }
+
     .toolbar {
         display: grid;
         gap: 8px;
-        margin-bottom: 12px;
+    }
+
+    .toolbar-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px;
+    }
+
+    .sort-button {
+        white-space: nowrap;
+    }
+
+    .group-list-region {
+        min-height: 0;
     }
 
     .group-list,
@@ -172,7 +193,17 @@ export const telegramOwnedGroupsDialogStyles = css`
 
     .group-actions,
     .selection-actions {
-        margin-top: 14px;
+        margin-top: 0;
+        padding-top: 14px;
+        border-top: 1px solid var(--toolfox-border-subtle);
+    }
+
+    .group-actions {
+        justify-content: flex-end;
+    }
+
+    .selection-actions {
+        justify-content: space-between;
     }
 
     .operation-panel {
@@ -246,6 +277,14 @@ export const telegramOwnedGroupsDialogStyles = css`
 
         .content {
             max-height: none;
+        }
+
+        .toolbar-controls {
+            grid-template-columns: 1fr;
+        }
+
+        .sort-button {
+            width: 100%;
         }
     }
 `;

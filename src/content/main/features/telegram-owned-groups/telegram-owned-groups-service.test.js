@@ -8,6 +8,7 @@ import {
     loadOwnedTelegramGroups,
     normalizeOwnedGroup,
     sortOwnedTelegramGroups,
+    TELEGRAM_GROUP_SORT_ORDERS,
     toggleOwnedGroupSelection
 } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups-service.js';
 
@@ -98,6 +99,34 @@ describe('owned Telegram group list presentation', () => {
         assert.deepEqual(source.map(({ peerId }) => peerId), [-10, -30, -20]);
     });
 
+    test('should sort oldest activity first while keeping missing activity last', () => {
+        const source = Object.freeze([
+            Object.freeze({
+                lastActivityAt: '2026-09-03T08:00:00.000Z',
+                peerId: -20,
+                title: 'Newest'
+            }),
+            Object.freeze({
+                lastActivityAt: null,
+                peerId: -30,
+                title: 'No activity'
+            }),
+            Object.freeze({
+                lastActivityAt: '2026-09-01T08:00:00.000Z',
+                peerId: -10,
+                title: 'Oldest'
+            })
+        ]);
+
+        const sorted = sortOwnedTelegramGroups(
+            source,
+            TELEGRAM_GROUP_SORT_ORDERS.OLDEST_FIRST
+        );
+
+        assert.deepEqual(sorted.map(({ peerId }) => peerId), [-10, -20, -30]);
+        assert.deepEqual(source.map(({ peerId }) => peerId), [-20, -30, -10]);
+    });
+
     test('should use deterministic title and peer-id fallbacks for equal or missing activity', () => {
         const equalActivity = '2026-09-03T08:00:00.000Z';
         const groups = [
@@ -128,6 +157,23 @@ describe('owned Telegram group list presentation', () => {
         assert.deepEqual(filtered.map(({ peerId }) => peerId), [-1, -3]);
         assert.deepEqual(restored.map(({ peerId }) => peerId), [-1, -2, -3]);
         assert.equal(groups.length, 3);
+    });
+
+    test('should apply the requested sort order to the filtered local view', () => {
+        const groups = [
+            { lastActivityAt: '2026-09-03T08:00:00.000Z', peerId: -1, title: 'Alpha newer' },
+            { lastActivityAt: '2026-09-01T08:00:00.000Z', peerId: -2, title: 'Alpha older' },
+            { lastActivityAt: '2026-08-01T08:00:00.000Z', peerId: -3, title: 'Beta' }
+        ];
+
+        const view = createOwnedTelegramGroupsView(
+            groups,
+            'alpha',
+            TELEGRAM_GROUP_SORT_ORDERS.OLDEST_FIRST
+        );
+
+        assert.deepEqual(view.groups.map(({ peerId }) => peerId), [-2, -1]);
+        assert.deepEqual(groups.map(({ peerId }) => peerId), [-1, -2, -3]);
     });
 
     test('should distinguish an empty filter result from an account with no owned groups', () => {
