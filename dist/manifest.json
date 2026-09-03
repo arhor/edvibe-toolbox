@@ -30,6 +30,26 @@
       ],
       "run_at": "document_start",
       "world": "MAIN"
+    },
+    {
+      "js": [
+        "src/content/isolated/index.js"
+      ],
+      "matches": [
+        "https://web.telegram.org/k/*"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    },
+    {
+      "js": [
+        "src/content/main/telegram-web-k.js"
+      ],
+      "matches": [
+        "https://web.telegram.org/k/*"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ]
 }
