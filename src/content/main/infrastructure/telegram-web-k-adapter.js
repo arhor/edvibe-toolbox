@@ -109,9 +109,22 @@ function normalizePeerType(peer) {
     return 'unknown';
 }
 
+function isActiveGroupPeer(peer, type) {
+    if (type !== 'group' && type !== 'supergroup') {
+        return false;
+    }
+
+    const flags = peer?.pFlags || {};
+    if (flags.left || flags.deactivated) {
+        return false;
+    }
+    return !(type === 'group' && peer?.migrated_to);
+}
+
 export function normalizeTelegramPeer(peerId, peer) {
     if (!isRecord(peer)) {
         return Object.freeze({
+            isActive: false,
             isBroadcast: false,
             isCreator: false,
             isGroup: false,
@@ -123,6 +136,7 @@ export function normalizeTelegramPeer(peerId, peer) {
 
     const type = normalizePeerType(peer);
     return Object.freeze({
+        isActive: isActiveGroupPeer(peer, type),
         isBroadcast: type === 'channel' && Boolean(peer.pFlags?.broadcast),
         isCreator: Boolean(peer.pFlags?.creator),
         isGroup: type === 'group' || type === 'supergroup',
@@ -145,6 +159,7 @@ export function normalizeTelegramGroupCandidate({
     return Object.freeze({
         canSendText: typeof canSendText === 'boolean' ? canSendText : null,
         groupType: peer.type,
+        isActive: Boolean(peer.isActive),
         isCreator: peer.isCreator,
         lastActivityAt,
         peerId: peer.peerId,
@@ -336,6 +351,9 @@ export class TelegramWebKAdapter {
         const peer = await this.resolvePeer(dialog.peerId);
         if (!peer.isGroup) {
             return null;
+        }
+        if (!peer.isActive || !peer.isCreator) {
+            return normalizeTelegramGroupCandidate({ dialog, peer });
         }
 
         const [lastActivityAt, canSendText] = await Promise.all([

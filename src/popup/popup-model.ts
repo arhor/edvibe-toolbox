@@ -2,7 +2,7 @@ import { POPUP_COMMANDS } from '#src/shared/messaging/index.js';
 
 import type { PopupCommand } from '#src/shared/messaging/model.js';
 
-type ToolRequirement = 'edvibe' | 'marathon';
+type ToolRequirement = 'edvibe' | 'marathon' | 'telegram';
 type ToolAppearance = 'danger';
 
 interface ToolDefinition {
@@ -27,7 +27,8 @@ type PageContext =
     | { readonly type: 'unavailable' }
     | { readonly type: 'unsupported'; readonly tabId: number }
     | { readonly type: 'edvibe'; readonly tabId: number }
-    | { readonly type: 'marathon'; readonly marathonId: string; readonly tabId: number };
+    | { readonly type: 'marathon'; readonly marathonId: string; readonly tabId: number }
+    | { readonly type: 'telegram-web-k'; readonly tabId: number };
 
 interface PageContextContent {
     readonly title: string;
@@ -160,6 +161,21 @@ const TOOL_GROUPS = defineToolGroups([
         ]
     },
     {
+        id: 'telegram',
+        title: 'Telegram',
+        tools: [
+            {
+                id: 'telegram-owned-groups',
+                title: 'Мои группы',
+                description: 'Показать группы, созданные текущим Telegram-аккаунтом.',
+                command: POPUP_COMMANDS.OPEN_TELEGRAM_GROUP_BROWSER,
+                requirement: 'telegram',
+                busyLabel: 'Открывается…',
+                closeOnSuccess: true
+            }
+        ]
+    },
+    {
         id: 'development',
         title: 'Разработка',
         tools: [
@@ -176,10 +192,11 @@ const TOOL_GROUPS = defineToolGroups([
     }
 ]);
 
-const PAGE_CONTEXT_CONTENT: Readonly<Record<'loading' | 'edvibe' | 'unsupported' | 'unavailable', PageContextContent>> = Object.freeze({
+const PAGE_CONTEXT_CONTENT: Readonly<Record<'loading' | 'edvibe' | 'telegram-web-k' | 'unsupported' | 'unavailable', PageContextContent>> = Object.freeze({
     loading: Object.freeze({ title: 'Проверяем страницу…', description: 'Определяем доступные инструменты' }),
     edvibe: Object.freeze({ title: 'Страница Edvibe', description: 'Откройте страницу марафона для работы с инструментами' }),
-    unsupported: Object.freeze({ title: 'Не страница Edvibe', description: 'Toolbox работает на страницах edvibe.com' }),
+    'telegram-web-k': Object.freeze({ title: 'Telegram Web K', description: 'Инструменты Telegram доступны для текущего аккаунта' }),
+    unsupported: Object.freeze({ title: 'Неподдерживаемая страница', description: 'Toolfox работает на Edvibe и Telegram Web K' }),
     unavailable: Object.freeze({ title: 'Страница недоступна', description: 'Не удалось определить активную вкладку' })
 });
 
@@ -193,6 +210,10 @@ function resolvePageContext(tab: Pick<chrome.tabs.Tab, 'id' | 'url'> | null | un
         url = new URL(tab.url);
     } catch (_) {
         return { type: 'unsupported', tabId: tab.id };
+    }
+
+    if (url.hostname === 'web.telegram.org' && (url.pathname === '/k' || url.pathname.startsWith('/k/'))) {
+        return { type: 'telegram-web-k', tabId: tab.id };
     }
 
     const isEdvibe = url.hostname === 'edvibe.com' || url.hostname.endsWith('.edvibe.com');
@@ -215,6 +236,7 @@ function getPageContextContent(pageContext: PageContext | null | undefined): Pag
     }
     return pageContext?.type === 'loading'
         || pageContext?.type === 'edvibe'
+        || pageContext?.type === 'telegram-web-k'
         || pageContext?.type === 'unsupported'
         || pageContext?.type === 'unavailable'
         ? PAGE_CONTEXT_CONTENT[pageContext.type]
@@ -226,11 +248,15 @@ function getUnavailableReason(tool: ToolDefinition, pageContext: PageContext): s
         return pageContext.type === 'edvibe' || pageContext.type === 'marathon'
             ? ''
             : 'Откройте страницу Edvibe.';
-    } else {
-        return tool.requirement !== 'marathon' || pageContext.type === 'marathon'
+    }
+    if (tool.requirement === 'marathon') {
+        return pageContext.type === 'marathon'
             ? ''
             : 'Откройте страницу марафона.';
     }
+    return pageContext.type === 'telegram-web-k'
+        ? ''
+        : 'Откройте Telegram Web K.';
 }
 
 function getToolDefinition(toolId: string): ToolDefinition | undefined {
