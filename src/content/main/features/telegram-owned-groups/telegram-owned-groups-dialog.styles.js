@@ -200,7 +200,7 @@ export const telegramOwnedGroupsDialogStyles = css`
     }
 
     .group-actions {
-        order: -1;
+        order: -2;
         justify-content: space-between;
         gap: 10px;
         margin: 0;
@@ -212,6 +212,19 @@ export const telegramOwnedGroupsDialogStyles = css`
         display: grid;
         gap: 10px;
         margin-top: 0;
+        padding-top: 14px;
+        border-top: 1px solid var(--toolfox-border-subtle);
+    }
+
+    .send-selection-actions {
+        display: contents;
+    }
+
+    .send-selection-actions .message-composer {
+        order: -1;
+    }
+
+    .send-selection-actions .selection-note {
         padding-top: 14px;
         border-top: 1px solid var(--toolfox-border-subtle);
     }
