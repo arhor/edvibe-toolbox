@@ -1,4 +1,5 @@
 import { FeatureDispatcher } from '#src/content/main/feature-dispatcher.js';
+import { telegramOwnedGroupsFeatureDefinition } from '#src/content/main/features/telegram-owned-groups/telegram-owned-groups.js';
 import { detectMainPlatform, MainPlatform } from '#src/content/main/platform.js';
 import { TelegramMainContext } from '#src/content/main/telegram-main-context.js';
 import { Logger } from '#src/shared/logger.js';
@@ -13,7 +14,7 @@ if (platform === MainPlatform.TELEGRAM_WEB_K) {
             location: window.location,
             logger
         }),
-        features: []
+        features: [telegramOwnedGroupsFeatureDefinition]
     });
 
     window.addEventListener('message', ({ source, data }) => {
