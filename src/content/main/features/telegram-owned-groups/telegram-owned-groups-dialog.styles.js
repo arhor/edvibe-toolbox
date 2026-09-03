@@ -116,6 +116,7 @@ export const telegramOwnedGroupsDialogStyles = css`
     }
 
     .group-card {
+        position: relative;
         display: flex;
         align-items: flex-start;
         gap: 12px;
@@ -135,20 +136,27 @@ export const telegramOwnedGroupsDialogStyles = css`
     }
 
     .selection-control {
-        display: grid;
-        place-items: center;
-        flex: 0 0 auto;
-        min-width: 24px;
-        min-height: 24px;
+        position: absolute;
+        inset: 0;
+        display: block;
+        min-width: 0;
+        min-height: 0;
         cursor: pointer;
     }
 
     .selection-control input {
+        position: absolute;
+        top: 14px;
+        left: 16px;
         width: 18px;
         height: 18px;
         margin: 0;
         accent-color: var(--toolfox-primary);
         cursor: pointer;
+    }
+
+    .selection-control + .group-body {
+        padding-left: 30px;
     }
 
     .selection-control.is-disabled,
