@@ -131,6 +131,10 @@ export const telegramOwnedGroupsDialogStyles = css`
         background: var(--toolfox-primary-surface, var(--toolfox-surface-subtle));
     }
 
+    .group-card.is-unavailable {
+        opacity: .68;
+    }
+
     .selection-control {
         display: grid;
         place-items: center;
@@ -146,6 +150,11 @@ export const telegramOwnedGroupsDialogStyles = css`
         margin: 0;
         accent-color: var(--toolfox-primary);
         cursor: pointer;
+    }
+
+    .selection-control.is-disabled,
+    .selection-control.is-disabled input {
+        cursor: not-allowed;
     }
 
     .group-body {
@@ -199,11 +208,37 @@ export const telegramOwnedGroupsDialogStyles = css`
     }
 
     .group-actions {
-        justify-content: flex-end;
+        justify-content: space-between;
+        gap: 10px;
     }
 
     .selection-actions {
+        display: grid;
+        gap: 10px;
+    }
+
+    .selection-action-buttons {
+        display: flex;
         justify-content: space-between;
+        gap: 10px;
+    }
+
+    .message-composer {
+        display: grid;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .message-composer textarea {
+        min-height: 104px;
+        resize: vertical;
+    }
+
+    .selection-note {
+        margin: 0;
+        color: var(--toolfox-text-muted);
+        font-size: 11px;
+        line-height: 1.4;
     }
 
     .operation-panel {
@@ -245,7 +280,27 @@ export const telegramOwnedGroupsDialogStyles = css`
         font-weight: 700;
     }
 
-    .result-deleted {
+    .message-review-section {
+        display: grid;
+        gap: 7px;
+    }
+
+    .message-review {
+        margin: 0;
+        padding: 12px 14px;
+        overflow: auto;
+        border: 1px solid var(--toolfox-border-subtle);
+        border-radius: var(--toolfox-radius-control);
+        background: var(--toolfox-surface-subtle);
+        color: var(--toolfox-text);
+        font: inherit;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+    }
+
+    .result-deleted,
+    .result-sent {
         border-color: var(--toolfox-success-border);
     }
 
@@ -257,7 +312,8 @@ export const telegramOwnedGroupsDialogStyles = css`
         border-color: var(--toolfox-warning-border);
     }
 
-    .result-deleting {
+    .result-deleting,
+    .result-sending {
         border-color: var(--toolfox-primary);
     }
 
@@ -285,6 +341,12 @@ export const telegramOwnedGroupsDialogStyles = css`
 
         .sort-button {
             width: 100%;
+        }
+
+        .group-actions,
+        .selection-action-buttons {
+            align-items: stretch;
+            flex-direction: column;
         }
     }
 `;
