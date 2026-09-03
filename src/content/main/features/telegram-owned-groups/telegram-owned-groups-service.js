@@ -71,6 +71,36 @@ function filterOwnedTelegramGroups(groups, query = '') {
         .includes(normalizedQuery)));
 }
 
+function normalizeSelectedPeerIds(selectedPeerIds) {
+    return new Set(Array.from(selectedPeerIds || [])
+        .map((peerId) => Number(peerId))
+        .filter(Number.isFinite));
+}
+
+function toggleOwnedGroupSelection(selectedPeerIds, peerId, selected) {
+    const normalizedPeerId = Number(peerId);
+    const next = normalizeSelectedPeerIds(selectedPeerIds);
+    if (!Number.isFinite(normalizedPeerId)) {
+        return Object.freeze([...next]);
+    }
+
+    const shouldSelect = typeof selected === 'boolean'
+        ? selected
+        : !next.has(normalizedPeerId);
+    if (shouldSelect) {
+        next.add(normalizedPeerId);
+    } else {
+        next.delete(normalizedPeerId);
+    }
+    return Object.freeze([...next]);
+}
+
+function getSelectedOwnedGroups(groups, selectedPeerIds) {
+    const selected = normalizeSelectedPeerIds(selectedPeerIds);
+    return Object.freeze(Array.from(groups || [])
+        .filter(({ peerId }) => selected.has(Number(peerId))));
+}
+
 function createOwnedTelegramGroupsView(groups, query = '') {
     const source = Array.from(groups || []);
     if (source.length === 0) {
@@ -143,7 +173,9 @@ export {
     compareOwnedTelegramGroups,
     createOwnedTelegramGroupsView,
     filterOwnedTelegramGroups,
+    getSelectedOwnedGroups,
     loadOwnedTelegramGroups,
     normalizeOwnedGroup,
-    sortOwnedTelegramGroups
+    sortOwnedTelegramGroups,
+    toggleOwnedGroupSelection
 };
