@@ -17,6 +17,7 @@ Reviewed against the current Telegram Web K source on 2026-09-03 (`morethanwords
 - `createProxiedManagersForAccount(accountNumber)` is mounted on the page global object by `src/lib/getProxiedManagers.ts`.
 - The active account number is derived from the `account` URL query parameter. Valid account numbers are `1` through `4`; absent or invalid values resolve to account `1`.
 - `dialogsStorage.getDialogs({ offsetIndex, limit })` returns a page containing `dialogs`; each normal dialog exposes `peerId` and `top_message` used by the adapter.
+- `offsetIndex` is a dialog-index cursor, not a positional array offset. Current Web K results expose `isEnd`; when more pages remain, Web K advances the cursor to the lowest dialog index in the returned page. The adapter derives that value through `dialogsStorage.getDialogIndex(dialog)`, whose default index key follows each dialog's folder.
 - `appPeersManager.getPeer(peerId)` resolves the current peer object.
 - Telegram group shapes used by Toolfox are:
   - basic group: peer `_ === 'chat'`;
