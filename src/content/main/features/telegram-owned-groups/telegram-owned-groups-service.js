@@ -15,7 +15,6 @@ function normalizeOwnedGroup(candidate) {
         !candidate
         || !candidate.isActive
         || !candidate.isCreator
-        || candidate.canSendText === false
         || !GROUP_TYPES.has(candidate.groupType)
         || !Number.isFinite(Number(candidate.peerId))
     ) {
