@@ -47,6 +47,20 @@ describe('Telegram owned-group send interaction', () => {
         assert.equal(dialog.filterQuery, 'beta');
     });
 
+    test('should keep primary group actions rendered but disabled during selection', () => {
+        const dialog = new TelegramOwnedGroupsDialog();
+        dialog.groups = [group(-10, 'Alpha')];
+        dialog.startSelection('send');
+
+        const groupList = dialog.renderGroupList();
+        const actions = groupList.values[0];
+
+        assert.match(templateText(actions), /Отправить сообщение/);
+        assert.match(templateText(actions), /Удалить группы/);
+        assert.equal(actions.values[0], true);
+        assert.equal(actions.values[2], true);
+    });
+
     test('should require both selected groups and non-whitespace text before review', () => {
         const dialog = new TelegramOwnedGroupsDialog();
         dialog.groups = [group(-10, 'Alpha')];
